@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accueil Principal - PiDev</title>
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <script src="{{ asset('frontend/js/smart-translate.js') }}"></script>
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="{{ asset('frontend/css/main-home.css') }}" as="style">
+    <link rel="preload" href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" as="style">
+    
+    <!-- DNS prefetch for external resources -->
+    <link rel="dns-prefetch" href="https://demos.themeselection.com">
+    
+    <!-- CSS Dependencies -->
+    <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+</head>
+</head>
+<body>
+<!-- Page Loader -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        if (window.SmartTranslate) {
+            let lang = localStorage.getItem('lang') || 'en';
+            SmartTranslate.init(lang);
+        }
+    }, 200);
+});
+</script>
+<div class="page-loader" id="pageLoader">
+    <div class="loader-content">
+        <div class="loader-spinner">
+            <span class="dot"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Layout Wrapper -->
+<div class="main-home-layout-wrapper">
+    <!-- Layout Container -->
+    <div class="main-home-page">
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'home'} %}
+
+        <!-- Content Wrapper -->
+        <div class="main-home-content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+
+                <!-- Beautiful Landing Page -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="main-home-landing-section">
+                            <!-- Hero Section -->
+                            <div class="main-home-hero row align-items-center mb-5" style="min-height:320px;">
+                                <div class="col-md-6 d-flex flex-column justify-content-center align-items-start">
+                                    <h1 class="main-home-hero-title">Welcome to Syndicati</h1>
+                                    <p class="main-home-hero-subtitle">Syndicati is your modern platform for community management, collaboration, and innovation. Join us to experience a new era of digital living and seamless communication.</p>
+                                </div>
+                                <div class="col-md-6 d-flex justify-content-center align-items-center">
+                                    <img src="{{ asset('images/home/home.png') }}" alt="Home" class="img-fluid fade-in-right" style="max-width:80%; border-radius:18px; box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+                                </div>
+                            </div>
+                            <style>
+                            @keyframes fadeInRight {
+                                from { opacity: 0; transform: translateX(60px); }
+                                to { opacity: 1; transform: translateX(0); }
+                            }
+                            .fade-in-right {
+                                animation: fadeInRight 1.2s cubic-bezier(.4,0,.2,1) both;
+                            }
+                            </style>
+
+                            <!-- Hero Image Background at Top of Page -->
+                            <div class="main-home-hero-bg-fixed" style="position:absolute; top:0; left:0; width:100vw; height:1200px; z-index:0; overflow:hidden; pointer-events:none; background:transparent;">
+                                <img src="{{ asset('images/home/home.png') }}" alt="Home" style="width:100vw; height:1200px; object-fit:cover; object-position:center top; display:block;">
+                                <div style="position:absolute; left:0; bottom:0; width:100%; height:80px; pointer-events:none; background:linear-gradient(to bottom,rgba(0,0,0,0) 0%,rgba(0,0,0,0.12) 60%,rgba(0,0,0,0.22) 100%); box-shadow:0 32px 64px 0 rgba(0,0,0,0.18);"></div>
+                            </div>
+
+                            <!-- Features Grid -->
+                            <div class="main-home-features-grid">
+                                <div class="main-home-feature-card">
+                                    <div class="main-home-feature-icon">🎨</div>
+                                    <h4>Beautiful Design</h4>
+                                    <p>Stunning liquid glass aesthetics that captivate and inspire</p>
+                                </div>
+                                <div class="main-home-feature-card">
+                                    <div class="main-home-feature-icon">⚡</div>
+                                    <h4>Lightning Fast</h4>
+                                    <p>Optimized performance that delivers results in milliseconds</p>
+                                </div>
+                                <div class="main-home-feature-card">
+                                    <div class="main-home-feature-icon">🔒</div>
+                                    <h4>Secure & Reliable</h4>
+                                    <p>Enterprise-grade security with 99.9% uptime guarantee</p>
+                                </div>
+                                <div class="main-home-feature-card">
+                                    <div class="main-home-feature-icon">🌍</div>
+                                    <h4>Global Scale</h4>
+                                    <p>Built to serve millions of users worldwide</p>
+                                </div>
+                                <div class="main-home-feature-card">
+                                    <div class="main-home-feature-icon">🛠️</div>
+                                    <h4>Easy Integration</h4>
+                                    <p>Seamless integration with your existing workflow</p>
+                                </div>
+                                <div class="main-home-feature-card">
+                                    <div class="main-home-feature-icon">📱</div>
+                                    <h4>Mobile First</h4>
+                                    <p>Perfect experience across all devices and platforms</p>
+                                </div>
+                            </div>
+
+                            <!-- Stats Section -->
+                            <div class="main-home-stats-section">
+                                <div class="main-home-stat-item">
+                                    <div class="main-home-stat-number">10K+</div>
+                                    <div class="main-home-stat-label">Happy Users</div>
+                                </div>
+                                <div class="main-home-stat-item">
+                                    <div class="main-home-stat-number">99.9%</div>
+                                    <div class="main-home-stat-label">Uptime</div>
+                                </div>
+                                <div class="main-home-stat-item">
+                                    <div class="main-home-stat-number">24/7</div>
+                                    <div class="main-home-stat-label">Support</div>
+                                </div>
+                                <div class="main-home-stat-item">
+                                    <div class="main-home-stat-number">50+</div>
+                                    <div class="main-home-stat-label">Countries</div>
+                                </div>
+                            </div>
+
+                            <!-- Testimonials Section -->
+                            <div class="main-home-testimonials-section">
+                                <h3 class="main-home-section-title">What Our Users Say</h3>
+                                <div class="main-home-testimonials-grid">
+                                    <div class="main-home-testimonial-card">
+                                        <div class="main-home-testimonial-content">
+                                            <p>"This platform has completely transformed how we work. The liquid glass design is absolutely stunning!"</p>
+                                        </div>
+                                        <div class="main-home-testimonial-author">
+                                            <div class="main-home-author-avatar">👨‍💼</div>
+                                            <div class="main-home-author-info">
+                                                <h4>Alex Johnson</h4>
+                                                <span>CEO, TechCorp</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="main-home-testimonial-card">
+                                        <div class="main-home-testimonial-content">
+                                            <p>"The performance is incredible. Lightning fast and reliable. Highly recommended!"</p>
+                                        </div>
+                                        <div class="main-home-testimonial-author">
+                                            <div class="main-home-author-avatar">👩‍💻</div>
+                                            <div class="main-home-author-info">
+                                                <h4>Sarah Chen</h4>
+                                                <span>Lead Developer</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="main-home-testimonial-card">
+                                        <div class="main-home-testimonial-content">
+                                            <p>"Beautiful design meets powerful functionality. This is the future of web applications."</p>
+                                        </div>
+                                        <div class="main-home-testimonial-author">
+                                            <div class="main-home-author-avatar">👨‍🎨</div>
+                                            <div class="main-home-author-info">
+                                                <h4>Mike Rodriguez</h4>
+                                                <span>Design Director</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pricing Section -->
+                            <div class="main-home-pricing-section">
+                                <h3 class="main-home-section-title">Choose Your Plan</h3>
+                                <div class="main-home-pricing-grid">
+                                    <div class="main-home-pricing-card">
+                                        <div class="main-home-pricing-header">
+                                            <h4>Starter</h4>
+                                            <div class="main-home-pricing-price">
+                                                <span class="main-home-price-currency">$</span>
+                                                <span class="main-home-price-amount">29</span>
+                                                <span class="main-home-price-period">/month</span>
+                                            </div>
+                                        </div>
+                                        <div class="main-home-pricing-features">
+                                            <div class="main-home-feature-item">✅ Up to 5 projects</div>
+                                            <div class="main-home-feature-item">✅ 10GB storage</div>
+                                            <div class="main-home-feature-item">✅ Email support</div>
+                                            <div class="main-home-feature-item">✅ Basic analytics</div>
+                                        </div>
+                                        <button class="main-home-pricing-btn">Get Started</button>
+                                    </div>
+                                    <div class="main-home-pricing-card main-home-pricing-featured">
+                                        <div class="main-home-pricing-badge">Most Popular</div>
+                                        <div class="main-home-pricing-header">
+                                            <h4>Professional</h4>
+                                            <div class="main-home-pricing-price">
+                                                <span class="main-home-price-currency">$</span>
+                                                <span class="main-home-price-amount">79</span>
+                                                <span class="main-home-price-period">/month</span>
+                                            </div>
+                                        </div>
+                                        <div class="main-home-pricing-features">
+                                            <div class="main-home-feature-item">✅ Unlimited projects</div>
+                                            <div class="main-home-feature-item">✅ 100GB storage</div>
+                                            <div class="main-home-feature-item">✅ Priority support</div>
+                                            <div class="main-home-feature-item">✅ Advanced analytics</div>
+                                            <div class="main-home-feature-item">✅ API access</div>
+                                        </div>
+                                        <button class="main-home-pricing-btn main-home-pricing-btn-primary">Get Started</button>
+                                    </div>
+                                    <div class="main-home-pricing-card">
+                                        <div class="main-home-pricing-header">
+                                            <h4>Enterprise</h4>
+                                            <div class="main-home-pricing-price">
+                                                <span class="main-home-price-currency">$</span>
+                                                <span class="main-home-price-amount">199</span>
+                                                <span class="main-home-price-period">/month</span>
+                                            </div>
+                                        </div>
+                                        <div class="main-home-pricing-features">
+                                            <div class="main-home-feature-item">✅ Everything in Pro</div>
+                                            <div class="main-home-feature-item">✅ Unlimited storage</div>
+                                            <div class="main-home-feature-item">✅ 24/7 phone support</div>
+                                            <div class="main-home-feature-item">✅ Custom integrations</div>
+                                            <div class="main-home-feature-item">✅ Dedicated manager</div>
+                                        </div>
+                                        <button class="main-home-pricing-btn">Contact Sales</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ Section -->
+                            <div class="main-home-faq-section">
+                                <h3 class="main-home-section-title">Frequently Asked Questions</h3>
+                                <div class="main-home-faq-grid">
+                                    <div class="main-home-faq-item">
+                                        <div class="main-home-faq-question">
+                                            <h4>How does the liquid glass design work?</h4>
+                                            <span class="main-home-faq-icon">+</span>
+                                        </div>
+                                        <div class="main-home-faq-answer">
+                                            <p>Our liquid glass design uses advanced CSS techniques including backdrop-filter, gradient overlays, and smooth animations to create a stunning visual experience.</p>
+                                        </div>
+                                    </div>
+                                    <div class="main-home-faq-item">
+                                        <div class="main-home-faq-question">
+                                            <h4>Is there a free trial available?</h4>
+                                            <span class="main-home-faq-icon">+</span>
+                                        </div>
+                                        <div class="main-home-faq-answer">
+                                            <p>Yes! We offer a 14-day free trial for all our plans. No credit card required to get started.</p>
+                                        </div>
+                                    </div>
+                                    <div class="main-home-faq-item">
+                                        <div class="main-home-faq-question">
+                                            <h4>Can I cancel anytime?</h4>
+                                            <span class="main-home-faq-icon">+</span>
+                                        </div>
+                                        <div class="main-home-faq-answer">
+                                            <p>Absolutely! You can cancel your subscription at any time with no cancellation fees or penalties.</p>
+                                        </div>
+                                    </div>
+                                    <div class="main-home-faq-item">
+                                        <div class="main-home-faq-question">
+                                            <h4>Do you offer custom solutions?</h4>
+                                            <span class="main-home-faq-icon">+</span>
+                                        </div>
+                                        <div class="main-home-faq-answer">
+                                            <p>Yes! Our Enterprise plan includes custom integrations and dedicated support to meet your specific needs.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CTA Section -->
+                            <div class="main-home-cta-section">
+                                <div class="main-home-cta-content">
+                                    <h2>Ready to Get Started?</h2>
+                                    <p>Join thousands of users who are already experiencing the future of web applications.</p>
+                                    <div class="main-home-cta-buttons">
+                                        <button class="main-home-btn main-home-btn-primary">Start Free Trial</button>
+                                        <button class="main-home-btn main-home-btn-secondary">Schedule Demo</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Dynamic Island -->
+            <footer class="main-home-footer-island">
+                <div class="main-home-footer-content">
+                    <!-- Left Side - Made with Love -->
+                    <div class="main-home-footer-left">
+                        <div class="main-home-made-with-love">
+                            <span class="main-home-copyright-text">
+                                © <script>document.write(new Date().getFullYear());</script>
+                            </span>
+                            <span class="main-home-love-text">
+                                Made with <span class="main-home-heart">❤️</span> by
+                                <span class="main-home-author-name">Mohamed Amine Essaidi</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right Side - Quick Links -->
+                    <div class="main-home-footer-right">
+                        <div class="main-home-footer-links">
+                            <a href="#" class="main-home-footer-link" title="Documentation">
+                                <span class="main-home-link-icon">📚</span>
+                                <span class="main-home-link-text">Docs</span>
+                            </a>
+                            <a href="#" class="main-home-footer-link" title="Support">
+                                <span class="main-home-link-icon">💬</span>
+                                <span class="main-home-link-text">Support</span>
+                            </a>
+                            <a href="#" class="main-home-footer-link" title="GitHub">
+                                <span class="main-home-link-icon">🐙</span>
+                                <span class="main-home-link-text">GitHub</span>
+                            </a>
+                            <a href="#" class="main-home-footer-link" title="License">
+                                <span class="main-home-link-icon">📄</span>
+                                <span class="main-home-link-text">License</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript Dependencies - defer for non-blocking load -->
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}" defer></script>
+<script src="{{ asset('frontend/js/main-home.js') }}" defer></script>
+<script src="{{ asset('js/page-loader.js') }}"></script>
+<script>
+// Main Home specific JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize theme toggle (override external JS version)
+    initMainHomeThemeToggle();
+    
+    // Initialize heart animation
+    setupHeartAnimation();
+    
+    // Initialize interactive elements
+    initInteractiveElements();
+    
+    // Initialize animations
+    initAnimations();
+    
+    // Initialize tab dropdowns
+    initTabDropdowns();
+});
+
+function initMainHomeThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    html.setAttribute('data-theme', savedTheme);
+    
+    if (themeToggle) {
+        // Remove any existing listeners by cloning
+        const newToggle = themeToggle.cloneNode(true);
+        themeToggle.parentNode.replaceChild(newToggle, themeToggle);
+        
+        newToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            console.log('Theme changed to:', newTheme);
+        });
+        
+        console.log('Theme toggle initialized successfully');
+    } else {
+        console.error('Theme toggle element not found');
+    }
+}
+
+function setupHeartAnimation() {
+    // Heart animation is handled by CSS
+    console.log('Heart animation initialized');
+}
+
+function initInteractiveElements() {
+    // Search functionality is handled by the header search
+    console.log('Interactive elements initialized');
+}
+
+function initAnimations() {
+    // Add entrance animations to welcome cards
+    const welcomeCards = document.querySelectorAll('.main-home-welcome-card');
+    welcomeCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate-in');
+    });
+}
+
+// Tab dropdown functionality
+function initTabDropdowns() {
+    const navTabs = document.querySelectorAll('.main-home-nav-tab');
+    let hoverTimeout;
+    let isHovering = false;
+    
+    function closeAllDropdowns() {
+        navTabs.forEach(tab => {
+            const dropdown = tab.querySelector('.main-home-tab-dropdown');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+    
+    navTabs.forEach(tab => {
+        const dropdown = tab.querySelector('.main-home-tab-dropdown');
+        const tabText = tab.querySelector('.main-home-tab-text');
+        const homeLink = tabText.querySelector('a');
+        
+        // Handle Home tab (has link, no dropdown)
+        if (homeLink) {
+            // Home tab should behave like other tabs but navigate on click
+            tabText.addEventListener('click', function(e) {
+                // Let the link handle navigation naturally
+                // No preventDefault needed
+            });
+            
+            // No hover dropdown functionality for Home tab
+            return;
+        }
+        
+        // Only add dropdown functionality to tabs that have dropdowns
+        if (!dropdown) {
+            return;
+        }
+        
+        // Click to toggle dropdown
+        tabText.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const isOpen = dropdown.style.display === 'block';
+            closeAllDropdowns();
+            
+            if (!isOpen) {
+                dropdown.style.display = 'block';
+            }
+        });
+        
+        // Hover to show dropdown - more reliable
+        tab.addEventListener('mouseenter', function() {
+            clearTimeout(hoverTimeout);
+            isHovering = true;
+            closeAllDropdowns();
+            dropdown.style.display = 'block';
+        });
+        
+        // Hover to hide dropdown with delay
+        tab.addEventListener('mouseleave', function() {
+            isHovering = false;
+            hoverTimeout = setTimeout(() => {
+                if (!isHovering) {
+                    dropdown.style.display = 'none';
+                }
+            }, 300); // Increased delay for better UX
+        });
+        
+        // Keep dropdown open when hovering over it
+        dropdown.addEventListener('mouseenter', function() {
+            clearTimeout(hoverTimeout);
+            isHovering = true;
+        });
+        
+        dropdown.addEventListener('mouseleave', function() {
+            isHovering = false;
+            hoverTimeout = setTimeout(() => {
+                if (!isHovering) {
+                    dropdown.style.display = 'none';
+                }
+            }, 300);
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!tab.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    });
+}
+
+<!-- Scroll Down Pill -->
+<div class="scroll-down-pill-wrapper" id="scrollDownPill">
+    <button class="scroll-down-pill" id="scrollPillBtnDown" aria-label="Scroll down">
+        <span style="display:inline-block; font-size:2.1rem; line-height:1; vertical-align:middle;">&#8595;</span>
+    </button>
+    <button class="scroll-down-pill" id="scrollPillBtnUp" aria-label="Scroll up" style="display:none; margin-left:12px;">
+        <span style="display:inline-block; font-size:2.1rem; line-height:1; vertical-align:middle;">&#8593;</span>
+    </button>
+</div>
+<style>
+.scroll-down-pill-wrapper {
+    position: fixed;
+    left: 50%;
+    bottom: 36px;
+    transform: translateX(-50%);
+    z-index: 9999;
+    pointer-events: auto;
+    width: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: width 0.4s cubic-bezier(.4,0,.2,1);
+}
+.scroll-down-pill {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--scroll-pill-bg, #fff);
+    color: var(--scroll-pill-text, #222);
+    border-radius: 32px;
+    box-shadow: 0 2px 8px 0 rgba(90,90,214,0.10);
+    padding: 14px 22px;
+    font-size: 1.5rem;
+    font-family: var(--font-primary), 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-weight: 700;
+    opacity: 0.98;
+    pointer-events: auto;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s, opacity 0.3s, transform 0.2s cubic-bezier(.4,0,.2,1);
+    letter-spacing: 0.04em;
+    overflow: visible;
+}
+.scroll-down-pill.morph {
+    transform: scale(1.08) rotate(-3deg);
+    box-shadow: 0 8px 24px 0 rgba(90,90,214,0.18);
+}
+</style>
+<script>
+(function() {
+    var btnDown = document.getElementById('scrollPillBtnDown');
+    var btnUp = document.getElementById('scrollPillBtnUp');
+    var morphed = false;
+    var downClickTimeout = null;
+    var upClickTimeout = null;
+    var dblDelay = 300;
+
+    if (!btnDown || !btnUp) {
+        return;
+    }
+
+    function ensureSplitShown() {
+        if (!morphed) {
+            morphed = true;
+            // Show the up button immediately, make morph very quick
+            btnUp.style.display = 'flex';
+            btnDown.classList.add('morph');
+            setTimeout(function() {
+                btnDown.classList.remove('morph');
+            }, 120);
+        }
+    }
+
+    function scrollOneDown() {
+        window.scrollBy({
+            top: window.innerHeight,
+            left: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    function scrollToBottom() {
+        var doc = document.documentElement;
+        var body = document.body || { scrollHeight: 0 };
+        var scrollHeight = Math.max(doc.scrollHeight, body.scrollHeight);
+        var target = scrollHeight - window.innerHeight;
+        if (target < 0) target = 0;
+        window.scrollTo({
+            top: target,
+            left: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    function scrollOneUp() {
+        var target = window.scrollY - window.innerHeight;
+        if (target < 0) target = 0;
+        window.scrollTo({
+            top: target,
+            left: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    function resetIfAtTop() {
+        if (window.scrollY <= 0) {
+            // Back at the very top: only show down button
+            btnUp.style.display = 'none';
+            btnDown.style.display = 'flex';
+            morphed = false;
+        }
+    }
+
+    function resetIfAtBottom() {
+        var doc = document.documentElement;
+        var body = document.body || { scrollHeight: 0 };
+        var scrollHeight = Math.max(doc.scrollHeight, body.scrollHeight);
+
+        // Avoid conflicting with "top" logic on very small pages
+        if (window.scrollY <= 0) {
+            return;
+        }
+
+        if (window.innerHeight + window.scrollY >= scrollHeight - 2) {
+            // At or near bottom: hide down, keep up visible
+            btnDown.style.display = 'none';
+            btnUp.style.display = 'flex';
+        } else if (morphed) {
+            // In the middle of the page after split: keep both visible
+            btnDown.style.display = 'flex';
+            btnUp.style.display = 'flex';
+        }
+    }
+
+    // Down button: single-click = one viewport down, double-click = bottom
+    btnDown.addEventListener('click', function(e) {
+        e.preventDefault();
+        clearTimeout(downClickTimeout);
+        downClickTimeout = setTimeout(function() {
+            scrollOneDown();
+            ensureSplitShown();
+        }, dblDelay);
+    });
+
+    btnDown.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+        clearTimeout(downClickTimeout);
+        scrollToBottom();
+        ensureSplitShown();
+    });
+
+    // Up button: single-click = one viewport up, double-click = top
+    btnUp.addEventListener('click', function(e) {
+        e.preventDefault();
+        clearTimeout(upClickTimeout);
+        upClickTimeout = setTimeout(function() {
+            scrollOneUp();
+        }, dblDelay);
+    });
+
+    btnUp.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+        clearTimeout(upClickTimeout);
+        scrollToTop();
+    });
+
+    function handleScroll() {
+        resetIfAtTop();
+        resetIfAtBottom();
+    }
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+})();
+</script>
+</body>
+</html>

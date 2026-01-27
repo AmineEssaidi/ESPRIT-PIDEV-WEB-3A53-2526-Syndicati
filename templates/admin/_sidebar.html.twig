@@ -1,0 +1,111 @@
+<!-- Sidebar -->
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+    <!-- App Brand -->
+    <div class="app-brand demo">
+        <a href="{{ path('admin_dashboard') }}" class="app-brand-link">
+            <span class="app-brand-logo demo">
+                <svg width="25" viewBox="0 0 25 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13.7918 6.52326V41.5835H25V0H13.7918V6.52326Z" fill="#7367F0"/>
+                    <path d="M11.2082 0H0V35.0618H11.2082V0Z" fill="#7367F0"/>
+                </svg>
+            </span>
+            <span class="app-brand-text demo menu-text fw-bold ms-2">Syndicati Administration</span>
+        </a>
+
+        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+            <i class="bx bx-chevron-left bx-sm align-middle"></i>
+        </a>
+    </div>
+
+    <div class="menu-inner-shadow"></div>
+
+    <ul class="menu-inner py-1">
+        <!-- Dashboard -->
+        <li class="menu-item {{ app.request.get('_route') == 'admin_dashboard' ? 'active' : '' }}">
+            <a href="{{ path('admin_dashboard') }}" class="menu-link">
+                <div class="menu-content">
+                    <span class="menu-icon">🏠</span>
+                    <div data-i18n="Dashboard">Tableau de bord</div>
+                </div>
+            </a>
+        </li>
+
+        <!-- Super Dashboard -->
+        <li class="menu-item {{ app.request.get('_route') == 'admin_super_dashboard' ? 'active' : '' }}">
+            <a href="{{ path('admin_super_dashboard') }}" class="menu-link">
+                <div class="menu-content">
+                    <span class="menu-icon">⚡</span>
+                    <div data-i18n="Super Dashboard">Super Tableau de bord</div>
+                </div>
+            </a>
+        </li>
+
+        <!-- Main Home -->
+
+        <!-- Pages -->
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Syndicati Services</span>
+        </li>
+        <li class="menu-item {{ app.request.get('_route') == 'admin_users' ? 'active' : '' }}">
+            <a href="{{ path('admin_users') }}" class="menu-link">
+                <div class="menu-content">
+                    <span class="menu-icon">👥</span>
+                    <div data-i18n="Users">Users</div>
+                </div>
+                <div class="status-badge online">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Online</span>
+                </div>
+            </a>
+        </li>
+        <li class="menu-item {{ app.request.get('_route') == 'admin_forum' ? 'active' : '' }}">
+            <a href="{{ path('admin_forum') }}" class="menu-link">
+                <div class="menu-content">
+                    <span class="menu-icon">💬</span>
+                    <div data-i18n="Forum">Forum</div>
+                </div>
+                <div class="status-badge offline">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Offline</span>
+                </div>
+            </a>
+        </li>
+        <li class="menu-item {{ app.request.get('_route') == 'admin_syndicat' ? 'active' : '' }}">
+            <a href="{{ path('admin_syndicat') }}" class="menu-link">
+                <div class="menu-content">
+                    <span class="menu-icon">🏛️</span>
+                    <div data-i18n="Syndicat">Syndicat</div>
+                </div>
+                <div class="status-badge online">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Online</span>
+                </div>
+            </a>
+        </li>
+        <li class="menu-item {{ app.request.get('_route') == 'admin_residence' ? 'active' : '' }}">
+            <a href="{{ path('admin_residence') }}" class="menu-link">
+                <div class="menu-content">
+                    <span class="menu-icon">🏢</span>
+                    <div data-i18n="Residence">Residence</div>
+                </div>
+                <div class="status-badge offline">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Offline</span>
+                </div>
+            </a>
+        </li>
+        <li class="menu-item {{ app.request.get('_route') == 'admin_evenement' ? 'active' : '' }}">
+            <a href="{{ path('admin_evenement') }}" class="menu-link">
+                <div class="menu-content">
+                    <span class="menu-icon">🎉</span>
+                    <div data-i18n="Evenement">Evenement</div>
+                </div>
+                <div class="status-badge online">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Online</span>
+                </div>
+            </a>
+        </li>
+
+    </ul>
+</aside>

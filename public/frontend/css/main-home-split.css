@@ -1,0 +1,29 @@
+/* Hero split: left text, right image with seam fade (50/50) */
+.main-home-landing-section .main-home-hero.split-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+  min-height: 520px;
+}
+.main-home-hero-left {
+  padding: 4rem 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.main-home-hero-right {
+  position: relative;
+  overflow: hidden;
+}
+.main-home-hero-right img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.fade-edge {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 60px;
+  background: linear-gradient(to right, rgba(0,0,0,0.6), rgba(0,0,0,0));
+  pointer-events: none;
+}

@@ -1,0 +1,15 @@
+when@dev:
+    web_profiler:
+        toolbar: false
+        intercept_redirects: false
+
+    framework:
+        profiler:
+            enabled: false
+            collect_serializer_data: false
+
+when@test:
+    framework:
+        profiler:
+            collect: false
+            collect_serializer_data: true

@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <script src="{{ asset('frontend/js/smart-translate.js') }}"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - SyndiGest</title>
+
+    <link rel="preload" href="{{ asset('frontend/css/main-home.css') }}" as="style">
+    <link rel="preload" href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" as="style">
+    
+    <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+
+    <!-- Ensure all main-home JS is loaded for dynamic island, theme toggle, notifications -->
+    <script src="{{ asset('frontend/js/main-home.js') }}" defer></script>
+</head>
+<body class="settings-page">
+<div class="page-loader" id="pageLoader">
+    <div class="loader-content">
+        <div class="loader-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+    </div>
+</div>
+
+<div class="main-home-layout-wrapper">
+    <div class="main-home-page">
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'settings'} %}
+
+        <div class="main-home-content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="main-home-landing-section">
+                            <h1 class="main-home-hero-title" data-i18n="Settings">Paramètres</h1>
+                            <p class="main-home-hero-subtitle" data-i18n="Settings Description">Personnalisez votre expérience</p>
+
+                            <div class="settings-container">
+                                <form id="theme-customization-form">
+                                    <div class="settings-section">
+                                        <div class="settings-section-icon">🎨</div>
+                                        <div class="settings-section-content">
+                                            <h3 class="settings-section-title" data-i18n="Mode du thème">Mode du thème</h3>
+                                            <p class="settings-section-desc" data-i18n="Choisissez entre le mode clair et sombre">Choisissez entre le mode clair et sombre</p>
+                                            
+                                            <div class="settings-theme-toggles">
+                                                <label class="settings-theme-card">
+                                                    <input type="radio" name="themeMode" value="light">
+                                                    <div class="settings-theme-card-content">
+                                                        <div class="settings-theme-icon">☀️</div>
+                                                        <div class="settings-theme-info">
+                                                            <span class="settings-theme-name" data-i18n="Clair">Clair</span>
+                                                            <span class="settings-theme-tag">Light</span>
+                                                        </div>
+                                                        <div class="settings-theme-check"></div>
+                                                    </div>
+                                                </label>
+                                                
+                                                <label class="settings-theme-card">
+                                                    <input type="radio" name="themeMode" value="dark">
+                                                    <div class="settings-theme-card-content">
+                                                        <div class="settings-theme-icon">🌙</div>
+                                                        <div class="settings-theme-info">
+                                                            <span class="settings-theme-name" data-i18n="Sombre">Sombre</span>
+                                                            <span class="settings-theme-tag">Dark</span>
+                                                        </div>
+                                                        <div class="settings-theme-check"></div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="settings-section">
+                                        <div class="settings-section-icon">✨</div>
+                                        <div class="settings-section-content">
+                                            <h3 class="settings-section-title" data-i18n="Couleur d'accent">Couleur d'accent</h3>
+                                            <p class="settings-section-desc" data-i18n="Personnalisez l'apparence de votre interface">Personnalisez l'apparence de votre interface</p>
+                                            
+                                            <div class="settings-accent-grid">
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)" data-name="Violet" data-i18n="Violet" style="background: linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4);">
+                                                    <span class="settings-accent-check">✓</span>
+                                                </button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #ff1493, #8b5cf6, #06b6d4)" data-name="Rose" data-i18n="Rose" style="background: linear-gradient(135deg, #ff1493, #8b5cf6, #06b6d4);">
+                                                    <span class="settings-accent-check">✓</span>
+                                                </button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #06b6d4, #6c5ce7, #ff1493)" data-name="Cyan" data-i18n="Cyan" style="background: linear-gradient(135deg, #06b6d4, #6c5ce7, #ff1493);">
+                                                    <span class="settings-accent-check">✓</span>
+                                                </button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #800020, #800020)" data-name="Bordeaux" data-i18n="Bordeaux" style="background: linear-gradient(135deg, #800020, #800020);">
+                                                    <span class="settings-accent-check">✓</span>
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="settings-custom-color">
+                                                <div class="settings-color-inputs">
+                                                    <div class="settings-color-picker-wrapper">
+                                                        <input type="color" id="customAccentColor" class="settings-color-picker" value="#6c5ce7">
+                                                        <span class="settings-color-icon">🎯</span>
+                                                    </div>
+                                                    <input type="text" id="customAccentHex" class="settings-hex-input" placeholder="#6c5ce7" maxlength="9">
+                                                </div>
+                                                <p class="settings-color-hint" data-i18n="Entrez une couleur hexadécimale ou utilisez le sélecteur">Entrez une couleur hexadécimale ou utilisez le sélecteur</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="settings-section">
+                                        <div class="settings-section-icon">🌍</div>
+                                        <div class="settings-section-content">
+                                            <h3 class="settings-section-title" data-i18n="Langue">Langue</h3>
+                                            <p class="settings-section-desc" data-i18n="Sélectionnez votre langue préférée">Sélectionnez votre langue préférée</p>
+                                            
+                                            <div class="settings-language-select">
+                                                <select id="languageSelect" class="settings-select">
+                                                    <option value="fr" selected>🇫🇷 Français</option>
+                                                    <option value="en">🇺🇸 English</option>
+                                                    <option value="ar">🇸🇦 العربية</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <style>
+                                .settings-container {
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 1.5rem;
+                                }
+
+                                .settings-section {
+                                    display: flex;
+                                    gap: 1.5rem;
+                                    padding: 1.5rem;
+                                    background: rgba(0, 0, 0, 0.3);
+                                    border: 1px solid rgba(108, 92, 231, 0.2);
+                                    border-radius: 20px;
+                                    backdrop-filter: blur(10px);
+                                    transition: all 0.3s ease;
+                                }
+
+                                .settings-section:hover {
+                                    background: rgba(0, 0, 0, 0.4);
+                                    border-color: rgba(108, 92, 231, 0.4);
+                                    box-shadow: 0 8px 32px rgba(108, 92, 231, 0.15);
+                                }
+
+                                .settings-section-icon {
+                                    font-size: 2rem;
+                                    flex-shrink: 0;
+                                    width: 60px;
+                                    height: 60px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(139, 92, 246, 0.1));
+                                    border-radius: 15px;
+                                    border: 1px solid rgba(108, 92, 231, 0.3);
+                                }
+
+                                .settings-section-content {
+                                    flex: 1;
+                                }
+
+                                .settings-section-title {
+                                    font-size: 1.3rem;
+                                    font-weight: 700;
+                                    margin: 0 0 0.5rem 0;
+                                    background: linear-gradient(120deg, #6c5ce7, #8b5cf6, #06b6d4);
+                                            -webkit-background-clip: text;
+                                            -webkit-text-fill-color: transparent;
+                                            background-clip: text;
+                                }
+
+                                .settings-section-desc {
+                                    color: rgba(255, 255, 255, 0.6);
+                                    font-size: 0.95rem;
+                                    margin: 0 0 1.5rem 0;
+                                }
+
+                                .settings-theme-toggles {
+                                    display: flex;
+                                    gap: 1rem;
+                                    flex-wrap: wrap;
+                                }
+
+                                .settings-theme-card {
+                                    flex: 1;
+                                            min-width: 200px;
+                                            cursor: pointer;
+                                            position: relative;
+                                }
+
+                                .settings-theme-card input {
+                                            display: none;
+                                }
+
+                                .settings-theme-card-content {
+                                            padding: 1.25rem;
+                                            background: rgba(0, 0, 0, 0.4);
+                                            border: 2px solid rgba(108, 92, 231, 0.2);
+                                            border-radius: 16px;
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 1rem;
+                                            transition: all 0.3s ease;
+                                }
+
+                                .settings-theme-card:hover .settings-theme-card-content {
+                                            background: rgba(0, 0, 0, 0.5);
+                                            border-color: rgba(108, 92, 231, 0.4);
+                                    transform: translateY(-2px);
+                                }
+
+                                .settings-theme-card input:checked + .settings-theme-card-content {
+                                            background: rgba(108, 92, 231, 0.15);
+                                            border-color: var(--main-home-accent-gradient, linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4));
+                                            box-shadow: 0 4px 20px rgba(108, 92, 231, 0.3);
+                                }
+
+                                .settings-theme-icon {
+                                            font-size: 1.8rem;
+                                }
+
+                                .settings-theme-info {
+                                            display: flex;
+                                            flex-direction: column;
+                                            gap: 0.25rem;
+                                            flex: 1;
+                                }
+
+                                .settings-theme-name {
+                                            font-weight: 600;
+                                            font-size: 1rem;
+                                            color: #fff;
+                                }
+
+                                .settings-theme-tag {
+                                            font-size: 0.8rem;
+                                            color: rgba(255, 255, 255, 0.5);
+                                            text-transform: uppercase;
+                                            letter-spacing: 0.5px;
+                                }
+
+                                .settings-theme-check {
+                                            width: 24px;
+                                            height: 24px;
+                                            border-radius: 50%;
+                                            border: 2px solid rgba(108, 92, 231, 0.3);
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            transition: all 0.3s ease;
+                                }
+
+                                .settings-theme-card input:checked + .settings-theme-card-content .settings-theme-check {
+                                            background: var(--main-home-accent-gradient, linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4));
+                                            border-color: transparent;
+                                }
+
+                                .settings-theme-card input:checked + .settings-theme-card-content .settings-theme-check::after {
+                                            content: '✓';
+                                            color: white;
+                                            font-size: 0.9rem;
+                                            font-weight: 700;
+                                }
+
+                                .settings-accent-grid {
+                                            display: grid;
+                                            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                                            gap: 1rem;
+                                            margin-bottom: 1.5rem;
+                                }
+
+                                .settings-accent-btn {
+                                            position: relative;
+                                            width: 100%;
+                                            aspect-ratio: 1;
+                                            border-radius: 16px;
+                                            border: 3px solid rgba(255, 255, 255, 0.1);
+                                            cursor: pointer;
+                                            overflow: hidden;
+                                            transition: all 0.3s ease;
+                                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                                }
+
+                                .settings-accent-btn:hover {
+                                    transform: scale(1.1);
+                                            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.4);
+                                            border-color: rgba(255, 255, 255, 0.3);
+                                }
+
+                                .settings-accent-btn.selected {
+                                            border-color: white;
+                                            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+                                }
+
+                                .settings-accent-check {
+                                            position: absolute;
+                                            top: 50%;
+                                            left: 50%;
+                                            transform: translate(-50%, -50%);
+                                            color: white;
+                                            font-size: 1.2rem;
+                                            font-weight: 700;
+                                            opacity: 0;
+                                            transition: all 0.3s ease;
+                                    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+                                }
+
+                                .settings-accent-btn.selected .settings-accent-check {
+                                            opacity: 1;
+                                }
+
+                                .settings-custom-color {
+                                            background: rgba(0, 0, 0, 0.3);
+                                            border: 1px solid rgba(108, 92, 231, 0.2);
+                                            border-radius: 12px;
+                                            padding: 1rem;
+                                }
+
+                                .settings-color-inputs {
+                                            display: flex;
+                                            gap: 1rem;
+                                    align-items: center;
+                                }
+
+                                .settings-color-picker-wrapper {
+                                            position: relative;
+                                    flex-shrink: 0;
+                                }
+
+                                .settings-color-picker {
+                                            width: 50px;
+                                            height: 50px;
+                                    border: none;
+                                    border-radius: 12px;
+                                    cursor: pointer;
+                                    overflow: hidden;
+                                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                                    transition: all 0.3s ease;
+                                }
+
+                                .settings-color-picker:hover {
+                                    transform: scale(1.1);
+                                            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
+                                }
+
+                                .settings-color-picker::-webkit-color-swatch-wrapper {
+                                    padding: 0;
+                                }
+
+                                .settings-color-picker::-webkit-color-swatch {
+                                    border: none;
+                                    border-radius: 10px;
+                                }
+
+                                .settings-color-icon {
+                                            position: absolute;
+                                            top: 50%;
+                                            left: 50%;
+                                            transform: translate(-50%, -50%);
+                                            pointer-events: none;
+                                            opacity: 0.5;
+                                            font-size: 1.2rem;
+                                }
+
+                                .settings-hex-input {
+                                    flex: 1;
+                                    background: rgba(0, 0, 0, 0.4);
+                                    border: 2px solid rgba(108, 92, 231, 0.2);
+                                    border-radius: 10px;
+                                    padding: 0.9rem 1rem;
+                                    color: #fff;
+                                    font-family: monospace;
+                                    font-size: 1rem;
+                                    outline: none;
+                                    transition: all 0.3s ease;
+                                }
+
+                                .settings-hex-input:focus {
+                                    border-color: #06b6d4;
+                                    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+                                }
+
+                                .settings-color-hint {
+                                            color: rgba(255, 255, 255, 0.5);
+                                            font-size: 0.85rem;
+                                    margin: 0.75rem 0 0 0;
+                                }
+
+                                .settings-language-select {
+                                    max-width: 300px;
+                                }
+
+                                .settings-select {
+                                    width: 100%;
+                                    background: rgba(0, 0, 0, 0.4);
+                                    border: 2px solid rgba(108, 92, 231, 0.2);
+                                    border-radius: 12px;
+                                    padding: 1rem 1.2rem;
+                                    color: #fff;
+                                    font-size: 1rem;
+                                    font-family: var(--font-primary);
+                                    cursor: pointer;
+                                    outline: none;
+                                    transition: all 0.3s ease;
+                                    appearance: none;
+                                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236c5ce7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+                                    background-repeat: no-repeat;
+                                    background-position: right 1rem center;
+                                    background-size: 18px;
+                                    padding-right: 3rem;
+                                }
+
+                                .settings-select:hover {
+                                    border-color: rgba(108, 92, 231, 0.4);
+                                }
+
+                                .settings-select:focus {
+                                    border-color: #06b6d4;
+                                    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+                                }
+
+                                .settings-select option {
+                                    background: #0a0a0f;
+                                    color: #fff;
+                                    padding: 0.8rem;
+                                }
+
+                                @media (max-width: 768px) {
+                                    .settings-section {
+                                        flex-direction: column;
+                                        gap: 1rem;
+                                    }
+
+                                    .settings-section-icon {
+                                        width: 50px;
+                                        height: 50px;
+                                    }
+
+                                    .settings-theme-toggles {
+                                        flex-direction: column;
+                                    }
+
+                                    .settings-accent-grid {
+                                        grid-template-columns: repeat(4, 1fr);
+                                    }
+
+                                    .settings-color-inputs {
+                                        flex-direction: column;
+                                        align-items: stretch;
+                                    }
+
+                                    .settings-language-select {
+                                        max-width: 100%;
+                                    }
+                                }
+
+                                [data-theme="light"] .settings-section {
+                                    background: rgba(255, 255, 255, 0.7);
+                                    border-color: rgba(108, 92, 231, 0.15);
+                                }
+
+                                [data-theme="light"] .settings-section:hover {
+                                    background: rgba(255, 255, 255, 0.85);
+                                    border-color: rgba(108, 92, 231, 0.3);
+                                }
+
+                                [data-theme="light"] .settings-theme-card-content {
+                                    background: rgba(0, 0, 0, 0.05);
+                                    border-color: rgba(108, 92, 231, 0.15);
+                                }
+
+                                [data-theme="light"] .settings-theme-card:hover .settings-theme-card-content {
+                                    background: rgba(0, 0, 0, 0.08);
+                                }
+
+                                [data-theme="light"] .settings-theme-name {
+                                    color: #1a1a2e;
+                                }
+
+                                [data-theme="light"] .settings-theme-tag {
+                                    color: rgba(0, 0, 0, 0.5);
+                                }
+
+                                [data-theme="light"] .settings-hex-input {
+                                    background: rgba(0, 0, 0, 0.05);
+                                    border-color: rgba(108, 92, 231, 0.15);
+                                    color: #1a1a2e;
+                                }
+
+                                [data-theme="light"] .settings-select {
+                                    background: rgba(0, 0, 0, 0.05);
+                                    border-color: rgba(108, 92, 231, 0.15);
+                                    color: #1a1a2e;
+                                }
+
+                                [data-theme="light"] .settings-select option {
+                                    background: #ffffff;
+                                    color: #1a1a2e;
+                                }
+                            </style>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% include 'frontend/shared/_main_footer.html.twig' %}
+        </div>
+    </div>
+</div>
+
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}" defer></script>
+<script src="{{ asset('js/page-loader.js') }}"></script>
+<script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const themeRadios = document.querySelectorAll('input[name="themeMode"]');
+                                        let theme = localStorage.getItem('theme') || 'dark';
+                                        themeRadios.forEach(r => { 
+                                            if(r.value === theme) {
+                                                r.checked = true;
+                                                r.closest('.settings-theme-card')?.classList.add('selected');
+                                            }
+                                        });
+                                        themeRadios.forEach(r => r.addEventListener('change', function() {
+                                            document.querySelectorAll('.settings-theme-card').forEach(card => card.classList.remove('selected'));
+                                            this.closest('.settings-theme-card')?.classList.add('selected');
+                                            localStorage.setItem('theme', this.value);
+                                            document.documentElement.setAttribute('data-theme', this.value);
+                                            // Optionally update any theme icons or UI here if needed
+                                        }));
+
+                                        const accentChoices = document.querySelectorAll('.accent-choice');
+                                        const customAccentColor = document.getElementById('customAccentColor');
+                                        const customAccentHex = document.getElementById('customAccentHex');
+                                        let accent = localStorage.getItem('accent-gradient') || 'linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)';
+                                        let accentColor = localStorage.getItem('accent-color') || '#6c5ce7';
+                                        
+                                        accentChoices.forEach(btn => {
+                                            if(btn.dataset.gradient === accent) {
+                                                btn.classList.add('selected');
+                                            }
+                                            btn.addEventListener('click', function() {
+                                                accentChoices.forEach(b => b.classList.remove('selected'));
+                                                this.classList.add('selected');
+                                                localStorage.setItem('accent-gradient', this.dataset.gradient);
+                                                const color = this.dataset.gradient.match(/linear-gradient\([^,]+,\s*([^,\s)]+)/)?.[1] || '#6c5ce7';
+                                                localStorage.setItem('accent-color', color);
+                                                customAccentHex.value = '';
+                                                window.location.reload();
+                                            });
+                                        });
+                                        
+                                        customAccentColor.value = accentColor;
+                                        customAccentColor.addEventListener('input', function() {
+                                            const color = this.value;
+                                            const grad = `linear-gradient(135deg, ${color}, #8b5cf6, #06b6d4)`;
+                                            localStorage.setItem('accent-gradient', grad);
+                                            localStorage.setItem('accent-color', color);
+                                            customAccentHex.value = color;
+                                            window.location.reload();
+                                        });
+                                        customAccentHex.addEventListener('input', function() {
+                                            let val = this.value;
+                                            if (!val.startsWith('#')) val = '#' + val;
+                                            if (/^#[0-9a-fA-F]{3,8}$/.test(val)) {
+                                                const grad = `linear-gradient(135deg, ${val}, #8b5cf6, #06b6d4)`;
+                                                localStorage.setItem('accent-gradient', grad);
+                                                localStorage.setItem('accent-color', val);
+                                                customAccentColor.value = val;
+                                                window.location.reload();
+                                            }
+                                        });
+
+                                        const languageSelect = document.getElementById('languageSelect');
+                                        if (languageSelect) {
+                                            let lang = localStorage.getItem('lang') || 'fr';
+                                            languageSelect.value = lang;
+                                            languageSelect.addEventListener('change', function() {
+                                                if (window.setLanguage) {
+                                                    window.setLanguage(this.value);
+                                                }
+                                            });
+                                        }
+
+                                        setTimeout(() => {
+                                            if (window.SmartTranslate) {
+                                                let lang = localStorage.getItem('lang') || 'fr';
+                                                SmartTranslate.init(lang);
+                                            }
+                                        }, 200);
+                                    });
+</script>
+</body>
+</html>

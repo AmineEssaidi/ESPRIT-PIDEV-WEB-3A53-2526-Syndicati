@@ -1,0 +1,17 @@
+{# Shared dashboard header partial for admin section pages #}
+<div class="dashboard-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="dashboard-title expanding-text">{{ title }}</h1>
+        </div>
+        <div class="header-controls">
+            <div class="date-range-picker">
+                <span class="date-text" id="currentDate"></span>
+                <span class="time-text" id="currentTime"></span>
+            </div>
+            <button class="btn action-btn">
+                Action <i class="bx bx-chevron-down"></i>
+            </button>
+        </div>
+    </div>
+</div>

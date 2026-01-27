@@ -1,0 +1,14 @@
+{% extends 'base_symfony.html.twig' %}
+{% block title %}Syndicat{% endblock %}
+{% block body %}
+<div class="main-home-layout-wrapper">
+    <div class="main-home-page">
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'services'} %}
+        <div class="main-home-content-box">
+            <h1 class="main-home-content-title">Syndicat</h1>
+            <!-- Syndicat content goes here -->
+        </div>
+        {% include 'frontend/shared/_main_footer.html.twig' %}
+    </div>
+</div>
+{% endblock %}

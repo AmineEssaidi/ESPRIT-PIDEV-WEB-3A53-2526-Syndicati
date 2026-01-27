@@ -1,0 +1,58 @@
+========================================
+   PERFECT DOMAIN SETUP (NO PORT NUMBER)
+========================================
+
+GOAL: Access your site at http://www.amipidev.tn (no :8000)
+
+METHOD 1: Automatic Setup (Recommended)
+========================================
+1. Run: start-perfect-domain.bat
+2. If it works: You're done! Access at http://www.amipidev.tn
+3. If it fails: Follow Method 2 below
+
+METHOD 2: Free Port 80 First
+========================================
+1. Run: free-port-80.bat (as Administrator)
+2. Run: start-perfect-domain.bat
+3. Access at: http://www.amipidev.tn
+
+METHOD 3: Manual Port 80 Setup
+========================================
+1. Stop any services using port 80 (IIS, Apache, etc.)
+2. Run: start-no-port.bat
+3. Access at: http://www.amipidev.tn
+
+WHAT EACH SCRIPT DOES:
+========================================
+- start-perfect-domain.bat: Tries port 80, falls back to 8000
+- free-port-80.bat: Stops services using port 80
+- start-no-port.bat: Only tries port 80
+- setup-www-amipidev.bat: Just sets up hosts file
+
+TROUBLESHOOTING:
+========================================
+If port 80 doesn't work:
+1. Run free-port-80.bat as Administrator
+2. Check Windows Firewall settings
+3. Check antivirus software
+4. Try running scripts as Administrator
+
+COMMON SERVICES USING PORT 80:
+========================================
+- IIS (Internet Information Services)
+- Apache
+- nginx
+- Skype (sometimes)
+- Other web servers
+
+FINAL RESULT:
+========================================
+✅ Address bar shows: www.amipidev.tn
+✅ No port number visible
+✅ Works with all browsers
+✅ Professional development setup
+
+========================================
+
+
+

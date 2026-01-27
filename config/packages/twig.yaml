@@ -1,0 +1,16 @@
+twig:
+    file_name_pattern: '*.twig'
+    default_path: '%kernel.project_dir%/templates'
+    auto_reload: true
+    debug: '%kernel.debug%'
+    strict_variables: '%kernel.debug%'
+
+when@test:
+    twig:
+        strict_variables: true
+
+when@prod:
+    twig:
+        auto_reload: false
+        debug: false
+        strict_variables: false

@@ -1,0 +1,13 @@
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute
+
+frontend_settings:
+    resource: "routes/frontend_settings.yaml"
+    type: yaml
+
+frontend_services:
+    resource: "routes/frontend_services.yaml"
+    type: yaml

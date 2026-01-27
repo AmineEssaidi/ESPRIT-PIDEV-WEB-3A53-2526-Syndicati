@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Address Bar Rewrite</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .status {
+            background: rgba(40, 167, 69, 0.3);
+            border: 1px solid rgba(40, 167, 69, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .info {
+            background: rgba(23, 162, 184, 0.3);
+            border: 1px solid rgba(23, 162, 184, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        code {
+            background: rgba(0,0,0,0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            color: #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Address Bar Rewrite Test</h1>
+        
+        <div class="status">
+            <strong>✅ Test Page Loaded</strong><br>
+            Check if the address bar shows <code>www.amipidev.tn</code>
+        </div>
+        
+        <div class="info">
+            <h3>Current URL Information:</h3>
+            <p><strong>Hostname:</strong> <span id="hostname"></span></p>
+            <p><strong>Port:</strong> <span id="port"></span></p>
+            <p><strong>Full URL:</strong> <span id="fullUrl"></span></p>
+        </div>
+        
+        <div class="info">
+            <h3>Expected Result:</h3>
+            <p>The address bar should show: <code>http://www.amipidev.tn/test-address-bar.html</code></p>
+        </div>
+        
+        <script>
+            // Display current URL info
+            document.getElementById('hostname').textContent = window.location.hostname;
+            document.getElementById('port').textContent = window.location.port || 'default';
+            document.getElementById('fullUrl').textContent = window.location.href;
+            
+            // Test the address bar rewrite
+            function testAddressBarRewrite() {
+                const currentHost = window.location.hostname;
+                if (currentHost === '127.0.0.1' || currentHost === 'localhost') {
+                    const customDomain = 'www.amipidev.tn';
+                    const fakeUrl = `http://${customDomain}${window.location.pathname}${window.location.search}${window.location.hash}`;
+                    
+                    try {
+                        window.history.replaceState(null, '', fakeUrl);
+                        console.log('✅ Address bar rewritten to:', fakeUrl);
+                        
+                        // Update the display
+                        document.getElementById('fullUrl').textContent = window.location.href;
+                        document.getElementById('hostname').textContent = window.location.hostname;
+                        
+                        // Show success message
+                        const statusDiv = document.querySelector('.status');
+                        statusDiv.innerHTML = '<strong>✅ SUCCESS!</strong><br>Address bar rewritten to show <code>www.amipidev.tn</code>';
+                        statusDiv.style.background = 'rgba(40, 167, 69, 0.5)';
+                        
+                    } catch (error) {
+                        console.error('❌ Failed to rewrite address bar:', error);
+                        
+                        const statusDiv = document.querySelector('.status');
+                        statusDiv.innerHTML = '<strong>❌ FAILED</strong><br>Could not rewrite address bar: ' + error.message;
+                        statusDiv.style.background = 'rgba(220, 53, 69, 0.5)';
+                    }
+                } else {
+                    console.log('Not on localhost, skipping rewrite');
+                }
+            }
+            
+            // Run the test
+            testAddressBarRewrite();
+        </script>
+    </div>
+</body>
+</html>
+
+
+

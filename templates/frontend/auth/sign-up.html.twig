@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <meta charset="UTF-8">
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - PiDev</title>
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="{{ asset('frontend/css/main-home.css') }}" as="style">
+    <link rel="preload" href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" as="style">
+    
+    <!-- CSS Dependencies -->
+    <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+</head>
+<body>
+<!-- Page Loader -->
+<div class="page-loader" id="pageLoader">
+    <div class="loader-content">
+        <div class="loader-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Layout Wrapper -->
+<div class="main-home-layout-wrapper">
+    <div class="main-home-page">
+        <!-- Include Shared Navbar -->
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'sign_up'} %}
+
+        <!-- Auth Content -->
+        <div class="main-home-content-wrapper">
+            <div class="main-home-auth-container">
+                <div class="main-home-auth-card">
+                    <div class="main-home-auth-header">
+                        <h1 class="main-home-auth-title">Create Account</h1>
+                        <p class="main-home-auth-subtitle">Join us and start your journey today</p>
+                    </div>
+
+                    {% if errors is defined and errors %}
+                        <div class="main-home-auth-error">
+                            {% for error in errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form class="main-home-auth-form" action="{{ path('auth_sign_up') }}" method="POST">
+                        <div class="main-home-form-row">
+                            <div class="main-home-form-group main-home-form-half">
+                                <label for="firstName" class="main-home-form-label">First Name</label>
+                                <input 
+                                    type="text" 
+                                    id="firstName" 
+                                    name="firstName" 
+                                    class="main-home-form-input" 
+                                    placeholder="John"
+                                    value="{{ form_data.firstName|default('') }}"
+                                    required
+                                />
+                            </div>
+                            <div class="main-home-form-group main-home-form-half">
+                                <label for="lastName" class="main-home-form-label">Last Name</label>
+                                <input 
+                                    type="text" 
+                                    id="lastName" 
+                                    name="lastName" 
+                                    class="main-home-form-input" 
+                                    placeholder="Doe"
+                                    value="{{ form_data.lastName|default('') }}"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div class="main-home-form-group">
+                            <label for="email" class="main-home-form-label">Email</label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                class="main-home-form-input" 
+                                placeholder="john.doe@example.com"
+                                value="{{ form_data.email|default('') }}"
+                                required
+                            />
+                        </div>
+
+                        <div class="main-home-form-group">
+                            <label for="password" class="main-home-form-label">Password</label>
+                            <div class="main-home-password-wrapper">
+                                <input 
+                                    type="password" 
+                                    id="password" 
+                                    name="password" 
+                                    class="main-home-form-input" 
+                                    placeholder="Create a strong password"
+                                    required
+                                    minlength="8"
+                                />
+                                <button type="button" class="main-home-password-toggle" onclick="togglePassword('password')">
+                                    <span class="main-home-eye-icon">👁️</span>
+                                </button>
+                            </div>
+                            <p class="main-home-form-hint">Minimum 8 characters</p>
+                        </div>
+
+                        <div class="main-home-form-group">
+                            <label for="confirmPassword" class="main-home-form-label">Confirm Password</label>
+                            <div class="main-home-password-wrapper">
+                                <input 
+                                    type="password" 
+                                    id="confirmPassword" 
+                                    name="confirmPassword" 
+                                    class="main-home-form-input" 
+                                    placeholder="Confirm your password"
+                                    required
+                                />
+                                <button type="button" class="main-home-password-toggle" onclick="togglePassword('confirmPassword')">
+                                    <span class="main-home-eye-icon">👁️</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="main-home-form-options">
+                            <label class="main-home-checkbox-wrapper">
+                                <input type="checkbox" name="terms" class="main-home-checkbox" required/>
+                                <span class="main-home-checkbox-label">I agree to the <a href="#" class="main-home-terms-link">Terms of Service</a> and <a href="#" class="main-home-terms-link">Privacy Policy</a></span>
+                            </label>
+                        </div>
+
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
+
+                        <button type="submit" class="main-home-btn main-home-btn-auth-submit">
+                            Create Account
+                        </button>
+                    </form>
+
+                    <div class="main-home-auth-divider">
+                        <span>or sign up with</span>
+                    </div>
+
+                    <div class="main-home-social-auth">
+                        <button class="main-home-social-btn main-home-social-google">
+                            <span class="main-home-social-icon">G</span>
+                            <span>Google</span>
+                        </button>
+                        <button class="main-home-social-btn main-home-social-github">
+                            <span class="main-home-social-icon">⚡</span>
+                            <span>GitHub</span>
+                        </button>
+                    </div>
+
+                    <p class="main-home-auth-footer">
+                        Already have an account? 
+                        <a href="{{ path('auth_sign_in') }}" class="main-home-auth-link">Sign In</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Include Shared Footer -->
+            {% include 'frontend/shared/_main_footer.html.twig' %}
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript Dependencies -->
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}" defer></script>
+<script src="{{ asset('js/page-loader.js') }}"></script>
+<script>
+    // Password toggle
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // Password confirmation validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+        }
+    });
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('theme-toggle');
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    if (themeToggle) {
+        if (savedTheme === 'light') {
+            themeToggle.classList.add('active');
+        }
+        
+        themeToggle.addEventListener('click', function() {
+            this.classList.toggle('active');
+            const newTheme = this.classList.contains('active') ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sneat - Dashboard{% endblock %}</title>
+
+    <!-- Preload critical resources -->
+    {% if app.request.get('_route') starts with 'admin_' %}
+        <link rel="preload" href="{{ asset('css/admin.css') }}" as="style">
+        <link rel="preconnect" href="https://demos.themeselection.com">
+        <!-- CSS Dependencies -->
+        <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ asset('css/admin.css') }}" rel="stylesheet">
+        <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+    {% else %}
+        <link rel="preload" href="{{ asset('css/app.css') }}" as="style">
+        <link rel="preconnect" href="https://demos.themeselection.com">
+        <!-- CSS Dependencies -->
+        <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+        <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+    {% endif %}
+
+    {% block stylesheets %}{% endblock %}
+</head>
+</head>
+<body class="layout-menu-fixed">
+    <!-- Page Loader -->
+    <div class="page-loader" id="pageLoader">
+        <div class="loader-content">
+            <div class="loader-spinner">
+                <span class="dot"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="layout-wrapper layout-content-navbar">
+        <!-- Sidebar -->
+        {% include 'admin/_sidebar.html.twig' %}
+
+        <div class="layout-page">
+            <!-- Header -->
+            {% include 'admin/_header.html.twig' %}
+
+            <!-- Main Content -->
+            <div class="content-wrapper">
+                <div class="container-xxl flex-grow-1 container-p-y">
+                    {% block content %}{% endblock %}
+                </div>
+
+                <!-- Footer -->
+                {% include 'admin/_footer.html.twig' %}
+
+                <div class="content-backdrop fade"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layout-overlay layout-menu-toggle"></div>
+
+    <!-- JavaScript Dependencies - defer for non-blocking load -->
+    <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}" defer></script>
+    <script src="{{ asset('js/app.js') }}" defer></script>
+    <script src="{{ asset('js/page-loader.js') }}"></script>
+
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

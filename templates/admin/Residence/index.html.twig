@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Residence - Liquid Glass Admin{% endblock %}
+
+{% block content %}
+{% include 'admin/_dashboard_header.html.twig' with { 'title': 'Residence' } %}
+{% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+{% endblock %}

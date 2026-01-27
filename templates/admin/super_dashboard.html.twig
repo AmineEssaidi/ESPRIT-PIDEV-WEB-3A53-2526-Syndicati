@@ -1,0 +1,1109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Super Dashboard - Liquid Glass Admin{% endblock %}
+
+{% block content %}
+{% include 'admin/_dashboard_header.html.twig' with { 'title': 'Super Dashboard' } %}
+
+<!-- Rotating Dashboard Widgets -->
+<div class="dashboard-carousel-container">
+    <!-- Carousel Controls -->
+    <div class="carousel-controls">
+        <button class="carousel-btn prev-btn" id="prevWidget" title="Previous Widget">
+            ←
+        </button>
+        <div class="carousel-indicators">
+            <span class="indicator active" data-slide="0"></span>
+            <span class="indicator" data-slide="1"></span>
+            <span class="indicator" data-slide="2"></span>
+            <span class="indicator" data-slide="3"></span>
+        </div>
+        <button class="carousel-btn next-btn" id="nextWidget" title="Next Widget">
+            →
+        </button>
+    </div>
+
+    <!-- Carousel Wrapper -->
+    <div class="carousel-wrapper">
+        <div class="carousel-track" id="carouselTrack">
+            <!-- Widget 1: Revenue -->
+            <div class="carousel-slide active">
+                <div class="card revenue-card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title expanding-text">Revenue</h5>
+                            <div class="time-toggle">
+                                <button class="toggle-btn">Month</button>
+                                <button class="toggle-btn active">Week</button>
+                                <button class="toggle-btn">Day</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="revenueChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget 2: Performance -->
+            <div class="carousel-slide">
+                <div class="card performance-card">
+                    <div class="performance-bg">
+                        <div class="performance-illustration">
+                            <div class="floating-character">
+                                <div class="character-body"></div>
+                                <div class="character-arms"></div>
+                                <div class="purple-object"></div>
+                            </div>
+                            <div class="rocket-trail"></div>
+                        </div>
+                        <button class="export-btn">Export</button>
+                    </div>
+                    <div class="performance-overlay">
+                        <div class="performance-stats">
+                            <div class="stat-row">
+                                <div class="stat-item">
+                                    <div class="stat-label">Paid Visit</div>
+                                    <div class="stat-value">6,550</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Total Visit</div>
+                                    <div class="stat-value">5,646,454</div>
+                                </div>
+                            </div>
+                            <div class="stat-row">
+                                <div class="stat-item">
+                                    <div class="stat-label">Expense</div>
+                                    <div class="stat-value">$650</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Commission</div>
+                                    <div class="stat-value">$56</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget 3: Social Media -->
+            <div class="carousel-slide">
+                <div class="card social-card">
+                    <div class="card-header">
+                        <h5 class="card-title expanding-text">Social media</h5>
+                        <p class="card-subtitle">About Your Social Popularity</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="social-illustration">
+                            <div class="desk-character">
+                                <div class="character-head"></div>
+                                <div class="character-body"></div>
+                                <div class="laptop-screen"></div>
+                                <div class="clock-icon"></div>
+                            </div>
+                        </div>
+                        <div class="followers-display">
+                            <div class="follower-box orange">
+                                <div class="follower-label">Followers</div>
+                                <div class="follower-count">35.6 K</div>
+                            </div>
+                            <div class="follower-box green">
+                                <div class="follower-label">Followers</div>
+                                <div class="follower-count">35.6 K</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget 4: Browser Analytics -->
+            <div class="carousel-slide">
+                <div class="card browser-card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title expanding-text">Visitors by Browser</h5>
+                                <p class="card-subtitle">15,654 Visitors</p>
+                            </div>
+                            <div class="time-toggle">
+                                <button class="toggle-btn active">Week</button>
+                                <button class="toggle-btn">Day</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="browserChart" height="200"></canvas>
+                        </div>
+                        <div class="browser-detail">
+                            <div class="browser-logo chrome"></div>
+                            <div class="browser-info">
+                                <div class="browser-name">Chrome Users</div>
+                                <div class="browser-time">Today</div>
+                                <div class="browser-change">+2,155</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-play Controls -->
+    <div class="autoplay-controls">
+        <button class="autoplay-btn" id="toggleAutoplay">
+            <i class="bx bx-pause" id="autoplayIcon"></i>
+            <span id="autoplayText">Pause</span>
+        </button>
+    </div>
+</div>
+
+<!-- Page Management Section -->
+<div class="page-management-section mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title expanding-text">Page Management</h5>
+            <p class="card-subtitle">Control the availability of your frontend and backend pages</p>
+        </div>
+        <div class="card-body">
+            <!-- Frontend Pages Section -->
+            <div class="page-section">
+                <div class="section-header">
+                    <h6 class="section-title">
+                        <i class="bx bx-globe"></i>
+                        Frontend Pages
+                    </h6>
+                    <p class="section-subtitle">Public-facing pages for visitors</p>
+                </div>
+                <div class="page-list">
+                    {% for page in frontendPages %}
+                    <div class="page-item" data-page-id="{{ page.id }}">
+                        <div class="page-info">
+                            <div class="page-icon">{{ page.icon }}</div>
+                            <div class="page-details">
+                                <div class="page-name">{{ page.name }}</div>
+                                <div class="page-url">{{ page.url }}</div>
+                                <div class="page-description">{{ page.description }}</div>
+                            </div>
+                        </div>
+                        <div class="page-controls">
+                            <div class="page-status">
+                                <span class="status-indicator {{ page.status }}"></span>
+                                <span class="status-text">{{ page.status|title }}</span>
+                            </div>
+                            <div class="page-toggle">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" 
+                                           class="page-toggle-input" 
+                                           data-page-id="{{ page.id }}"
+                                           {% if page.status == 'online' %}checked{% endif %}>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Backend Pages Section -->
+            <div class="page-section">
+                <div class="section-header">
+                    <h6 class="section-title">
+                        <i class="bx bx-cog"></i>
+                        Backend Pages
+                    </h6>
+                    <p class="section-subtitle">Admin and management pages</p>
+                </div>
+                <div class="page-list">
+                    {% for page in backendPages %}
+                    <div class="page-item" data-page-id="{{ page.id }}">
+                        <div class="page-info">
+                            <div class="page-icon">{{ page.icon }}</div>
+                            <div class="page-details">
+                                <div class="page-name">{{ page.name }}</div>
+                                <div class="page-url">{{ page.url }}</div>
+                                <div class="page-description">{{ page.description }}</div>
+                            </div>
+                        </div>
+                        <div class="page-controls">
+                            <div class="page-status">
+                                <span class="status-indicator {{ page.status }}"></span>
+                                <span class="status-text">{{ page.status|title }}</span>
+                            </div>
+                            <div class="page-toggle">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" 
+                                           class="page-toggle-input" 
+                                           data-page-id="{{ page.id }}"
+                                           {% if page.status == 'online' %}checked{% endif %}>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Access Control Section -->
+<div class="access-control-section mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title expanding-text">Access Control</h5>
+            <p class="card-subtitle">Manage who can access each page in your dashboard</p>
+        </div>
+        <div class="card-body">
+            <!-- Access Control Tabs -->
+            <div class="access-tabs">
+                <div class="tab-nav">
+                    <button class="tab-btn active" data-tab="users">Users</button>
+                    <button class="tab-btn" data-tab="pages">Pages</button>
+                    <button class="tab-btn" data-tab="roles">Roles</button>
+                </div>
+                
+                <!-- Users Tab -->
+                <div class="tab-content active" id="users-tab">
+                    <div class="access-section">
+                        <div class="section-header">
+                            <h6 class="section-title">
+                                <i class="bx bx-user"></i>
+                                User Access Management
+                            </h6>
+                            <p class="section-subtitle">Control which pages each user can access</p>
+                        </div>
+                        
+                        <div class="users-grid">
+                            <!-- Row 1 -->
+                            <div class="user-card">
+                                <div class="user-card-header">
+                                    <div class="user-avatar">
+                                        <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/1.png" alt="Admin" class="avatar-img"/>
+                                        <div class="avatar-status online"></div>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">Amine Saidi</div>
+                                        <div class="user-role">Super Admin</div>
+                                    </div>
+                                </div>
+                                <div class="user-card-body">
+                                    <div class="user-email">amine.saidi@example.com</div>
+                                    <div class="access-badges">
+                                        <span class="access-badge full">Full Access</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="user-card">
+                                <div class="user-card-header">
+                                    <div class="user-avatar">
+                                        <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/2.png" alt="Admin" class="avatar-img"/>
+                                        <div class="avatar-status online"></div>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">John Doe</div>
+                                        <div class="user-role">Admin</div>
+                                    </div>
+                                </div>
+                                <div class="user-card-body">
+                                    <div class="user-email">john.doe@example.com</div>
+                                    <div class="access-badges">
+                                        <span class="access-badge limited">Limited Access</span>
+                                    </div>
+                                    <button class="edit-access-btn" onclick="editUserAccess('john_doe')">
+                                        <i class="bx bx-edit"></i>
+                                        <span>Edit Access</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="user-card">
+                                <div class="user-card-header">
+                                    <div class="user-avatar">
+                                        <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/3.png" alt="User" class="avatar-img"/>
+                                        <div class="avatar-status offline"></div>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">Jane Smith</div>
+                                        <div class="user-role">User</div>
+                                    </div>
+                                </div>
+                                <div class="user-card-body">
+                                    <div class="user-email">jane.smith@example.com</div>
+                                    <div class="access-badges">
+                                        <span class="access-badge restricted">Restricted Access</span>
+                                    </div>
+                                    <button class="edit-access-btn" onclick="editUserAccess('jane_smith')">
+                                        <i class="bx bx-edit"></i>
+                                        <span>Edit Access</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="user-card">
+                                <div class="user-card-header">
+                                    <div class="user-avatar">
+                                        <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/4.png" alt="User" class="avatar-img"/>
+                                        <div class="avatar-status online"></div>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">Mike Johnson</div>
+                                        <div class="user-role">User</div>
+                                    </div>
+                                </div>
+                                <div class="user-card-body">
+                                    <div class="user-email">mike.johnson@example.com</div>
+                                    <div class="access-badges">
+                                        <span class="access-badge restricted">Restricted Access</span>
+                                    </div>
+                                    <button class="edit-access-btn" onclick="editUserAccess('mike_johnson')">
+                                        <i class="bx bx-edit"></i>
+                                        <span>Edit Access</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Row 2 -->
+                            <div class="user-card">
+                                <div class="user-card-header">
+                                    <div class="user-avatar">
+                                        <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/5.png" alt="Admin" class="avatar-img"/>
+                                        <div class="avatar-status online"></div>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">Sarah Wilson</div>
+                                        <div class="user-role">Admin</div>
+                                    </div>
+                                </div>
+                                <div class="user-card-body">
+                                    <div class="user-email">sarah.wilson@example.com</div>
+                                    <div class="access-badges">
+                                        <span class="access-badge limited">Limited Access</span>
+                                    </div>
+                                    <button class="edit-access-btn" onclick="editUserAccess('sarah_wilson')">
+                                        <i class="bx bx-edit"></i>
+                                        <span>Edit Access</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="user-card">
+                                <div class="user-card-header">
+                                    <div class="user-avatar">
+                                        <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/6.png" alt="User" class="avatar-img"/>
+                                        <div class="avatar-status offline"></div>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">David Brown</div>
+                                        <div class="user-role">User</div>
+                                    </div>
+                                </div>
+                                <div class="user-card-body">
+                                    <div class="user-email">david.brown@example.com</div>
+                                    <div class="access-badges">
+                                        <span class="access-badge restricted">Restricted Access</span>
+                                    </div>
+                                    <button class="edit-access-btn" onclick="editUserAccess('david_brown')">
+                                        <i class="bx bx-edit"></i>
+                                        <span>Edit Access</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="user-card">
+                                <div class="user-card-header">
+                                    <div class="user-avatar">
+                                        <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/7.png" alt="User" class="avatar-img"/>
+                                        <div class="avatar-status online"></div>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">Lisa Davis</div>
+                                        <div class="user-role">User</div>
+                                    </div>
+                                </div>
+                                <div class="user-card-body">
+                                    <div class="user-email">lisa.davis@example.com</div>
+                                    <div class="access-badges">
+                                        <span class="access-badge restricted">Restricted Access</span>
+                                    </div>
+                                    <button class="edit-access-btn" onclick="editUserAccess('lisa_davis')">
+                                        <i class="bx bx-edit"></i>
+                                        <span>Edit Access</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="user-card">
+                                <div class="user-card-header">
+                                    <div class="user-avatar">
+                                        <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/8.png" alt="User" class="avatar-img"/>
+                                        <div class="avatar-status online"></div>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">Tom Miller</div>
+                                        <div class="user-role">User</div>
+                                    </div>
+                                </div>
+                                <div class="user-card-body">
+                                    <div class="user-email">tom.miller@example.com</div>
+                                    <div class="access-badges">
+                                        <span class="access-badge restricted">Restricted Access</span>
+                                    </div>
+                                    <button class="edit-access-btn" onclick="editUserAccess('tom_miller')">
+                                        <i class="bx bx-edit"></i>
+                                        <span>Edit Access</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Row 3 -->
+                            <div class="user-card">
+                                <div class="user-card-header">
+                                    <div class="user-avatar">
+                                        <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/9.png" alt="User" class="avatar-img"/>
+                                        <div class="avatar-status offline"></div>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">Emma Garcia</div>
+                                        <div class="user-role">User</div>
+                                    </div>
+                                </div>
+                                <div class="user-card-body">
+                                    <div class="user-email">emma.garcia@example.com</div>
+                                    <div class="access-badges">
+                                        <span class="access-badge restricted">Restricted Access</span>
+                                    </div>
+                                    <button class="edit-access-btn" onclick="editUserAccess('emma_garcia')">
+                                        <i class="bx bx-edit"></i>
+                                        <span>Edit Access</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="user-card">
+                                <div class="user-card-header">
+                                    <div class="user-avatar">
+                                        <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/10.png" alt="User" class="avatar-img"/>
+                                        <div class="avatar-status online"></div>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">Alex Rodriguez</div>
+                                        <div class="user-role">User</div>
+                                    </div>
+                                </div>
+                                <div class="user-card-body">
+                                    <div class="user-email">alex.rodriguez@example.com</div>
+                                    <div class="access-badges">
+                                        <span class="access-badge restricted">Restricted Access</span>
+                                    </div>
+                                    <button class="edit-access-btn" onclick="editUserAccess('alex_rodriguez')">
+                                        <i class="bx bx-edit"></i>
+                                        <span>Edit Access</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="user-card">
+                                <div class="user-card-header">
+                                    <div class="user-avatar">
+                                        <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/11.png" alt="User" class="avatar-img"/>
+                                        <div class="avatar-status online"></div>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">Sophie Lee</div>
+                                        <div class="user-role">User</div>
+                                    </div>
+                                </div>
+                                <div class="user-card-body">
+                                    <div class="user-email">sophie.lee@example.com</div>
+                                    <div class="access-badges">
+                                        <span class="access-badge restricted">Restricted Access</span>
+                                    </div>
+                                    <button class="edit-access-btn" onclick="editUserAccess('sophie_lee')">
+                                        <i class="bx bx-edit"></i>
+                                        <span>Edit Access</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="user-card">
+                                <div class="user-card-header">
+                                    <div class="user-avatar">
+                                        <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/12.png" alt="User" class="avatar-img"/>
+                                        <div class="avatar-status offline"></div>
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">Ryan Taylor</div>
+                                        <div class="user-role">User</div>
+                                    </div>
+                                </div>
+                                <div class="user-card-body">
+                                    <div class="user-email">ryan.taylor@example.com</div>
+                                    <div class="access-badges">
+                                        <span class="access-badge restricted">Restricted Access</span>
+                                    </div>
+                                    <button class="edit-access-btn" onclick="editUserAccess('ryan_taylor')">
+                                        <i class="bx bx-edit"></i>
+                                        <span>Edit Access</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pages Tab -->
+                <div class="tab-content" id="pages-tab">
+                    <div class="access-section">
+                        <div class="section-header">
+                            <h6 class="section-title">
+                                <i class="bx bx-lock-alt"></i>
+                                Page Access Permissions
+                            </h6>
+                            <p class="section-subtitle">Configure access levels for each page</p>
+                        </div>
+                        
+                        <div class="page-permissions">
+                            <div class="permission-item">
+                                <div class="permission-info">
+                                    <div class="permission-icon">🏠</div>
+                                    <div class="permission-details">
+                                        <div class="permission-name">Dashboard</div>
+                                        <div class="permission-description">Main admin dashboard</div>
+                                    </div>
+                                </div>
+                                <div class="permission-level">
+                                    <div class="custom-dropdown" data-page="dashboard">
+                                        <div class="dropdown-trigger">
+                                            <span class="dropdown-value">Admin & Above</span>
+                                            <i class="bx bx-chevron-down dropdown-arrow"></i>
+                                        </div>
+                                        <div class="dropdown-menu">
+                                            <div class="dropdown-option" data-value="super_admin">Super Admin Only</div>
+                                            <div class="dropdown-option active" data-value="admin">Admin & Above</div>
+                                            <div class="dropdown-option" data-value="user">All Users</div>
+                                            <div class="dropdown-option" data-value="public">Public</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="permission-item">
+                                <div class="permission-info">
+                                    <div class="permission-icon">⚡</div>
+                                    <div class="permission-details">
+                                        <div class="permission-name">Super Dashboard</div>
+                                        <div class="permission-description">Super admin control panel</div>
+                                    </div>
+                                </div>
+                                <div class="permission-level">
+                                    <div class="custom-dropdown" data-page="super_dashboard">
+                                        <div class="dropdown-trigger">
+                                            <span class="dropdown-value">Super Admin Only</span>
+                                            <i class="bx bx-chevron-down dropdown-arrow"></i>
+                                        </div>
+                                        <div class="dropdown-menu">
+                                            <div class="dropdown-option active" data-value="super_admin">Super Admin Only</div>
+                                            <div class="dropdown-option" data-value="admin">Admin & Above</div>
+                                            <div class="dropdown-option" data-value="user">All Users</div>
+                                            <div class="dropdown-option" data-value="public">Public</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="permission-item">
+                                <div class="permission-info">
+                                    <div class="permission-icon">👥</div>
+                                    <div class="permission-details">
+                                        <div class="permission-name">Users</div>
+                                        <div class="permission-description">User management page</div>
+                                    </div>
+                                </div>
+                                <div class="permission-level">
+                                    <div class="custom-dropdown" data-page="users">
+                                        <div class="dropdown-trigger">
+                                            <span class="dropdown-value">Admin & Above</span>
+                                            <i class="bx bx-chevron-down dropdown-arrow"></i>
+                                        </div>
+                                        <div class="dropdown-menu">
+                                            <div class="dropdown-option" data-value="super_admin">Super Admin Only</div>
+                                            <div class="dropdown-option active" data-value="admin">Admin & Above</div>
+                                            <div class="dropdown-option" data-value="user">All Users</div>
+                                            <div class="dropdown-option" data-value="public">Public</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="permission-item">
+                                <div class="permission-info">
+                                    <div class="permission-icon">👤</div>
+                                    <div class="permission-details">
+                                        <div class="permission-name">Profile</div>
+                                        <div class="permission-description">User profile page</div>
+                                    </div>
+                                </div>
+                                <div class="permission-level">
+                                    <div class="custom-dropdown" data-page="profile">
+                                        <div class="dropdown-trigger">
+                                            <span class="dropdown-value">All Users</span>
+                                            <i class="bx bx-chevron-down dropdown-arrow"></i>
+                                        </div>
+                                        <div class="dropdown-menu">
+                                            <div class="dropdown-option" data-value="super_admin">Super Admin Only</div>
+                                            <div class="dropdown-option" data-value="admin">Admin & Above</div>
+                                            <div class="dropdown-option active" data-value="user">All Users</div>
+                                            <div class="dropdown-option" data-value="public">Public</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Roles Tab -->
+                <div class="tab-content" id="roles-tab">
+                    <div class="access-section">
+                        <div class="section-header">
+                            <h6 class="section-title">
+                                <i class="bx bx-shield"></i>
+                                Role-Based Access Control
+                            </h6>
+                            <p class="section-subtitle">Define roles and their permissions</p>
+                        </div>
+                        
+                        <div class="roles-grid">
+                            <div class="role-card">
+                                <div class="role-header">
+                                    <div class="role-icon">👑</div>
+                                    <div class="role-info">
+                                        <div class="role-name">Super Admin</div>
+                                        <div class="role-description">Full system access</div>
+                                    </div>
+                                </div>
+                                <div class="role-permissions">
+                                    <div class="permission-list">
+                                        <span class="permission-tag">All Pages</span>
+                                        <span class="permission-tag">User Management</span>
+                                        <span class="permission-tag">System Settings</span>
+                                        <span class="permission-tag">Access Control</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="role-card">
+                                <div class="role-header">
+                                    <div class="role-icon">🛡️</div>
+                                    <div class="role-info">
+                                        <div class="role-name">Admin</div>
+                                        <div class="role-description">Administrative access</div>
+                                    </div>
+                                </div>
+                                <div class="role-permissions">
+                                    <div class="permission-list">
+                                        <span class="permission-tag">Dashboard</span>
+                                        <span class="permission-tag">Users</span>
+                                        <span class="permission-tag">Reports</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="role-card">
+                                <div class="role-header">
+                                    <div class="role-icon">👤</div>
+                                    <div class="role-info">
+                                        <div class="role-name">User</div>
+                                        <div class="role-description">Basic user access</div>
+                                    </div>
+                                </div>
+                                <div class="role-permissions">
+                                    <div class="permission-list">
+                                        <span class="permission-tag">Profile</span>
+                                        <span class="permission-tag">Settings</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+// Super Dashboard specific JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts here if needed
+    initDashboardCharts();
+    
+    // Set current date and time
+    updateCurrentDateTime();
+    
+    // Update time every second
+    setInterval(updateCurrentDateTime, 1000);
+    
+    // Initialize page management
+    initPageManagement();
+    
+    // Initialize access control tabs
+    initAccessControlTabs();
+});
+
+// Access Control Tab Functionality
+function initAccessControlTabs() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetTab = btn.getAttribute('data-tab');
+            
+            // Remove active class from all tabs and contents
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            btn.classList.add('active');
+            document.getElementById(targetTab + '-tab').classList.add('active');
+        });
+    });
+}
+
+// User Access Management Functions
+function editUserAccess(userId) {
+    // Placeholder function for editing user access
+    console.log('Editing access for user:', userId);
+    alert('User access editing functionality will be implemented when database is connected.');
+}
+
+// Page Permission Functions
+function updatePagePermission(pageId, accessLevel) {
+    // Placeholder function for updating page permissions
+    console.log('Updating page permission:', pageId, 'to', accessLevel);
+    alert('Page permission updating functionality will be implemented when database is connected.');
+}
+
+// Custom dropdown functionality
+function initCustomDropdowns() {
+    const dropdowns = document.querySelectorAll('.custom-dropdown');
+    
+    dropdowns.forEach(dropdown => {
+        const trigger = dropdown.querySelector('.dropdown-trigger');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        const options = dropdown.querySelectorAll('.dropdown-option');
+        const valueSpan = dropdown.querySelector('.dropdown-value');
+        
+        // Toggle dropdown
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            // Close other dropdowns
+            dropdowns.forEach(other => {
+                if (other !== dropdown) {
+                    other.classList.remove('active');
+                }
+            });
+            
+            dropdown.classList.toggle('active');
+            
+            // If opening dropdown, move it to body for better z-index
+            if (dropdown.classList.contains('active')) {
+                const menu = dropdown.querySelector('.dropdown-menu');
+                const rect = trigger.getBoundingClientRect();
+                
+                // Create a portal container
+                let portal = document.getElementById('dropdown-portal');
+                if (!portal) {
+                    portal = document.createElement('div');
+                    portal.id = 'dropdown-portal';
+                    portal.style.position = 'fixed';
+                    portal.style.top = '0';
+                    portal.style.left = '0';
+                    portal.style.zIndex = '999999';
+                    portal.style.pointerEvents = 'none';
+                    document.body.appendChild(portal);
+                }
+                
+                // Clone and position the menu
+                const clonedMenu = menu.cloneNode(true);
+                clonedMenu.style.position = 'fixed';
+                clonedMenu.style.top = (rect.bottom + 5) + 'px';
+                clonedMenu.style.left = rect.left + 'px';
+                clonedMenu.style.width = rect.width + 'px';
+                clonedMenu.style.pointerEvents = 'auto';
+                clonedMenu.style.opacity = '1';
+                clonedMenu.style.visibility = 'visible';
+                clonedMenu.style.transform = 'translateY(0)';
+                
+                // Clear portal and add new menu
+                portal.innerHTML = '';
+                portal.appendChild(clonedMenu);
+                
+                // Add click handlers to cloned menu
+                const clonedOptions = clonedMenu.querySelectorAll('.dropdown-option');
+                clonedOptions.forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        
+                        // Remove active class from all options
+                        options.forEach(opt => opt.classList.remove('active'));
+                        
+                        // Add active class to selected option
+                        const originalOption = dropdown.querySelector(`[data-value="${option.dataset.value}"]`);
+                        if (originalOption) {
+                            originalOption.classList.add('active');
+                        }
+                        
+                        // Update displayed value
+                        valueSpan.textContent = option.textContent;
+                        
+                        // Get page and value
+                        const page = dropdown.dataset.page;
+                        const value = option.dataset.value;
+                        
+                        // Call update function
+                        updatePagePermission(page, value);
+                        
+                        // Close dropdown
+                        dropdown.classList.remove('active');
+                        portal.innerHTML = '';
+                    });
+                });
+            } else {
+                // Close portal when dropdown is closed
+                const portal = document.getElementById('dropdown-portal');
+                if (portal) {
+                    portal.innerHTML = '';
+                }
+            }
+        });
+        
+        // Note: Option selection is now handled in the portal click handler above
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', () => {
+        dropdowns.forEach(dropdown => {
+            dropdown.classList.remove('active');
+        });
+        
+        // Close portal
+        const portal = document.getElementById('dropdown-portal');
+        if (portal) {
+            portal.innerHTML = '';
+        }
+    });
+    
+    // Reposition dropdowns on window resize
+    window.addEventListener('resize', () => {
+        dropdowns.forEach(dropdown => {
+            if (dropdown.classList.contains('active')) {
+                const trigger = dropdown.querySelector('.dropdown-trigger');
+                const menu = dropdown.querySelector('.dropdown-menu');
+                const rect = trigger.getBoundingClientRect();
+                
+                menu.style.top = (rect.bottom + 5) + 'px';
+                menu.style.left = rect.left + 'px';
+                menu.style.width = rect.width + 'px';
+            }
+        });
+    });
+}
+
+// Initialize custom dropdowns when DOM is loaded
+document.addEventListener('DOMContentLoaded', initCustomDropdowns);
+
+function updateCurrentDateTime() {
+    const dateElement = document.getElementById('currentDate');
+    const timeElement = document.getElementById('currentTime');
+    
+    if (dateElement) {
+        const now = new Date();
+        const options = { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            weekday: 'long'
+        };
+        const formattedDate = now.toLocaleDateString('en-US', options);
+        dateElement.textContent = formattedDate;
+    }
+    
+    if (timeElement) {
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        const formattedTime = `${hours}:${minutes}:${seconds}`;
+        timeElement.textContent = formattedTime;
+    }
+}
+
+function initDashboardCharts() {
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+        // Initialize ApexCharts or Chart.js here
+    }
+
+    // Browser Chart
+    const browserCtx = document.getElementById('browserChart');
+    if (browserCtx) {
+        // Initialize browser chart here
+    }
+}
+
+function initPageManagement() {
+    const toggleInputs = document.querySelectorAll('.page-toggle-input');
+    
+    toggleInputs.forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const pageId = this.dataset.pageId;
+            const pageItem = document.querySelector(`[data-page-id="${pageId}"]`);
+            const statusIndicator = pageItem.querySelector('.status-indicator');
+            const statusText = pageItem.querySelector('.status-text');
+            const newStatus = this.checked ? 'online' : 'offline';
+            
+            // Update UI immediately for better UX
+            if (this.checked) {
+                statusIndicator.className = 'status-indicator online';
+                statusText.textContent = 'Online';
+            } else {
+                statusIndicator.className = 'status-indicator offline';
+                statusText.textContent = 'Offline';
+            }
+            
+            // Make AJAX call to save the status
+            fetch('{{ path("admin_page_status_update") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    pageId: pageId,
+                    status: newStatus
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(`Page ${pageId} status updated to ${newStatus}`);
+                    
+                    // Show success message
+                    showNotification(`Page "${pageItem.querySelector('.page-name').textContent}" is now ${newStatus}`, 'success');
+                } else {
+                    console.error('Failed to update page status:', data.error);
+                    showNotification('Failed to update page status', 'error');
+                    
+                    // Revert the toggle if the request failed
+                    this.checked = !this.checked;
+                    if (this.checked) {
+                        statusIndicator.className = 'status-indicator online';
+                        statusText.textContent = 'Online';
+                    } else {
+                        statusIndicator.className = 'status-indicator offline';
+                        statusText.textContent = 'Offline';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error updating page status:', error);
+                showNotification('Error updating page status', 'error');
+                
+                // Revert the toggle if the request failed
+                this.checked = !this.checked;
+                if (this.checked) {
+                    statusIndicator.className = 'status-indicator online';
+                    statusText.textContent = 'Online';
+                } else {
+                    statusIndicator.className = 'status-indicator offline';
+                    statusText.textContent = 'Offline';
+                }
+            });
+        });
+    });
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    // Style the notification
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        max-width: 300px;
+    `;
+    
+    // Set background color based on type
+    if (type === 'success') {
+        notification.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+    } else if (type === 'error') {
+        notification.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+    } else {
+        notification.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
+    }
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Add CSS animations for notifications
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

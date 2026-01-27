@@ -1,0 +1,15 @@
+framework:
+    asset_mapper:
+        # The paths to make available to the asset mapper.
+        paths:
+            - assets/
+        missing_import_mode: strict
+        # Enable source maps for debugging in development
+        exclude_dotfiles: true
+
+when@prod:
+    framework:
+        asset_mapper:
+            missing_import_mode: warn
+            # Enable asset versioning for cache busting in production
+            public_prefix: '/assets/'

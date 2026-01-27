@@ -1,0 +1,369 @@
+# Create the main CSS file (simplified version)
+css_content = '''/* 
+ * Sneat Admin Dashboard CSS
+ * Based on Bootstrap 5 with custom dark theme
+ */
+
+:root {
+  /* Primary Colors */
+  --bs-primary: #7367f0;
+  --bs-primary-rgb: 115, 103, 240;
+  --bs-secondary: #8a8d93;
+  --bs-success: #71dd37;
+  --bs-info: #03c3ec;
+  --bs-warning: #ffab00;
+  --bs-danger: #ff3e1d;
+  --bs-light: #fcfdfd;
+  --bs-dark: #233446;
+
+  /* Body Colors */
+  --bs-body-bg: #f5f5f9;
+  --bs-body-color: #697a8d;
+
+  /* Menu Colors */
+  --bs-menu-bg: #2b2c40;
+  --bs-menu-color: #a8aaae;
+  --bs-menu-hover-bg: rgba(115, 103, 240, 0.08);
+  --bs-menu-active-bg: #7367f0;
+  --bs-menu-active-color: #fff;
+
+  /* Card Colors */
+  --bs-card-bg: #fff;
+  --bs-card-border-color: #d9dee3;
+
+  /* Navbar Colors */
+  --bs-navbar-bg: #fff;
+  --bs-navbar-color: #697a8d;
+}
+
+/* Global Styles */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+}
+
+/* Layout Styles */
+.layout-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+.layout-menu {
+  width: 260px;
+  background-color: var(--bs-menu-bg);
+  color: var(--bs-menu-color);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 1000;
+  transition: all 0.25s ease;
+  overflow-y: auto;
+}
+
+.layout-page {
+  margin-left: 260px;
+  width: calc(100% - 260px);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s ease;
+}
+
+/* App Brand */
+.app-brand {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  min-height: 70px;
+}
+
+.app-brand-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--bs-menu-color);
+}
+
+.app-brand-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  margin-left: 0.5rem;
+}
+
+/* Menu Styles */
+.menu-inner {
+  padding: 0;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-item {
+  margin-bottom: 0.125rem;
+}
+
+.menu-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: var(--bs-menu-color);
+  text-decoration: none;
+  transition: all 0.15s ease;
+  border-radius: 0;
+}
+
+.menu-link:hover {
+  background-color: var(--bs-menu-hover-bg);
+  color: var(--bs-primary);
+}
+
+.menu-item.active > .menu-link {
+  background-color: var(--bs-menu-active-bg);
+  color: var(--bs-menu-active-color);
+  box-shadow: 0 2px 6px 0 rgba(115, 103, 240, 0.48);
+}
+
+.menu-icon {
+  margin-right: 0.75rem;
+  font-size: 1.125rem;
+  width: 20px;
+  text-align: center;
+}
+
+.menu-sub {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  padding-left: 0;
+}
+
+.menu-sub .menu-link {
+  padding-left: 3.5rem;
+  font-size: 0.9375rem;
+}
+
+/* Menu Headers */
+.menu-header {
+  padding: 1rem 1.5rem 0.5rem;
+  margin-top: 1rem;
+  color: #a8aaae;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.menu-header:first-child {
+  margin-top: 0;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25em 0.6em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  border-radius: 0.375rem;
+}
+
+.badge-pro {
+  background-color: rgba(115, 103, 240, 0.16);
+  color: var(--bs-primary);
+  margin-left: auto;
+}
+
+/* Navbar Styles */
+.layout-navbar {
+  background-color: var(--bs-navbar-bg);
+  color: var(--bs-navbar-color);
+  padding: 0 1.5rem;
+  height: 60px;
+  border-bottom: 1px solid var(--bs-card-border-color);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+/* Content */
+.content-wrapper {
+  flex: 1;
+  padding: 0;
+}
+
+.container-xxl {
+  padding: 1.5rem;
+}
+
+/* Cards */
+.card {
+  background-color: var(--bs-card-bg);
+  border: 1px solid var(--bs-card-border-color);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 6px 0 rgba(67, 89, 113, 0.12);
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-header {
+  padding: 1.5rem 1.5rem 1rem;
+  background-color: transparent;
+  border-bottom: none;
+}
+
+/* Avatar */
+.avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 0.375rem;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.avatar-initial {
+  background-color: #f5f5f9;
+  color: #697a8d;
+  font-weight: 500;
+}
+
+/* Footer */
+.content-footer {
+  background-color: var(--bs-card-bg);
+  border-top: 1px solid var(--bs-card-border-color);
+  margin-top: auto;
+}
+
+.footer-link {
+  color: var(--bs-primary);
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  color: var(--bs-primary);
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 1199.98px) {
+  .layout-menu {
+    transform: translateX(-100%);
+  }
+  
+  .layout-page {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .layout-menu.show {
+    transform: translateX(0);
+  }
+}
+
+/* Utility Classes */
+.text-primary { color: var(--bs-primary) !important; }
+.text-success { color: var(--bs-success) !important; }
+.text-danger { color: var(--bs-danger) !important; }
+.text-warning { color: var(--bs-warning) !important; }
+.text-info { color: var(--bs-info) !important; }
+.text-muted { color: #a8aaae !important; }
+
+.bg-label-primary {
+  background-color: rgba(115, 103, 240, 0.16) !important;
+  color: var(--bs-primary) !important;
+}
+
+.bg-label-success {
+  background-color: rgba(113, 221, 55, 0.16) !important;
+  color: var(--bs-success) !important;
+}
+
+.bg-label-info {
+  background-color: rgba(3, 195, 236, 0.16) !important;
+  color: var(--bs-info) !important;
+}
+
+.bg-label-secondary {
+  background-color: rgba(138, 141, 147, 0.16) !important;
+  color: var(--bs-secondary) !important;
+}
+
+/* Bootstrap Utilities */
+.d-flex { display: flex !important; }
+.align-items-center { align-items: center !important; }
+.justify-content-between { justify-content: space-between !important; }
+.ms-auto { margin-left: auto !important; }
+.me-2 { margin-right: 0.5rem !important; }
+.me-3 { margin-right: 1rem !important; }
+.mb-0 { margin-bottom: 0 !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+.fw-medium { font-weight: 500 !important; }
+.fw-bold { font-weight: 700 !important; }
+.text-nowrap { white-space: nowrap !important; }
+.rounded { border-radius: 0.375rem !important; }
+.p-0 { padding: 0 !important; }
+.pb-0 { padding-bottom: 0 !important; }
+.px-0 { padding-left: 0 !important; padding-right: 0 !important; }
+.w-100 { width: 100% !important; }
+.h-100 { height: 100% !important; }
+
+/* Grid System */
+.row {
+  --bs-gutter-x: 1.5rem;
+  --bs-gutter-y: 0;
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: calc(-1 * var(--bs-gutter-y));
+  margin-right: calc(-0.5 * var(--bs-gutter-x));
+  margin-left: calc(-0.5 * var(--bs-gutter-x));
+}
+
+.col-md-6, .col-lg-4, .col-lg-8, .col-xl-4, .col-xl-8, .col-12 {
+  flex: 0 0 auto;
+  width: 100%;
+  padding-right: calc(var(--bs-gutter-x) * 0.5);
+  padding-left: calc(var(--bs-gutter-x) * 0.5);
+  margin-top: var(--bs-gutter-y);
+}
+
+@media (min-width: 768px) {
+  .col-md-6 { flex: 0 0 auto; width: 50%; }
+  .col-md-8 { flex: 0 0 auto; width: 66.66666667%; }
+  .col-md-4 { flex: 0 0 auto; width: 33.33333333%; }
+  .col-md-12 { flex: 0 0 auto; width: 100%; }
+}
+
+@media (min-width: 992px) {
+  .col-lg-4 { flex: 0 0 auto; width: 33.33333333%; }
+  .col-lg-8 { flex: 0 0 auto; width: 66.66666667%; }
+}
+
+@media (min-width: 1200px) {
+  .col-xl-4 { flex: 0 0 auto; width: 33.33333333%; }
+  .col-xl-8 { flex: 0 0 auto; width: 66.66666667%; }
+}'''
+
+# Write CSS file
+with open('public/css/sneat-admin.css', 'w') as f:
+    f.write(css_content)
+    
+print("✓ Created public/css/sneat-admin.css")
