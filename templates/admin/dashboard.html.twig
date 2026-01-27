@@ -1,0 +1,253 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard - Liquid Glass Admin{% endblock %}
+
+{% block content %}
+{% include 'admin/_dashboard_header.html.twig' with { 'title': 'Dashboard' } %}
+
+<!-- Rotating Dashboard Widgets -->
+<div class="dashboard-carousel-container">
+    <!-- Carousel Controls -->
+    <div class="carousel-controls">
+        <button class="carousel-btn prev-btn" id="prevWidget" title="Previous Widget">
+            ←
+        </button>
+        <div class="carousel-indicators">
+            <span class="indicator active" data-slide="0"></span>
+            <span class="indicator" data-slide="1"></span>
+            <span class="indicator" data-slide="2"></span>
+            <span class="indicator" data-slide="3"></span>
+        </div>
+        <button class="carousel-btn next-btn" id="nextWidget" title="Next Widget">
+            →
+        </button>
+    </div>
+
+    <!-- Carousel Wrapper -->
+    <div class="carousel-wrapper">
+        <div class="carousel-track" id="carouselTrack">
+            <!-- Widget 1: Revenue -->
+            <div class="carousel-slide active">
+                <div class="card revenue-card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title expanding-text">Revenue</h5>
+                            <div class="time-toggle">
+                                <button class="toggle-btn">Month</button>
+                                <button class="toggle-btn active">Week</button>
+                                <button class="toggle-btn">Day</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="revenueChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget 2: Performance -->
+            <div class="carousel-slide">
+                <div class="card performance-card">
+                    <div class="performance-bg">
+                        <div class="performance-illustration">
+                            <div class="floating-character">
+                                <div class="character-body"></div>
+                                <div class="character-arms"></div>
+                                <div class="purple-object"></div>
+                            </div>
+                            <div class="rocket-trail"></div>
+                        </div>
+                        <button class="export-btn">Export</button>
+                    </div>
+                    <div class="performance-overlay">
+                        <div class="performance-stats">
+                            <div class="stat-row">
+                                <div class="stat-item">
+                                    <div class="stat-label">Paid Visit</div>
+                                    <div class="stat-value">6,550</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Total Visit</div>
+                                    <div class="stat-value">5,646,454</div>
+                                </div>
+                            </div>
+                            <div class="stat-row">
+                                <div class="stat-item">
+                                    <div class="stat-label">Expense</div>
+                                    <div class="stat-value">$650</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Commission</div>
+                                    <div class="stat-value">$56</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget 3: Social Media -->
+            <div class="carousel-slide">
+                <div class="card social-card">
+                    <div class="card-header">
+                        <h5 class="card-title expanding-text">Social media</h5>
+                        <p class="card-subtitle">About Your Social Popularity</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="social-illustration">
+                            <div class="desk-character">
+                                <div class="character-head"></div>
+                                <div class="character-body"></div>
+                                <div class="laptop-screen"></div>
+                                <div class="clock-icon"></div>
+                            </div>
+                        </div>
+                        <div class="followers-display">
+                            <div class="follower-box orange">
+                                <div class="follower-label">Followers</div>
+                                <div class="follower-count">35.6 K</div>
+                            </div>
+                            <div class="follower-box green">
+                                <div class="follower-label">Followers</div>
+                                <div class="follower-count">35.6 K</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget 4: Browser Analytics -->
+            <div class="carousel-slide">
+                <div class="card browser-card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title expanding-text">Visitors by Browser</h5>
+                                <p class="card-subtitle">15,654 Visitors</p>
+                            </div>
+                            <div class="time-toggle">
+                                <button class="toggle-btn active">Week</button>
+                                <button class="toggle-btn">Day</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="browserChart" height="200"></canvas>
+                        </div>
+                        <div class="browser-detail">
+                            <div class="browser-logo chrome"></div>
+                            <div class="browser-info">
+                                <div class="browser-name">Chrome Users</div>
+                                <div class="browser-time">Today</div>
+                                <div class="browser-change">+2,155</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-play Controls -->
+    <div class="autoplay-controls">
+        <button class="autoplay-btn" id="toggleAutoplay">
+            <i class="bx bx-pause" id="autoplayIcon"></i>
+            <span id="autoplayText">Pause</span>
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+// Dashboard specific JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts here if needed
+    initDashboardCharts();
+    
+    // Set current date and time
+    updateCurrentDateTime();
+    
+    // Update time every second
+    setInterval(updateCurrentDateTime, 1000);
+});
+
+function updateCurrentDateTime() {
+    const dateElement = document.getElementById('currentDate');
+    const timeElement = document.getElementById('currentTime');
+    
+    if (dateElement) {
+        const now = new Date();
+        const options = { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            weekday: 'long'
+        };
+        const formattedDate = now.toLocaleDateString('en-US', options);
+        dateElement.textContent = formattedDate;
+    }
+    
+    if (timeElement) {
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        const formattedTime = `${hours}:${minutes}:${seconds}`;
+        timeElement.textContent = formattedTime;
+    }
+}
+
+function initDashboardCharts() {
+    // Revenue Chart
+    const revenueCtx = document.getElementById('totalRevenueChart');
+    if (revenueCtx) {
+        // Initialize ApexCharts or Chart.js here
+    }
+
+    // Order Statistics Chart
+    const orderCtx = document.getElementById('orderStatisticsChart');
+    if (orderCtx) {
+        // Initialize donut chart here
+    }
+
+    // Income Chart
+    const incomeCtx = document.getElementById('incomeChart');
+    if (incomeCtx) {
+        new Chart(incomeCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    data: [10, 20, 15, 25, 18, 30, 25],
+                    borderColor: '#7367f0',
+                    backgroundColor: 'rgba(115, 103, 240, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false
+                    },
+                    y: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

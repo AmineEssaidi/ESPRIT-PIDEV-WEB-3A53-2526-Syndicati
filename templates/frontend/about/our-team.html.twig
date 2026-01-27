@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <meta charset="UTF-8">
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notre équipe - PiDev</title>
+
+    <!-- CSS Dependencies -->
+    <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+</head>
+<body>
+<!-- Page Loader -->
+<div class="page-loader" id="pageLoader">
+    <div class="loader-content">
+        <div class="loader-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Layout Wrapper -->
+<div class="main-home-layout-wrapper">
+    <!-- Layout Container -->
+    <div class="main-home-page">
+        <!-- Include Shared Navbar -->
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'about'} %}
+        
+        <!-- Content Wrapper -->
+        <div class="main-home-content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+                    <!-- Hero Section -->
+                    <div class="main-home-hero-section">
+                        <div class="main-home-hero-content">
+                            <h1 class="main-home-hero-title">
+                                Découvrez notre <span class="main-home-hero-highlight">équipe incroyable</span>
+                            </h1>
+                            <p class="main-home-hero-subtitle">
+                                Les esprits brillants derrière PiDev, travaillant ensemble pour créer des expériences extraordinaires
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Globe Section -->
+                    <div class="main-home-globe-section">
+                        <div class="main-home-section-header">
+                            <h2 class="main-home-section-title">Notre équipe <span class="main-home-hero-highlight">mondiale</span></h2>
+                            <p class="main-home-section-subtitle">Découvrez notre présence mondiale et connectez-vous avec les membres de l'équipe partout dans le monde</p>
+                        </div>
+                        <div class="main-home-globe-container">
+                            <div id="globe-container"></div>
+                            <div class="main-home-globe-stats">
+                                <div class="main-home-globe-stat">
+                                    <div class="main-home-globe-stat-number">12+</div>
+                                    <div class="main-home-globe-stat-label">Membres de l'équipe</div>
+                                </div>
+                                <div class="main-home-globe-stat">
+                                    <div class="main-home-globe-stat-number">8</div>
+                                    <div class="main-home-globe-stat-label">Countries</div>
+                                </div>
+                                <div class="main-home-globe-stat">
+                                    <div class="main-home-globe-stat-number">50+</div>
+                                    <div class="main-home-globe-stat-label">Projects</div>
+                                </div>
+                                <div class="main-home-globe-stat">
+                                    <div class="main-home-globe-stat-number">99%</div>
+                                    <div class="main-home-globe-stat-label">Satisfaction</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Team Members -->
+                    <div class="main-home-team-section">
+                        <div class="main-home-section-header">
+                            <h2 class="main-home-section-title">Our Core Team</h2>
+                            <p class="main-home-section-subtitle">Meet the talented individuals who make PiDev possible</p>
+                        </div>
+                        
+                        <div class="main-home-team-grid">
+                            <!-- Team Member: Mohamed Amine Essaidi (CEO) -->
+                            <div class="main-home-team-card">
+                                <div class="main-home-team-avatar">
+                                    <img src="{{ asset('images/team/amine.jpg') }}" alt="Mohamed Amine Essaidi">
+                                    <div class="main-home-team-status online"></div>
+                                </div>
+                                <div class="main-home-team-info">
+                                    <h3 class="main-home-team-name">Mohamed Amine Essaidi</h3>
+                                    <p class="main-home-team-role">Chief Executive Officer</p>
+                                    <p class="main-home-team-bio">Visionary leader and founder of PiDev</p>
+                                </div>
+                                <div class="main-home-team-social">
+                                    <a href="#" class="main-home-social-link">📧</a>
+                                    <a href="#" class="main-home-social-link">💼</a>
+                                    <a href="#" class="main-home-social-link">🐦</a>
+                                </div>
+                            </div>
+
+                            <!-- Team Member: Rayen Kahloun -->
+                            <div class="main-home-team-card">
+                                <div class="main-home-team-avatar">
+                                    <img src="{{ asset('images/team/rayen.jpg') }}" alt="Rayen Kahloun">
+                                    <div class="main-home-team-status online"></div>
+                                </div>
+                                <div class="main-home-team-info">
+                                    <h3 class="main-home-team-name">Rayen Kahloun</h3>
+                                    <p class="main-home-team-role">Core Developer</p>
+                                    <p class="main-home-team-bio">Backend and infrastructure specialist</p>
+                                </div>
+                                <div class="main-home-team-social">
+                                    <a href="#" class="main-home-social-link">📧</a>
+                                    <a href="#" class="main-home-social-link">💻</a>
+                                    <a href="#" class="main-home-social-link">🐙</a>
+                                </div>
+                            </div>
+
+                            <!-- Team Member: Bahe Hamdi -->
+                            <div class="main-home-team-card">
+                                <div class="main-home-team-avatar">
+                                    <img src="{{ asset('images/team/bahe.jpg') }}" alt="Bahe Hamdi">
+                                    <div class="main-home-team-status online"></div>
+                                </div>
+                                <div class="main-home-team-info">
+                                    <h3 class="main-home-team-name">Bahe Hamdi</h3>
+                                    <p class="main-home-team-role">Frontend Developer</p>
+                                    <p class="main-home-team-bio">UI/UX and frontend engineering</p>
+                                </div>
+                                <div class="main-home-team-social">
+                                    <a href="#" class="main-home-social-link">📧</a>
+                                    <a href="#" class="main-home-social-link">🎨</a>
+                                    <a href="#" class="main-home-social-link">📷</a>
+                                </div>
+                            </div>
+
+                            <!-- Team Member: Syrine Negra -->
+                            <div class="main-home-team-card">
+                                <div class="main-home-team-avatar">
+                                    <img src="{{ asset('images/team/syrine.jpg') }}" alt="Syrine Negra">
+                                    <div class="main-home-team-status online"></div>
+                                </div>
+                                <div class="main-home-team-info">
+                                    <h3 class="main-home-team-name">Syrine Negra</h3>
+                                    <p class="main-home-team-role">QA & Testing</p>
+                                    <p class="main-home-team-bio">Quality assurance and test automation</p>
+                                </div>
+                                <div class="main-home-team-social">
+                                    <a href="#" class="main-home-social-link">📧</a>
+                                    <a href="#" class="main-home-social-link">🔍</a>
+                                    <a href="#" class="main-home-social-link">🧪</a>
+                                </div>
+                            </div>
+
+                            <!-- Team Member: Mariem Ben Hamza -->
+                            <div class="main-home-team-card">
+                                <div class="main-home-team-avatar">
+                                    <img src="{{ asset('images/team/mariem.jpg') }}" alt="Mariem Ben Hamza">
+                                    <div class="main-home-team-status online"></div>
+                                </div>
+                                <div class="main-home-team-info">
+                                    <h3 class="main-home-team-name">Mariem Ben Hamza</h3>
+                                    <p class="main-home-team-role">Product Designer</p>
+                                    <p class="main-home-team-bio">Design and product experience</p>
+                                </div>
+                                <div class="main-home-team-social">
+                                    <a href="#" class="main-home-social-link">📧</a>
+                                    <a href="#" class="main-home-social-link">🎨</a>
+                                    <a href="#" class="main-home-social-link">📊</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Values Section -->
+                    <div class="main-home-values-section">
+                        <div class="main-home-section-header">
+                            <h2 class="main-home-section-title">Our Values</h2>
+                            <p class="main-home-section-subtitle">The principles that guide everything we do</p>
+                        </div>
+                        
+                        <div class="main-home-values-grid">
+                            <div class="main-home-value-card">
+                                <div class="main-home-value-icon">🚀</div>
+                                <h3 class="main-home-value-title">Innovation</h3>
+                                <p class="main-home-value-description">We constantly push boundaries and explore new possibilities</p>
+                            </div>
+                            <div class="main-home-value-card">
+                                <div class="main-home-value-icon">🤝</div>
+                                <h3 class="main-home-value-title">Collaboration</h3>
+                                <p class="main-home-value-description">Great things happen when we work together as a team</p>
+                            </div>
+                            <div class="main-home-value-card">
+                                <div class="main-home-value-icon">💎</div>
+                                <h3 class="main-home-value-title">Quality</h3>
+                                <p class="main-home-value-description">We never compromise on excellence and attention to detail</p>
+                            </div>
+                            <div class="main-home-value-card">
+                                <div class="main-home-value-icon">🌱</div>
+                                <h3 class="main-home-value-title">Growth</h3>
+                                <p class="main-home-value-description">We believe in continuous learning and personal development</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Join Us CTA -->
+                    <div class="main-home-cta-section">
+                        <div class="main-home-cta-content">
+                            <h2 class="main-home-cta-title">Join Our Team</h2>
+                            <p class="main-home-cta-subtitle">We're always looking for talented individuals to join our mission</p>
+                            <div class="main-home-cta-buttons">
+                                <a href="{{ path('frontend_contact') }}" class="main-home-btn main-home-btn-primary">
+                                    <span>View Open Positions</span>
+                                    <i class="bx bx-right-arrow-alt"></i>
+                                </a>
+                                <a href="{{ path('frontend_contact') }}" class="main-home-btn main-home-btn-secondary">
+                                    <span>Get in Touch</span>
+                                    <i class="bx bx-envelope"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+            <!-- Footer Dynamic Island -->
+            <footer class="main-home-footer-island">
+                <div class="main-home-footer-content">
+                    <!-- Left Side - Made with Love -->
+                    <div class="main-home-footer-left">
+                        <div class="main-home-made-with-love">
+                            <span class="main-home-copyright-text">
+                                © <script>document.write(new Date().getFullYear());</script>
+                            </span>
+                            <span class="main-home-love-text">
+                                Made with <span class="main-home-heart">❤️</span> by
+                                <span class="main-home-author-name">Amine</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right Side - Quick Links -->
+                    <div class="main-home-footer-right">
+                        <div class="main-home-footer-links">
+                            <a href="#" class="main-home-footer-link" title="Documentation">
+                                <span class="main-home-link-icon">📚</span>
+                                <span class="main-home-link-text">Docs</span>
+                            </a>
+                            <a href="#" class="main-home-footer-link" title="Support">
+                                <span class="main-home-link-icon">💬</span>
+                                <span class="main-home-link-text">Support</span>
+                            </a>
+                            <a href="#" class="main-home-footer-link" title="GitHub">
+                                <span class="main-home-link-icon">🐙</span>
+                                <span class="main-home-link-text">GitHub</span>
+                            </a>
+                            <a href="#" class="main-home-footer-link" title="License">
+                                <span class="main-home-link-icon">📄</span>
+                                <span class="main-home-link-text">License</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript Dependencies -->
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('frontend/js/main-home.js') }}?v=dev"></script>
+<script>
+// Theme Toggle Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    html.setAttribute('data-theme', savedTheme);
+    
+    // Update toggle position based on saved theme
+    if (savedTheme === 'light') {
+        themeToggle.classList.add('light-mode');
+    }
+    
+    themeToggle.addEventListener('click', function() {
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        
+        // Update toggle position
+        if (newTheme === 'light') {
+            themeToggle.classList.add('light-mode');
+        } else {
+            themeToggle.classList.remove('light-mode');
+        }
+    });
+});
+
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchBtn = document.querySelector('.main-home-search-icon-btn');
+    const searchExpand = document.querySelector('.main-home-search-expand');
+    const searchInput = document.querySelector('.main-home-search-input');
+    
+    if (searchBtn && searchExpand && searchInput) {
+        searchBtn.addEventListener('click', function() {
+            searchExpand.classList.toggle('active');
+            if (searchExpand.classList.contains('active')) {
+                searchInput.focus();
+            }
+        });
+        
+        // Close search when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchBtn.contains(e.target) && !searchExpand.contains(e.target)) {
+                searchExpand.classList.remove('active');
+            }
+        });
+    }
+});
+
+// Profile dropdown functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const profileDropdown = document.querySelector('.main-home-user-profile-dropdown');
+    const avatarOnly = document.querySelector('.main-home-user-avatar-only');
+    const dropdown = document.querySelector('.main-home-profile-dropdown');
+    
+    if (avatarOnly && dropdown) {
+        avatarOnly.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('active');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!profileDropdown.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+    }
+});
+
+// Tab dropdown functionality
+function initTabDropdowns() {
+    const navTabs = document.querySelectorAll('.main-home-nav-tab');
+    let hoverTimeout;
+    let isHovering = false;
+    
+    function closeAllDropdowns() {
+        navTabs.forEach(tab => {
+            const dropdown = tab.querySelector('.main-home-tab-dropdown');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+    
+    navTabs.forEach(tab => {
+        const dropdown = tab.querySelector('.main-home-tab-dropdown');
+        const tabText = tab.querySelector('.main-home-tab-text');
+        const homeLink = tabText.querySelector('a');
+        
+        // Handle Home tab (has link, no dropdown)
+        if (homeLink) {
+            // Home tab should behave like other tabs but navigate on click
+            tabText.addEventListener('click', function(e) {
+                // Let the link handle navigation naturally
+                // No preventDefault needed
+            });
+            
+            // No hover dropdown functionality for Home tab
+            return;
+        }
+        
+        // Only add dropdown functionality to tabs that have dropdowns
+        if (!dropdown) {
+            return;
+        }
+        
+        // Click to toggle dropdown
+        tabText.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const isOpen = dropdown.style.display === 'block';
+            closeAllDropdowns();
+            
+            if (!isOpen) {
+                dropdown.style.display = 'block';
+            }
+        });
+        
+        // Hover to show dropdown - more reliable
+        tab.addEventListener('mouseenter', function() {
+            clearTimeout(hoverTimeout);
+            isHovering = true;
+            closeAllDropdowns();
+            dropdown.style.display = 'block';
+        });
+        
+        // Hover to hide dropdown with delay
+        tab.addEventListener('mouseleave', function() {
+            isHovering = false;
+            hoverTimeout = setTimeout(() => {
+                if (!isHovering) {
+                    dropdown.style.display = 'none';
+                }
+            }, 300); // Increased delay for better UX
+        });
+        
+        // Keep dropdown open when hovering over it
+        dropdown.addEventListener('mouseenter', function() {
+            clearTimeout(hoverTimeout);
+            isHovering = true;
+        });
+        
+        dropdown.addEventListener('mouseleave', function() {
+            isHovering = false;
+            hoverTimeout = setTimeout(() => {
+                if (!isHovering) {
+                    dropdown.style.display = 'none';
+                }
+            }, 300);
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!tab.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    });
+}
+
+// Initialize tab dropdowns when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initTabDropdowns();
+});
+
+// Interactive 3D Globe - Fresh Start
+document.addEventListener('DOMContentLoaded', function() {
+    // Load Three.js from CDN
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    script.onload = function() {
+        initGlobe();
+    };
+    document.head.appendChild(script);
+});
+
+function initGlobe() {
+    const container = document.getElementById('globe-container');
+    if (!container) return;
+
+    // Scene setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    
+    renderer.setSize(container.offsetWidth, container.offsetHeight);
+    renderer.setClearColor(0x000000, 0);
+    container.appendChild(renderer.domElement);
+
+    // Create globe
+    const globeGeometry = new THREE.SphereGeometry(2, 64, 64);
+    
+    // Simple world map texture
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    
+    // Ocean background
+    ctx.fillStyle = '#0066cc';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Continents
+    ctx.fillStyle = '#228B22';
+    drawContinents(ctx, canvas.width, canvas.height);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    const globeMaterial = new THREE.MeshPhongMaterial({ 
+        map: texture
+    });
+    
+    const globe = new THREE.Mesh(globeGeometry, globeMaterial);
+    scene.add(globe);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+    scene.add(ambientLight);
+    
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 5, 5);
+    scene.add(directionalLight);
+
+    // Camera position
+    camera.position.z = 5;
+
+    // Mouse controls
+    let mouseX = 0, mouseY = 0;
+    let targetRotationX = 0, targetRotationY = 0;
+    let isMouseDown = false;
+
+    container.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+
+    container.addEventListener('mouseup', () => {
+        isMouseDown = false;
+    });
+
+    container.addEventListener('mousemove', (e) => {
+        if (isMouseDown) {
+            const deltaX = e.clientX - mouseX;
+            const deltaY = e.clientY - mouseY;
+            
+            targetRotationY += deltaX * 0.01;
+            targetRotationX += deltaY * 0.01;
+            
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        }
+    });
+
+    // Auto-rotation
+    let autoRotation = 0.005;
+
+    // Animation loop
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        // Smooth rotation
+        globe.rotation.y += (targetRotationY - globe.rotation.y) * 0.1;
+        globe.rotation.x += (targetRotationX - globe.rotation.x) * 0.1;
+        
+        // Auto-rotation when not interacting
+        if (!isMouseDown) {
+            globe.rotation.y += autoRotation;
+        }
+        
+        renderer.render(scene, camera);
+    }
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        camera.aspect = container.offsetWidth / container.offsetHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.offsetWidth, container.offsetHeight);
+    });
+
+    animate();
+}
+
+function drawContinents(ctx, width, height) {
+    // Draw simple continent shapes
+    
+    // North America
+    ctx.beginPath();
+    ctx.ellipse(width * 0.2, height * 0.4, width * 0.12, height * 0.2, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // South America
+    ctx.beginPath();
+    ctx.ellipse(width * 0.3, height * 0.75, width * 0.06, height * 0.15, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // Europe
+    ctx.beginPath();
+    ctx.ellipse(width * 0.5, height * 0.25, width * 0.05, height * 0.08, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // Africa
+    ctx.beginPath();
+    ctx.ellipse(width * 0.52, height * 0.55, width * 0.04, height * 0.15, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // Asia
+    ctx.beginPath();
+    ctx.ellipse(width * 0.75, height * 0.35, width * 0.18, height * 0.2, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    // Australia
+    ctx.beginPath();
+    ctx.ellipse(width * 0.8, height * 0.8, width * 0.08, height * 0.05, 0, 0, 2 * Math.PI);
+    ctx.fill();
+}
+
+</script>
+<script src="{{ asset('js/page-loader.js') }}"></script>
+</body>
+</html>

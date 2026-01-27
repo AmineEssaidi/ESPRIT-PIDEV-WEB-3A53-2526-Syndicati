@@ -1,0 +1,140 @@
+{# Shared Main Navbar/Island Partial - includes all markup for header, nav, theme toggle, dynamic island, notifications, and user profile #}
+<nav class="main-home-navbar">
+    <!-- Left Side - Search Icon -->
+    <div class="main-home-header-left">
+        <div class="main-home-search-icon-container">
+            <button class="main-home-search-icon-btn" title="Rechercher">
+                <span class="main-home-search-logo-wrapper">
+                    <img src="/images/logo/syndicati.png" alt="Syndicati Logo" class="main-home-search-logo main-home-search-logo-light" />
+                    <img src="/images/logo/syndicatioffwhite.png" alt="Syndicati Logo" class="main-home-search-logo main-home-search-logo-dark" />
+                </span>
+            </button>
+            <div class="main-home-search-expand">
+                <input type="text" class="main-home-search-input" placeholder="Rechercher..." aria-label="Rechercher..."/>
+            </div>
+        </div>
+    </div>
+
+    <!-- Center - Navigation Tabs -->
+    <div class="main-home-header-center">
+        <div class="main-home-nav-tabs">
+            <div class="main-home-nav-tab {{ active_tab|default('') == 'home' ? 'active' : '' }}">
+                <span class="main-home-tab-text">
+                    <a href="{{ path('main_home') }}" style="text-decoration: none; color: inherit;" data-i18n="Home">Accueil</a>
+                </span>
+            </div>
+            <div class="main-home-nav-tab {{ active_tab|default('') == 'services' ? 'active' : '' }}">
+                <span class="main-home-tab-text"><a href="#" data-i18n="Services" style="text-decoration: none; color: inherit;">Services</a></span>
+                <div class="main-home-tab-dropdown">
+                    <a href="{{ path('frontend_residence') }}" class="main-home-dropdown-item" data-i18n="Residence">Residence</a>
+                    <a href="{{ path('frontend_forum') }}" class="main-home-dropdown-item" data-i18n="Forum">Forum</a>
+                    <a href="{{ path('frontend_syndicat') }}" class="main-home-dropdown-item" data-i18n="Syndicat">Syndicat</a>
+                    <a href="{{ path('frontend_evenement') }}" class="main-home-dropdown-item" data-i18n="Evenement">Evenement</a>
+                </div>
+            </div>
+            <div class="main-home-nav-tab {{ active_tab|default('') == 'about' ? 'active' : '' }}">
+                <span class="main-home-tab-text"><a href="{{ path('frontend_our_team') }}" style="text-decoration: none; color: inherit;" data-i18n="About">À propos</a></span>
+                <div class="main-home-tab-dropdown">
+                    <a href="{{ path('frontend_our_team') }}" class="main-home-dropdown-item" data-i18n="Our Team">Notre équipe</a>
+                    <a href="#" class="main-home-dropdown-item" data-i18n="Company">Entreprise</a>
+                    <a href="{{ path('frontend_contact') }}" class="main-home-dropdown-item" data-i18n="Contact">Contact</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side - Controls -->
+    <div class="main-home-header-right">
+        <!-- Theme Toggle -->
+        <div class="main-home-ios-theme-toggle">
+            <div class="main-home-toggle-container" id="theme-toggle">
+                <div class="main-home-toggle-track">
+                    <div class="main-home-toggle-thumb">
+                        <span class="main-home-toggle-icon main-home-sun-icon">☀️</span>
+                        <span class="main-home-toggle-icon main-home-moon-icon">🌙</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if app.session.get('is_logged_in') %}
+        <!-- Dynamic Island Notification (Only show when logged in) -->
+        <div class="main-home-notification-circle">
+            <div class="main-home-dynamic-island" id="dynamicIsland" title="Notifications">
+                <span class="main-home-notification-icon">🔔</span>
+                <span class="main-home-notification-badge">3</span>
+                <!-- Dynamic Content -->
+                <div class="main-home-dynamic-content">
+                    <p class="main-home-dynamic-text" data-i18n="Notifications">Notifications</p>
+                    <p class="main-home-dynamic-subtext"><span data-i18n="3">3</span> <span data-i18n="new messages">nouveaux messages</span></p>
+                </div>
+                <!-- Notification Popup Content -->
+                <div class="main-home-notification-popup-content" style="display: none;">
+                    <div class="main-home-notification-popup-icon">📱</div>
+                    <div class="main-home-notification-popup-text">
+                        <p class="main-home-notification-popup-title" data-i18n="New Message">New Message</p>
+                        <p class="main-home-notification-popup-message"><span data-i18n="You have">You have</span> 3 <span data-i18n="unread notifications">unread notifications</span></p>
+                    </div>
+                </div>
+                <!-- Multiple Notifications Container -->
+                <div class="main-home-notifications-container" style="display: none;">
+                    <div class="main-home-notifications-scroll">
+                        <!-- Notifications will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+            <!-- Animated Close Button -->
+            <button class="main-home-dynamic-close-btn" id="dynamicCloseBtn" title="Close">✕</button>
+        </div>
+        {% endif %}
+
+        <!-- Auth Buttons (show/hide based on login status) -->
+        {% if app.session.get('is_logged_in') %}
+        <div class="main-home-user-profile-dropdown">
+            <div class="main-home-user-avatar-only">
+                <img src="{{ app.session.get('user').avatar|default('https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/1.png') }}" alt="Profile" class="main-home-avatar-img" loading="lazy" decoding="async"/>
+                <div class="main-home-avatar-status online"></div>
+            </div>
+            <div class="main-home-profile-dropdown">
+                <div class="main-home-dropdown-header">
+                    <div class="main-home-user-profile">
+                        <img src="{{ app.session.get('user').avatar|default('https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/1.png') }}" alt="Profile" class="main-home-profile-img" loading="lazy" decoding="async"/>
+                        <div class="main-home-profile-info">
+                            <div class="main-home-profile-name">{{ app.session.get('user').name|default('User') }}</div>
+                            <div class="main-home-profile-email">{{ app.session.get('user').email|default('user@example.com') }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-home-dropdown-divider"></div>
+                <a href="{{ path('frontend_profile') }}" class="main-home-dropdown-item">
+                    <i class="bx bx-user"></i>
+                    <span data-i18n="My Profile">Mon profil</span>
+                </a>
+                <a href="{{ path('admin_dashboard') }}" class="main-home-dropdown-item">
+                    <i class="bx bx-grid-alt"></i>
+                    <span data-i18n="Dashboard">Tableau de bord</span>
+                </a>
+                <a href="{{ path('frontend_settings') }}" class="main-home-dropdown-item">
+                    <i class="bx bx-cog"></i>
+                    <span data-i18n="Settings">Paramètres</span>
+                </a>
+                <a href="#" class="main-home-dropdown-item">
+                    <i class="bx bx-credit-card"></i>
+                    <span data-i18n="Billing">Facturation</span>
+                    <span class="badge">4</span>
+                </a>
+                <div class="main-home-dropdown-divider"></div>
+                <a href="{{ path('auth_logout') }}" class="main-home-dropdown-item logout">
+                    <i class="bx bx-power-off"></i>
+                    <span data-i18n="Log Out">Déconnexion</span>
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="main-home-auth-buttons">
+            <a href="{{ path('auth_sign_in') }}" class="main-home-btn main-home-btn-auth-secondary {{ active_tab|default('') == 'sign_in' ? 'active' : '' }}" data-i18n="Sign In">Connexion</a>
+            <a href="{{ path('auth_sign_up') }}" class="main-home-btn main-home-btn-auth-primary {{ active_tab|default('') == 'sign_up' ? 'active' : '' }}" data-i18n="Sign Up">Créer un compte</a>
+        </div>
+        {% endif %}
+    </div>
+</nav>

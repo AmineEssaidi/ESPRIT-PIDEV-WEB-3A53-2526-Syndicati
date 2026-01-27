@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <meta charset="UTF-8">
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contactez-nous - PiDev</title>
+
+    <!-- CSS Dependencies -->
+    <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+</head>
+<body>
+<!-- Page Loader -->
+<div class="page-loader" id="pageLoader">
+    <div class="loader-content">
+        <div class="loader-spinner">
+            <span class="dot"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Layout Wrapper -->
+<div class="main-home-layout-wrapper">
+    <!-- Layout Container -->
+    <div class="main-home-page">
+        <!-- Include Shared Navbar -->
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'about'} %}
+        
+        <!-- Content Wrapper -->
+        <div class="main-home-content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+                    <!-- Hero Section -->
+                    <div class="main-home-hero-section">
+                        <div class="main-home-hero-content">
+                            <h1 class="main-home-hero-title">
+                                Prenez <span class="main-home-hero-highlight">contact</span>
+                            </h1>
+                            <p class="main-home-hero-subtitle">
+                                Nous serions ravis de vous entendre. Envoyez-nous un message et nous vous répondrons dès que possible.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Contact Info Cards -->
+                    <div class="main-home-contact-info-section">
+                        <div class="main-home-contact-info-grid">
+                            <div class="main-home-contact-info-card">
+                                <div class="main-home-contact-info-icon">📧</div>
+                                <h3 class="main-home-contact-info-title">Envoyez-nous un email</h3>
+                                <p class="main-home-contact-info-description">Envoyez-nous un email à tout moment</p>
+                                <a href="mailto:hello@pidev.com" class="main-home-contact-info-link">hello@pidev.com</a>
+                            </div>
+                            <div class="main-home-contact-info-card">
+                                <div class="main-home-contact-info-icon">📞</div>
+                                <h3 class="main-home-contact-info-title">Appelez-nous</h3>
+                                <p class="main-home-contact-info-description">Lun-Ven de 8h à 17h</p>
+                                <a href="tel:+1234567890" class="main-home-contact-info-link">+1 (234) 567-890</a>
+                            </div>
+                            <div class="main-home-contact-info-card">
+                                <div class="main-home-contact-info-icon">📍</div>
+                                <h3 class="main-home-contact-info-title">Visit Us</h3>
+                                <p class="main-home-contact-info-description">Come say hello at our office</p>
+                                <a href="#" class="main-home-contact-info-link">123 Innovation St, Tech City</a>
+                            </div>
+                            <div class="main-home-contact-info-card">
+                                <div class="main-home-contact-info-icon">💬</div>
+                                <h3 class="main-home-contact-info-title">Live Chat</h3>
+                                <p class="main-home-contact-info-description">Chat with us instantly</p>
+                                <a href="#" class="main-home-contact-info-link">Start Chat</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Form & Map Section -->
+                    <div class="main-home-contact-form-section">
+                        <div class="main-home-contact-form-grid">
+                            <!-- Contact Form -->
+                            <div class="main-home-contact-form-container">
+                                <div class="main-home-section-header">
+                                    <h2 class="main-home-section-title">Send us a Message</h2>
+                                    <p class="main-home-section-subtitle">Fill out the form below and we'll get back to you</p>
+                                </div>
+                                
+                                <form class="main-home-contact-form">
+                                    <div class="main-home-form-row">
+                                        <div class="main-home-form-group">
+                                            <label for="firstName" class="main-home-form-label">First Name</label>
+                                            <input type="text" id="firstName" name="firstName" class="main-home-form-input" required>
+                                        </div>
+                                        <div class="main-home-form-group">
+                                            <label for="lastName" class="main-home-form-label">Last Name</label>
+                                            <input type="text" id="lastName" name="lastName" class="main-home-form-input" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="main-home-form-group">
+                                        <label for="email" class="main-home-form-label">Email Address</label>
+                                        <input type="email" id="email" name="email" class="main-home-form-input" required>
+                                    </div>
+                                    
+                                    <div class="main-home-form-group">
+                                        <label for="phone" class="main-home-form-label">Phone Number</label>
+                                        <input type="tel" id="phone" name="phone" class="main-home-form-input">
+                                    </div>
+                                    
+                                    <div class="main-home-form-group">
+                                        <label for="subject" class="main-home-form-label">Subject</label>
+                                        <select id="subject" name="subject" class="main-home-form-select" required>
+                                            <option value="">Select a subject</option>
+                                            <option value="general">General Inquiry</option>
+                                            <option value="support">Technical Support</option>
+                                            <option value="sales">Sales Question</option>
+                                            <option value="partnership">Partnership</option>
+                                            <option value="career">Career Opportunity</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="main-home-form-group">
+                                        <label for="message" class="main-home-form-label">Message</label>
+                                        <textarea id="message" name="message" class="main-home-form-textarea" rows="5" required></textarea>
+                                    </div>
+                                    
+                                    <div class="main-home-form-group">
+                                        <label class="main-home-checkbox-label">
+                                            <input type="checkbox" name="newsletter" class="main-home-checkbox">
+                                            <span class="main-home-checkbox-text">Subscribe to our newsletter for updates</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <button type="submit" class="main-home-btn main-home-btn-primary main-home-btn-full">
+                                        <span>Send Message</span>
+                                        <i class="bx bx-send"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <!-- Map & Additional Info -->
+                            <div class="main-home-contact-map-container">
+                                <div class="main-home-section-header">
+                                    <h2 class="main-home-section-title">Find Us</h2>
+                                    <p class="main-home-section-subtitle">Our office location and business hours</p>
+                                </div>
+                                
+                                <!-- Map Placeholder -->
+                                <div class="main-home-map-placeholder">
+                                    <div class="main-home-map-content">
+                                        <div class="main-home-map-icon">🗺️</div>
+                                        <h3 class="main-home-map-title">Interactive Map</h3>
+                                        <p class="main-home-map-description">123 Innovation Street<br>Tech City, TC 12345</p>
+                                        <a href="#" class="main-home-btn main-home-btn-secondary">
+                                            <span>Get Directions</span>
+                                            <i class="bx bx-navigation"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <!-- Business Hours -->
+                                <div class="main-home-business-hours">
+                                    <h3 class="main-home-business-hours-title">Business Hours</h3>
+                                    <div class="main-home-business-hours-list">
+                                        <div class="main-home-business-hours-item">
+                                            <span class="main-home-business-hours-day">Monday - Friday</span>
+                                            <span class="main-home-business-hours-time">8:00 AM - 6:00 PM</span>
+                                        </div>
+                                        <div class="main-home-business-hours-item">
+                                            <span class="main-home-business-hours-day">Saturday</span>
+                                            <span class="main-home-business-hours-time">9:00 AM - 4:00 PM</span>
+                                        </div>
+                                        <div class="main-home-business-hours-item">
+                                            <span class="main-home-business-hours-day">Sunday</span>
+                                            <span class="main-home-business-hours-time">Closed</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Quick Links -->
+                                <div class="main-home-quick-links">
+                                    <h3 class="main-home-quick-links-title">Quick Links</h3>
+                                    <div class="main-home-quick-links-list">
+                                        <a href="#" class="main-home-quick-link">
+                                            <i class="bx bx-help-circle"></i>
+                                            <span>FAQ</span>
+                                        </a>
+                                        <a href="#" class="main-home-quick-link">
+                                            <i class="bx bx-support"></i>
+                                            <span>Support Center</span>
+                                        </a>
+                                        <a href="#" class="main-home-quick-link">
+                                            <i class="bx bx-file-doc"></i>
+                                            <span>Documentation</span>
+                                        </a>
+                                        <a href="#" class="main-home-quick-link">
+                                            <i class="bx bx-group"></i>
+                                            <span>Community</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Section -->
+                    <div class="main-home-faq-section">
+                        <div class="main-home-section-header">
+                            <h2 class="main-home-section-title">Frequently Asked Questions</h2>
+                            <p class="main-home-section-subtitle">Quick answers to common questions</p>
+                        </div>
+                        
+                        <div class="main-home-faq-grid">
+                            <div class="main-home-faq-item">
+                                <div class="main-home-faq-question">
+                                    <h3>How quickly do you respond to inquiries?</h3>
+                                    <i class="bx bx-plus"></i>
+                                </div>
+                                <div class="main-home-faq-answer">
+                                    <p>We typically respond to all inquiries within 24 hours during business days. For urgent matters, please call us directly.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="main-home-faq-item">
+                                <div class="main-home-faq-question">
+                                    <h3>Do you offer custom development services?</h3>
+                                    <i class="bx bx-plus"></i>
+                                </div>
+                                <div class="main-home-faq-answer">
+                                    <p>Yes! We specialize in custom solutions tailored to your specific needs. Contact us to discuss your project requirements.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="main-home-faq-item">
+                                <div class="main-home-faq-question">
+                                    <h3>What are your pricing options?</h3>
+                                    <i class="bx bx-plus"></i>
+                                </div>
+                                <div class="main-home-faq-answer">
+                                    <p>We offer flexible pricing plans to suit different needs. Contact our sales team for a personalized quote based on your requirements.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="main-home-faq-item">
+                                <div class="main-home-faq-question">
+                                    <h3>Do you provide ongoing support?</h3>
+                                    <i class="bx bx-plus"></i>
+                                </div>
+                                <div class="main-home-faq-answer">
+                                    <p>Absolutely! We offer comprehensive support packages to ensure your success. Our team is here to help you every step of the way.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+            <!-- Footer Dynamic Island -->
+            <footer class="main-home-footer-island">
+                <div class="main-home-footer-content">
+                    <!-- Left Side - Made with Love -->
+                    <div class="main-home-footer-left">
+                        <div class="main-home-made-with-love">
+                            <span class="main-home-copyright-text">
+                                © <script>document.write(new Date().getFullYear());</script>
+                            </span>
+                            <span class="main-home-love-text">
+                                Made with <span class="main-home-heart">❤️</span> by
+                                <span class="main-home-author-name">Amine</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right Side - Quick Links -->
+                    <div class="main-home-footer-right">
+                        <div class="main-home-footer-links">
+                            <a href="#" class="main-home-footer-link" title="Documentation">
+                                <span class="main-home-link-icon">📚</span>
+                                <span class="main-home-link-text">Docs</span>
+                            </a>
+                            <a href="#" class="main-home-footer-link" title="Support">
+                                <span class="main-home-link-icon">💬</span>
+                                <span class="main-home-link-text">Support</span>
+                            </a>
+                            <a href="#" class="main-home-footer-link" title="GitHub">
+                                <span class="main-home-link-icon">🐙</span>
+                                <span class="main-home-link-text">GitHub</span>
+                            </a>
+                            <a href="#" class="main-home-footer-link" title="License">
+                                <span class="main-home-link-icon">📄</span>
+                                <span class="main-home-link-text">License</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript Dependencies -->
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('frontend/js/main-home.js') }}?v=dev"></script>
+<script>
+// Theme Toggle Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    html.setAttribute('data-theme', savedTheme);
+    
+    // Update toggle position based on saved theme
+    if (savedTheme === 'light') {
+        themeToggle.classList.add('light-mode');
+    }
+    
+    themeToggle.addEventListener('click', function() {
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        
+        // Update toggle position
+        if (newTheme === 'light') {
+            themeToggle.classList.add('light-mode');
+        } else {
+            themeToggle.classList.remove('light-mode');
+        }
+    });
+});
+
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchBtn = document.querySelector('.main-home-search-icon-btn');
+    const searchExpand = document.querySelector('.main-home-search-expand');
+    const searchInput = document.querySelector('.main-home-search-input');
+    
+    if (searchBtn && searchExpand && searchInput) {
+        searchBtn.addEventListener('click', function() {
+            searchExpand.classList.toggle('active');
+            if (searchExpand.classList.contains('active')) {
+                searchInput.focus();
+            }
+        });
+        
+        // Close search when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchBtn.contains(e.target) && !searchExpand.contains(e.target)) {
+                searchExpand.classList.remove('active');
+            }
+        });
+    }
+});
+
+// Profile dropdown functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const profileDropdown = document.querySelector('.main-home-user-profile-dropdown');
+    const avatarOnly = document.querySelector('.main-home-user-avatar-only');
+    const dropdown = document.querySelector('.main-home-profile-dropdown');
+    
+    if (avatarOnly && dropdown) {
+        avatarOnly.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('active');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!profileDropdown.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+    }
+});
+
+// Tab dropdown functionality
+function initTabDropdowns() {
+    const navTabs = document.querySelectorAll('.main-home-nav-tab');
+    let hoverTimeout;
+    let isHovering = false;
+    
+    function closeAllDropdowns() {
+        navTabs.forEach(tab => {
+            const dropdown = tab.querySelector('.main-home-tab-dropdown');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+    
+    navTabs.forEach(tab => {
+        const dropdown = tab.querySelector('.main-home-tab-dropdown');
+        const tabText = tab.querySelector('.main-home-tab-text');
+        const homeLink = tabText.querySelector('a');
+        
+        // Handle Home tab (has link, no dropdown)
+        if (homeLink) {
+            // Home tab should behave like other tabs but navigate on click
+            tabText.addEventListener('click', function(e) {
+                // Let the link handle navigation naturally
+                // No preventDefault needed
+            });
+            
+            // No hover dropdown functionality for Home tab
+            return;
+        }
+        
+        // Only add dropdown functionality to tabs that have dropdowns
+        if (!dropdown) {
+            return;
+        }
+        
+        // Click to toggle dropdown
+        tabText.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const isOpen = dropdown.style.display === 'block';
+            closeAllDropdowns();
+            
+            if (!isOpen) {
+                dropdown.style.display = 'block';
+            }
+        });
+        
+        // Hover to show dropdown - more reliable
+        tab.addEventListener('mouseenter', function() {
+            clearTimeout(hoverTimeout);
+            isHovering = true;
+            closeAllDropdowns();
+            dropdown.style.display = 'block';
+        });
+        
+        // Hover to hide dropdown with delay
+        tab.addEventListener('mouseleave', function() {
+            isHovering = false;
+            hoverTimeout = setTimeout(() => {
+                if (!isHovering) {
+                    dropdown.style.display = 'none';
+                }
+            }, 300); // Increased delay for better UX
+        });
+        
+        // Keep dropdown open when hovering over it
+        dropdown.addEventListener('mouseenter', function() {
+            clearTimeout(hoverTimeout);
+            isHovering = true;
+        });
+        
+        dropdown.addEventListener('mouseleave', function() {
+            isHovering = false;
+            hoverTimeout = setTimeout(() => {
+                if (!isHovering) {
+                    dropdown.style.display = 'none';
+                }
+            }, 300);
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!tab.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    });
+}
+
+// Initialize tab dropdowns when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initTabDropdowns();
+});
+
+// FAQ Toggle Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const faqItems = document.querySelectorAll('.main-home-faq-item');
+    
+    faqItems.forEach(item => {
+        const question = item.querySelector('.main-home-faq-question');
+        const answer = item.querySelector('.main-home-faq-answer');
+        const icon = question.querySelector('i');
+        
+        question.addEventListener('click', () => {
+            const isOpen = item.classList.contains('active');
+            
+            // Close all other FAQ items
+            faqItems.forEach(otherItem => {
+                if (otherItem !== item) {
+                    otherItem.classList.remove('active');
+                    const otherIcon = otherItem.querySelector('.main-home-faq-question i');
+                    otherIcon.className = 'bx bx-plus';
+                }
+            });
+            
+            // Toggle current item
+            if (isOpen) {
+                item.classList.remove('active');
+                icon.className = 'bx bx-plus';
+            } else {
+                item.classList.add('active');
+                icon.className = 'bx bx-minus';
+            }
+        });
+    });
+});
+</script>
+<script src="{{ asset('js/page-loader.js') }}"></script>
+</body>
+</html>

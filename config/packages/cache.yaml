@@ -1,0 +1,34 @@
+framework:
+    cache:
+        # Unique name of your app: used to compute stable namespaces for cache keys.
+        prefix_seed: ami_pidev
+
+        # Use filesystem cache by default
+        app: cache.adapter.filesystem
+        system: cache.adapter.system
+
+        # Named cache pools for different purposes
+        pools:
+            # Cache for HTTP responses
+            http_cache:
+                adapter: cache.adapter.filesystem
+                default_lifetime: 3600
+            # Cache for template fragments
+            twig_cache:
+                adapter: cache.adapter.filesystem
+                default_lifetime: 86400
+            # Cache for application data
+            app.cache:
+                adapter: cache.adapter.filesystem
+                default_lifetime: 3600
+            # Doctrine caches
+            doctrine.system_cache_pool:
+                adapter: cache.adapter.filesystem
+            doctrine.result_cache_pool:
+                adapter: cache.adapter.filesystem
+
+when@prod:
+    framework:
+        cache:
+            app: cache.adapter.filesystem
+            system: cache.adapter.system

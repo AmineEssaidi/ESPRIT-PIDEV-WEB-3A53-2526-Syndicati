@@ -1,0 +1,177 @@
+<!-- Revolutionary Header - Dynamic Island Navbar -->
+<script>
+// Apply theme, accent, and language from localStorage globally on every page load
+(function() {
+    try {
+        var html = document.documentElement;
+        var theme = localStorage.getItem('theme') || 'dark';
+        var accentGradient = localStorage.getItem('accent-gradient') || 'linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)';
+        var accentColor = localStorage.getItem('accent-color') || '#6c5ce7';
+        var lang = localStorage.getItem('lang') || 'fr';
+        html.setAttribute('data-theme', theme);
+        html.style.setProperty('--main-home-accent-gradient', accentGradient);
+        html.style.setProperty('--accent-gradient', accentGradient);
+        html.style.setProperty('--main-home-accent-color', accentColor);
+        html.style.setProperty('--accent', accentColor);
+        // Optionally set lang attribute for accessibility
+        html.setAttribute('lang', lang);
+    } catch (e) {}
+})();
+</script>
+<nav class="main-home-navbar" style="position:relative; z-index:10;">
+    <!-- Left Side - Search Icon (Click to go home, hover to expand search) -->
+    <div class="main-home-header-left">
+        <div class="main-home-search-icon-container">
+            <a href="{{ path('main_home') }}" class="main-home-search-icon-btn" title="Home / Search">
+                <div class="main-home-search-heart">
+                    <div class="main-home-search-heart-shape">
+                        <div class="main-home-search-heart-dots">
+                            <div class="main-home-search-heart-dot"></div>
+                            <div class="main-home-search-heart-dot"></div>
+                            <div class="main-home-search-heart-dot"></div>
+                            <div class="main-home-search-heart-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            <div class="main-home-search-expand">
+                <input type="text" class="main-home-search-input" data-i18n="Search" placeholder="Rechercher..." aria-label="Rechercher..."/>
+            </div>
+        </div>
+    </div>
+
+    <!-- Center - Navigation Tabs (Hidden on auth pages) -->
+    {% if active_tab|default('') not in ['sign_in', 'sign_up'] %}
+    <div class="main-home-header-center">
+        <div class="main-home-nav-tabs">
+            <div class="main-home-nav-tab {{ active_tab|default('') == 'home' ? 'active' : '' }}">
+                <span class="main-home-tab-text">
+                    <a href="{{ path('main_home') }}" data-i18n="Home" style="text-decoration: none; color: inherit;">Accueil</a>
+                </span>
+            </div>
+            <div class="main-home-nav-tab {{ active_tab|default('') == 'services' ? 'active' : '' }}">
+                <span class="main-home-tab-text"><a href="#" data-i18n="Services" style="text-decoration: none; color: inherit;">Services</a></span>
+                <div class="main-home-tab-dropdown">
+                    <a href="{{ path('frontend_residence') }}" class="main-home-dropdown-item" data-i18n="Residence">Residence</a>
+                    <a href="{{ path('frontend_forum') }}" class="main-home-dropdown-item" data-i18n="Forum">Forum</a>
+                    <a href="{{ path('frontend_syndicat') }}" class="main-home-dropdown-item" data-i18n="Syndicat">Syndicat</a>
+                    <a href="{{ path('frontend_evenement') }}" class="main-home-dropdown-item" data-i18n="Evenement">Evenement</a>
+                </div>
+            </div>
+            <div class="main-home-nav-tab {{ active_tab|default('') == 'about' ? 'active' : '' }}">
+                <span class="main-home-tab-text"><a href="{{ path('frontend_our_team') }}" data-i18n="About" style="text-decoration: none; color: inherit;">À propos</a></span>
+                <div class="main-home-tab-dropdown">
+                    <a href="{{ path('frontend_our_team') }}" class="main-home-dropdown-item" data-i18n="Our Team">Notre équipe</a>
+                    <a href="#" class="main-home-dropdown-item" data-i18n="Company">Entreprise</a>
+                    <a href="{{ path('frontend_contact') }}" class="main-home-dropdown-item" data-i18n="Contact">Contact</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="main-home-header-center"></div>
+    {% endif %}
+
+    <!-- Right Side - Controls -->
+    <div class="main-home-header-right">
+        <!-- Theme Toggle -->
+        <div class="main-home-ios-theme-toggle">
+            <div class="main-home-toggle-container" id="theme-toggle">
+                <div class="main-home-toggle-track">
+                    <div class="main-home-toggle-thumb">
+                        <span class="main-home-toggle-icon main-home-sun-icon">☀️</span>
+                        <span class="main-home-toggle-icon main-home-moon-icon">🌙</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <!-- Dynamic Island Notification (Only show when logged in) -->
+        <div class="main-home-notification-circle">
+            <div class="main-home-dynamic-island" id="dynamicIsland" title="Notifications">
+                <span class="main-home-notification-icon">🔔</span>
+                <span class="main-home-notification-badge">3</span>
+                
+                <!-- Dynamic Content -->
+                <div class="main-home-dynamic-content">
+                    <p class="main-home-dynamic-text" data-i18n="Notifications">Notifications</p>
+                    <p class="main-home-dynamic-subtext"><span data-i18n="3">3</span> <span data-i18n="new messages">nouveaux messages</span></p>
+                </div>
+                
+                <!-- Notification Popup Content -->
+                <div class="main-home-notification-popup-content" style="display: none;">
+                    <div class="main-home-notification-popup-icon">📱</div>
+                    {% if app.session.get('is_logged_in') %}
+                    <div class="main-home-notification-popup-text">
+                        <p class="main-home-notification-popup-title" data-i18n="New Message">Nouveau message</p>
+                        <p class="main-home-notification-popup-message"><span data-i18n="You have">Vous avez</span> 3 <span data-i18n="unread notifications">notifications non lues</span></p>
+                    </div>
+                </div>
+                
+                <!-- Multiple Notifications Container -->
+                <div class="main-home-notifications-container" style="display: none;">
+                    <div class="main-home-notifications-scroll">
+                        <!-- Notifications will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Animated Close Button -->
+            <button class="main-home-dynamic-close-btn" id="dynamicCloseBtn" data-i18n="Close" title="Fermer">✕</button>
+            
+        </div>
+
+        {% set user = app.session.get('user') %}
+        {% if app.session.get('is_logged_in') %}
+            <!-- User Profile Icon (Logged In) -->
+            <div class="main-home-user-profile-dropdown">
+                <div class="main-home-user-avatar-only">
+                    <img src="{{ user.avatar|default('https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/1.png') }}" alt="Profile" class="main-home-avatar-img" loading="lazy" decoding="async"/>
+                    <div class="main-home-avatar-status online"></div>
+                </div>
+
+                            {% if app.session.get('is_logged_in') %}
+                            <!-- Dynamic Island Notification (Only show when logged in) -->
+                            <div class="main-home-notification-circle">
+                                <div class="main-home-dynamic-island" id="dynamicIsland" title="Notifications">
+                                    <span class="main-home-notification-icon">🔔</span>
+                                    <span class="main-home-notification-badge">3</span>
+                                    <!-- Dynamic Content -->
+                                    <div class="main-home-dynamic-content">
+                                        <p class="main-home-dynamic-text" data-i18n="Notifications">Notifications</p>
+                                        <p class="main-home-dynamic-subtext"><span data-i18n="3">3</span> <span data-i18n="new messages">nouveaux messages</span></p>
+                                    </div>
+                                    <!-- Notification Popup Content -->
+                                    <div class="main-home-notification-popup-content" style="display: none;">
+                                        <div class="main-home-notification-popup-icon">📱</div>
+                                        <div class="main-home-notification-popup-text">
+                                            <p class="main-home-notification-popup-title" data-i18n="New Message">Nouveau message</p>
+                                            <p class="main-home-notification-popup-message"><span data-i18n="You have">Vous avez</span> 3 <span data-i18n="unread notifications">notifications non lues</span></p>
+                                        </div>
+                                    </div>
+                                    <!-- Multiple Notifications Container -->
+                                    <div class="main-home-notifications-container" style="display: none;">
+                                        <div class="main-home-notifications-scroll">
+                                            <!-- Notifications will be dynamically added here -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Animated Close Button -->
+                                <button class="main-home-dynamic-close-btn" id="dynamicCloseBtn" data-i18n="Close" title="Fermer">✕</button>
+                            </div>
+                            {% endif %}
+                        <i class="bx bx-power-off"></i>
+                        <span data-i18n="Log Out">Déconnexion</span>
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <!-- Auth Buttons (Not Logged In) -->
+            <div class="main-home-auth-buttons">
+                <a href="{{ path('auth_sign_in') }}" data-i18n="Sign In" class="main-home-btn main-home-btn-auth-secondary {{ active_tab|default('') == 'sign_in' ? 'active' : '' }}">Connexion</a>
+                <a href="{{ path('auth_sign_up') }}" data-i18n="Sign Up" class="main-home-btn main-home-btn-auth-primary {{ active_tab|default('') == 'sign_up' ? 'active' : '' }}">Créer un compte</a>
+            </div>
+        {% endif %}
+    </div>
+</nav>

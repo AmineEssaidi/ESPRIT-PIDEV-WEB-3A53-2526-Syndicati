@@ -1,0 +1,110 @@
+/* Page Loader Styles - Synthwave Neon Gradient */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+.page-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.page-loader.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.page-loader.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+
+[data-theme="light"] .page-loader {
+    background: #000000;
+}
+
+.loader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* 3 Dots Loader - Gradient Purple/Cyan */
+.loader-dots {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 12px;
+    height: 60px;
+}
+
+.loader-dots .dot {
+    width: 18px;
+    height: 18px;
+    background: #ffffff;
+    border-radius: 50%;
+    animation: dotJump 0.6s ease-in-out infinite alternate;
+    box-shadow: 
+        0 0 10px rgba(255, 255, 255, 0.8),
+        0 0 20px rgba(108, 92, 231, 0.5);
+}
+
+.loader-dots .dot:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.loader-dots .dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.loader-dots .dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes dotJump {
+    0% {
+        transform: translateY(0);
+        background: #ffffff;
+        box-shadow: 
+            0 0 8px rgba(255, 255, 255, 0.8),
+            0 0 16px rgba(255, 255, 255, 0.4);
+    }
+    50% {
+        background: #8b5cf6;
+        box-shadow: 
+            0 0 12px rgba(139, 92, 246, 1),
+            0 0 24px rgba(139, 92, 246, 0.7);
+    }
+    100% {
+        transform: translateY(-30px);
+        background: #06b6d4;
+        box-shadow: 
+            0 0 12px rgba(6, 182, 212, 1),
+            0 0 24px rgba(6, 182, 212, 0.7),
+            0 0 36px rgba(108, 92, 231, 0.4);
+    }
+}
+
+/* Legacy classes - hidden */
+.loader-spinner, .spinner-ring, .spinner-core, .loader-text, .loader-progress {
+    display: none;
+}
+
+@media (max-width: 576px) {
+    .loader-dots .dot {
+        width: 16px;
+        height: 16px;
+    }
+    .loader-dots {
+        gap: 12px;
+    }
+}

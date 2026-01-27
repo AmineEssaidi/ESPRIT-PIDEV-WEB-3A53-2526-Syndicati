@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Under Maintenance - {{ app_name|default('PiDev') }}</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Dependencies -->
+    <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/app.css') }}?v=dev" rel="stylesheet">
+</head>
+<style>
+body, html {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+    font-smooth: always;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+</style>
+</head>
+<body class="maintenance-body">
+<div class="maintenance-container">
+    <div class="maintenance-content">
+        <div class="maintenance-icon">
+            <div class="gear-icon">
+                <div class="gear gear-1">⚙️</div>
+                <div class="gear gear-2">⚙️</div>
+                <div class="gear gear-3">⚙️</div>
+            </div>
+        </div>
+        
+        <div class="maintenance-text">
+            <h1 class="maintenance-title">Under Maintenance</h1>
+            <p class="maintenance-subtitle" id="maintenanceSubtitle">This page is currently being updated</p>
+            <p class="maintenance-description">
+                This page is temporarily unavailable while we perform scheduled maintenance. 
+                We'll be back online shortly. Thank you for your patience!
+            </p>
+        </div>
+        
+        <div class="maintenance-actions">
+            <a href="{{ referer ?: path('admin_dashboard') }}" class="btn btn-primary" id="backButton">
+                <span class="btn-icon">🏠</span>
+                <span id="backButtonText">Back to Dashboard</span>
+            </a>
+            <button class="btn btn-secondary" onclick="refreshWithContext()">
+                <span class="btn-icon">🔄</span>
+                Refresh Page
+            </button>
+        </div>
+        
+        <div class="maintenance-info">
+            <div class="info-item">
+                <span class="info-label">Expected Return:</span>
+                <span class="info-value">Soon</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Status:</span>
+                <span class="info-value maintenance">Under Maintenance</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Full viewport maintenance page */
+:root {
+    --glass-bg: rgba(30, 32, 44, 0.85);
+    --glass-border: rgba(115, 103, 240, 0.18);
+    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    --primary: #7367f0;
+    --text: #f3f4f6;
+    --muted: #a1a1aa;
+    --font-weight-bold: 700;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+}
+
+.maintenance-body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+    background: linear-gradient(135deg, #181824 0%, #23243a 100%);
+}
+
+.maintenance-container {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #181824 0%, #23243a 100%);
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.maintenance-content {
+    text-align: center;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--glass-bg, rgba(30,32,44,0.85));
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border, rgba(115,103,240,0.18));
+    border-radius: 20px;
+    padding: 2rem 1.5rem;
+    box-shadow: var(--shadow-glass, 0 8px 32px 0 rgba(31,38,135,0.37));
+    box-sizing: border-box;
+    transition: box-shadow 0.3s, background 0.3s;
+}
+
+.maintenance-icon {
+    margin-bottom: 1.5rem;
+}
+
+.gear-icon {
+    position: relative;
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+}
+
+.gear {
+    position: absolute;
+    font-size: 1.5rem;
+    animation: rotate 3s linear infinite;
+}
+
+.gear-1 {
+    top: 0;
+    left: 0;
+    animation-duration: 3s;
+}
+
+.gear-2 {
+    top: 20px;
+    right: 0;
+    animation-duration: 2s;
+    animation-direction: reverse;
+}
+
+.gear-3 {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-duration: 4s;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.maintenance-title {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold, 700);
+    color: var(--text, #f3f4f6);
+    margin-bottom: 0.75rem;
+    background: linear-gradient(135deg, var(--primary, #7367f0), #5a4fcf);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.maintenance-subtitle {
+    font-size: 1.1rem;
+    color: var(--muted, #a1a1aa);
+    margin-bottom: 1rem;
+    font-weight: var(--font-weight-medium, 500);
+}
+
+.maintenance-description {
+    font-size: 1rem;
+    color: var(--text, #f3f4f6);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    opacity: 0.85;
+}
+
+.maintenance-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: var(--font-weight-medium, 500);
+    transition: all 0.3s cubic-bezier(.4,2,.3,1);
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary, #7367f0), #5a4fcf);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(115, 103, 240, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(115, 103, 240, 0.4);
+}
+
+.btn-secondary {
+    background: var(--glass-bg, rgba(30,32,44,0.85));
+    color: var(--text, #f3f4f6);
+    border: 1px solid var(--glass-border, rgba(115,103,240,0.18));
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px) scale(1.03);
+}
+
+.btn-icon {
+    font-size: 1.2rem;
+}
+
+.maintenance-info {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    background: rgba(0,0,0,0.05);
+    border-radius: 12px;
+    padding: 0.5rem 0;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.info-label {
+    font-size: 0.95rem;
+    color: var(--muted, #a1a1aa);
+    font-weight: var(--font-weight-medium, 500);
+}
+
+.info-value {
+    font-size: 1.1rem;
+    color: var(--text, #f3f4f6);
+    font-weight: var(--font-weight-semibold, 600);
+}
+
+.info-value.maintenance {
+    color: #f59e0b;
+    font-weight: bold;
+}
+
+/* Light theme support */
+[data-theme="light"] .maintenance-container {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f8fafc 100%);
+}
+
+[data-theme="light"] .maintenance-content {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .maintenance-title {
+    color: var(--primary, #7367f0);
+}
+
+[data-theme="light"] .maintenance-subtitle {
+    color: #64748b;
+}
+
+[data-theme="light"] .maintenance-description {
+    color: #1e293b;
+}
+
+[data-theme="light"] .btn-secondary {
+    background: rgba(0, 0, 0, 0.07);
+    color: #1e293b;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .info-label {
+    color: #64748b;
+}
+
+[data-theme="light"] .info-value {
+    color: #1e293b;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .maintenance-container {
+        padding: 0.5rem;
+    }
+    .maintenance-content {
+        padding: 1.5rem 1rem;
+        max-height: 95vh;
+    }
+    .maintenance-title {
+        font-size: 2rem;
+    }
+    .maintenance-subtitle {
+        font-size: 1rem;
+    }
+    .maintenance-description {
+        font-size: 0.95rem;
+    }
+    .maintenance-actions {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .btn {
+        width: 100%;
+        max-width: 200px;
+        justify-content: center;
+        padding: 0.6rem 1.1rem;
+        font-size: 0.95rem;
+    }
+    .maintenance-info {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .gear-icon {
+        width: 60px;
+        height: 60px;
+    }
+    .gear {
+        font-size: 1.2rem;
+    }
+}
+</style>
+
+<!-- JavaScript Dependencies -->
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('js/app.js') }}?v=dev"></script>
+
+<script>
+// Immediate script to restore context as soon as possible
+(function() {
+    console.log('=== IMMEDIATE SCRIPT RUNNING ===');
+    const storedReferrer = localStorage.getItem('maintenance_referrer');
+    const storedPreviousPage = localStorage.getItem('maintenance_previous_page');
+    
+    if (storedReferrer && storedPreviousPage) {
+        console.log('Found stored context, will restore after DOM loads:', storedReferrer, storedPreviousPage);
+        window.maintenanceContext = {
+            referrer: storedReferrer,
+            previousPage: storedPreviousPage
+        };
+    }
+})();
+
+// Debug function to check what's in localStorage
+function debugLocalStorage() {
+    console.log('=== LOCAL STORAGE DEBUG ===');
+    console.log('maintenance_referrer:', localStorage.getItem('maintenance_referrer'));
+    console.log('maintenance_previous_page:', localStorage.getItem('maintenance_previous_page'));
+    console.log('All localStorage keys:', Object.keys(localStorage));
+    console.log('=============================');
+}
+
+// Function to update the UI with server context (first load)
+function updateUIWithServerContext(referrer, previousPage) {
+    console.log('Updating UI with server context:', referrer, previousPage);
+    
+    const backButton = document.getElementById('backButton');
+    const backButtonText = document.getElementById('backButtonText');
+    
+    if (backButton && backButtonText) {
+        backButton.href = referrer;
+        backButtonText.textContent = 'Back to ' + previousPage;
+        console.log('✅ Updated back button with server context:', backButton.href, backButtonText.textContent);
+    }
+    
+    const subtitle = document.getElementById('maintenanceSubtitle');
+    if (subtitle) {
+        subtitle.textContent = previousPage + ' is currently being updated';
+        console.log('✅ Updated subtitle with server context:', subtitle.textContent);
+    }
+}
+
+// Function to update the UI with stored context
+function updateUIWithStoredContext() {
+    const storedReferrer = localStorage.getItem('maintenance_referrer');
+    const storedPreviousPage = localStorage.getItem('maintenance_previous_page');
+    
+    console.log('Attempting to update UI with stored context:', storedReferrer, storedPreviousPage);
+    
+    if (storedReferrer && storedPreviousPage) {
+        // Update the back button with stored context
+        const backButton = document.getElementById('backButton');
+        const backButtonText = document.getElementById('backButtonText');
+        
+        console.log('Found elements:', backButton, backButtonText);
+        
+        if (backButton && backButtonText) {
+            backButton.href = storedReferrer;
+            backButtonText.textContent = 'Back to ' + storedPreviousPage;
+            console.log('✅ Updated back button with stored context:', backButton.href, backButtonText.textContent);
+            
+            // Force the update and prevent any override
+            backButton.setAttribute('data-forced-update', 'true');
+            backButtonText.setAttribute('data-forced-update', 'true');
+        } else {
+            console.log('❌ Could not find back button elements');
+        }
+        
+        // Update the subtitle with stored context
+        const subtitle = document.getElementById('maintenanceSubtitle');
+        console.log('Found subtitle element:', subtitle);
+        
+        if (subtitle) {
+            subtitle.textContent = storedPreviousPage + ' is currently being updated';
+            console.log('✅ Updated subtitle with stored context:', subtitle.textContent);
+            
+            // Force the update and prevent any override
+            subtitle.setAttribute('data-forced-update', 'true');
+        } else {
+            console.log('❌ Could not find subtitle element');
+        }
+    } else {
+        console.log('❌ No stored context found');
+    }
+}
+
+// Store the referrer information when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== PAGE LOADED ===');
+    debugLocalStorage();
+    
+    const referrer = '{{ referer|e('js') }}';
+    const previousPage = '{{ previousPage|e('js') }}';
+    
+    console.log('Server values:', referrer, previousPage);
+    console.log('Referrer type:', typeof referrer, 'Length:', referrer ? referrer.length : 'null');
+    console.log('PreviousPage type:', typeof previousPage, 'Length:', previousPage ? previousPage.length : 'null');
+    console.log('Raw referrer value:', JSON.stringify(referrer));
+    console.log('Raw previousPage value:', JSON.stringify(previousPage));
+    
+    // Store in localStorage to persist across page refreshes
+    if (referrer && referrer !== '' && previousPage && previousPage !== '') {
+        localStorage.setItem('maintenance_referrer', referrer);
+        localStorage.setItem('maintenance_previous_page', previousPage);
+        console.log('✅ Stored context in localStorage:', referrer, previousPage);
+        
+        // Update UI with server values immediately
+        updateUIWithServerContext(referrer, previousPage);
+    } else {
+        console.log('❌ No server context to store');
+    }
+    
+    // Always try to restore context from localStorage (for refresh cases)
+    updateUIWithStoredContext();
+    
+    // Also try with pre-loaded context if available
+    if (window.maintenanceContext) {
+        console.log('Using pre-loaded context:', window.maintenanceContext);
+        updateUIWithServerContext(window.maintenanceContext.referrer, window.maintenanceContext.previousPage);
+    }
+    
+    // Also try again after a short delay to ensure elements are ready
+    setTimeout(function() {
+        console.log('=== DELAYED UPDATE ===');
+        updateUIWithStoredContext();
+    }, 100);
+    
+    // Set up a MutationObserver to watch for changes and restore if needed
+    const storedReferrer = localStorage.getItem('maintenance_referrer');
+    const storedPreviousPage = localStorage.getItem('maintenance_previous_page');
+    
+    if (storedReferrer && storedPreviousPage) {
+        console.log('Setting up MutationObserver to prevent overrides');
+        
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                    const target = mutation.target;
+                    
+                    // Check if the back button text was changed
+                    if (target.id === 'backButtonText' && target.textContent && !target.textContent.includes(storedPreviousPage)) {
+                        console.log('🚨 Back button text was overridden! Restoring...');
+                        target.textContent = 'Back to ' + storedPreviousPage;
+                        target.setAttribute('data-forced-update', 'true');
+                    }
+                    
+                    // Check if the subtitle was changed
+                    if (target.id === 'maintenanceSubtitle' && target.textContent && !target.textContent.includes(storedPreviousPage)) {
+                        console.log('🚨 Subtitle was overridden! Restoring...');
+                        target.textContent = storedPreviousPage + ' is currently being updated';
+                        target.setAttribute('data-forced-update', 'true');
+                    }
+                }
+            });
+        });
+        
+        // Start observing
+        const backButtonText = document.getElementById('backButtonText');
+        const subtitle = document.getElementById('maintenanceSubtitle');
+        
+        if (backButtonText) {
+            observer.observe(backButtonText, { childList: true, characterData: true, subtree: true });
+        }
+        if (subtitle) {
+            observer.observe(subtitle, { childList: true, characterData: true, subtree: true });
+        }
+        
+        // Also set up a periodic check as backup
+        setInterval(function() {
+            const currentButtonText = document.getElementById('backButtonText');
+            const currentSubtitle = document.getElementById('maintenanceSubtitle');
+            
+            if (currentButtonText && !currentButtonText.textContent.includes(storedPreviousPage)) {
+                console.log('🔄 Periodic check: Restoring button text');
+                currentButtonText.textContent = 'Back to ' + storedPreviousPage;
+            }
+            
+            if (currentSubtitle && !currentSubtitle.textContent.includes(storedPreviousPage)) {
+                console.log('🔄 Periodic check: Restoring subtitle');
+                currentSubtitle.textContent = storedPreviousPage + ' is currently being updated';
+            }
+        }, 1000);
+    }
+});
+
+// Function to refresh the maintenance page while preserving context
+function refreshWithContext() {
+    console.log('=== REFRESHING PAGE ===');
+    debugLocalStorage();
+    // Simply refresh the current maintenance page
+    // The context is already stored in localStorage and will be restored
+    window.location.reload();
+}
+</script>
+</body>
+</html>

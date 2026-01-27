@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <script src="{{ asset('frontend/js/smart-translate.js') }}"></script>
+    <meta charset="UTF-8">
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyndiGest - Gestion des Syndicats</title>
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="{{ asset('frontend/css/main-home.css') }}" as="style">
+    <link rel="preload" href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" as="style">
+    
+    <!-- DNS prefetch for external resources -->
+    <link rel="dns-prefetch" href="https://demos.themeselection.com">
+    
+    <!-- CSS Dependencies -->
+    <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/main-home-split.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+</head>
+<body>
+<!-- Page Loader -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        if (window.SmartTranslate) {
+            let lang = localStorage.getItem('lang') || 'fr';
+            SmartTranslate.init(lang);
+        }
+    }, 200);
+});
+</script>
+<div class="page-loader" id="pageLoader">
+    <div class="loader-content">
+        <div class="loader-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Layout Wrapper -->
+<div class="main-home-layout-wrapper">
+    <!-- Layout Container -->
+    <div class="main-home-page">
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'home'} %}
+
+        <!-- Hero Image Background at Top of Page -->
+        <div class="main-home-hero-bg-fixed" style="position:absolute; top:0; left:0; width:100vw; height:1000px; z-index:0; overflow:hidden; pointer-events:none; background:transparent;">
+            <img src="{{ asset('images/home/home.png') }}" alt="Home" style="width:100vw; height:1000px; object-fit:cover; object-position:center top; display:block;">
+            <div style="position:absolute; left:0; bottom:0; width:100%; height:80px; pointer-events:none; background:linear-gradient(to bottom,rgba(0,0,0,0) 0%,rgba(0,0,0,0.12) 60%,rgba(0,0,0,0.22) 100%); box-shadow:0 32px 64px 0 rgba(0,0,0,0.18);"></div>
+            <div class="main-home-hero-fade"></div>
+        </div>
+        <style>
+        .hero-img-fade-img {
+            animation: fadeInRight 1.2s cubic-bezier(.4,0,.2,1) both;
+        }
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(60px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        :root {
+            --hero-card-bg: #fff;
+            --hero-card-title: #222;
+            --hero-card-desc: #444;
+        }
+        [data-theme="dark"] {
+            --hero-card-bg: #181818;
+            --hero-card-title: #fff;
+            --hero-card-desc: #e0e0e0;
+        }
+        .main-home-hero-card {
+            background: var(--hero-card-bg, #fff) !important;
+            transition: background 0.3s;
+        }
+        .hero-card-title {
+            color: var(--hero-card-title, #222) !important;
+            font-size:2.2rem;
+            margin-bottom:1rem;
+        }
+        .hero-card-desc {
+            color: var(--hero-card-desc, #444) !important;
+            font-size:1.1rem;
+            margin-bottom:0;
+            max-width:420px;
+        }
+        .main-home-hero-fade {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 120px;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, var(--hero-fade-color, #F5F5F5) 100%);
+        }
+        :root {
+            --hero-fade-color: #F5F5F5;
+        }
+        [data-theme="dark"] {
+            --hero-fade-color: #181818;
+        }
+        </style>
+        <!-- Hero Section (text and content) -->
+        <div class="main-home-landing-section">
+            <!-- Welcome to Syndicati Card -->
+            
+            <div class="main-home-hero split-hero" style="min-height:900px; height:900px; position:relative;">
+                <div class="main-home-hero-left" style="padding:60px 40px; display:flex; flex-direction:column; justify-content:center; position:relative; z-index:2;">
+                    <div class="main-home-testimonial-card main-home-hero-card" style="margin-bottom:0; max-width: 520px; box-shadow: 0 4px 32px 0 rgba(90,90,214,0.08); background: var(--hero-card-bg, #fff); position: relative; z-index: 2;">
+                        <div class="main-home-testimonial-content">
+                            <h1 class="main-home-hero-title main-home-content-title hero-card-title">Welcome to Syndicati</h1>
+                            <p class="main-home-hero-subtitle hero-card-desc">Syndicati is your modern platform for community management, collaboration, and innovation. Join us to experience a new era of digital living and seamless communication.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Video Player Section -->
+        <h1 class="main-home-hero-title main-home-content-title" data-i18n="Watch Our Video" style="text-align: center;"></h1>
+        <div class="main-home-video-section">
+            <div class="main-home-video-player">
+                <video id="mainVideoPlayer" autoplay loop muted playsinline preload="metadata" poster="">
+                    <source src="{{ asset('videos/synthwave.mp4') }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="main-home-audio-pill-vertical" id="mainHomeAudioPill" style="position: absolute; top: 50%; right: 25px; transform: translateY(-50%); height: 600px !important; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; background: #F5F5F5; border-radius: 32px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 18px 10px; width: 54px;">
+                    <span style="font-size:1.2rem; margin-bottom: 20px; color: #222;">🔈</span>
+                    <input type="range" id="mainVideoAudioSlider" min="0" max="1" step="0.01" value="0.5" style="writing-mode: bt-lr; -webkit-appearance: slider-vertical; width: 36px; height: 540px; background: #111; margin-bottom: 20px;">
+                    <span id="mainVideoAudioPercent" style="font-size:1.1rem; color:#222; font-weight:600;">50%</span>
+                    <span style="font-size:1.2rem; margin-top: 20px; color: #222;">🔊</span>
+                </div>
+                </div>
+                <!-- Video placeholder removed -->
+            </div>
+        </div>
+        
+
+
+        <!-- Content Wrapper -->
+        <div class="main-home-content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+
+            <!-- Feature Cards Section -->
+            <h1 id="syndicate-title" class="main-home-hero-title main-home-content-title" data-i18n="Our Residential Complex" style="text-align: center;"></h1>
+    
+<div class="main-home-cards-section">
+    
+    <div class="main-home-cards-container">
+        <div class="main-home-feature-card">
+            <!-- Image will be added later -->
+        </div>
+        <div class="main-home-feature-card">
+            <!-- Image will be added later -->
+        </div>
+        <div class="main-home-feature-card">
+            <!-- Image will be added later -->
+        </div>
+        <div class="main-home-feature-card">
+            <!-- Image will be added later -->
+        </div>
+    </div>
+</div>
+
+<h1 id="syndicate-title" class="main-home-hero-title main-home-content-title" data-i18n="Our Stats" style="text-align: center;"></h1>
+    
+
+        <!-- Stats Section - Syndicate Overview -->
+                            <div class="main-home-stats-section">
+                                <div class="main-home-stat-item">
+                                    <div class="main-home-stat-number">4</div>
+                                    <div class="main-home-stat-label" data-i18n="Blocks">Blocs</div>
+                                </div>
+                                <div class="main-home-stat-item">
+                                    <div class="main-home-stat-number">48</div>
+                                    <div class="main-home-stat-label" data-i18n="Apartments">Appartements</div>
+                                </div>
+                                <div class="main-home-stat-item">
+                                    <div class="main-home-stat-number">156</div>
+                                    <div class="main-home-stat-label" data-i18n="Residents">Résidents</div>
+                                </div>
+                                <div class="main-home-stat-item">
+                                    <div class="main-home-stat-number">12</div>
+                                    <div class="main-home-stat-label" data-i18n="Events">Événements</div>
+                                </div>
+                            </div>
+
+
+                            <!-- Upcoming Events Section -->
+                             <div class="main-home-section" id="evenements">
+                                <h3 class="main-home-section-title main-home-content-title" data-i18n="Upcoming Events">📅 Événements à Venir</h3>
+                                <p class="main-home-section-subtitle" data-i18n="Join activities">Participez aux activités de la résidence</p>
+                                
+                                <div class="main-home-testimonials-grid">
+                                    <!-- Event 1 -->
+                                    <div class="main-home-testimonial-card">
+                                        <div class="main-home-event-badge urgent" data-i18n="Urgent">Urgent</div>
+                                        <div class="main-home-testimonial-content">
+                                            <h4 class="main-home-event-title main-home-content-title" data-i18n="Annual General Assembly">🗳️ Assemblée Générale Annuelle</h4>
+                                            <p class="main-home-event-date" data-i18n="25 Jan 2026 18h00">📆 25 Janvier 2026 - 18h00</p>
+                                            <p data-i18n="Vote budget election syndic renovation">Vote du budget 2026, élection du nouveau syndic, discussion travaux de rénovation du hall.</p>
+                                        </div>
+                                        <div class="main-home-testimonial-author">
+                                            <div class="main-home-event-stats">
+                                                <span data-i18n="42/48 confirmed">👥 42/48 confirmés</span>
+                                                <span class="main-home-participation-rate">87%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Event 2 -->
+                                    <div class="main-home-testimonial-card">
+                                        <div class="main-home-event-badge" data-i18n="Community">Communautaire</div>
+                                        <div class="main-home-testimonial-content">
+                                            <h4 class="main-home-event-title main-home-content-title" data-i18n="Neighbors Party">🎉 Fête des Voisins</h4>
+                                            <p class="main-home-event-date" data-i18n="15 Feb 2026 16h00">📆 15 Février 2026 - 16h00</p>
+                                            <p data-i18n="Garden party barbecue music games children">Grande fête dans le jardin commun. Barbecue, musique et jeux pour enfants.</p>
+                                        </div>
+                                        <div class="main-home-testimonial-author">
+                                            <div class="main-home-event-stats">
+                                                <span data-i18n="78/156 registered">👥 78/156 inscrits</span>
+                                                <span class="main-home-participation-rate">50%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Event 3 -->
+                                    <div class="main-home-testimonial-card">
+                                        <div class="main-home-event-badge maintenance" data-i18n="Maintenance">Maintenance</div>
+                                        <div class="main-home-testimonial-content">
+                                            <h4 class="main-home-event-title main-home-content-title" data-i18n="Elevator Works Block A">🔧 Travaux Ascenseur Bloc A</h4>
+                                            <p class="main-home-event-date" data-i18n="1-3 Feb 2026">📆 1-3 Février 2026</p>
+                                            <p data-i18n="Preventive maintenance stairs only 3 days">Maintenance préventive de l'ascenseur. Escaliers uniquement pendant 3 jours.</p>
+                                        </div>
+                                        <div class="main-home-testimonial-author">
+                                            <div class="main-home-event-stats">
+                                                <span data-i18n="Block A concerned">🏢 Bloc A concerné</span>
+                                                <span class="main-home-participation-rate">Info</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                             <!-- Services Section -->
+                            <div class="main-home-section">
+                                <h3 class="main-home-section-title main-home-content-title" data-i18n="Syndicat Services">🛠️ Services du Syndicat</h3>
+                                
+                                <div class="main-home-features-grid">
+                                    <div class="main-home-feature-card">
+                                        <div class="main-home-feature-icon">💰</div>
+                                        <h4 data-i18n="Financial Management">Gestion Financière</h4>
+                                        <p data-i18n="Financial Management Desc">Suivi des charges, budget annuel, paiements en ligne</p>
+                                    </div>
+                                    <div class="main-home-feature-card">
+                                        <div class="main-home-feature-icon">🔧</div>
+                                        <h4 data-i18n="Maintenance">Maintenance</h4>
+                                        <p data-i18n="Maintenance Desc">Signalement de problèmes, suivi des interventions</p>
+                                    </div>
+                                    <div class="main-home-feature-card">
+                                        <div class="main-home-feature-icon">📢</div>
+                                        <h4 data-i18n="Communication">Communication</h4>
+                                        <p data-i18n="Communication Desc">Annonces, notifications, messagerie résidents</p>
+                                    </div>
+                                    <div class="main-home-feature-card">
+                                        <div class="main-home-feature-icon">📄</div>
+                                        <h4 data-i18n="Documents">Documents</h4>
+                                        <p data-i18n="Documents Desc">Règlement, PV d'assemblées, contrats</p>
+                                    </div>
+                                    <div class="main-home-feature-card">
+                                        <div class="main-home-feature-icon">🅿️</div>
+                                        <h4 data-i18n="Parking">Parking</h4>
+                                        <p data-i18n="Parking Desc">Gestion des places, badges d'accès</p>
+                                    </div>
+                                    <div class="main-home-feature-card">
+                                        <div class="main-home-feature-icon">📊</div>
+                                        <h4 data-i18n="Statistics">Statistiques</h4>
+                                        <p data-i18n="Statistics Desc">Rapports, taux de participation, historique</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                             <!-- Quick Actions / CTA Section -->
+                            <div class="main-home-cta-section">
+                                <div class="main-home-cta-content">
+                                    <h2 data-i18n="Need Assistance">Besoin d'Assistance?</h2>
+                                    <p data-i18n="Assistance Desc">Notre équipe de gestion est là pour vous aider. Contactez le syndic ou signalez un problème.</p>
+                                    <div class="main-home-cta-buttons">
+                                        <button class="main-home-btn main-home-btn-primary" data-i18n="Contact Syndic">📞 Contacter le Syndic</button>
+                                        <button class="main-home-btn main-home-btn-secondary" data-i18n="Report Problem">🔧 Signaler un Problème</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% include 'frontend/shared/_main_footer.html.twig' %}
+        </div>
+    </div>
+</div>
+
+<!-- Scroll Down Pill -->
+<div class="scroll-down-pill-wrapper" id="scrollDownPill">
+    <button class="scroll-down-pill" id="scrollPillBtnDown" aria-label="Scroll down">
+        <span style="display:inline-block; font-size:2.1rem; line-height:1; vertical-align:middle;">&#8595;</span>
+    </button>
+    <button class="scroll-down-pill" id="scrollPillBtnUp" aria-label="Scroll up" style="display:none; margin-left:12px;">
+        <span style="display:inline-block; font-size:2.1rem; line-height:1; vertical-align:middle;">&#8593;</span>
+    </button>
+</div>
+<script>
+(function() {
+    var btnDown = document.getElementById('scrollPillBtnDown');
+    var btnUp = document.getElementById('scrollPillBtnUp');
+    var morphed = false;
+    var downClickTimeout = null;
+    var upClickTimeout = null;
+    var dblDelay = 300;
+
+    if (!btnDown || !btnUp) {
+        return;
+    }
+
+    function ensureSplitShown() {
+        if (!morphed) {
+            morphed = true;
+            // Show the up button immediately, make morph very quick
+            btnUp.style.display = 'flex';
+            btnDown.classList.add('morph');
+            setTimeout(function() {
+                btnDown.classList.remove('morph');
+            }, 120);
+        }
+    }
+
+    function scrollOneDown() {
+        window.scrollBy({
+            top: window.innerHeight,
+            left: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    function scrollToBottom() {
+        var doc = document.documentElement;
+        var body = document.body || { scrollHeight: 0 };
+        var scrollHeight = Math.max(doc.scrollHeight, body.scrollHeight);
+        var target = scrollHeight - window.innerHeight;
+        if (target < 0) target = 0;
+        window.scrollTo({
+            top: target,
+            left: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    function scrollOneUp() {
+        var target = window.scrollY - window.innerHeight;
+        if (target < 0) target = 0;
+        window.scrollTo({
+            top: target,
+            left: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    function resetIfAtTop() {
+        if (window.scrollY <= 0) {
+            // Back at the very top: only show down button
+            btnUp.style.display = 'none';
+            btnDown.style.display = 'flex';
+            morphed = false;
+        }
+    }
+
+    function resetIfAtBottom() {
+        var doc = document.documentElement;
+        var body = document.body || { scrollHeight: 0 };
+        var scrollHeight = Math.max(doc.scrollHeight, body.scrollHeight);
+
+        // Avoid conflicting with "top" logic on very small pages
+        if (window.scrollY <= 0) {
+            return;
+        }
+
+        if (window.innerHeight + window.scrollY >= scrollHeight - 2) {
+            // At or near bottom: hide down, keep up visible
+            btnDown.style.display = 'none';
+            btnUp.style.display = 'flex';
+        } else if (morphed) {
+            // In the middle of the page after split: keep both visible
+            btnDown.style.display = 'flex';
+            btnUp.style.display = 'flex';
+        }
+    }
+
+    // Down button: single-click = one viewport down, double-click = bottom
+    btnDown.addEventListener('click', function(e) {
+        e.preventDefault();
+        clearTimeout(downClickTimeout);
+        downClickTimeout = setTimeout(function() {
+            scrollOneDown();
+            ensureSplitShown();
+        }, dblDelay);
+    });
+
+    btnDown.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+        clearTimeout(downClickTimeout);
+        scrollToBottom();
+        ensureSplitShown();
+    });
+
+    // Up button: single-click = one viewport up, double-click = top
+    btnUp.addEventListener('click', function(e) {
+        e.preventDefault();
+        clearTimeout(upClickTimeout);
+        upClickTimeout = setTimeout(function() {
+            scrollOneUp();
+        }, dblDelay);
+    });
+
+    btnUp.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+        clearTimeout(upClickTimeout);
+        scrollToTop();
+    });
+
+    function handleScroll() {
+        resetIfAtTop();
+        resetIfAtBottom();
+    }
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+})();
+</script>
+
+<!-- JavaScript Dependencies - defer for non-blocking load -->
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}" defer></script>
+<script src="{{ asset('frontend/js/main-home.js') }}" defer></script>
+<script src="{{ asset('js/page-loader.js') }}"></script>
+<script>
+// Main Home specific JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize theme toggle (override external JS version)
+    initMainHomeThemeToggle();
+    
+    // Initialize heart animation
+    setupHeartAnimation();
+    
+    // Initialize interactive elements
+    initInteractiveElements();
+    
+    // Initialize animations
+    initAnimations();
+    
+    // Initialize tab dropdowns
+    initTabDropdowns();
+});
+
+function initMainHomeThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    html.setAttribute('data-theme', savedTheme);
+    
+    if (themeToggle) {
+        // Remove any existing listeners by cloning
+        const newToggle = themeToggle.cloneNode(true);
+        themeToggle.parentNode.replaceChild(newToggle, themeToggle);
+        
+        newToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            console.log('Theme changed to:', newTheme);
+        });
+        
+        console.log('Theme toggle initialized successfully');
+    } else {
+        console.error('Theme toggle element not found');
+    }
+}
+
+function setupHeartAnimation() {
+    // Heart animation is handled by CSS
+    console.log('Heart animation initialized');
+}
+
+function initInteractiveElements() {
+    // Search functionality is handled by the header search
+    console.log('Interactive elements initialized');
+}
+
+function initAnimations() {
+    // Add entrance animations to welcome cards
+    const welcomeCards = document.querySelectorAll('.main-home-welcome-card');
+    welcomeCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate-in');
+    });
+}
+
+// Tab dropdown functionality
+function initTabDropdowns() {
+    const navTabs = document.querySelectorAll('.main-home-nav-tab');
+    let hoverTimeout;
+    let isHovering = false;
+    
+    function closeAllDropdowns() {
+        navTabs.forEach(tab => {
+            const dropdown = tab.querySelector('.main-home-tab-dropdown');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+    
+    navTabs.forEach(tab => {
+        const dropdown = tab.querySelector('.main-home-tab-dropdown');
+        const tabText = tab.querySelector('.main-home-tab-text');
+        const homeLink = tabText.querySelector('a');
+        
+        // Handle Home tab (has link, no dropdown)
+        if (homeLink) {
+            // Home tab should behave like other tabs but navigate on click
+            tabText.addEventListener('click', function(e) {
+                // Let the link handle navigation naturally
+                // No preventDefault needed
+            });
+            
+            // No hover dropdown functionality for Home tab
+            return;
+        }
+        
+        // Only add dropdown functionality to tabs that have dropdowns
+        if (!dropdown) {
+            return;
+        }
+        
+        // Click to toggle dropdown
+        tabText.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const isOpen = dropdown.style.display === 'block';
+            closeAllDropdowns();
+            
+            if (!isOpen) {
+                dropdown.style.display = 'block';
+            }
+        });
+        
+        // Hover to show dropdown - more reliable
+        tab.addEventListener('mouseenter', function() {
+            clearTimeout(hoverTimeout);
+            isHovering = true;
+            closeAllDropdowns();
+            dropdown.style.display = 'block';
+        });
+        
+        // Hover to hide dropdown with delay
+        tab.addEventListener('mouseleave', function() {
+            isHovering = false;
+            hoverTimeout = setTimeout(() => {
+                if (!isHovering) {
+                    dropdown.style.display = 'none';
+                }
+            }, 300); // Increased delay for better UX
+        });
+        
+        // Keep dropdown open when hovering over it
+        dropdown.addEventListener('mouseenter', function() {
+            clearTimeout(hoverTimeout);
+            isHovering = true;
+        });
+        
+        dropdown.addEventListener('mouseleave', function() {
+            isHovering = false;
+            hoverTimeout = setTimeout(() => {
+                if (!isHovering) {
+                    dropdown.style.display = 'none';
+                }
+            }, 300);
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!tab.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    });
+}
+
+// Video Player Control
+const videoPlayer = document.getElementById('mainVideoPlayer');
+const videoControlBtn = document.getElementById('videoControlBtn');
+const pauseIcon = document.querySelector('.main-home-video-pause-icon');
+const playIcon = document.querySelector('.main-home-video-play-icon');
+
+if (videoPlayer && videoControlBtn) {
+    videoControlBtn.addEventListener('click', function() {
+        if (videoPlayer.paused) {
+            videoPlayer.play();
+            pauseIcon.style.display = 'inline';
+            playIcon.style.display = 'none';
+        } else {
+            videoPlayer.pause();
+            pauseIcon.style.display = 'none';
+            playIcon.style.display = 'inline';
+        }
+    });
+    
+    // Sync button state with video state
+    videoPlayer.addEventListener('play', function() {
+        pauseIcon.style.display = 'inline';
+        playIcon.style.display = 'none';
+    });
+    
+    videoPlayer.addEventListener('pause', function() {
+        pauseIcon.style.display = 'none';
+        playIcon.style.display = 'inline';
+    });
+}
+
+// Scroll Down Pill functionality
+document.addEventListener('DOMContentLoaded', function() {
+    var pill = document.getElementById('scrollDownPill');
+    function checkPill() {
+        var hero = document.querySelector('.main-home-hero');
+        if (!pill || !hero) return;
+        var rect = hero.getBoundingClientRect();
+        if (rect.bottom < 120) {
+            pill.classList.add('hide');
+        } else {
+            pill.classList.remove('hide');
+        }
+    }
+    window.addEventListener('scroll', checkPill);
+    checkPill();
+});
+</script>
+<style>
+.scroll-down-pill-wrapper {
+    position: fixed;
+    left: 50%;
+    bottom: 36px;
+    transform: translateX(-50%);
+    z-index: 9999;
+    pointer-events: none;
+    width: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.scroll-down-pill {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--scroll-pill-bg, #fff);
+    color: var(--scroll-pill-text, #222);
+    border-radius: 32px;
+    box-shadow: 0 2px 8px 0 rgba(90,90,214,0.10);
+    padding: 14px 22px;
+    font-size: 1.5rem;
+    font-family: var(--font-primary), 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-weight: 700;
+    opacity: 0.98;
+    pointer-events: auto;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s, opacity 0.3s, transform 0.2s cubic-bezier(.4,0,.2,1);
+    animation: scroll-pill-fadein 1.2s cubic-bezier(.4,0,.2,1) 0.5s both;
+    letter-spacing: 0.04em;
+    overflow: visible;
+}
+.scroll-down-pill::before,
+.scroll-down-pill::after {
+    display: none !important;
+}
+.scroll-down-pill:hover {
+    box-shadow: 0 4px 16px 0 rgba(90,90,214,0.14);
+    opacity: 1;
+}
+@keyframes scroll-pill-fadein {
+    from { opacity: 0; transform: translateY(32px); }
+    to { opacity: 0.98; transform: translateY(0); }
+}
+:root {
+    --scroll-pill-bg: #fff;
+    --scroll-pill-text: #222;
+}
+[data-theme="dark"] {
+    --scroll-pill-bg: #222;
+    --scroll-pill-text: #fff;
+}
+</style>
+<style>
+.scroll-down-pill.morph {
+    transform: scale(1.08) rotate(-3deg);
+    box-shadow: 0 8px 24px 0 rgba(90,90,214,0.18);
+}
+</style>
+</body>
+</html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <meta charset="UTF-8">
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil - PiDev</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+</head>
+<body>
+<!-- Page Loader -->
+<div class="page-loader" id="pageLoader">
+    <div class="loader-content">
+        <div class="loader-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Layout Wrapper -->
+<div class="main-home-layout-wrapper">
+    <div class="main-home-page">
+        <!-- Include Shared Navbar -->
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'profile'} %}
+
+    <!-- Main Content -->
+    <div class="main-home-content-wrapper">
+        <div class="container-xxl">
+            <!-- Profile Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="main-home-profile-header">
+                        <div class="main-home-profile-banner">
+                            <div class="main-home-profile-banner-overlay"></div>
+                        </div>
+                        <div class="main-home-profile-info">
+                            <div class="main-home-profile-avatar-container">
+                                <div class="main-home-profile-avatar">
+                                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face" alt="Profile Picture" class="main-home-profile-avatar-img">
+                                    <button class="main-home-profile-avatar-edit">
+                                        <i class="bx bx-camera"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="main-home-profile-details">
+                                <h1 class="main-home-profile-name">Amine Saidi</h1>
+                                <p class="main-home-profile-title">Développeur Full Stack</p>
+                                <p class="main-home-profile-location">
+                                    <i class="bx bx-map"></i> San Francisco, CA
+                                </p>
+                                <div class="main-home-profile-stats">
+                                    <div class="main-home-stat-item">
+                                        <span class="main-home-stat-number">1.2K</span>
+                                        <span class="main-home-stat-label">Abonnés</span>
+                                    </div>
+                                    <div class="main-home-stat-item">
+                                        <span class="main-home-stat-number">856</span>
+                                        <span class="main-home-stat-label">Following</span>
+                                    </div>
+                                    <div class="main-home-stat-item">
+                                        <span class="main-home-stat-number">24</span>
+                                        <span class="main-home-stat-label">Projects</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="main-home-profile-actions">
+                                <button class="main-home-btn main-home-btn-primary">
+                                    <i class="bx bx-edit"></i> Edit Profile
+                                </button>
+                                <button class="main-home-btn main-home-btn-secondary">
+                                    <i class="bx bx-share"></i> Share
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="row">
+                <!-- Left Column -->
+                <div class="col-lg-8">
+                    <!-- Theme & Customization Section -->
+                    <!-- Theme & Customization Section removed -->
+                    <!-- About Section -->
+                    <div class="main-home-profile-card mb-4">
+                        <div class="main-home-card-header">
+                            <h3 class="main-home-card-title">
+                                <i class="bx bx-info-circle"></i> About
+                            </h3>
+                            <button class="main-home-card-action">
+                                <i class="bx bx-edit"></i>
+                            </button>
+                        </div>
+                        <div class="main-home-card-content">
+                            <p class="main-home-profile-bio">
+                                Passionate full-stack developer with 5+ years of experience building modern web applications. 
+                                I love creating beautiful, functional interfaces and solving complex problems with clean code. 
+                                Always learning new technologies and sharing knowledge with the community.
+                            </p>
+                            <div class="main-home-profile-tags">
+                                <span class="main-home-tag">JavaScript</span>
+                                <span class="main-home-tag">React</span>
+                                <span class="main-home-tag">Node.js</span>
+                                <span class="main-home-tag">Python</span>
+                                <span class="main-home-tag">PHP</span>
+                                <span class="main-home-tag">Symfony</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Experience Section -->
+                    <div class="main-home-profile-card mb-4">
+                        <div class="main-home-card-header">
+                            <h3 class="main-home-card-title">
+                                <i class="bx bx-briefcase"></i> Experience
+                            </h3>
+                            <button class="main-home-card-action">
+                                <i class="bx bx-plus"></i>
+                            </button>
+                        </div>
+                        <div class="main-home-card-content">
+                            <div class="main-home-timeline">
+                                <div class="main-home-timeline-item">
+                                    <div class="main-home-timeline-marker"></div>
+                                    <div class="main-home-timeline-content">
+                                        <h4 class="main-home-timeline-title">Senior Full Stack Developer</h4>
+                                        <p class="main-home-timeline-company">TechCorp Inc.</p>
+                                        <p class="main-home-timeline-period">2022 - Present</p>
+                                        <p class="main-home-timeline-description">
+                                            Leading development of enterprise web applications using modern technologies. 
+                                            Mentoring junior developers and implementing best practices.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="main-home-timeline-item">
+                                    <div class="main-home-timeline-marker"></div>
+                                    <div class="main-home-timeline-content">
+                                        <h4 class="main-home-timeline-title">Full Stack Developer</h4>
+                                        <p class="main-home-timeline-company">StartupXYZ</p>
+                                        <p class="main-home-timeline-period">2020 - 2022</p>
+                                        <p class="main-home-timeline-description">
+                                            Built scalable web applications from scratch. Worked with React, Node.js, and cloud technologies.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Projects Section -->
+                    <div class="main-home-profile-card mb-4">
+                        <div class="main-home-card-header">
+                            <h3 class="main-home-card-title">
+                                <i class="bx bx-code-alt"></i> Recent Projects
+                            </h3>
+                            <button class="main-home-card-action">
+                                <i class="bx bx-plus"></i>
+                            </button>
+                        </div>
+                        <div class="main-home-card-content">
+                            <div class="main-home-projects-grid">
+                                <div class="main-home-project-card">
+                                    <div class="main-home-project-image">
+                                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=300&h=200&fit=crop" alt="Project 1">
+                                    </div>
+                                    <div class="main-home-project-content">
+                                        <h4 class="main-home-project-title">E-Commerce Platform</h4>
+                                        <p class="main-home-project-description">Modern e-commerce solution with React and Node.js</p>
+                                        <div class="main-home-project-tech">
+                                            <span class="main-home-tech-tag">React</span>
+                                            <span class="main-home-tech-tag">Node.js</span>
+                                            <span class="main-home-tech-tag">MongoDB</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="main-home-project-card">
+                                    <div class="main-home-project-image">
+                                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=300&h=200&fit=crop" alt="Project 2">
+                                    </div>
+                                    <div class="main-home-project-content">
+                                        <h4 class="main-home-project-title">Analytics Dashboard</h4>
+                                        <p class="main-home-project-description">Real-time analytics dashboard with data visualization</p>
+                                        <div class="main-home-project-tech">
+                                            <span class="main-home-tech-tag">Vue.js</span>
+                                            <span class="main-home-tech-tag">Python</span>
+                                            <span class="main-home-tech-tag">D3.js</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-lg-4">
+                    <!-- Contact Info -->
+                    <div class="main-home-profile-card mb-4">
+                        <div class="main-home-card-header">
+                            <h3 class="main-home-card-title">
+                                <i class="bx bx-envelope"></i> Contact
+                            </h3>
+                        </div>
+                        <div class="main-home-card-content">
+                            <div class="main-home-contact-item">
+                                <i class="bx bx-envelope"></i>
+                                <span>amine.saidi@example.com</span>
+                            </div>
+                            <div class="main-home-contact-item">
+                                <i class="bx bx-phone"></i>
+                                <span>+1 (555) 123-4567</span>
+                            </div>
+                            <div class="main-home-contact-item">
+                                <i class="bx bx-globe"></i>
+                                <span>www.aminesaidi.dev</span>
+                            </div>
+                            <div class="main-home-contact-item">
+                                <i class="bx bxl-github"></i>
+                                <span>github.com/aminesaidi</span>
+                            </div>
+                            <div class="main-home-contact-item">
+                                <i class="bx bxl-linkedin"></i>
+                                <span>linkedin.com/in/aminesaidi</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Skills -->
+                    <div class="main-home-profile-card mb-4">
+                        <div class="main-home-card-header">
+                            <h3 class="main-home-card-title">
+                                <i class="bx bx-code"></i> Skills
+                            </h3>
+                        </div>
+                        <div class="main-home-card-content">
+                            <div class="main-home-skill-item">
+                                <span class="main-home-skill-name">JavaScript</span>
+                                <div class="main-home-skill-bar">
+                                    <div class="main-home-skill-progress" style="width: 95%"></div>
+                                </div>
+                            </div>
+                            <div class="main-home-skill-item">
+                                <span class="main-home-skill-name">React</span>
+                                <div class="main-home-skill-bar">
+                                    <div class="main-home-skill-progress" style="width: 90%"></div>
+                                </div>
+                            </div>
+                            <div class="main-home-skill-item">
+                                <span class="main-home-skill-name">Node.js</span>
+                                <div class="main-home-skill-bar">
+                                    <div class="main-home-skill-progress" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div class="main-home-skill-item">
+                                <span class="main-home-skill-name">Python</span>
+                                <div class="main-home-skill-bar">
+                                    <div class="main-home-skill-progress" style="width: 80%"></div>
+                                </div>
+                            </div>
+                            <div class="main-home-skill-item">
+                                <span class="main-home-skill-name">PHP</span>
+                                <div class="main-home-skill-bar">
+                                    <div class="main-home-skill-progress" style="width: 75%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Achievements -->
+                    <div class="main-home-profile-card mb-4">
+                        <div class="main-home-card-header">
+                            <h3 class="main-home-card-title">
+                                <i class="bx bx-trophy"></i> Achievements
+                            </h3>
+                        </div>
+                        <div class="main-home-card-content">
+                            <div class="main-home-achievement-item">
+                                <div class="main-home-achievement-icon">
+                                    <i class="bx bx-code-alt"></i>
+                                </div>
+                                <div class="main-home-achievement-content">
+                                    <h4>Code Master</h4>
+                                    <p>1000+ commits this year</p>
+                                </div>
+                            </div>
+                            <div class="main-home-achievement-item">
+                                <div class="main-home-achievement-icon">
+                                    <i class="bx bx-star"></i>
+                                </div>
+                                <div class="main-home-achievement-content">
+                                    <h4>Top Contributor</h4>
+                                    <p>Most active developer</p>
+                                </div>
+                            </div>
+                            <div class="main-home-achievement-item">
+                                <div class="main-home-achievement-icon">
+                                    <i class="bx bx-rocket"></i>
+                                </div>
+                                <div class="main-home-achievement-content">
+                                    <h4>Innovation Award</h4>
+                                    <p>Best project of 2023</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-home-footer-island">
+        <div class="main-home-footer-content">
+            <div class="main-home-footer-left">
+                <p>&copy; 2024 PiDev. Made with ❤️ by Amine</p>
+            </div>
+            <div class="main-home-footer-right">
+                <a href="#" class="main-home-footer-link">Privacy</a>
+                <a href="#" class="main-home-footer-link">Terms</a>
+                <a href="#" class="main-home-footer-link">Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('frontend/js/main-home.js') }}"></script>
+    <script>
+    // Theme, accent, and language settings logic removed from My Profile page
+    </script>
+    <script src="{{ asset('js/page-loader.js') }}"></script>
+</body>
+</html>

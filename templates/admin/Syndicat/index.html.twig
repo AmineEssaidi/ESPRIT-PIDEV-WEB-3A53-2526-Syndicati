@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Syndicat - Liquid Glass Admin{% endblock %}
+
+{% block content %}
+{% include 'admin/_dashboard_header.html.twig' with { 'title': 'Syndicat' } %}
+{% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+{% endblock %}

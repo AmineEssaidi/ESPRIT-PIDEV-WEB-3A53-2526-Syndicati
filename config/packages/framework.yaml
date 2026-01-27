@@ -1,0 +1,52 @@
+# see https://symfony.com/doc/current/reference/configuration/framework.html
+framework:
+    secret: '%env(APP_SECRET)%'
+
+    # Optimized session configuration
+    session:
+        handler_id: null
+        cookie_secure: auto
+        cookie_samesite: lax
+        gc_probability: 1
+        gc_divisor: 100
+        gc_maxlifetime: 1440
+
+    # Enable HTTP caching
+    http_cache:
+        enabled: true
+        default_ttl: 3600
+
+    # Enable ESI for fragment caching
+    esi: true
+    fragments: true
+
+    # Router optimization
+    router:
+        strict_requirements: null
+        utf8: true
+
+    # PHP error handling
+    php_errors:
+        log: true
+
+when@dev:
+    framework:
+        router:
+            strict_requirements: true
+        profiler:
+            only_exceptions: false
+            collect_serializer_data: false
+
+when@test:
+    framework:
+        test: true
+        session:
+            storage_factory_id: session.storage.factory.mock_file
+
+when@prod:
+    framework:
+        http_cache:
+            enabled: true
+            default_ttl: 86400
+        router:
+            strict_requirements: null

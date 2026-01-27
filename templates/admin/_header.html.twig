@@ -1,0 +1,115 @@
+<!-- Enhanced Header with Search and Profile -->
+<nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center"
+     id="layout-navbar">
+    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+        <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+            <i class="bx bx-menu bx-sm"></i>
+        </a>
+    </div>
+
+    <div class="navbar-nav-right d-flex align-items-center justify-content-between w-100" id="navbar-collapse">
+        <!-- Enhanced Search Bar -->
+        <div class="search-section">
+            <div class="search-container">
+                <i class="bx bx-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Rechercher..." aria-label="Rechercher..."/>
+            </div>
+        </div>
+
+        <!-- Right Side Controls -->
+        <div class="header-controls d-flex align-items-center gap-3">
+            <!-- iOS Style Theme Toggle -->
+            <div class="ios-theme-toggle">
+                <div class="toggle-container" id="theme-toggle">
+                    <div class="toggle-track">
+                        <div class="toggle-thumb">
+                            <span class="toggle-icon sun-icon">☀️</span>
+                            <span class="toggle-icon moon-icon">🌙</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Dynamic Island Notification (from frontend) -->
+            <div class="main-home-notification-circle">
+                <div class="main-home-dynamic-island" id="dynamicIsland" title="Notifications">
+                    <span class="main-home-notification-icon">🔔</span>
+                    <span class="main-home-notification-badge">3</span>
+                    <!-- Dynamic Content -->
+                    <div class="main-home-dynamic-content">
+                        <p class="main-home-dynamic-text" data-i18n="Notifications">Notifications</p>
+                        <p class="main-home-dynamic-subtext"><span data-i18n="3">3</span> <span data-i18n="new messages">nouveaux messages</span></p>
+                    </div>
+                    <!-- Notification Popup Content -->
+                    <div class="main-home-notification-popup-content" style="display: none;">
+                        <div class="main-home-notification-popup-icon">📱</div>
+                        <div class="main-home-notification-popup-text">
+                            <p class="main-home-notification-popup-title" data-i18n="New Message">New Message</p>
+                            <p class="main-home-notification-popup-message"><span data-i18n="You have">You have</span> 3 <span data-i18n="unread notifications">unread notifications</span></p>
+                        </div>
+                    </div>
+                    <!-- Multiple Notifications Container -->
+                    <div class="main-home-notifications-container" style="display: none;">
+                        <div class="main-home-notifications-scroll">
+                            <!-- Notifications will be dynamically added here -->
+                        </div>
+                    </div>
+                </div>
+                <!-- Animated Close Button -->
+                <button class="main-home-dynamic-close-btn" id="dynamicCloseBtn" title="Close">✕</button>
+            </div>
+
+            <!-- Enhanced User Profile -->
+            <script src="/admin/js/dynamic-island.js"></script>
+            <div class="user-profile-dropdown">
+                <div class="user-info">
+                    <div class="user-details">
+                        <div class="user-name">Amine Saidi</div>
+                        <div class="user-role">Administrateur</div>
+                    </div>
+                    <div class="user-avatar">
+                        <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/1.png" alt="Profile" class="avatar-img"/>
+                        <div class="avatar-status online"></div>
+                    </div>
+                </div>
+                
+                <!-- Profile Dropdown -->
+                <div class="profile-dropdown">
+                    <div class="dropdown-header">
+                        <div class="user-profile">
+                            <img src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/1.png" alt="Profile" class="profile-img"/>
+                            <div class="profile-info">
+                                <div class="profile-name">Amine Saidi</div>
+                                <div class="profile-email">amine.saidi@example.com</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="{{ path('frontend_profile') }}" class="dropdown-item">
+                        <i class="bx bx-user"></i>
+                        <span>My Profile</span>
+                    </a>
+                    <a href="{{ path('main_home') }}" class="dropdown-item">
+                        <i class="bx bx-globe"></i>
+                        <span>Main Home</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="bx bx-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="bx bx-credit-card"></i>
+                        <span>Billing</span>
+                        <span class="badge">4</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{{ path('admin_logout') }}" class="dropdown-item logout">
+                        <i class="bx bx-power-off"></i>
+                        <span>Log Out</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
