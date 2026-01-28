@@ -1,3 +1,22 @@
+/* Global smooth theme transition */
+html.theme-ready,
+html.theme-ready body,
+html.theme-ready .main-home-layout-wrapper,
+html.theme-ready .main-home-page,
+html.theme-ready .main-home-navbar,
+html.theme-ready .main-home-content-wrapper,
+html.theme-ready .main-home-hero-card,
+html.theme-ready .main-home-auth-card,
+html.theme-ready .main-home-section,
+html.theme-ready .main-home-footer-island {
+  transition:
+    background-color 0.32s ease,
+    background 0.32s ease,
+    color 0.32s ease,
+    border-color 0.32s ease,
+    box-shadow 0.32s ease;
+}
+
 /* Search logo theme switching */
 .main-home-search-logo-dark { display: none; }
 .main-home-search-logo-light { display: block; }

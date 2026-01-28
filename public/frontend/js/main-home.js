@@ -1,6 +1,9 @@
 // Main Home Frontend JavaScript - PiDev
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Enable smooth theme transitions after initial paint
+    document.documentElement.classList.add('theme-ready');
+
     // Initialize the main home page
     initMainHome();
 
@@ -14,14 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-            // Animate the toggle thumb for feedback only (not position)
-            const thumb = toggle.querySelector('.main-home-toggle-thumb');
-            if (thumb) {
-                thumb.classList.add('main-home-toggle-thumb-anim');
-                setTimeout(() => {
-                    thumb.classList.remove('main-home-toggle-thumb-anim');
-                }, 180);
-            }
+            // Let CSS handle the smooth sliding animation via [data-theme] rules.
             e.preventDefault();
         }
     });
