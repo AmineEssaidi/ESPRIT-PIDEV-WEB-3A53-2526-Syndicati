@@ -305,150 +305,9 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
-<!-- Scroll Down Pill -->
-<div class="scroll-down-pill-wrapper" id="scrollDownPill">
-    <button class="scroll-down-pill" id="scrollPillBtnDown" aria-label="Scroll down">
-        <span style="display:inline-block; font-size:2.1rem; line-height:1; vertical-align:middle;">&#8595;</span>
-    </button>
-    <button class="scroll-down-pill" id="scrollPillBtnUp" aria-label="Scroll up" style="display:none; margin-left:12px;">
-        <span style="display:inline-block; font-size:2.1rem; line-height:1; vertical-align:middle;">&#8593;</span>
-    </button>
-</div>
-<script>
-(function() {
-    var btnDown = document.getElementById('scrollPillBtnDown');
-    var btnUp = document.getElementById('scrollPillBtnUp');
-    var morphed = false;
-    var downClickTimeout = null;
-    var upClickTimeout = null;
-    var dblDelay = 300;
-
-    if (!btnDown || !btnUp) {
-        return;
-    }
-
-    function ensureSplitShown() {
-        if (!morphed) {
-            morphed = true;
-            // Show the up button immediately, make morph very quick
-            btnUp.style.display = 'flex';
-            btnDown.classList.add('morph');
-            setTimeout(function() {
-                btnDown.classList.remove('morph');
-            }, 120);
-        }
-    }
-
-    function scrollOneDown() {
-        window.scrollBy({
-            top: window.innerHeight,
-            left: 0,
-            behavior: 'smooth'
-        });
-    }
-
-    function scrollToBottom() {
-        var doc = document.documentElement;
-        var body = document.body || { scrollHeight: 0 };
-        var scrollHeight = Math.max(doc.scrollHeight, body.scrollHeight);
-        var target = scrollHeight - window.innerHeight;
-        if (target < 0) target = 0;
-        window.scrollTo({
-            top: target,
-            left: 0,
-            behavior: 'smooth'
-        });
-    }
-
-    function scrollOneUp() {
-        var target = window.scrollY - window.innerHeight;
-        if (target < 0) target = 0;
-        window.scrollTo({
-            top: target,
-            left: 0,
-            behavior: 'smooth'
-        });
-    }
-
-    function scrollToTop() {
-        window.scrollTo({
-            top: 0,
-            left: 0,
-            behavior: 'smooth'
-        });
-    }
-
-    function resetIfAtTop() {
-        if (window.scrollY <= 0) {
-            // Back at the very top: only show down button
-            btnUp.style.display = 'none';
-            btnDown.style.display = 'flex';
-            morphed = false;
-        }
-    }
-
-    function resetIfAtBottom() {
-        var doc = document.documentElement;
-        var body = document.body || { scrollHeight: 0 };
-        var scrollHeight = Math.max(doc.scrollHeight, body.scrollHeight);
-
-        // Avoid conflicting with "top" logic on very small pages
-        if (window.scrollY <= 0) {
-            return;
-        }
-
-        if (window.innerHeight + window.scrollY >= scrollHeight - 2) {
-            // At or near bottom: hide down, keep up visible
-            btnDown.style.display = 'none';
-            btnUp.style.display = 'flex';
-        } else if (morphed) {
-            // In the middle of the page after split: keep both visible
-            btnDown.style.display = 'flex';
-            btnUp.style.display = 'flex';
-        }
-    }
-
-    // Down button: single-click = one viewport down, double-click = bottom
-    btnDown.addEventListener('click', function(e) {
-        e.preventDefault();
-        clearTimeout(downClickTimeout);
-        downClickTimeout = setTimeout(function() {
-            scrollOneDown();
-            ensureSplitShown();
-        }, dblDelay);
-    });
-
-    btnDown.addEventListener('dblclick', function(e) {
-        e.preventDefault();
-        clearTimeout(downClickTimeout);
-        scrollToBottom();
-        ensureSplitShown();
-    });
-
-    // Up button: single-click = one viewport up, double-click = top
-    btnUp.addEventListener('click', function(e) {
-        e.preventDefault();
-        clearTimeout(upClickTimeout);
-        upClickTimeout = setTimeout(function() {
-            scrollOneUp();
-        }, dblDelay);
-    });
-
-    btnUp.addEventListener('dblclick', function(e) {
-        e.preventDefault();
-        clearTimeout(upClickTimeout);
-        scrollToTop();
-    });
-
-    function handleScroll() {
-        resetIfAtTop();
-        resetIfAtBottom();
-    }
-
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-})();
-</script>
+{% include 'frontend/shared/_scroll_pill.html.twig' %}
+<link href="{{ asset('frontend/css/scroll-pill.css') }}" rel="stylesheet">
+<script src="{{ asset('frontend/js/scroll-pill.js') }}" defer></script>
 
 <!-- JavaScript Dependencies - defer for non-blocking load -->
 <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}" defer></script>
@@ -457,9 +316,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 // Main Home specific JavaScript
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize theme toggle (override external JS version)
-    initMainHomeThemeToggle();
-    
     // Initialize heart animation
     setupHeartAnimation();
     
@@ -472,38 +328,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize tab dropdowns
     initTabDropdowns();
 });
-
-function initMainHomeThemeToggle() {
-    const themeToggle = document.getElementById('theme-toggle');
-    const html = document.documentElement;
-    
-    // Load saved theme
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    html.setAttribute('data-theme', savedTheme);
-    
-    if (themeToggle) {
-        // Remove any existing listeners by cloning
-        const newToggle = themeToggle.cloneNode(true);
-        themeToggle.parentNode.replaceChild(newToggle, themeToggle);
-        
-        newToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            
-            console.log('Theme changed to:', newTheme);
-        });
-        
-        console.log('Theme toggle initialized successfully');
-    } else {
-        console.error('Theme toggle element not found');
-    }
-}
 
 function setupHeartAnimation() {
     // Heart animation is handled by CSS
@@ -647,84 +471,6 @@ if (videoPlayer && videoControlBtn) {
     });
 }
 
-// Scroll Down Pill functionality
-document.addEventListener('DOMContentLoaded', function() {
-    var pill = document.getElementById('scrollDownPill');
-    function checkPill() {
-        var hero = document.querySelector('.main-home-hero');
-        if (!pill || !hero) return;
-        var rect = hero.getBoundingClientRect();
-        if (rect.bottom < 120) {
-            pill.classList.add('hide');
-        } else {
-            pill.classList.remove('hide');
-        }
-    }
-    window.addEventListener('scroll', checkPill);
-    checkPill();
-});
 </script>
-<style>
-.scroll-down-pill-wrapper {
-    position: fixed;
-    left: 50%;
-    bottom: 36px;
-    transform: translateX(-50%);
-    z-index: 9999;
-    pointer-events: none;
-    width: auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.scroll-down-pill {
-    position: relative;
-    display: flex;
-    align-items: center;
-    background: var(--scroll-pill-bg, #fff);
-    color: var(--scroll-pill-text, #222);
-    border-radius: 32px;
-    box-shadow: 0 2px 8px 0 rgba(90,90,214,0.10);
-    padding: 14px 22px;
-    font-size: 1.5rem;
-    font-family: var(--font-primary), 'Inter', 'Segoe UI', Arial, sans-serif;
-    font-weight: 700;
-    opacity: 0.98;
-    pointer-events: auto;
-    cursor: pointer;
-    border: none;
-    outline: none;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s, opacity 0.3s, transform 0.2s cubic-bezier(.4,0,.2,1);
-    animation: scroll-pill-fadein 1.2s cubic-bezier(.4,0,.2,1) 0.5s both;
-    letter-spacing: 0.04em;
-    overflow: visible;
-}
-.scroll-down-pill::before,
-.scroll-down-pill::after {
-    display: none !important;
-}
-.scroll-down-pill:hover {
-    box-shadow: 0 4px 16px 0 rgba(90,90,214,0.14);
-    opacity: 1;
-}
-@keyframes scroll-pill-fadein {
-    from { opacity: 0; transform: translateY(32px); }
-    to { opacity: 0.98; transform: translateY(0); }
-}
-:root {
-    --scroll-pill-bg: #fff;
-    --scroll-pill-text: #222;
-}
-[data-theme="dark"] {
-    --scroll-pill-bg: #222;
-    --scroll-pill-text: #fff;
-}
-</style>
-<style>
-.scroll-down-pill.morph {
-    transform: scale(1.08) rotate(-3deg);
-    box-shadow: 0 8px 24px 0 rgba(90,90,214,0.18);
-}
-</style>
 </body>
 </html>
