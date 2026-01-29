@@ -1,9 +1,887 @@
+{% block stylesheets %}
+	<style>
+		/* Light theme improvements (copied from Users) */
+		[data-theme="light"] .liquid-glass-table-container {
+			background: rgba(255,255,255,0.85);
+			border: 1.5px solid #e3e8f7;
+			box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+		}
+		[data-theme="light"] .liquid-glass-table {
+			background: rgba(255,255,255,0.98);
+			color: #23272f;
+			box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+		}
+		[data-theme="light"] .liquid-glass-table th {
+			background: #f5f7fa;
+			color: #23272f;
+		}
+		[data-theme="light"] .liquid-glass-table td {
+			background: transparent;
+			color: #23272f;
+		}
+		[data-theme="light"] .forum-btn-add-db {
+			background: linear-gradient(90deg, #00bfae 0%, #00e676 100%);
+			color: #fff;
+			box-shadow: 0 2px 8px rgba(0,230,118,0.08);
+		}
+		[data-theme="light"] .forum-btn-add-db:hover {
+			background: linear-gradient(90deg, #00e676 0%, #00bfae 100%);
+		}
+		[data-theme="light"] .forum-btn-modify {
+			background: linear-gradient(90deg, #0072ff 0%, #00c6ff 100%);
+			color: #fff;
+		}
+		[data-theme="light"] .forum-btn-delete {
+			background: linear-gradient(90deg, #ff2d92 0%, #ff3b30 100%);
+			color: #fff;
+		}
+		[data-theme="light"] .forum-pagination-pills {
+			background: linear-gradient(135deg, #f5f7fa 80%, #e3e8f7 100%);
+			box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+		}
+		[data-theme="light"] .pill-tab {
+			color: #23272f;
+		}
+		[data-theme="light"] .pill-tab.active, [data-theme="light"] .pill-tab:focus {
+			color: #fff;
+			text-shadow: 0 2px 8px rgba(0,123,255,0.10);
+		}
+		[data-theme="light"] .pill-slider {
+			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+			box-shadow: 0 4px 16px rgba(0,123,255,0.10);
+		}
+		[data-theme="light"] .forum-sort-dir-pill {
+			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
+			color: #23272f;
+		}
+		[data-theme="light"] .forum-sort-dir-icon svg polyline {
+			stroke: #0072ff;
+		}
+		[data-theme="light"] .forum-sort-pill {
+			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
+		}
+		[data-theme="light"] .forum-search-pill {
+			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
+		}
+		[data-theme="light"] .forum-search-input {
+			color: #23272f;
+		}
+		[data-theme="light"] .forum-search-icon {
+			color: #0072ff;
+		}
+		[data-theme="light"] .table-pagination-bar {
+			background: transparent;
+		}
+		[data-theme="light"] .forum-table-arrow {
+			background: #fff;
+			color: #0072ff;
+			border: 1px solid #e3e8f7;
+		}
+		[data-theme="light"] .forum-table-arrow svg polyline {
+			stroke: #0072ff;
+		}
+		[data-theme="light"] .forum-table-page-btn {
+			background: #fff;
+			color: #23272f;
+			border: 1px solid #e3e8f7;
+		}
+		[data-theme="light"] .forum-table-page-btn.active, [data-theme="light"] .forum-table-page-btn:hover {
+			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+			color: #fff;
+			border: none;
+		}
+	</style>
+{% endblock %}
 {% extends 'base.html.twig' %}
 
 {% block title %}Forum - Liquid Glass Admin{% endblock %}
 
 {% block content %}
 {% include 'admin/_dashboard_header.html.twig' with { 'title': 'Forum' } %}
+<div class="forum-pagination-wrapper" style="margin-top: 2rem;">
+	<div class="forum-pagination-pills pills-animated">
+		<div class="pill-slider-bar"></div>
+		<div class="pill-slider"></div>
+		<button class="pill-tab active" data-page="1">Page 1</button>
+		<button class="pill-tab" data-page="2">Page 2</button>
+		<button class="pill-tab" data-page="3">Page 3</button>
+		<button class="pill-tab" data-page="4">Page 4</button>
+	</div>
+	<div id="forum-content" class="forum-content" style="margin-top: 1.5rem;">
+		<div class="forum-page-content" data-page="1">
+			<div class="liquid-glass-table-container">
+				<h3 style="margin-bottom:1.5rem;">Demo Forum Table (Page 1)</h3>
+				<div class="forum-table-toolbar" style="display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; width: 100%; justify-content: space-between;">
+					<div style="display: flex; align-items: center;">
+						<button class="forum-btn-add-db" title="Add Forum"><i class="bx bx-plus"></i> Add Forum</button>
+					</div>
+					<div style="display: flex; gap: 0.7rem; align-items: center;">
+						<button class="forum-sort-dir-pill" id="forum-sort-dir-pill" title="Toggle Sort Direction" aria-label="Toggle Sort Direction">
+							<span id="forum-sort-dir-icon-svg"></span>
+						</button>
+						<div class="forum-sort-pill" id="forum-sort-pill-custom" tabindex="0">
+							<span class="forum-sort-selected" id="forum-sort-selected">Sort by Name</span>
+							<span class="forum-sort-arrow"></span>
+							<div class="forum-sort-dropdown" id="forum-sort-dropdown" style="display:none;">
+								<div class="forum-sort-option" data-value="name">Sort by Name</div>
+								<div class="forum-sort-option" data-value="email">Sort by Email</div>
+								<div class="forum-sort-option" data-value="date">Sort by Date</div>
+								<div class="forum-sort-option" data-value="status">Sort by Status</div>
+							</div>
+						</div>
+						<div class="forum-search-pill">
+							<input type="text" class="forum-search-input" placeholder="Search forum..." title="Search forum..." />
+							<i class="bx bx-search forum-search-icon"></i>
+						</div>
+					</div>
+				</div>
+				<div class="liquid-glass-table-scroll">
+					<table class="liquid-glass-table" id="forum-table">
+						<thead>
+							<tr>
+								{% for col in 1..8 %}
+									<th>Col {{ col }}</th>
+								{% endfor %}
+								<th>Modify</th>
+								<th>Delete</th>
+							</tr>
+						</thead>
+						<tbody id="forum-table-body">
+							<!-- Table rows will be rendered by JS -->
+						</tbody>
+					</table>
+				</div>
+				<div class="table-pagination-bar">
+					<button class="forum-table-arrow" id="forum-table-prev" title="Previous Page"><i class="bx bx-chevron-left"></i></button>
+					<div class="forum-table-pages" id="forum-table-pages"></div>
+					<button class="forum-table-arrow" id="forum-table-next" title="Next Page"><i class="bx bx-chevron-right"></i></button>
+				</div>
+			</div>
+			<script>
+				// Demo data: 35 rows, 8 columns
+				const forumDemoTableRows = Array.from({length: 35}, (_, r) =>
+					Array.from({length: 8}, (_, c) => `R${r+1}C${c+1}`)
+				);
+				const forumRowsPerPage = 10;
+				let forumCurrentPage = 1;
+				let forumSortValue = 'name';
+				let forumSortDirection = 'asc';
+				let forumFilteredRows = [...forumDemoTableRows];
+				const forumSearchInput = document.querySelector('.forum-search-input');
+				const forumSortDirBtn = document.getElementById('forum-sort-dir-pill');
+				const forumSortDirIconSvg = document.getElementById('forum-sort-dir-icon-svg');
+				const forumSortPill = document.getElementById('forum-sort-pill-custom');
+				const forumSortDropdown = document.getElementById('forum-sort-dropdown');
+				const forumSortSelected = document.getElementById('forum-sort-selected');
+				function updateForumSortDirIcon() {
+					forumSortDirIconSvg.innerHTML = forumSortDirection === 'asc'
+						? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+						: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+				}
+				function forumFilterAndSortRows() {
+					let rows = [...forumDemoTableRows];
+					const search = forumSearchInput.value.trim().toLowerCase();
+					if (search) {
+						rows = rows.filter(row => row.some(cell => cell.toLowerCase().includes(search)));
+					}
+					if (forumSortValue === 'name') {
+						rows.sort((a, b) => forumSortDirection === 'asc' ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]));
+					} else if (forumSortValue === 'email') {
+						rows.sort((a, b) => forumSortDirection === 'asc' ? a[1].localeCompare(b[1]) : b[1].localeCompare(a[1]));
+					} else if (forumSortValue === 'date') {
+						rows.sort((a, b) => forumSortDirection === 'asc' ? a[2].localeCompare(b[2]) : b[2].localeCompare(a[2]));
+					} else if (forumSortValue === 'status') {
+						rows.sort((a, b) => forumSortDirection === 'asc' ? a[3].localeCompare(b[3]) : b[3].localeCompare(a[3]));
+					}
+					forumFilteredRows = rows;
+					forumCurrentPage = 1;
+					updateForumTablePagination();
+				}
+				function renderForumTablePage(page) {
+					const tbody = document.getElementById('forum-table-body');
+					tbody.innerHTML = '';
+					const start = (page-1)*forumRowsPerPage;
+					const end = Math.min(start+forumRowsPerPage, forumFilteredRows.length);
+					for (let r = start; r < end; r++) {
+						const row = document.createElement('tr');
+						for (let c = 0; c < 8; c++) {
+							const td = document.createElement('td');
+							td.textContent = forumFilteredRows[r][c];
+							row.appendChild(td);
+						}
+						// Modify button
+						const tdModify = document.createElement('td');
+						tdModify.innerHTML = '<button class="forum-btn-modify" title="Modify"><i class="bx bx-edit"></i> Modify</button>';
+						row.appendChild(tdModify);
+						// Delete button
+						const tdDelete = document.createElement('td');
+						tdDelete.innerHTML = '<button class="forum-btn-delete" title="Delete"><i class="bx bx-trash"></i> Delete</button>';
+						row.appendChild(tdDelete);
+						tbody.appendChild(row);
+					}
+				}
+				function renderForumTablePagination() {
+					const totalPages = Math.ceil(forumFilteredRows.length / forumRowsPerPage);
+					const pagesDiv = document.getElementById('forum-table-pages');
+					pagesDiv.innerHTML = '';
+					for (let i = 1; i <= totalPages; i++) {
+						const btn = document.createElement('button');
+						btn.className = 'forum-table-page-btn' + (i === forumCurrentPage ? ' active' : '');
+						btn.textContent = i;
+						btn.onclick = () => { forumCurrentPage = i; updateForumTablePagination(); };
+						pagesDiv.appendChild(btn);
+					}
+					document.getElementById('forum-table-prev').disabled = forumCurrentPage === 1;
+					document.getElementById('forum-table-next').disabled = forumCurrentPage === totalPages;
+				}
+				function updateForumTablePagination() {
+					renderForumTablePage(forumCurrentPage);
+					renderForumTablePagination();
+				}
+				document.addEventListener('DOMContentLoaded', function() {
+					updateForumSortDirIcon();
+					updateForumTablePagination();
+					forumSearchInput.addEventListener('input', forumFilterAndSortRows);
+					forumSortDirBtn.addEventListener('click', function() {
+						forumSortDirection = (forumSortDirection === 'asc') ? 'desc' : 'asc';
+						updateForumSortDirIcon();
+						forumFilterAndSortRows();
+					});
+					// Users-style pagination arrow logic
+					document.getElementById('forum-table-prev').onclick = function() {
+						if (forumCurrentPage > 1) { forumCurrentPage--; updateForumTablePagination(); }
+					};
+					document.getElementById('forum-table-next').onclick = function() {
+						const totalPages = Math.ceil(forumFilteredRows.length / forumRowsPerPage);
+						if (forumCurrentPage < totalPages) { forumCurrentPage++; updateForumTablePagination(); }
+					};
+					forumSortPill.addEventListener('click', function(e) {
+						e.stopPropagation();
+						if (forumSortDropdown.style.display === 'flex') {
+							forumSortDropdown.style.display = 'none';
+							forumSortPill.classList.remove('open');
+						} else {
+							forumSortDropdown.style.display = 'flex';
+							forumSortPill.classList.add('open');
+						}
+					});
+					document.querySelectorAll('.forum-sort-option').forEach(opt => {
+						opt.addEventListener('click', function(e) {
+							forumSortValue = this.getAttribute('data-value');
+							forumSortSelected.textContent = this.textContent;
+							document.querySelectorAll('.forum-sort-option').forEach(o => o.classList.remove('active'));
+							this.classList.add('active');
+							forumSortDropdown.style.display = 'none';
+							forumSortPill.classList.remove('open');
+							forumFilterAndSortRows();
+						});
+					});
+					document.addEventListener('click', function(e) {
+						if (!forumSortPill.contains(e.target)) {
+							forumSortDropdown.style.display = 'none';
+							forumSortPill.classList.remove('open');
+						}
+					});
+				});
+			</script>
+			</style>
+			<style>
+				/* --- Users-style pill, search, sort, dropdown, and toolbar styles, namespaced for forum --- */
+				.forum-table-toolbar { width: 100%; }
+				.forum-search-pill {
+					display: flex;
+					align-items: center;
+					background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
+					border-radius: 999px;
+					padding: 0.3rem 1.1rem 0.3rem 1.1rem;
+					box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+					position: relative;
+				}
+				.forum-search-input {
+					background: transparent;
+					border: none;
+					color: #fff;
+					font-size: 1rem;
+					outline: none;
+					width: 160px;
+					padding: 0.2rem 0.5rem 0.2rem 0;
+				}
+				.forum-search-icon {
+					color: #bfc9d8;
+					font-size: 1.2rem;
+					margin-left: 0.3rem;
+				}
+				/* --- Arrow up/down pill (sort direction) styles from Users --- */
+				[data-theme="light"] .forum-sort-dir-pill {
+					background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
+					color: #23272f;
+				}
+				[data-theme="light"] .forum-sort-dir-icon svg polyline {
+					stroke: #0072ff;
+				}
+				.forum-sort-dir-pill {
+					background: linear-gradient(90deg, #2a2e39 0%, #23272f 100%);
+					border: none;
+					border-radius: 999px;
+					padding: 0.3rem 0.7rem;
+					box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					cursor: pointer;
+					transition: background 0.18s, color 0.18s;
+					outline: none;
+					font-size: 1.1rem;
+					color: #fff;
+				}
+				.forum-sort-dir-pill:active, .forum-sort-dir-pill:focus {
+					background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
+				}
+				.forum-sort-dir-icon {
+					font-size: 1.2rem;
+					color: #bfc9d8;
+				}
+				.forum-sort-pill {
+					position: relative;
+					z-index: 20;
+					background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+					border-radius: 999px;
+					padding: 0.3rem 1.1rem;
+					box-shadow: 0 2px 8px rgba(0,123,255,0.10);
+					display: flex;
+					align-items: center;
+					min-width: 160px;
+					cursor: pointer;
+					user-select: none;
+					color: #fff;
+					transition: background 0.18s, color 0.18s;
+					overflow: visible;
+				}
+				[data-theme="light"] .forum-sort-pill {
+					background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+					color: #fff !important;
+					box-shadow: 0 2px 8px rgba(0,123,255,0.08);
+				}
+				.forum-sort-selected {
+					flex: 1;
+					font-size: 1rem;
+					font-weight: 600;
+					padding-right: 1.2rem;
+				}
+				.forum-sort-arrow {
+					display: inline-block;
+					width: 1.1em;
+					height: 1.1em;
+					background: url('data:image/svg+xml;utf8,<svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>') no-repeat center/contain;
+					margin-left: -1.1em;
+					pointer-events: none;
+				}
+				.forum-sort-pill::after { display: none !important; }
+				.forum-sort-dropdown {
+					position: absolute;
+					left: 0;
+					top: 110%;
+					min-width: 100%;
+					background: rgba(30, 60, 120, 0.85);
+					border-radius: 1.2em;
+					box-shadow: 0 8px 32px rgba(0,198,255,0.18);
+					backdrop-filter: blur(16px) saturate(160%);
+					-webkit-backdrop-filter: blur(16px) saturate(160%);
+					z-index: 10;
+					padding: 0.3em 0;
+					display: flex;
+					flex-direction: column;
+					gap: 0.1em;
+					animation: forum-sort-dropdown-fade 0.18s cubic-bezier(.4,1.4,.6,1) both;
+				}
+				@keyframes forum-sort-dropdown-fade {
+					0% { opacity: 0; transform: translateY(-10px) scale(0.98); }
+					100% { opacity: 1; transform: translateY(0) scale(1); }
+				}
+				.forum-sort-option {
+					padding: 0.7em 1.5em;
+					border-radius: 1em;
+					color: #fff;
+					font-size: 1rem;
+					cursor: pointer;
+					transition: background 0.13s, color 0.13s;
+				}
+				.forum-sort-option:hover, .forum-sort-option.active {
+					background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+					color: #fff;
+				}
+				[data-theme="light"] .forum-sort-dropdown {
+					background: rgba(255,255,255,0.95);
+					box-shadow: 0 8px 32px rgba(0,198,255,0.13);
+				}
+				[data-theme="light"] .forum-sort-option {
+					color: #0072ff;
+				}
+				[data-theme="light"] .forum-sort-option:hover, [data-theme="light"] .forum-sort-option.active {
+					background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+					color: #fff;
+				}
+				/* --- End Users-style pill, search, sort, dropdown, and toolbar styles --- */
+				/* --- Original Forum table and pill CSS restored below --- */
+				.table-pagination-bar {
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					gap: 1.2rem;
+					margin: 1.5rem 0 0.5rem 0;
+				}
+				.forum-table-arrow {
+					background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
+					color: #fff;
+					border: none;
+					border-radius: 50%;
+					width: 2.5rem;
+					height: 2.5rem;
+					font-size: 1.5rem;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+					cursor: pointer;
+					transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+					outline: none;
+				}
+				.forum-table-arrow:disabled {
+					opacity: 0.4;
+					cursor: not-allowed;
+				}
+				.forum-table-pages {
+					display: flex;
+					gap: 0.5rem;
+				}
+				.forum-table-page-btn {
+					background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
+					color: #fff;
+					border: none;
+					border-radius: 999px;
+					padding: 0.5rem 1.1rem;
+					font-size: 1rem;
+					font-weight: 600;
+					cursor: pointer;
+					transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+					outline: none;
+					box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+				}
+				.forum-table-page-btn.active, .forum-table-page-btn:hover {
+					background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+					color: #fff;
+					box-shadow: 0 4px 16px rgba(0,123,255,0.10);
+				}
+				.forum-btn-add-db {
+					border: none;
+					border-radius: 999px;
+					padding: 0.5rem 1.5rem;
+					font-size: 1.1rem;
+					font-weight: 700;
+					cursor: pointer;
+					transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+					outline: none;
+					margin: 0 auto;
+					display: inline-flex;
+					align-items: center;
+					gap: 0.6rem;
+					justify-content: center;
+					background: linear-gradient(90deg, #00e676 0%, #00bfae 100%);
+					color: #fff;
+					box-shadow: 0 2px 8px rgba(0,230,118,0.10);
+				}
+				.forum-btn-add-db:hover {
+					background: linear-gradient(90deg, #00bfae 0%, #00e676 100%);
+					color: #fff;
+				}
+				.liquid-glass-table-container {
+					background: rgba(30, 34, 44, 0.7);
+					border-radius: 24px;
+					box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+					backdrop-filter: blur(18px) saturate(180%);
+					padding: 2.5rem 3rem 2rem 3rem;
+					margin: 0 auto 2rem auto;
+					max-width: 1600px;
+					border: 1.5px solid rgba(255,255,255,0.08);
+					position: relative;
+				}
+				.liquid-glass-table-scroll {
+					overflow-x: auto;
+				}
+				.liquid-glass-table {
+					min-width: 1400px;
+					width: 100%;
+					border-collapse: separate;
+					border-spacing: 0;
+					background: rgba(255,255,255,0.04);
+					border-radius: 18px;
+					overflow: hidden;
+					box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+					font-size: 1rem;
+					color: #e3e8f7;
+				}
+				.liquid-glass-table th, .liquid-glass-table td {
+					padding: 0.75rem 1.1rem;
+					text-align: center;
+					border-bottom: 1px solid rgba(255,255,255,0.08);
+					backdrop-filter: blur(8px);
+					vertical-align: middle;
+					word-break: break-word;
+					white-space: normal;
+					max-width: 180px;
+				}
+				.liquid-glass-table td {
+					display: table-cell;
+					text-align: center;
+					vertical-align: middle;
+				}
+				.liquid-glass-table th {
+					background: rgba(255,255,255,0.10);
+					font-weight: 700;
+					letter-spacing: 0.03em;
+					color: #fff;
+					border-top: none;
+					text-align: center;
+					vertical-align: middle;
+				}
+				.liquid-glass-table tr:last-child td {
+					border-bottom: none;
+				}
+				.forum-btn-modify, .forum-btn-delete {
+					border: none;
+					border-radius: 999px;
+					padding: 0.4rem 1.1rem;
+					font-size: 1rem;
+					font-weight: 600;
+					cursor: pointer;
+					transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+					outline: none;
+					margin: 0 auto;
+					display: inline-flex;
+					align-items: center;
+					gap: 0.5rem;
+					justify-content: center;
+				}
+				.forum-btn-modify {
+					background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+					color: #fff;
+					box-shadow: 0 2px 8px rgba(0,123,255,0.10);
+				}
+				.forum-btn-modify:hover {
+					background: linear-gradient(90deg, #0072ff 0%, #00c6ff 100%);
+					color: #fff;
+				}
+				.forum-btn-delete {
+					background: linear-gradient(90deg, #ff3b30 0%, #ff2d92 100%);
+					color: #fff;
+					box-shadow: 0 2px 8px rgba(255,59,48,0.10);
+				}
+				.forum-btn-delete:hover {
+					background: linear-gradient(90deg, #ff2d92 0%, #ff3b30 100%);
+					color: #fff;
+				}
+				.liquid-glass-table i.bx {
+					font-size: 1.1em;
+					vertical-align: middle;
+				}
+			</style>
+			</style>
+		</div>
+		<div class="forum-page-content" data-page="2" style="display:none;">
+			<div class="forum-list-demo">
+				<h3 style="margin-bottom:1rem;">Demo Forums (Page 2)</h3>
+				<ul style="list-style:none;padding:0;">
+					<li style="padding:0.5rem 0;border-bottom:1px solid #eee;">Forum Topic 1</li>
+					<li style="padding:0.5rem 0;border-bottom:1px solid #eee;">Forum Topic 2</li>
+					<li style="padding:0.5rem 0;">Forum Topic 3</li>
+				</ul>
+			</div>
+		</div>
+		<div class="forum-page-content" data-page="3" style="display:none;">
+			<div class="forum-list-demo">
+				<h3 style="margin-bottom:1rem;">Demo Forums (Page 3)</h3>
+				<ul style="list-style:none;padding:0;">
+					<li style="padding:0.5rem 0;border-bottom:1px solid #eee;">Forum Topic 4</li>
+					<li style="padding:0.5rem 0;">Forum Topic 5</li>
+				</ul>
+			</div>
+		</div>
+		<div class="forum-page-content" data-page="4" style="display:none;">
+			<div class="forum-list-demo">
+				<h3 style="margin-bottom:1rem;">Demo Forums (Page 4)</h3>
+				<ul style="list-style:none;padding:0;">
+					<li style="padding:0.5rem 0;">Forum Topic 6</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+<style>
+	.forum-pagination-pills {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		position: relative;
+		margin: 0 auto;
+		padding: 0.25rem 0.5rem;
+		background: linear-gradient(135deg, #23272f 80%, #2a2e39 100%);
+		border-radius: 999px;
+		min-width: 340px;
+		box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+		width: fit-content;
+	}
+	.pill-slider-bar {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		border-radius: 999px;
+		background: transparent;
+		z-index: 0;
+		pointer-events: none;
+	}
+	.pill-slider {
+		position: absolute;
+		left: 0;
+		top: 50%;
+		transform: translateY(-50%);
+		height: 40px;
+		width: 0;
+		background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+		border-radius: 999px;
+		z-index: 2;
+		transition: left 0.35s cubic-bezier(0.4,0,0.2,1), width 0.35s cubic-bezier(0.4,0,0.2,1);
+		box-shadow: 0 4px 16px rgba(0,123,255,0.15);
+		pointer-events: none;
+		opacity: 1;
+	}
+	.pill-tab {
+		background: transparent;
+		color: #bfc9d8;
+		border: none;
+		border-radius: 999px;
+		padding: 0.5rem 1.5rem;
+		font-size: 1rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: color 0.2s, box-shadow 0.2s;
+		box-shadow: none;
+		outline: none;
+		position: relative;
+		z-index: 3;
+	}
+	.pill-tab.active, .pill-tab:focus {
+		color: #fff;
+		text-shadow: 0 2px 8px rgba(0,123,255,0.10);
+		z-index: 3;
+	}
+</style>
+<script>
+	// --- Users-style sort direction, dropdown, search, and pill slider logic, namespaced for forum ---
+	document.addEventListener('DOMContentLoaded', function() {
+	// --- Users-style dropdown and sort pill logic for Forum ---
+	const sortPill = document.getElementById('forum-sort-pill-custom');
+	const sortDropdown = document.getElementById('forum-sort-dropdown');
+	const sortSelected = document.getElementById('forum-sort-selected');
+	let sortValue = 'name';
+	function closeSortDropdown() {
+		if (sortDropdown) {
+			sortDropdown.style.display = 'none';
+			sortPill && sortPill.classList.remove('open');
+		}
+	}
+	function openSortDropdown() {
+		if (sortDropdown) {
+			sortDropdown.style.display = 'flex';
+			sortPill && sortPill.classList.add('open');
+		}
+	}
+	if (sortPill && sortDropdown) {
+		sortPill.addEventListener('click', function(e) {
+			e.stopPropagation();
+			if (sortDropdown.style.display === 'flex') {
+				closeSortDropdown();
+			} else {
+				openSortDropdown();
+			}
+		});
+		document.querySelectorAll('.forum-sort-option').forEach(opt => {
+			opt.addEventListener('click', function(e) {
+				sortValue = this.getAttribute('data-value');
+				sortSelected.textContent = this.textContent;
+				document.querySelectorAll('.forum-sort-option').forEach(o => o.classList.remove('active'));
+				this.classList.add('active');
+				closeSortDropdown();
+				forumSortValue = sortValue;
+				forumFilterAndSortRows();
+			});
+		});
+		document.addEventListener('click', function(e) {
+			if (!sortPill.contains(e.target)) closeSortDropdown();
+		});
+		sortPill.addEventListener('keydown', function(e) {
+			if (e.key === 'Escape') closeSortDropdown();
+			if (e.key === 'ArrowDown') {
+				openSortDropdown();
+				const first = sortDropdown.querySelector('.forum-sort-option');
+				if (first) first.focus();
+			}
+		});
+	}
+		// Pills logic
+		function showForumPage(page) {
+			document.querySelectorAll('.forum-page-content').forEach(div => {
+				div.style.display = (div.dataset.page == page) ? '' : 'none';
+			});
+		}
+		function updatePillSlider() {
+			const pills = document.querySelectorAll('.pill-tab');
+			const slider = document.querySelector('.pill-slider');
+			const active = document.querySelector('.pill-tab.active');
+			if (!active || !slider) return;
+			slider.style.left = (active.offsetLeft) + 'px';
+			slider.style.width = active.offsetWidth + 'px';
+		}
+		document.querySelectorAll('.pill-tab').forEach(btn => {
+			btn.addEventListener('click', function() {
+				document.querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+				this.classList.add('active');
+				updatePillSlider();
+				showForumPage(this.dataset.page);
+			});
+		});
+		showForumPage(1);
+		setTimeout(updatePillSlider, 100);
+		window.addEventListener('resize', updatePillSlider);
+
+		// Sort direction toggle logic
+		let forumSortDirection = 'asc';
+		const forumSortDirBtn = document.getElementById('forum-sort-dir-pill');
+		const forumSortDirIconSvg = document.getElementById('forum-sort-dir-icon-svg');
+		function updateForumSortDirIcon() {
+			forumSortDirIconSvg.innerHTML = forumSortDirection === 'asc'
+				? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+				: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+		}
+		updateForumSortDirIcon();
+		forumSortDirBtn.addEventListener('click', function() {
+			forumSortDirection = (forumSortDirection === 'asc') ? 'desc' : 'asc';
+			updateForumSortDirIcon();
+			forumFilterAndSortRows();
+		});
+
+		// Custom dropdown logic for sorting pill
+		const forumSortPill = document.getElementById('forum-sort-pill-custom');
+		const forumSortDropdown = document.getElementById('forum-sort-dropdown');
+		const forumSortSelected = document.getElementById('forum-sort-selected');
+		let forumSortValue = 'name';
+		function closeForumSortDropdown() {
+			forumSortDropdown.style.display = 'none';
+			forumSortPill.classList.remove('open');
+		}
+		function openForumSortDropdown() {
+			forumSortDropdown.style.display = 'flex';
+			forumSortPill.classList.add('open');
+		}
+		forumSortPill.addEventListener('click', function(e) {
+			e.stopPropagation();
+			if (forumSortDropdown.style.display === 'flex') {
+				closeForumSortDropdown();
+			} else {
+				openForumSortDropdown();
+			}
+		});
+		document.querySelectorAll('.forum-sort-option').forEach(opt => {
+			opt.addEventListener('click', function(e) {
+				forumSortValue = this.getAttribute('data-value');
+				forumSortSelected.textContent = this.textContent;
+				document.querySelectorAll('.forum-sort-option').forEach(o => o.classList.remove('active'));
+				this.classList.add('active');
+				closeForumSortDropdown();
+				forumFilterAndSortRows();
+			});
+		});
+		document.addEventListener('click', function(e) {
+			if (!forumSortPill.contains(e.target)) closeForumSortDropdown();
+		});
+		forumSortPill.addEventListener('keydown', function(e) {
+			if (e.key === 'Escape') closeForumSortDropdown();
+			if (e.key === 'ArrowDown') {
+				openForumSortDropdown();
+				const first = forumSortDropdown.querySelector('.forum-sort-option');
+				if (first) first.focus();
+			}
+		});
+
+		// Search and sort logic
+		const forumSearchInput = document.querySelector('.forum-search-input');
+		let forumFilteredRows = [...forumDemoTableRows];
+		function forumFilterAndSortRows() {
+			let rows = [...forumDemoTableRows];
+			const search = forumSearchInput.value.trim().toLowerCase();
+			if (search) {
+				rows = rows.filter(row => row.some(cell => cell.toLowerCase().includes(search)));
+			}
+			if (forumSortValue === 'name') {
+				rows.sort((a, b) => forumSortDirection === 'asc' ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]));
+			} else if (forumSortValue === 'email') {
+				rows.sort((a, b) => forumSortDirection === 'asc' ? a[1].localeCompare(b[1]) : b[1].localeCompare(a[1]));
+			} else if (forumSortValue === 'date') {
+				rows.sort((a, b) => forumSortDirection === 'asc' ? a[2].localeCompare(b[2]) : b[2].localeCompare(a[2]));
+			} else if (forumSortValue === 'status') {
+				rows.sort((a, b) => forumSortDirection === 'asc' ? a[3].localeCompare(b[3]) : b[3].localeCompare(a[3]));
+			}
+			forumFilteredRows = rows;
+			forumCurrentPage = 1;
+			updateForumTablePagination();
+		}
+		forumSearchInput.addEventListener('input', forumFilterAndSortRows);
+		// Patch renderForumTablePage to use forumFilteredRows
+		const origRenderForumTablePage = renderForumTablePage;
+		renderForumTablePage = function(page) {
+			const tbody = document.getElementById('forum-table-body');
+			tbody.innerHTML = '';
+			const start = (page-1)*forumRowsPerPage;
+			const end = Math.min(start+forumRowsPerPage, forumFilteredRows.length);
+			for (let r = start; r < end; r++) {
+				const row = document.createElement('tr');
+				for (let c = 0; c < 8; c++) {
+					const td = document.createElement('td');
+					td.textContent = forumFilteredRows[r][c];
+					row.appendChild(td);
+				}
+				// Modify button
+				const tdModify = document.createElement('td');
+				tdModify.innerHTML = '<button class="forum-btn-modify" title="Modify"><i class="bx bx-edit"></i> Modify</button>';
+				row.appendChild(tdModify);
+				// Delete button
+				const tdDelete = document.createElement('td');
+				tdDelete.innerHTML = '<button class="forum-btn-delete" title="Delete"><i class="bx bx-trash"></i> Delete</button>';
+				row.appendChild(tdDelete);
+				tbody.appendChild(row);
+			}
+		};
+		// Patch renderForumTablePagination to use forumFilteredRows
+		const origRenderForumTablePagination = renderForumTablePagination;
+		renderForumTablePagination = function() {
+			const totalPages = Math.ceil(forumFilteredRows.length / forumRowsPerPage);
+			const pagesDiv = document.getElementById('forum-table-pages');
+			pagesDiv.innerHTML = '';
+			for (let i = 1; i <= totalPages; i++) {
+				const btn = document.createElement('button');
+				btn.className = 'forum-table-page-btn' + (i === forumCurrentPage ? ' active' : '');
+				btn.textContent = i;
+				btn.onclick = () => { forumCurrentPage = i; updateForumTablePagination(); };
+				pagesDiv.appendChild(btn);
+			}
+			document.getElementById('forum-table-prev').disabled = forumCurrentPage === 1;
+			document.getElementById('forum-table-next').disabled = forumCurrentPage === totalPages;
+		};
+		// Initial filter and sort
+		forumFilterAndSortRows();
+	});
+</script>
 {% endblock %}
 
 {% block javascripts %}
