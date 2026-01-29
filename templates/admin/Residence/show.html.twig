@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+{% block title %}Residence{% endblock %}
+
+{% block body %}
+    <h1>Residence</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ residence.id }}</td>
+            </tr>
+            <tr>
+                <th>Nom_r</th>
+                <td>{{ residence.nomR }}</td>
+            </tr>
+            <tr>
+                <th>Adresse</th>
+                <td>{{ residence.adresse }}</td>
+            </tr>
+            <tr>
+                <th>Image_r</th>
+                <td>{{ residence.imageR }}</td>
+            </tr>
+            <tr>
+                <th>Date_ajout</th>
+                <td>{{ residence.dateAjout ? residence.dateAjout|date('Y-m-d') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('admin_residence') }}">back to list</a>
+
+    <a href="{{ path('admin_residence_edit', {'id': residence.id}) }}">edit</a>
+
+    {{ include('admin/Residence/_delete_form.html.twig') }}
+{% endblock %}

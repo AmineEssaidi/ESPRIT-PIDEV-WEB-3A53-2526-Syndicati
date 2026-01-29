@@ -1,11 +1,48 @@
 {% extends 'base.html.twig' %}
 
+
 {% block title %}Residence - Liquid Glass Admin{% endblock %}
 
 {% block content %}
-{% include 'admin/_dashboard_header.html.twig' with { 'title': 'Residence' } %}
-{% endblock %}
 
+<h1>Residence index</h1>
+    <div class="container">
+    <table class="table table-striped table-dark">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nom_r</th>
+                <th>Adresse</th>
+                <th>Image_r</th>
+                <th>Date_ajout</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for residence in residences %}
+            <tr>
+                <td>{{ residence.id }}</td>
+                <td>{{ residence.nomR }}</td>
+                <td>{{ residence.adresse }}</td>
+                <td>{{ residence.imageR }}</td>
+                <td>{{ residence.dateAjout ? residence.dateAjout|date('Y-m-d') : '' }}</td>
+                <td>
+                    <a href="{{ path('admin_residence_show', {'id': residence.id}) }}">show</a>
+                    <a href="{{ path('admin_residence_edit', {'id': residence.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+    <a href="{{ path('admin_residence_new') }}">Create new</a>
+
+</div>
+{% endblock %}
 {% block javascripts %}
 	{{ parent() }}
 {% endblock %}
