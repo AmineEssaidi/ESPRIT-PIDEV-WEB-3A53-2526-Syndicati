@@ -1,14 +1,50 @@
 {% extends 'base_symfony.html.twig' %}
-{% block title %}Residence{% endblock %}
+
+{% block title %}Residence index{% endblock %}
+
 {% block body %}
 <div class="main-home-layout-wrapper">
     <div class="main-home-page">
         {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'services'} %}
         <div class="main-home-content-box">
             <h1 class="main-home-content-title">Residence</h1>
-            <!-- Residence content goes here -->
-        </div>
-        {% include 'frontend/shared/_main_footer.html.twig' %}
+
+            <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nom_r</th>
+                <th>Adresse</th>
+                <th>Image_r</th>
+                <th>Date_ajout</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for residence in residences %}
+            <tr>
+                <td>{{ residence.id }}</td>
+                <td>{{ residence.nomR }}</td>
+                <td>{{ residence.adresse }}</td>
+                <td>{{ residence.imageR }}</td>
+                <td>{{ residence.dateAjout ? residence.dateAjout|date('Y-m-d') : '' }}</td>
+                <td>
+                    <a href="{{ path('frontend_residence_show', {'id': residence.id}) }}">show</a>
+                    <a href="{{ path('frontend_residence_edit', {'id': residence.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('frontend_residence_new') }}">Create new</a>
+
     </div>
+            {% include 'frontend/shared/_main_footer.html.twig' %}
+</div>
 </div>
 {% endblock %}
