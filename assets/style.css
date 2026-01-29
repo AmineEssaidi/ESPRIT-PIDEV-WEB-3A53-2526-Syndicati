@@ -1,3 +1,160 @@
+/* ===================== Admin Modular Pills, Search, Sort, Arrow Styles ===================== */
+/* Shared pill, search, dropdown, and arrow styles for all admin sections */
+.users-sort-pill, .forum-sort-pill, .residence-sort-pill, .syndicat-sort-pill, .evenement-sort-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255,255,255,0.18);
+  border-radius: 999px;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10), 0 1.5px 4px 0 rgba(0,198,255,0.10);
+  border: 1.5px solid rgba(0,198,255,0.18);
+  padding: 0 18px 0 14px;
+  height: 38px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-primary);
+  cursor: pointer;
+  position: relative;
+  margin-right: 0.5rem;
+  transition: box-shadow 0.18s, border 0.18s, background 0.18s;
+  user-select: none;
+}
+.users-sort-pill.open, .forum-sort-pill.open, .residence-sort-pill.open, .syndicat-sort-pill.open, .evenement-sort-pill.open {
+  background: rgba(0,198,255,0.10);
+  border-color: rgba(0,198,255,0.32);
+  box-shadow: 0 6px 32px 0 rgba(0,198,255,0.10);
+}
+.users-sort-arrow, .forum-sort-arrow, .residence-sort-arrow, .syndicat-sort-arrow, .evenement-sort-arrow {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  transition: transform 0.18s;
+}
+.users-sort-pill.open .users-sort-arrow,
+.forum-sort-pill.open .forum-sort-arrow,
+.residence-sort-pill.open .residence-sort-arrow,
+.syndicat-sort-pill.open .syndicat-sort-arrow,
+.evenement-sort-pill.open .evenement-sort-arrow {
+  transform: rotate(180deg);
+}
+.users-sort-dropdown, .forum-sort-dropdown, .residence-sort-dropdown, .syndicat-sort-dropdown, .evenement-sort-dropdown {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  min-width: 170px;
+  background: rgba(255,255,255,0.95);
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(0,198,255,0.10);
+  border: 1.5px solid rgba(0,198,255,0.18);
+  z-index: 10;
+  flex-direction: column;
+  padding: 6px 0;
+  gap: 2px;
+  font-size: 15px;
+  color: var(--color-primary);
+  animation: fadeInDropdown 0.18s;
+}
+@keyframes fadeInDropdown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.users-sort-option, .forum-sort-option, .residence-sort-option, .syndicat-sort-option, .evenement-sort-option {
+  padding: 8px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s;
+}
+.users-sort-option.active, .forum-sort-option.active, .residence-sort-option.active, .syndicat-sort-option.active, .evenement-sort-option.active,
+.users-sort-option:hover, .forum-sort-option:hover, .residence-sort-option:hover, .syndicat-sort-option:hover, .evenement-sort-option:hover {
+  background: rgba(0,198,255,0.13);
+  color: #0099cc;
+}
+.users-sort-selected, .forum-sort-selected, .residence-sort-selected, .syndicat-sort-selected, .evenement-sort-selected {
+  font-weight: 600;
+}
+
+/* Sort direction pill (arrow up/down) */
+.users-sort-dir-pill, .forum-sort-dir-pill, .residence-sort-dir-pill, .syndicat-sort-dir-pill, .evenement-sort-dir-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: rgba(0,198,255,0.10);
+  border: 1.5px solid rgba(0,198,255,0.18);
+  box-shadow: 0 2px 8px 0 rgba(0,198,255,0.08);
+  cursor: pointer;
+  margin-right: 0.5rem;
+  transition: box-shadow 0.18s, border 0.18s, background 0.18s;
+}
+.users-sort-dir-pill:hover, .forum-sort-dir-pill:hover, .residence-sort-dir-pill:hover, .syndicat-sort-dir-pill:hover, .evenement-sort-dir-pill:hover {
+  background: rgba(0,198,255,0.18);
+  border-color: rgba(0,198,255,0.32);
+}
+
+/* Search pill */
+.users-search-pill, .forum-search-pill, .residence-search-pill, .syndicat-search-pill, .evenement-search-pill {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.18);
+  border-radius: 999px;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10), 0 1.5px 4px 0 rgba(0,198,255,0.10);
+  border: 1.5px solid rgba(0,198,255,0.18);
+  padding: 0 16px;
+  height: 38px;
+  font-size: 15px;
+  color: var(--color-primary);
+  margin-right: 0.5rem;
+  transition: box-shadow 0.18s, border 0.18s, background 0.18s;
+}
+.users-search-input, .forum-search-input, .residence-search-input, .syndicat-search-input, .evenement-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 15px;
+  color: var(--color-primary);
+  width: 140px;
+  padding: 0 6px;
+  font-weight: 500;
+}
+.users-search-input::placeholder, .forum-search-input::placeholder, .residence-search-input::placeholder, .syndicat-search-input::placeholder, .evenement-search-input::placeholder {
+  color: #b2eaff;
+  opacity: 1;
+}
+.users-search-icon, .forum-search-icon, .residence-search-icon, .syndicat-search-icon, .evenement-search-icon {
+  font-size: 18px;
+  color: #00c6ff;
+  margin-left: 6px;
+}
+
+/* Toolbar container for pills */
+.users-table-toolbar, .forum-table-toolbar, .residence-table-toolbar, .syndicat-table-toolbar, .evenement-table-toolbar {
+  background: rgba(255,255,255,0.22);
+  border-radius: 18px;
+  box-shadow: 0 2px 12px 0 rgba(0,198,255,0.08);
+  padding: 10px 18px;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  width: 100%;
+  justify-content: space-between;
+}
+
+@media (max-width: 600px) {
+  .users-table-toolbar, .forum-table-toolbar, .residence-table-toolbar, .syndicat-table-toolbar, .evenement-table-toolbar {
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 10px 8px;
+  }
+  .users-sort-pill, .forum-sort-pill, .residence-sort-pill, .syndicat-sort-pill, .evenement-sort-pill,
+  .users-search-pill, .forum-search-pill, .residence-search-pill, .syndicat-search-pill, .evenement-search-pill {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+/* ===================== End Admin Modular Pills, Search, Sort, Arrow Styles ===================== */
 :root {
   /* Primitive Color Tokens */
   --color-white: rgba(255, 255, 255, 1);

@@ -1,11 +1,749 @@
+{% block stylesheets %}
+	<style>
+		/* Light theme improvements for search, sort, arrow pills (from Users) */
+		[data-theme="light"] .residence-sort-dir-pill {
+			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
+			color: #23272f;
+		}
+		[data-theme="light"] .residence-sort-dir-icon svg polyline {
+			stroke: #0072ff;
+		}
+		[data-theme="light"] .residence-sort-pill {
+			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
+			color: #fff !important;
+			box-shadow: 0 2px 8px rgba(0,123,255,0.08);
+		}
+		[data-theme="light"] .residence-search-pill {
+			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
+		}
+		[data-theme="light"] .residence-search-input {
+			color: #23272f;
+		}
+		[data-theme="light"] .residence-search-icon {
+			color: #0072ff;
+		}
+		/* --- Forum-style pill, search, sort, dropdown, and arrow pill styles, namespaced for residence --- */
+		.residence-table-toolbar { width: 100%; }
+		.residence-search-pill {
+			display: flex;
+			align-items: center;
+			background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
+			border-radius: 999px;
+			padding: 0.3rem 1.1rem 0.3rem 1.1rem;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+			position: relative;
+		}
+		.residence-search-input {
+			background: transparent;
+			border: none;
+			color: #fff;
+			font-size: 1rem;
+			outline: none;
+			width: 160px;
+			padding: 0.2rem 0.5rem 0.2rem 0;
+		}
+		.residence-search-icon {
+			color: #bfc9d8;
+			font-size: 1.2rem;
+			margin-left: 0.3rem;
+		}
+		[data-theme="light"] .residence-sort-dir-pill {
+			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
+			color: #23272f;
+		}
+		[data-theme="light"] .residence-sort-dir-icon svg polyline {
+			stroke: #0072ff;
+		}
+		.residence-sort-dir-pill {
+			background: linear-gradient(90deg, #2a2e39 0%, #23272f 100%);
+			border: none;
+			border-radius: 999px;
+			padding: 0.3rem 0.7rem;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			transition: background 0.18s, color 0.18s;
+			outline: none;
+			font-size: 1.1rem;
+			color: #fff;
+		}
+		.residence-sort-dir-pill:active, .residence-sort-dir-pill:focus {
+			background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
+		}
+		.residence-sort-dir-icon {
+			font-size: 1.2rem;
+			color: #bfc9d8;
+		}
+		.residence-sort-pill {
+			position: relative;
+			z-index: 20;
+			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+			border-radius: 999px;
+			padding: 0.3rem 1.1rem;
+			box-shadow: 0 2px 8px rgba(0,123,255,0.10);
+			display: flex;
+			align-items: center;
+			min-width: 160px;
+			cursor: pointer;
+			user-select: none;
+			color: #fff;
+			transition: background 0.18s, color 0.18s;
+			overflow: visible;
+		}
+		[data-theme="light"] .residence-sort-pill {
+			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+			color: #fff !important;
+			box-shadow: 0 2px 8px rgba(0,123,255,0.08);
+		}
+		.residence-sort-selected {
+			flex: 1;
+			font-size: 1rem;
+			font-weight: 600;
+			padding-right: 1.2rem;
+		}
+		.residence-sort-arrow {
+			display: inline-block;
+			width: 1.1em;
+			height: 1.1em;
+			background: url('data:image/svg+xml;utf8,<svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>') no-repeat center/contain;
+			margin-left: -1.1em;
+			pointer-events: none;
+		}
+		.residence-sort-pill::after { display: none !important; }
+		.residence-sort-dropdown {
+			position: absolute;
+			left: 0;
+			top: 110%;
+			min-width: 100%;
+			background: rgba(30, 60, 120, 0.85);
+			border-radius: 1.2em;
+			box-shadow: 0 8px 32px rgba(0,198,255,0.18);
+			backdrop-filter: blur(16px) saturate(160%);
+			-webkit-backdrop-filter: blur(16px) saturate(160%);
+			z-index: 10;
+			padding: 0.3em 0;
+			display: flex;
+			flex-direction: column;
+			gap: 0.1em;
+			animation: residence-sort-dropdown-fade 0.18s cubic-bezier(.4,1.4,.6,1) both;
+		}
+		@keyframes residence-sort-dropdown-fade {
+			0% { opacity: 0; transform: translateY(-10px) scale(0.98); }
+			100% { opacity: 1; transform: translateY(0) scale(1); }
+		}
+		.residence-sort-option {
+			padding: 0.7em 1.5em;
+			border-radius: 1em;
+			color: #fff;
+			font-size: 1rem;
+			cursor: pointer;
+			transition: background 0.13s, color 0.13s;
+		}
+		.residence-sort-option:hover, .residence-sort-option.active {
+			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+			color: #fff;
+		}
+		[data-theme="light"] .residence-sort-dropdown {
+			background: rgba(255,255,255,0.95);
+			box-shadow: 0 8px 32px rgba(0,198,255,0.13);
+		}
+		[data-theme="light"] .residence-sort-option {
+			color: #0072ff;
+		}
+		[data-theme="light"] .residence-sort-option:hover, [data-theme="light"] .residence-sort-option.active {
+			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+			color: #fff;
+		}
+		/* --- End Forum-style pill, search, sort, dropdown, and arrow pill styles --- */
+	</style>
+{% endblock %}
 {% extends 'base.html.twig' %}
 
 {% block title %}Residence - Liquid Glass Admin{% endblock %}
 
 {% block content %}
 {% include 'admin/_dashboard_header.html.twig' with { 'title': 'Residence' } %}
+<div class="residence-pagination-wrapper" style="margin-top: 2rem;">
+	<div class="residence-pagination-pills pills-animated">
+		<div class="pill-slider-bar"></div>
+		<div class="pill-slider"></div>
+		<button class="pill-tab active" data-page="1">Page 1</button>
+		<button class="pill-tab" data-page="2">Page 2</button>
+		<button class="pill-tab" data-page="3">Page 3</button>
+		<button class="pill-tab" data-page="4">Page 4</button>
+	</div>
+	<div id="residence-content" class="residence-content" style="margin-top: 1.5rem;">
+		<div class="residence-page-content" data-page="1">
+			<div class="liquid-glass-table-container">
+				<h3 style="margin-bottom:1.5rem;">Demo Residence Table (Page 1)</h3>
+				<div class="residence-table-toolbar" style="display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; width: 100%; justify-content: space-between;">
+					<div style="display: flex; align-items: center;">
+						<button class="residence-btn-add-db" title="Add Residence"><i class="bx bx-plus"></i> Add Residence</button>
+					</div>
+					<div style="display: flex; gap: 0.7rem; align-items: center;">
+						<button class="residence-sort-dir-pill" id="residence-sort-dir-pill" title="Toggle Sort Direction" aria-label="Toggle Sort Direction">
+							<span id="residence-sort-dir-icon-svg"></span>
+						</button>
+						<div class="residence-sort-pill" id="residence-sort-pill-custom" tabindex="0">
+							<span class="residence-sort-selected" id="residence-sort-selected">Sort by Name</span>
+							<span class="residence-sort-arrow"></span>
+							<div class="residence-sort-dropdown" id="residence-sort-dropdown" style="display:none;">
+								<div class="residence-sort-option" data-value="name">Sort by Name</div>
+								<div class="residence-sort-option" data-value="email">Sort by Email</div>
+								<div class="residence-sort-option" data-value="date">Sort by Date</div>
+								<div class="residence-sort-option" data-value="status">Sort by Status</div>
+							</div>
+						</div>
+						<div class="residence-search-pill">
+							<input type="text" class="residence-search-input" placeholder="Search residence..." title="Search residence..." />
+							<i class="bx bx-search residence-search-icon"></i>
+						</div>
+					</div>
+				</div>
+				<div class="liquid-glass-table-scroll">
+					<table class="liquid-glass-table" id="residence-table">
+						<thead>
+							<tr>
+								{% for col in 1..8 %}
+									<th>Col {{ col }}</th>
+								{% endfor %}
+								<th>Modify</th>
+								<th>Delete</th>
+							</tr>
+						</thead>
+						<tbody id="residence-table-body">
+							<!-- Table rows will be rendered by JS -->
+						</tbody>
+					</table>
+				</div>
+				<div class="table-pagination-bar">
+					<button class="residence-table-arrow" id="residence-table-prev" title="Previous Page"><i class="bx bx-chevron-left"></i></button>
+					<div class="residence-table-pages" id="residence-table-pages"></div>
+					<button class="residence-table-arrow" id="residence-table-next" title="Next Page"><i class="bx bx-chevron-right"></i></button>
+				</div>
+			</div>
+			<script>
+// --- Users-style dropdown and sort pill logic for Residence ---
+document.addEventListener('DOMContentLoaded', function() {
+	const sortPill = document.getElementById('residence-sort-pill-custom');
+	const sortDropdown = document.getElementById('residence-sort-dropdown');
+	const sortSelected = document.getElementById('residence-sort-selected');
+	let sortValue = 'name';
+	function closeSortDropdown() {
+		if (sortDropdown) {
+			sortDropdown.style.display = 'none';
+			sortPill && sortPill.classList.remove('open');
+		}
+	}
+	function openSortDropdown() {
+		if (sortDropdown) {
+			sortDropdown.style.display = 'flex';
+			sortPill && sortPill.classList.add('open');
+		}
+	}
+	if (sortPill && sortDropdown) {
+		sortPill.addEventListener('click', function(e) {
+			e.stopPropagation();
+			if (sortDropdown.style.display === 'flex') {
+				closeSortDropdown();
+			} else {
+				openSortDropdown();
+			}
+		});
+		document.querySelectorAll('.residence-sort-option').forEach(opt => {
+			opt.addEventListener('click', function(e) {
+				sortValue = this.getAttribute('data-value');
+				sortSelected.textContent = this.textContent;
+				document.querySelectorAll('.residence-sort-option').forEach(o => o.classList.remove('active'));
+				this.classList.add('active');
+				closeSortDropdown();
+				residenceSortValue = sortValue;
+				residenceFilterAndSortRows();
+			});
+		});
+		document.addEventListener('click', function(e) {
+			if (!sortPill.contains(e.target)) closeSortDropdown();
+		});
+		sortPill.addEventListener('keydown', function(e) {
+			if (e.key === 'Escape') closeSortDropdown();
+			if (e.key === 'ArrowDown') {
+				openSortDropdown();
+				const first = sortDropdown.querySelector('.residence-sort-option');
+				if (first) first.focus();
+			}
+		});
+	}
+});
+				// Demo data: 35 rows, 8 columns
+				const residenceDemoTableRows = Array.from({length: 35}, (_, r) =>
+					Array.from({length: 8}, (_, c) => `R${r+1}C${c+1}`)
+				);
+				const residenceRowsPerPage = 10;
+				let residenceCurrentPage = 1;
+				let residenceSortValue = 'name';
+				let residenceSortDirection = 'asc';
+				let residenceFilteredRows = [...residenceDemoTableRows];
+				const residenceSearchInput = document.querySelector('.residence-search-input');
+				const residenceSortDirBtn = document.getElementById('residence-sort-dir-pill');
+				const residenceSortDirIconSvg = document.getElementById('residence-sort-dir-icon-svg');
+				const residenceSortPill = document.getElementById('residence-sort-pill-custom');
+				const residenceSortDropdown = document.getElementById('residence-sort-dropdown');
+				const residenceSortSelected = document.getElementById('residence-sort-selected');
+				function updateResidenceSortDirIcon() {
+					residenceSortDirIconSvg.innerHTML = residenceSortDirection === 'asc'
+						? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+						: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+				}
+				function residenceFilterAndSortRows() {
+					let rows = [...residenceDemoTableRows];
+					const search = residenceSearchInput.value.trim().toLowerCase();
+					if (search) {
+						rows = rows.filter(row => row.some(cell => cell.toLowerCase().includes(search)));
+					}
+					if (residenceSortValue === 'name') {
+						rows.sort((a, b) => residenceSortDirection === 'asc' ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]));
+					} else if (residenceSortValue === 'email') {
+						rows.sort((a, b) => residenceSortDirection === 'asc' ? a[1].localeCompare(b[1]) : b[1].localeCompare(a[1]));
+					} else if (residenceSortValue === 'date') {
+						rows.sort((a, b) => residenceSortDirection === 'asc' ? a[2].localeCompare(b[2]) : b[2].localeCompare(a[2]));
+					} else if (residenceSortValue === 'status') {
+						rows.sort((a, b) => residenceSortDirection === 'asc' ? a[3].localeCompare(b[3]) : b[3].localeCompare(a[3]));
+					}
+					residenceFilteredRows = rows;
+					residenceCurrentPage = 1;
+					updateResidenceTablePagination();
+				}
+				function renderResidenceTablePage(page) {
+					const tbody = document.getElementById('residence-table-body');
+					tbody.innerHTML = '';
+					const start = (page-1)*residenceRowsPerPage;
+					const end = Math.min(start+residenceRowsPerPage, residenceFilteredRows.length);
+					for (let r = start; r < end; r++) {
+						const row = document.createElement('tr');
+						for (let c = 0; c < 8; c++) {
+							const td = document.createElement('td');
+							td.textContent = residenceFilteredRows[r][c];
+							row.appendChild(td);
+						}
+						// Modify button
+						const tdModify = document.createElement('td');
+						tdModify.innerHTML = '<button class="residence-btn-modify" title="Modify"><i class="bx bx-edit"></i> Modify</button>';
+						row.appendChild(tdModify);
+						// Delete button
+						const tdDelete = document.createElement('td');
+						tdDelete.innerHTML = '<button class="residence-btn-delete" title="Delete"><i class="bx bx-trash"></i> Delete</button>';
+						row.appendChild(tdDelete);
+						tbody.appendChild(row);
+					}
+				}
+				function renderResidenceTablePagination() {
+					const totalPages = Math.ceil(residenceFilteredRows.length / residenceRowsPerPage);
+					const pagesDiv = document.getElementById('residence-table-pages');
+					pagesDiv.innerHTML = '';
+					for (let i = 1; i <= totalPages; i++) {
+						const btn = document.createElement('button');
+						btn.className = 'residence-table-page-btn' + (i === residenceCurrentPage ? ' active' : '');
+						btn.textContent = i;
+						btn.onclick = () => { residenceCurrentPage = i; updateResidenceTablePagination(); };
+						pagesDiv.appendChild(btn);
+					}
+					document.getElementById('residence-table-prev').disabled = residenceCurrentPage === 1;
+					document.getElementById('residence-table-next').disabled = residenceCurrentPage === totalPages;
+				}
+				function updateResidenceTablePagination() {
+					renderResidenceTablePage(residenceCurrentPage);
+					renderResidenceTablePagination();
+				}
+				document.addEventListener('DOMContentLoaded', function() {
+					updateResidenceSortDirIcon();
+					updateResidenceTablePagination();
+					residenceSearchInput.addEventListener('input', residenceFilterAndSortRows);
+					residenceSortDirBtn.addEventListener('click', function() {
+						residenceSortDirection = (residenceSortDirection === 'asc') ? 'desc' : 'asc';
+						updateResidenceSortDirIcon();
+						residenceFilterAndSortRows();
+					});
+					// Users-style pagination arrow logic
+					document.getElementById('residence-table-prev').onclick = function() {
+						if (residenceCurrentPage > 1) { residenceCurrentPage--; updateResidenceTablePagination(); }
+					};
+					document.getElementById('residence-table-next').onclick = function() {
+						const totalPages = Math.ceil(residenceFilteredRows.length / residenceRowsPerPage);
+						if (residenceCurrentPage < totalPages) { residenceCurrentPage++; updateResidenceTablePagination(); }
+					};
+					residenceSortPill.addEventListener('click', function(e) {
+						e.stopPropagation();
+						if (residenceSortDropdown.style.display === 'flex') {
+							residenceSortDropdown.style.display = 'none';
+							residenceSortPill.classList.remove('open');
+						} else {
+							residenceSortDropdown.style.display = 'flex';
+							residenceSortPill.classList.add('open');
+						}
+					});
+					document.querySelectorAll('.residence-sort-option').forEach(opt => {
+						opt.addEventListener('click', function(e) {
+							residenceSortValue = this.getAttribute('data-value');
+							residenceSortSelected.textContent = this.textContent;
+							document.querySelectorAll('.residence-sort-option').forEach(o => o.classList.remove('active'));
+							this.classList.add('active');
+							residenceSortDropdown.style.display = 'none';
+							residenceSortPill.classList.remove('open');
+							residenceFilterAndSortRows();
+						});
+					});
+					document.addEventListener('click', function(e) {
+						if (!residenceSortPill.contains(e.target)) {
+							residenceSortDropdown.style.display = 'none';
+							residenceSortPill.classList.remove('open');
+						}
+					});
+				});
+			</script>
+			<style>
+				.table-pagination-bar {
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					gap: 1.2rem;
+					margin: 1.5rem 0 0.5rem 0;
+				}
+				.residence-table-arrow {
+					background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
+					color: #fff;
+					border: none;
+					border-radius: 50%;
+					width: 2.5rem;
+					height: 2.5rem;
+					font-size: 1.5rem;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+					cursor: pointer;
+					transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+					outline: none;
+				}
+				.residence-table-arrow:disabled {
+					opacity: 0.4;
+					cursor: not-allowed;
+				}
+				.residence-table-pages {
+					display: flex;
+					gap: 0.5rem;
+				}
+				.residence-table-page-btn {
+					background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
+					color: #fff;
+					border: none;
+					border-radius: 999px;
+					padding: 0.5rem 1.1rem;
+					font-size: 1rem;
+					font-weight: 600;
+					cursor: pointer;
+					transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+					outline: none;
+					box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+				}
+				.residence-table-page-btn.active, .residence-table-page-btn:hover {
+					background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+					color: #fff;
+					box-shadow: 0 4px 16px rgba(0,123,255,0.10);
+				}
+				.residence-btn-add-db {
+					border: none;
+					border-radius: 999px;
+					padding: 0.5rem 1.5rem;
+					font-size: 1.1rem;
+					font-weight: 700;
+					cursor: pointer;
+					transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+					outline: none;
+					margin: 0 auto;
+					display: inline-flex;
+					align-items: center;
+					gap: 0.6rem;
+					justify-content: center;
+					background: linear-gradient(90deg, #00e676 0%, #00bfae 100%);
+					color: #fff;
+					box-shadow: 0 2px 8px rgba(0,230,118,0.10);
+				}
+				.residence-btn-add-db:hover {
+					background: linear-gradient(90deg, #00bfae 0%, #00e676 100%);
+					color: #fff;
+				}
+				.liquid-glass-table-container {
+					background: rgba(30, 34, 44, 0.7);
+					border-radius: 24px;
+					box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+					backdrop-filter: blur(18px) saturate(180%);
+					padding: 2.5rem 3rem 2rem 3rem;
+					margin: 0 auto 2rem auto;
+					max-width: 1600px;
+					border: 1.5px solid rgba(255,255,255,0.08);
+					position: relative;
+				}
+				.liquid-glass-table-scroll {
+					overflow-x: auto;
+				}
+				.liquid-glass-table {
+					min-width: 1400px;
+					width: 100%;
+					border-collapse: separate;
+					border-spacing: 0;
+					background: rgba(255,255,255,0.04);
+					border-radius: 18px;
+					overflow: hidden;
+					box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+					font-size: 1rem;
+					color: #e3e8f7;
+				}
+				.liquid-glass-table th, .liquid-glass-table td {
+					padding: 0.75rem 1.1rem;
+					text-align: center;
+					border-bottom: 1px solid rgba(255,255,255,0.08);
+					backdrop-filter: blur(8px);
+					vertical-align: middle;
+					word-break: break-word;
+					white-space: normal;
+					max-width: 180px;
+				}
+				.liquid-glass-table td {
+					display: table-cell;
+					text-align: center;
+					vertical-align: middle;
+				}
+				.liquid-glass-table th {
+					background: rgba(255,255,255,0.10);
+					font-weight: 700;
+					letter-spacing: 0.03em;
+					color: #fff;
+					border-top: none;
+					text-align: center;
+					vertical-align: middle;
+				}
+				.liquid-glass-table tr:last-child td {
+					border-bottom: none;
+				}
+				.residence-btn-modify, .residence-btn-delete {
+					border: none;
+					border-radius: 999px;
+					padding: 0.4rem 1.1rem;
+					font-size: 1rem;
+					font-weight: 600;
+					cursor: pointer;
+					transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+					outline: none;
+					margin: 0 auto;
+					display: inline-flex;
+					align-items: center;
+					gap: 0.5rem;
+					justify-content: center;
+				}
+				.residence-btn-modify {
+					background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+					color: #fff;
+					box-shadow: 0 2px 8px rgba(0,123,255,0.10);
+				}
+				.residence-btn-modify:hover {
+					background: linear-gradient(90deg, #0072ff 0%, #00c6ff 100%);
+					color: #fff;
+				}
+				.residence-btn-delete {
+					background: linear-gradient(90deg, #ff3b30 0%, #ff2d92 100%);
+					color: #fff;
+					box-shadow: 0 2px 8px rgba(255,59,48,0.10);
+				}
+				.residence-btn-delete:hover {
+					background: linear-gradient(90deg, #ff2d92 0%, #ff3b30 100%);
+					color: #fff;
+				}
+				.liquid-glass-table i.bx {
+					font-size: 1.1em;
+					vertical-align: middle;
+				}
+			</style>
+		</div>
+		<div class="residence-page-content" data-page="2" style="display:none;">
+			<div class="residence-list-demo">
+				<h3 style="margin-bottom:1rem;">Demo Residences (Page 2)</h3>
+				<ul style="list-style:none;padding:0;">
+					<li style="padding:0.5rem 0;border-bottom:1px solid #eee;">Residence A</li>
+					<li style="padding:0.5rem 0;border-bottom:1px solid #eee;">Residence B</li>
+					<li style="padding:0.5rem 0;">Residence C</li>
+				</ul>
+			</div>
+		</div>
+		<div class="residence-page-content" data-page="3" style="display:none;">
+			<div class="residence-list-demo">
+				<h3 style="margin-bottom:1rem;">Demo Residences (Page 3)</h3>
+				<ul style="list-style:none;padding:0;">
+					<li style="padding:0.5rem 0;border-bottom:1px solid #eee;">Residence D</li>
+					<li style="padding:0.5rem 0;">Residence E</li>
+				</ul>
+			</div>
+		</div>
+		<div class="residence-page-content" data-page="4" style="display:none;">
+			<div class="residence-list-demo">
+				<h3 style="margin-bottom:1rem;">Demo Residences (Page 4)</h3>
+				<ul style="list-style:none;padding:0;">
+					<li style="padding:0.5rem 0;">Residence F</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+<style>
+	.residence-pagination-pills {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		position: relative;
+		margin: 0 auto;
+		padding: 0.25rem 0.5rem;
+		background: linear-gradient(135deg, #23272f 80%, #2a2e39 100%);
+		border-radius: 999px;
+		min-width: 340px;
+		box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+		width: fit-content;
+	}
+	.pill-slider-bar {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		border-radius: 999px;
+		background: transparent;
+		z-index: 0;
+		pointer-events: none;
+	}
+	.pill-slider {
+		position: absolute;
+		left: 0;
+		top: 50%;
+		transform: translateY(-50%);
+		height: 40px;
+		width: 0;
+		background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+		border-radius: 999px;
+		z-index: 2;
+		transition: left 0.35s cubic-bezier(0.4,0,0.2,1), width 0.35s cubic-bezier(0.4,0,0.2,1);
+		box-shadow: 0 4px 16px rgba(0,123,255,0.15);
+		pointer-events: none;
+		opacity: 1;
+	}
+	.pill-tab {
+		background: transparent;
+		color: #bfc9d8;
+		border: none;
+		border-radius: 999px;
+		padding: 0.5rem 1.5rem;
+		font-size: 1rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: color 0.2s, box-shadow 0.2s;
+		box-shadow: none;
+		outline: none;
+		position: relative;
+		z-index: 3;
+	}
+	.pill-tab.active, .pill-tab:focus {
+		color: #fff;
+		text-shadow: 0 2px 8px rgba(0,123,255,0.10);
+		z-index: 3;
+	}
+</style>
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		function showResidencePage(page) {
+			document.querySelectorAll('.residence-page-content').forEach(div => {
+				div.style.display = (div.dataset.page == page) ? '' : 'none';
+			});
+		}
+
+		// Pills animation logic
+		function updatePillSlider() {
+			const pills = document.querySelectorAll('.pill-tab');
+			const slider = document.querySelector('.pill-slider');
+			const active = document.querySelector('.pill-tab.active');
+			if (!active || !slider) return;
+			slider.style.left = (active.offsetLeft) + 'px';
+			slider.style.width = active.offsetWidth + 'px';
+		}
+
+		document.querySelectorAll('.pill-tab').forEach(btn => {
+			btn.addEventListener('click', function() {
+				document.querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+				this.classList.add('active');
+				updatePillSlider();
+				showResidencePage(this.dataset.page);
+			});
+		});
+
+		// Initial load
+		showResidencePage(1);
+		setTimeout(updatePillSlider, 100);
+		window.addEventListener('resize', updatePillSlider);
+	});
+</script>
 {% endblock %}
 
 {% block javascripts %}
 	{{ parent() }}
+	<script>
+	// Users-style dropdown logic for sorting pill (Residence)
+	document.addEventListener('DOMContentLoaded', function() {
+		const sortPill = document.getElementById('residence-sort-pill-custom');
+		const sortDropdown = document.getElementById('residence-sort-dropdown');
+		const sortSelected = document.getElementById('residence-sort-selected');
+		let sortValue = 'name';
+		function closeSortDropdown() {
+			if (sortDropdown) {
+				sortDropdown.style.display = 'none';
+				sortPill && sortPill.classList.remove('open');
+			}
+		}
+		function openSortDropdown() {
+			if (sortDropdown) {
+				sortDropdown.style.display = 'flex';
+				sortPill && sortPill.classList.add('open');
+			}
+		}
+		if (sortPill && sortDropdown) {
+			sortPill.addEventListener('click', function(e) {
+				e.stopPropagation();
+				if (sortDropdown.style.display === 'flex') {
+					closeSortDropdown();
+				} else {
+					openSortDropdown();
+				}
+			});
+			document.querySelectorAll('.residence-sort-option').forEach(opt => {
+				opt.addEventListener('click', function(e) {
+					sortValue = this.getAttribute('data-value');
+					sortSelected.textContent = this.textContent;
+					document.querySelectorAll('.residence-sort-option').forEach(o => o.classList.remove('active'));
+					this.classList.add('active');
+					closeSortDropdown();
+					window.residenceSortValue = sortValue;
+					if (typeof residenceFilterAndSortRows === 'function') residenceFilterAndSortRows();
+				});
+			});
+			document.addEventListener('click', function(e) {
+				if (!sortPill.contains(e.target)) closeSortDropdown();
+			});
+			sortPill.addEventListener('keydown', function(e) {
+				if (e.key === 'Escape') closeSortDropdown();
+				if (e.key === 'ArrowDown') {
+					openSortDropdown();
+					const first = sortDropdown.querySelector('.residence-sort-option');
+					if (first) first.focus();
+				}
+			});
+		}
+	});
+	</script>
 {% endblock %}
