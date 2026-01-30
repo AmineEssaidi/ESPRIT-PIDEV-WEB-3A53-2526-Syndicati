@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - PiDev</title>
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="{{ asset('frontend/css/main-home.css') }}" as="style">
+    <link rel="preload" href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" as="style">
+
+    <!-- CSS Dependencies -->
+    <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/scroll-pill.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+</head>
+<body>
+<!-- Page Loader -->
+<div class="page-loader" id="pageLoader">
+    <div class="loader-content">
+        <div class="loader-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Layout Wrapper -->
+<div class="main-home-layout-wrapper">
+    <div class="main-home-page">
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'sign_up'} %}
+
+        <div class="main-home-content-wrapper">
+            <div class="main-home-auth-container">
+                <div class="main-home-auth-card">
+                    <div class="main-home-auth-header">
+                        <h1 class="main-home-auth-title">Create Account</h1>
+                        <p class="main-home-auth-subtitle">Join us and start your journey today</p>
+                    </div>
+
+                    {% for message in app.flashes('error_popup') %}
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                alert("Form Errors:\n" + "{{ message|e('js') }}".split('|').join('\n'));
+                            });
+                        </script>
+                    {% endfor %}
+
+                    {% for label, messages in app.flashes %}
+                        {% if label not in ['error_popup'] and messages|length > 0 %}
+                            <div class="main-home-auth-error">
+                                {% for message in messages %}
+                                    <p>{{ message }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if form.vars.errors|length > 0 %}
+                        <div class="main-home-auth-error">
+                            {% for error in form.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {{ form_start(form, {'method': 'POST', 'attr': {'class': 'main-home-auth-form'}}) }}
+                        <div class="main-home-form-row">
+                            <div class="main-home-form-group main-home-form-half">
+                                {{ form_label(form.first_name, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
+                                {{ form_widget(form.first_name, {'attr': {'class': 'main-home-form-input', 'placeholder': 'John'}}) }}
+                                {{ form_errors(form.first_name) }}
+                            </div>
+                            <div class="main-home-form-group main-home-form-half">
+                                {{ form_label(form.last_name, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
+                                {{ form_widget(form.last_name, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Doe'}}) }}
+                                {{ form_errors(form.last_name) }}
+                            </div>
+                        </div>
+
+                        <div class="main-home-form-group">
+                            {{ form_label(form.email_user, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
+                            {{ form_widget(form.email_user, {'attr': {'class': 'main-home-form-input', 'placeholder': 'john.doe@example.com'}}) }}
+                            {{ form_errors(form.email_user) }}
+                        </div>
+
+                        <div class="main-home-form-group">
+                            {{ form_label(form.password_user.first, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
+                            <div class="main-home-password-wrapper">
+                                {{ form_widget(form.password_user.first, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Create a strong password', 'minlength': '8'}}) }}
+                                <button type="button" class="main-home-password-toggle" onclick="togglePassword('{{ form.password_user.first.vars.id }}')">
+                                    <span class="main-home-eye-icon">👁️</span>
+                                </button>
+                            </div>
+                            <p class="main-home-form-hint">Minimum 8 characters</p>
+                            {{ form_errors(form.password_user.first) }}
+                        </div>
+
+                        <div class="main-home-form-group">
+                            {{ form_label(form.password_user.second, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
+                            <div class="main-home-password-wrapper">
+                                {{ form_widget(form.password_user.second, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Confirm your password'}}) }}
+                                <button type="button" class="main-home-password-toggle" onclick="togglePassword('{{ form.password_user.second.vars.id }}')">
+                                    <span class="main-home-eye-icon">👁️</span>
+                                </button>
+                            </div>
+                            {{ form_errors(form.password_user.second) }}
+                        </div>
+
+                        <button type="submit" class="main-home-btn main-home-btn-auth-submit">
+                            Create Account
+                        </button>
+                    {{ form_end(form) }}
+
+                    <div class="main-home-auth-divider">
+                        <span>or sign up with</span>
+                    </div>
+
+                    <div class="main-home-social-auth">
+                        <button type="button" class="main-home-social-btn main-home-social-google">
+                            <span class="main-home-social-icon">G</span>
+                            <span>Google</span>
+                        </button>
+                        <button type="button" class="main-home-social-btn main-home-social-github">
+                            <span class="main-home-social-icon">⚡</span>
+                            <span>GitHub</span>
+                        </button>
+                    </div>
+
+                    <p class="main-home-auth-footer">
+                        Already have an account?
+                        <a href="{{ path('auth_sign_in') }}" class="main-home-auth-link">Sign In</a>
+                    </p>
+                </div>
+            </div>
+
+            {% include 'frontend/shared/_main_footer.html.twig' %}
+        </div>
+    </div>
+</div>
+
+{% include 'frontend/shared/_scroll_pill.html.twig' %}
+<script src="{{ asset('frontend/js/scroll-pill.js') }}" defer></script>
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}" defer></script>
+<script src="{{ asset('frontend/js/main-home.js') }}" defer></script>
+<script src="{{ asset('js/page-loader.js') }}"></script>
+<script>
+    function togglePassword(inputId) {
+        var input = document.getElementById(inputId);
+        if (input) input.type = input.type === 'password' ? 'text' : 'password';
+    }
+</script>
+</body>
+</html>

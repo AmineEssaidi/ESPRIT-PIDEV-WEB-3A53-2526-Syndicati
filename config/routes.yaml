@@ -4,6 +4,14 @@ controllers:
         namespace: App\Controller
     type: attribute
 
+# Explicit signup routes (in case controller uses annotations)
+user_signup:
+    path: /signup
+    controller: App\Controller\User\UserController::signup
+user_signup_success:
+    path: /signup/success
+    controller: App\Controller\User\UserController::signupSuccess
+
 frontend_settings:
     resource: "routes/frontend_settings.yaml"
     type: yaml

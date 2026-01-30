@@ -133,7 +133,7 @@
         {% else %}
         <div class="main-home-auth-buttons">
             <a href="{{ path('auth_sign_in') }}" class="main-home-btn main-home-btn-auth-secondary {{ active_tab|default('') == 'sign_in' ? 'active' : '' }}" data-i18n="Sign In">Connexion</a>
-            <a href="{{ path('auth_sign_up') }}" class="main-home-btn main-home-btn-auth-primary {{ active_tab|default('') == 'sign_up' ? 'active' : '' }}" data-i18n="Sign Up">Créer un compte</a>
+            <a href="{{ path('user_signup') }}" class="main-home-btn main-home-btn-auth-primary {{ active_tab|default('') == 'sign_up' ? 'active' : '' }}" data-i18n="Sign Up">Créer un compte</a>
         </div>
         {% endif %}
     </div>

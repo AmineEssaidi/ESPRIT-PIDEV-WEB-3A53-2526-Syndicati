@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
+use App\Repository\User\UserRepository;
 use App\Service\PageStatusService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
@@ -80,58 +82,58 @@ class FrontendController extends AbstractController
     }
 
     #[Route('/sign-in', name: 'auth_sign_in', methods: ['GET', 'POST'])]
-    public function signIn(Request $request): Response
+    public function signIn(Request $request, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher): Response
     {
         $session = $request->getSession();
         $error = null;
-        
-        // If already logged in, redirect to home
+        $lastEmail = '';
+
         if ($session->get('is_logged_in')) {
             return $this->redirectToRoute('main_home');
         }
-        
+
         if ($request->isMethod('POST')) {
-            $email = $request->request->get('email');
+            $email = trim((string) $request->request->get('email'));
             $password = $request->request->get('password');
-            
-            // Simple hardcoded auth: admin@admin.com / admin OR admin / admin
-            if (($email === 'admin@admin.com' || $email === 'admin') && $password === 'admin') {
-                $session->set('is_logged_in', true);
-                $session->set('user', [
-                    'name' => 'Amine Saidi',
-                    'email' => 'amine.saidi@example.com',
-                    'avatar' => 'https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/1.png',
-                    'role' => 'Full Stack Developer'
-                ]);
-                return $this->redirectToRoute('main_home');
+            $lastEmail = $email;
+
+            if ($email !== '' && $password !== null) {
+                $user = $userRepository->findOneBy(['email_user' => $email]);
+                if ($user !== null && $passwordHasher->isPasswordValid($user, $password)) {
+                    if (!$user->getIsVerified()) {
+                        $error = 'Your account is not yet verified by an administrator. You cannot log in until your account is verified.';
+                    } else {
+                        $session->set('is_logged_in', true);
+                        $session->set('user', [
+                            'id' => $user->getIdUser(),
+                            'name' => trim($user->getFirstName() . ' ' . $user->getLastName()),
+                            'email' => $user->getEmailUser(),
+                            'role' => $user->getRoleUser(),
+                        ]);
+                        return $this->redirectToRoute('main_home');
+                    }
+                } else {
+                    $error = 'Invalid email or password.';
+                }
             } else {
-                $error = 'Invalid credentials. Use admin@admin.com / admin';
+                $error = 'Please enter your email and password.';
             }
         }
-        
+
         $response = $this->render('frontend/auth/sign-in.html.twig', [
-            'error' => $error
+            'error' => $error,
+            'last_email' => $lastEmail,
         ]);
         $response->setPrivate();
-        
+
         return $response;
     }
 
     #[Route('/sign-up', name: 'auth_sign_up', methods: ['GET', 'POST'])]
     public function signUp(Request $request): Response
     {
-        // TODO: Add actual registration logic here
-        if ($request->isMethod('POST')) {
-            // Handle sign up form submission
-            // For now, just redirect to sign in
-            return $this->redirectToRoute('auth_sign_in');
-        }
-        
-        $response = $this->render('frontend/auth/sign-up.html.twig');
-        $response->setPublic();
-        $response->setMaxAge(300);
-        
-        return $response;
+        // Redirect to the real signup form (Symfony form, saves to DB)
+        return $this->redirectToRoute('user_signup');
     }
 
     #[Route('/logout', name: 'auth_logout')]

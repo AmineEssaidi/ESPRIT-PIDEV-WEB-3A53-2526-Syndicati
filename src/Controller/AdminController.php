@@ -2,19 +2,69 @@
 
 namespace App\Controller;
 
+use App\Entity\User\User;
+use App\Form\User\UserType;
+use App\Repository\User\UserRepository;
+use App\Service\PageStatusService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Service\PageStatusService;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 class AdminController extends AbstractController
 {
     #[Route('/admin/users', name: 'admin_users')]
-    public function users(PageStatusService $pageStatusService, Request $request): Response
+    public function users(PageStatusService $pageStatusService, Request $request, UserRepository $userRepository): Response
     {
-        return $this->render('admin/Users/index.html.twig');
+        $users = $userRepository->findBy([], ['created_at' => 'DESC']);
+        $editUser = new User();
+        $editForm = $this->createForm(UserType::class, $editUser, ['signup' => false, 'edit' => true]);
+        return $this->render('admin/Users/index.html.twig', [
+            'users' => $users,
+            'editForm' => $editForm->createView(),
+        ]);
+    }
+
+    #[Route('/admin/users/{id}/edit', name: 'admin_users_edit', methods: ['GET', 'POST'])]
+    public function userEdit(int $id, Request $request, UserRepository $userRepository, EntityManagerInterface $em): Response
+    {
+        $user = $userRepository->find($id);
+        if (!$user instanceof User) {
+            $this->addFlash('danger', 'User not found.');
+            return $this->redirectToRoute('admin_users');
+        }
+        $form = $this->createForm(UserType::class, $user, ['signup' => false, 'edit' => true]);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $user->setUpdatedAt(new \DateTime());
+            $em->flush();
+            $this->addFlash('success', 'User updated successfully.');
+            return $this->redirectToRoute('admin_users');
+        }
+        return $this->redirectToRoute('admin_users');
+    }
+
+    #[Route('/admin/users/{id}/delete', name: 'admin_users_delete', methods: ['POST'])]
+    public function userDelete(int $id, Request $request, UserRepository $userRepository, EntityManagerInterface $em, CsrfTokenManagerInterface $csrfTokenManager): Response
+    {
+        $token = $request->request->get('_token');
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('user_delete', $token ?? ''))) {
+            $this->addFlash('danger', 'Invalid security token.');
+            return $this->redirectToRoute('admin_users');
+        }
+        $user = $userRepository->find($id);
+        if (!$user instanceof User) {
+            $this->addFlash('danger', 'User not found.');
+            return $this->redirectToRoute('admin_users');
+        }
+        $em->remove($user);
+        $em->flush();
+        $this->addFlash('success', 'User deleted successfully.');
+        return $this->redirectToRoute('admin_users');
     }
     #[Route('/admin/residence', name: 'admin_residence')]
     public function residence(PageStatusService $pageStatusService, Request $request): Response
