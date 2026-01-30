@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller\User;
 
+use App\Entity\Profile\Profile;
 use App\Entity\User\User;
 use App\Form\User\UserType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -45,6 +46,12 @@ class UserController extends AbstractController
                     $user->setUpdatedAt($now);
 
                     $em->persist($user);
+                    $em->flush();
+
+                    // Create profile for the new user
+                    $profile = new Profile();
+                    $profile->setUser($user);
+                    $em->persist($profile);
                     $em->flush();
 
                     $this->addFlash('success', 'Account created successfully!');

@@ -2,12 +2,19 @@
 
 namespace App\Controller;
 
+use App\Entity\Profile\Profile;
+use App\Form\Profile\ProfileType;
+use App\Repository\Profile\ProfileRepository;
 use App\Repository\User\UserRepository;
 use App\Service\PageStatusService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -38,21 +45,132 @@ class FrontendController extends AbstractController
         return $response;
     }
 
-    #[Route('/profile', name: 'frontend_profile')]
-    public function profile(PageStatusService $pageStatusService, Request $request): Response
-    {
-        // Vérifier si le profil est hors ligne
+    #[Route('/profile', name: 'frontend_profile', methods: ['GET', 'POST'])]
+    public function profile(
+        PageStatusService $pageStatusService,
+        Request $request,
+        UserRepository $userRepository,
+        ProfileRepository $profileRepository,
+        EntityManagerInterface $em
+    ): Response {
         if (!$pageStatusService->isPageOnline('profile')) {
             return $this->redirectToRoute('maintenance_with_page', ['pageId' => 'profile']);
         }
-        
-        $response = $this->render('frontend/profile/profile.html.twig');
-        
-        // Les pages de profil sont privées, ne pas mettre en cache publiquement
+
+        $session = $request->getSession();
+        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+            $this->addFlash('danger', 'Please sign in to view your profile.');
+            return $this->redirectToRoute('auth_sign_in');
+        }
+
+        $userId = (int) $session->get('user')['id'];
+        $user = $userRepository->find($userId);
+        if (!$user) {
+            $session->remove('is_logged_in');
+            $session->remove('user');
+            $this->addFlash('danger', 'User not found.');
+            return $this->redirectToRoute('auth_sign_in');
+        }
+
+        $profile = $profileRepository->findOneByUser($user);
+        if (!$profile) {
+            $profile = new Profile();
+            $profile->setUser($user);
+            $em->persist($profile);
+            $em->flush();
+        }
+
+        $profileForm = $this->createForm(ProfileType::class, $profile);
+        $profileForm->handleRequest($request);
+        if ($profileForm->isSubmitted() && $profileForm->isValid()) {
+            $em->flush();
+            $this->addFlash('success', 'Profile updated.');
+            return $this->redirectToRoute('frontend_profile');
+        }
+
+        $response = $this->render('frontend/profile/profile.html.twig', [
+            'user' => $user,
+            'profile' => $profile,
+            'profileForm' => $profileForm->createView(),
+        ]);
         $response->setPrivate();
-        $response->setMaxAge(60);
-        
+        $response->setMaxAge(0);
         return $response;
+    }
+
+    #[Route('/profile/avatar-upload', name: 'frontend_profile_avatar_upload', methods: ['POST'])]
+    public function profileAvatarUpload(
+        Request $request,
+        UserRepository $userRepository,
+        ProfileRepository $profileRepository,
+        EntityManagerInterface $em,
+        #[Autowire('%kernel.project_dir%')] string $projectDir
+    ): Response {
+        $session = $request->getSession();
+        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+            $this->addFlash('danger', 'Please sign in to upload an avatar.');
+            return $this->redirectToRoute('auth_sign_in');
+        }
+
+        $userId = (int) $session->get('user')['id'];
+        $user = $userRepository->find($userId);
+        if (!$user) {
+            $session->remove('is_logged_in');
+            $session->remove('user');
+            $this->addFlash('danger', 'User not found.');
+            return $this->redirectToRoute('auth_sign_in');
+        }
+
+        $profile = $profileRepository->findOneByUser($user);
+        if (!$profile) {
+            $profile = new Profile();
+            $profile->setUser($user);
+            $em->persist($profile);
+            $em->flush();
+        }
+
+        if (!$this->isCsrfTokenValid('profile_avatar_upload', $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid request. Please try again.');
+            return $this->redirectToRoute('frontend_profile');
+        }
+
+        /** @var UploadedFile|null $file */
+        $file = $request->files->get('avatar_file');
+        if (!$file || !$file->isValid()) {
+            $this->addFlash('danger', 'Please choose a valid image file.');
+            return $this->redirectToRoute('frontend_profile');
+        }
+
+        $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!\in_array($file->getMimeType(), $allowed, true)) {
+            $this->addFlash('danger', 'Only JPEG, PNG, GIF and WebP images are allowed.');
+            return $this->redirectToRoute('frontend_profile');
+        }
+
+        $ext = $file->guessExtension() ?: pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION) ?: 'jpg';
+        $safeExt = \in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif', 'webp'], true) ? strtolower($ext) : 'jpg';
+        $filename = 'avatar_' . $userId . '_' . uniqid('', true) . '.' . $safeExt;
+        $dir = $projectDir . '/public/profile_images';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        try {
+            $file->move($dir, $filename);
+        } catch (FileException $e) {
+            $this->addFlash('danger', 'Could not save the image. Please try again.');
+            return $this->redirectToRoute('frontend_profile');
+        }
+
+        $profile->setAvatar('profile_images/' . $filename);
+        $em->flush();
+
+        $userData = $session->get('user', []);
+        $userData['avatar'] = 'profile_images/' . $filename;
+        $session->set('user', $userData);
+
+        $this->addFlash('success', 'Avatar updated.');
+        return $this->redirectToRoute('frontend_profile');
     }
 
     #[Route('/our-team', name: 'frontend_our_team')]
@@ -82,7 +200,7 @@ class FrontendController extends AbstractController
     }
 
     #[Route('/sign-in', name: 'auth_sign_in', methods: ['GET', 'POST'])]
-    public function signIn(Request $request, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher): Response
+    public function signIn(Request $request, UserRepository $userRepository, ProfileRepository $profileRepository, UserPasswordHasherInterface $passwordHasher): Response
     {
         $session = $request->getSession();
         $error = null;
@@ -103,12 +221,15 @@ class FrontendController extends AbstractController
                     if (!$user->getIsVerified()) {
                         $error = 'Your account is not yet verified by an administrator. You cannot log in until your account is verified.';
                     } else {
+                        $profile = $profileRepository->findOneByUser($user);
+                        $avatar = $profile?->getAvatar();
                         $session->set('is_logged_in', true);
                         $session->set('user', [
                             'id' => $user->getIdUser(),
                             'name' => trim($user->getFirstName() . ' ' . $user->getLastName()),
                             'email' => $user->getEmailUser(),
                             'role' => $user->getRoleUser(),
+                            'avatar' => $avatar,
                         ]);
                         return $this->redirectToRoute('main_home');
                     }

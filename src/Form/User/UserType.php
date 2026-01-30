@@ -31,7 +31,7 @@ class UserType extends AbstractType
                 'label' => 'Email',
             ]);
 
-        // Password only for signup (not for edit)
+        // Password for signup and admin add (not for edit)
         if (!($options['edit'] ?? false)) {
             $builder->add('password_user', RepeatedType::class, [
                 'type' => PasswordType::class,
@@ -39,11 +39,11 @@ class UserType extends AbstractType
                 'second_options' => ['label' => 'Confirm Password'],
                 'invalid_message' => 'Passwords must match.',
                 'required' => true,
-                'mapped' => !($options['signup'] ?? false),
+                'mapped' => !($options['signup'] ?? false) && !($options['add'] ?? false),
             ]);
         }
 
-        // Role and Status only for admin/edit (not signup)
+        // Role only for admin (not signup)
         if (!($options['signup'] ?? false)) {
             $builder->add('role_user', ChoiceType::class, [
                 'choices' => [
@@ -58,7 +58,8 @@ class UserType extends AbstractType
             ]);
         }
 
-        if ($options['edit'] ?? false) {
+        // Verified checkbox for edit and admin add
+        if (($options['edit'] ?? false) || ($options['add'] ?? false)) {
             $builder->add('is_verified', CheckboxType::class, [
                 'label' => 'Verified (can log in)',
                 'required' => false,
@@ -72,6 +73,7 @@ class UserType extends AbstractType
             'data_class' => User::class,
             'signup' => false,
             'edit' => false,
+            'add' => false,
         ]);
     }
 }

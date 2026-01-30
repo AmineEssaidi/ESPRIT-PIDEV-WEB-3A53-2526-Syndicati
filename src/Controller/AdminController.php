@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
@@ -23,10 +24,41 @@ class AdminController extends AbstractController
         $users = $userRepository->findBy([], ['created_at' => 'DESC']);
         $editUser = new User();
         $editForm = $this->createForm(UserType::class, $editUser, ['signup' => false, 'edit' => true]);
+        $addUser = new User();
+        $addForm = $this->createForm(UserType::class, $addUser, ['signup' => false, 'edit' => false, 'add' => true]);
         return $this->render('admin/Users/index.html.twig', [
             'users' => $users,
             'editForm' => $editForm->createView(),
+            'addForm' => $addForm->createView(),
         ]);
+    }
+
+    #[Route('/admin/users/add', name: 'admin_users_add', methods: ['POST'])]
+    public function userAdd(Request $request, UserRepository $userRepository, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
+    {
+        $user = new User();
+        $form = $this->createForm(UserType::class, $user, ['signup' => false, 'edit' => false, 'add' => true]);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $existing = $userRepository->findOneBy(['email_user' => $user->getEmailUser()]);
+            if ($existing) {
+                $this->addFlash('danger', 'A user with this email already exists.');
+                return $this->redirectToRoute('admin_users');
+            }
+            $plainPassword = $form->get('password_user')->getData();
+            $user->setPasswordUser($passwordHasher->hashPassword($user, $plainPassword));
+            $now = new \DateTime();
+            $user->setCreatedAt($now);
+            $user->setUpdatedAt($now);
+            $em->persist($user);
+            $em->flush();
+            $this->addFlash('success', 'User added successfully.');
+            return $this->redirectToRoute('admin_users');
+        }
+        foreach ($form->getErrors(true) as $error) {
+            $this->addFlash('danger', $error->getMessage());
+        }
+        return $this->redirectToRoute('admin_users');
     }
 
     #[Route('/admin/users/{id}/edit', name: 'admin_users_edit', methods: ['GET', 'POST'])]

@@ -90,18 +90,21 @@
 
         <!-- Auth Buttons (show/hide based on login status) -->
         {% if app.session.get('is_logged_in') %}
+        {% set _user = app.session.get('user')|default([]) %}
+        {% set _session_avatar_url = (_user.avatar is defined and _user.avatar) ? (_user.avatar starts with 'http' ? _user.avatar : asset(_user.avatar)) : null %}
+        {% set _avatar_url = profile_avatar_url|default(_session_avatar_url)|default('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face') %}
         <div class="main-home-user-profile-dropdown">
             <div class="main-home-user-avatar-only">
-                <img src="{{ app.session.get('user').avatar|default('https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/1.png') }}" alt="Profile" class="main-home-avatar-img" loading="lazy" decoding="async"/>
+                <img src="{{ _avatar_url }}" alt="Profile" class="main-home-avatar-img" loading="lazy" decoding="async"/>
                 <div class="main-home-avatar-status online"></div>
             </div>
             <div class="main-home-profile-dropdown">
                 <div class="main-home-dropdown-header">
                     <div class="main-home-user-profile">
-                        <img src="{{ app.session.get('user').avatar|default('https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/1.png') }}" alt="Profile" class="main-home-profile-img" loading="lazy" decoding="async"/>
+                        <img src="{{ _avatar_url }}" alt="Profile" class="main-home-profile-img" loading="lazy" decoding="async"/>
                         <div class="main-home-profile-info">
-                            <div class="main-home-profile-name">{{ app.session.get('user').name|default('User') }}</div>
-                            <div class="main-home-profile-email">{{ app.session.get('user').email|default('user@example.com') }}</div>
+                            <div class="main-home-profile-name">{{ _user.name|default('User') }}</div>
+                            <div class="main-home-profile-email">{{ _user.email|default('user@example.com') }}</div>
                         </div>
                     </div>
                 </div>

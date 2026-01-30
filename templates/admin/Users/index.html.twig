@@ -24,7 +24,7 @@
                 <h3 style="margin-bottom:1.5rem;">Users (Page 1)</h3>
                 <div class="users-table-toolbar" style="display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; width: 100%; justify-content: space-between;">
                     <div style="display: flex; align-items: center;">
-                        <button class="users-btn-add-db" title="Add to Database"><i class="bx bx-plus"></i> Add to Database</button>
+                        <button type="button" class="users-btn-add-db" id="users-btn-add-user" title="Add User"><i class="bx bx-plus"></i> Add User</button>
                     </div>
                     <div style="display: flex; gap: 0.7rem; align-items: center;">
                         <button class="users-sort-dir-pill" id="users-sort-dir-pill" title="Toggle Sort Direction" aria-label="Toggle Sort Direction">
@@ -533,9 +533,11 @@
                 .users-edit-modal-body .mb-3 { margin-bottom: 1.1rem; width: 100%; }
                 .users-edit-modal-body label { display: block; margin-bottom: 0.4rem; color: #bfc9d8; font-size: 0.9rem; font-weight: 500; }
                 .users-edit-modal-body input[type="text"],
-                .users-edit-modal-body input[type="email"] { width: 100%; max-width: 100%; box-sizing: border-box; padding: 0.6rem 0.9rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fff; font-size: 1rem; transition: border-color 0.2s, background 0.2s; }
+                .users-edit-modal-body input[type="email"],
+                .users-edit-modal-body input[type="password"] { width: 100%; max-width: 100%; box-sizing: border-box; padding: 0.6rem 0.9rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fff; font-size: 1rem; transition: border-color 0.2s, background 0.2s; }
                 .users-edit-modal-body input[type="text"]:focus,
-                .users-edit-modal-body input[type="email"]:focus { outline: none; border-color: rgba(0,198,255,0.5); background: rgba(255,255,255,0.08); }
+                .users-edit-modal-body input[type="email"]:focus,
+                .users-edit-modal-body input[type="password"]:focus { outline: none; border-color: rgba(0,198,255,0.5); background: rgba(255,255,255,0.08); }
                 .users-edit-modal-body input[type="text"]::placeholder,
                 .users-edit-modal-body input[type="email"]::placeholder { color: rgba(255,255,255,0.35); }
                 /* Role dropdown: dark with white text */
@@ -564,11 +566,14 @@
                 [data-theme="light"] .users-edit-modal-close:hover { background: #d0d5e0; color: #23272f; }
                 [data-theme="light"] .users-edit-modal-body label { color: #23272f; }
                 [data-theme="light"] .users-edit-modal-body input[type="text"],
-                [data-theme="light"] .users-edit-modal-body input[type="email"] { background: #fff; border: 1px solid #e3e8f7; color: #23272f; }
+                [data-theme="light"] .users-edit-modal-body input[type="email"],
+                [data-theme="light"] .users-edit-modal-body input[type="password"] { background: #fff; border: 1px solid #e3e8f7; color: #23272f; }
                 [data-theme="light"] .users-edit-modal-body input[type="text"]:focus,
-                [data-theme="light"] .users-edit-modal-body input[type="email"]:focus { border-color: #0072ff; background: #fff; }
+                [data-theme="light"] .users-edit-modal-body input[type="email"]:focus,
+                [data-theme="light"] .users-edit-modal-body input[type="password"]:focus { border-color: #0072ff; background: #fff; }
                 [data-theme="light"] .users-edit-modal-body input[type="text"]::placeholder,
-                [data-theme="light"] .users-edit-modal-body input[type="email"]::placeholder { color: #8b92a0; }
+                [data-theme="light"] .users-edit-modal-body input[type="email"]::placeholder,
+                [data-theme="light"] .users-edit-modal-body input[type="password"]::placeholder { color: #8b92a0; }
                 [data-theme="light"] .users-edit-modal-body select { background-color: #fff; border: 1px solid #e3e8f7; color: #23272f; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2323272f' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.9rem center; }
                 [data-theme="light"] .users-edit-modal-body select option { background: #fff; color: #23272f; }
                 [data-theme="light"] .users-edit-modal-body select:focus { border-color: #0072ff; }
@@ -616,6 +621,40 @@
                             <button type="submit" class="users-btn-modify">Save changes</button>
                         </div>
                         {{ form_end(editForm) }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add User modal (same style as edit) -->
+            <div id="user-add-modal" class="users-edit-modal" style="display: none;">
+                <div class="users-edit-modal-backdrop"></div>
+                <div class="users-edit-modal-card">
+                    <div class="users-edit-modal-header">
+                        <div>
+                            <h3>Add User</h3>
+                            <p class="users-edit-modal-subtitle">Create a new user. Same fields as sign up, plus role and verified.</p>
+                        </div>
+                        <button type="button" class="users-edit-modal-close" id="user-add-modal-close" aria-label="Close">&times;</button>
+                    </div>
+                    <div class="users-edit-modal-body">
+                        {% if addForm is defined %}
+                        {{ form_start(addForm, { 'attr': { 'id': 'user-add-form', 'method': 'post', 'action': path('admin_users_add'), 'class': 'users-edit-form' } }) }}
+                        {{ form_row(addForm.first_name, { 'row_attr': { 'class': 'mb-3' } }) }}
+                        {{ form_row(addForm.last_name, { 'row_attr': { 'class': 'mb-3' } }) }}
+                        {{ form_row(addForm.email_user, { 'row_attr': { 'class': 'mb-3' } }) }}
+                        {{ form_row(addForm.password_user.first, { 'row_attr': { 'class': 'mb-3' } }) }}
+                        {{ form_row(addForm.password_user.second, { 'row_attr': { 'class': 'mb-3' } }) }}
+                        {{ form_row(addForm.role_user, { 'row_attr': { 'class': 'mb-3' } }) }}
+                        <div class="mb-3 users-edit-modal-verified-wrap">
+                            {{ form_row(addForm.is_verified, { 'attr': { 'class': 'users-edit-verified-cb' }, 'label_attr': { 'class': 'users-edit-verified-label' } }) }}
+                        </div>
+                        <div class="users-edit-modal-actions">
+                            <button type="button" class="users-btn-cancel" id="user-add-modal-cancel">Cancel</button>
+                            <span class="users-edit-modal-actions-spacer"></span>
+                            <button type="submit" class="users-btn-modify">Add User</button>
+                        </div>
+                        {{ form_end(addForm) }}
                         {% endif %}
                     </div>
                 </div>
@@ -735,6 +774,14 @@
                     if (document.getElementById('user-edit-modal-close')) document.getElementById('user-edit-modal-close').onclick = closeEditModal;
                     if (document.getElementById('user-edit-modal-cancel')) document.getElementById('user-edit-modal-cancel').onclick = closeEditModal;
                     if (modal && modal.querySelector('.users-edit-modal-backdrop')) modal.querySelector('.users-edit-modal-backdrop').onclick = closeEditModal;
+
+                    // Add User modal: open/close
+                    const addModal = document.getElementById('user-add-modal');
+                    const addBtn = document.getElementById('users-btn-add-user');
+                    if (addBtn) addBtn.addEventListener('click', function() { if (addModal) addModal.style.display = 'flex'; });
+                    if (document.getElementById('user-add-modal-close')) document.getElementById('user-add-modal-close').onclick = function() { if (addModal) addModal.style.display = 'none'; };
+                    if (document.getElementById('user-add-modal-cancel')) document.getElementById('user-add-modal-cancel').onclick = function() { if (addModal) addModal.style.display = 'none'; };
+                    if (addModal && addModal.querySelector('.users-edit-modal-backdrop')) addModal.querySelector('.users-edit-modal-backdrop').onclick = function() { addModal.style.display = 'none'; };
                 });
             </script>
             <style>

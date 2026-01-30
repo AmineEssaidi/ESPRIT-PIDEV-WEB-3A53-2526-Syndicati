@@ -3,7 +3,6 @@
 <head>
     <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
     <meta charset="UTF-8">
-    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil - PiDev</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -11,9 +10,16 @@
     <link href="{{ asset('frontend/css/scroll-pill.css') }}" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+    <style>
+        /* Clickable avatar upload */
+        .profile-avatar-form { display: block; margin: 0; padding: 0; }
+        .profile-avatar-file-input { position: absolute; width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; z-index: -1; }
+        .main-home-profile-avatar-clickable { display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; }
+        .main-home-profile-avatar-clickable:hover .profile-avatar-upload-hint { opacity: 1; }
+        .profile-avatar-upload-hint { position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: #fff; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem; opacity: 0; transition: opacity 0.2s; border-radius: 50%; }
+    </style>
 </head>
 <body>
-<!-- Page Loader -->
 <div class="page-loader" id="pageLoader">
     <div class="loader-content">
         <div class="loader-dots">
@@ -24,319 +30,261 @@
     </div>
 </div>
 
-<!-- Layout Wrapper -->
 <div class="main-home-layout-wrapper">
     <div class="main-home-page">
-        <!-- Include Shared Navbar -->
-        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'profile'} %}
+        {% set _navbar_avatar_url = profile.avatar ? (profile.avatar starts with 'http' ? profile.avatar : asset(profile.avatar)) : null %}
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'profile', 'profile_avatar_url': _navbar_avatar_url} %}
 
-    <!-- Main Content -->
-    <div class="main-home-content-wrapper">
-        <div class="container-xxl">
-            <!-- Profile Header -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="main-home-profile-header">
-                        <div class="main-home-profile-banner">
-                            <div class="main-home-profile-banner-overlay"></div>
+        <div class="main-home-content-wrapper">
+            <div class="container-xxl">
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ label }}" style="margin: 1rem 0; padding: 0.75rem 1rem; border-radius: 8px; background: {{ label == 'success' ? 'rgba(0,230,118,0.15)' : 'rgba(255,59,48,0.15)' }}; color: {{ label == 'success' ? '#00e676' : '#ff3b30' }};">{{ message }}</div>
+                    {% endfor %}
+                {% endfor %}
+
+                <!-- Profile Header: user data from user table -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="main-home-profile-header">
+                            <div class="main-home-profile-banner">
+                                <div class="main-home-profile-banner-overlay"></div>
+                            </div>
+                            <div class="main-home-profile-info">
+                                <div class="main-home-profile-avatar-container">
+                                    <form id="profile-avatar-upload-form" action="{{ path('frontend_profile_avatar_upload') }}" method="post" enctype="multipart/form-data" class="profile-avatar-form">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('profile_avatar_upload') }}">
+                                        <input type="file" name="avatar_file" id="profile-avatar-file-input" accept="image/jpeg,image/png,image/gif,image/webp" class="profile-avatar-file-input">
+                                        <label for="profile-avatar-file-input" class="main-home-profile-avatar main-home-profile-avatar-clickable" title="Click to upload a new photo">
+                                            {% if profile.avatar %}
+                                                <img src="{{ profile.avatar starts with 'http' ? profile.avatar : asset(profile.avatar) }}" alt="Avatar" class="main-home-profile-avatar-img" id="profile-avatar-img">
+                                            {% else %}
+                                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face" alt="Profile Picture" class="main-home-profile-avatar-img" id="profile-avatar-img">
+                                            {% endif %}
+                                            <span class="profile-avatar-upload-hint"><i class="bx bx-camera"></i> Upload</span>
+                                        </label>
+                                    </form>
+                                </div>
+                                <div class="main-home-profile-details">
+                                    <h1 class="main-home-profile-name">{{ user.firstName }} {{ user.lastName }}</h1>
+                                    <p class="main-home-profile-title">{{ user.roleUser }}</p>
+                                    <p class="main-home-profile-location">
+                                        <i class="bx bx-envelope"></i> {{ user.emailUser }}
+                                    </p>
+                                    <div class="main-home-profile-stats">
+                                        <div class="main-home-stat-item">
+                                            <span class="main-home-stat-label">Account created</span>
+                                            <span class="main-home-stat-number">{{ user.createdAt|date('d/m/Y') }}</span>
+                                        </div>
+                                        <div class="main-home-stat-item">
+                                            <span class="main-home-stat-label">Status</span>
+                                            <span class="main-home-stat-number">{{ user.isVerified ? 'Verified' : 'Pending verification' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="main-home-profile-actions" style="margin-top: 1rem;">
+                                        <button type="button" class="main-home-btn main-home-btn-primary" id="profile-settings-open" title="Profile settings">
+                                            <i class="bx bx-cog"></i> Profile settings
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="main-home-profile-info">
-                            <div class="main-home-profile-avatar-container">
-                                <div class="main-home-profile-avatar">
-                                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face" alt="Profile Picture" class="main-home-profile-avatar-img">
-                                    <button class="main-home-profile-avatar-edit">
-                                        <i class="bx bx-camera"></i>
-                                    </button>
-                                </div>
+                    </div>
+                </div>
+
+                <!-- Account info (from user table - read-only) -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="main-home-profile-card mb-4">
+                            <div class="main-home-card-header">
+                                <h3 class="main-home-card-title"><i class="bx bx-user"></i> Account (from user)</h3>
                             </div>
-                            <div class="main-home-profile-details">
-                                <h1 class="main-home-profile-name">Amine Saidi</h1>
-                                <p class="main-home-profile-title">Développeur Full Stack</p>
-                                <p class="main-home-profile-location">
-                                    <i class="bx bx-map"></i> San Francisco, CA
-                                </p>
-                                <div class="main-home-profile-stats">
-                                    <div class="main-home-stat-item">
-                                        <span class="main-home-stat-number">1.2K</span>
-                                        <span class="main-home-stat-label">Abonnés</span>
-                                    </div>
-                                    <div class="main-home-stat-item">
-                                        <span class="main-home-stat-number">856</span>
-                                        <span class="main-home-stat-label">Following</span>
-                                    </div>
-                                    <div class="main-home-stat-item">
-                                        <span class="main-home-stat-number">24</span>
-                                        <span class="main-home-stat-label">Projects</span>
-                                    </div>
-                                </div>
+                            <div class="main-home-card-content">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-3">First name</dt>
+                                    <dd class="col-sm-9">{{ user.firstName }}</dd>
+                                    <dt class="col-sm-3">Last name</dt>
+                                    <dd class="col-sm-9">{{ user.lastName }}</dd>
+                                    <dt class="col-sm-3">Email</dt>
+                                    <dd class="col-sm-9">{{ user.emailUser }}</dd>
+                                    <dt class="col-sm-3">Role</dt>
+                                    <dd class="col-sm-9">{{ user.roleUser }}</dd>
+                                    <dt class="col-sm-3">Verified</dt>
+                                    <dd class="col-sm-9">{{ user.isVerified ? 'Yes' : 'No (pending admin)' }}</dd>
+                                    <dt class="col-sm-3">Account created</dt>
+                                    <dd class="col-sm-9">{{ user.createdAt|date('d/m/Y H:i') }}</dd>
+                                </dl>
                             </div>
-                            <div class="main-home-profile-actions">
-                                <button class="main-home-btn main-home-btn-primary">
-                                    <i class="bx bx-edit"></i> Edit Profile
-                                </button>
-                                <button class="main-home-btn main-home-btn-secondary">
-                                    <i class="bx bx-share"></i> Share
-                                </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content row -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <!-- Left column: empty or future content -->
+                    </div>
+                    <div class="col-lg-4">
+                        <!-- About: Bio, Timezone, Preferences (from profile) -->
+                        <div class="main-home-profile-card mb-4">
+                            <div class="main-home-card-header">
+                                <h3 class="main-home-card-title"><i class="bx bx-info-circle"></i> About</h3>
+                            </div>
+                            <div class="main-home-card-content">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">Bio</dt>
+                                    <dd class="col-sm-8 main-home-profile-bio">
+                                        {% if profile.descriptionProfile %}
+                                            {{ profile.descriptionProfile }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </dd>
+                                    <dt class="col-sm-4">Timezone</dt>
+                                    <dd class="col-sm-8">
+                                        {% if profile.timezone is not null %}
+                                            {{ profile.timezone }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </dd>
+                                    <dt class="col-sm-4">Preferences</dt>
+                                    <dd class="col-sm-8">
+                                        {% if profile.preferences is not null %}
+                                            {{ profile.preferences }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </dd>
+                                </dl>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Profile Content -->
-            <div class="row">
-                <!-- Left Column -->
-                <div class="col-lg-8">
-                    <!-- Theme & Customization Section -->
-                    <!-- Theme & Customization Section removed -->
-                    <!-- About Section -->
-                    <div class="main-home-profile-card mb-4">
-                        <div class="main-home-card-header">
-                            <h3 class="main-home-card-title">
-                                <i class="bx bx-info-circle"></i> About
-                            </h3>
-                            <button class="main-home-card-action">
-                                <i class="bx bx-edit"></i>
-                            </button>
-                        </div>
-                        <div class="main-home-card-content">
-                            <p class="main-home-profile-bio">
-                                Passionate full-stack developer with 5+ years of experience building modern web applications. 
-                                I love creating beautiful, functional interfaces and solving complex problems with clean code. 
-                                Always learning new technologies and sharing knowledge with the community.
-                            </p>
-                            <div class="main-home-profile-tags">
-                                <span class="main-home-tag">JavaScript</span>
-                                <span class="main-home-tag">React</span>
-                                <span class="main-home-tag">Node.js</span>
-                                <span class="main-home-tag">Python</span>
-                                <span class="main-home-tag">PHP</span>
-                                <span class="main-home-tag">Symfony</span>
-                            </div>
-                        </div>
-                    </div>
+        {% include 'frontend/shared/_main_footer.html.twig' %}
+    </div>
+</div>
 
-                    <!-- Experience Section -->
-                    <div class="main-home-profile-card mb-4">
-                        <div class="main-home-card-header">
-                            <h3 class="main-home-card-title">
-                                <i class="bx bx-briefcase"></i> Experience
-                            </h3>
-                            <button class="main-home-card-action">
-                                <i class="bx bx-plus"></i>
-                            </button>
-                        </div>
-                        <div class="main-home-card-content">
-                            <div class="main-home-timeline">
-                                <div class="main-home-timeline-item">
-                                    <div class="main-home-timeline-marker"></div>
-                                    <div class="main-home-timeline-content">
-                                        <h4 class="main-home-timeline-title">Senior Full Stack Developer</h4>
-                                        <p class="main-home-timeline-company">TechCorp Inc.</p>
-                                        <p class="main-home-timeline-period">2022 - Present</p>
-                                        <p class="main-home-timeline-description">
-                                            Leading development of enterprise web applications using modern technologies. 
-                                            Mentoring junior developers and implementing best practices.
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="main-home-timeline-item">
-                                    <div class="main-home-timeline-marker"></div>
-                                    <div class="main-home-timeline-content">
-                                        <h4 class="main-home-timeline-title">Full Stack Developer</h4>
-                                        <p class="main-home-timeline-company">StartupXYZ</p>
-                                        <p class="main-home-timeline-period">2020 - 2022</p>
-                                        <p class="main-home-timeline-description">
-                                            Built scalable web applications from scratch. Worked with React, Node.js, and cloud technologies.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+<!-- Profile settings modal (same style as admin edit/add user modals) -->
+<style>
+    .profile-settings-modal-wrap { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+    .profile-settings-modal-backdrop { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px); }
+    .profile-settings-modal-card { position: relative; background: linear-gradient(160deg, rgba(28, 32, 42, 0.98) 0%, rgba(22, 26, 34, 0.98) 100%); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); max-width: 440px; width: 100%; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; max-height: 90vh; overflow-y: auto; }
+    .profile-settings-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.35rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .profile-settings-modal-header h3 { margin: 0; font-size: 1.3rem; font-weight: 700; color: #fff; letter-spacing: 0.02em; }
+    .profile-settings-modal-subtitle { margin: 0.35rem 0 0 0; font-size: 0.8rem; color: rgba(191,201,216,0.85); font-weight: 400; }
+    .profile-settings-modal-close { background: rgba(255,255,255,0.06); border: none; color: #bfc9d8; width: 2rem; height: 2rem; border-radius: 50%; font-size: 1.4rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: background 0.2s, color 0.2s; }
+    .profile-settings-modal-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .profile-settings-modal-body { padding: 1.5rem 1.75rem; display: flex; flex-direction: column; align-items: stretch; }
+    .profile-settings-modal-body form { display: flex; flex-direction: column; align-items: stretch; width: 100%; max-width: 100%; margin: 0 auto; }
+    .profile-settings-modal-body .mb-3 { margin-bottom: 1.1rem; width: 100%; }
+    .profile-settings-modal-body label { display: block; margin-bottom: 0.4rem; color: #bfc9d8; font-size: 0.9rem; font-weight: 500; }
+    .profile-settings-modal-body input[type="text"],
+    .profile-settings-modal-body input[type="number"],
+    .profile-settings-modal-body textarea { width: 100%; max-width: 100%; box-sizing: border-box; padding: 0.6rem 0.9rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fff; font-size: 1rem; transition: border-color 0.2s, background 0.2s; font-family: inherit; }
+    .profile-settings-modal-body textarea { min-height: 90px; resize: vertical; }
+    .profile-settings-modal-body input[type="text"]:focus,
+    .profile-settings-modal-body input[type="number"]:focus,
+    .profile-settings-modal-body textarea:focus { outline: none; border-color: rgba(0,198,255,0.5); background: rgba(255,255,255,0.08); }
+    .profile-settings-modal-body input[type="text"]::placeholder,
+    .profile-settings-modal-body textarea::placeholder { color: rgba(255,255,255,0.35); }
+    .profile-settings-modal-actions { display: flex; align-items: center; margin-top: 1.5rem; padding-top: 0.5rem; width: 100%; gap: 0.75rem; }
+    .profile-settings-modal-actions-spacer { flex: 1; min-width: 0; }
+    .profile-settings-modal-actions .profile-settings-btn-cancel { background: rgba(255,255,255,0.08); color: #bfc9d8; border: 1px solid rgba(255,255,255,0.12); padding: 0.6rem 1.4rem; border-radius: 999px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: background 0.2s, color 0.2s; }
+    .profile-settings-modal-actions .profile-settings-btn-cancel:hover { background: rgba(255,255,255,0.14); color: #fff; }
+    .profile-settings-modal-actions .profile-settings-btn-save { background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); color: #fff; border: none; padding: 0.6rem 1.4rem; border-radius: 999px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,123,255,0.2); transition: opacity 0.2s; }
+    .profile-settings-modal-actions .profile-settings-btn-save:hover { opacity: 0.95; }
 
-                    <!-- Projects Section -->
-                    <div class="main-home-profile-card mb-4">
-                        <div class="main-home-card-header">
-                            <h3 class="main-home-card-title">
-                                <i class="bx bx-code-alt"></i> Recent Projects
-                            </h3>
-                            <button class="main-home-card-action">
-                                <i class="bx bx-plus"></i>
-                            </button>
-                        </div>
-                        <div class="main-home-card-content">
-                            <div class="main-home-projects-grid">
-                                <div class="main-home-project-card">
-                                    <div class="main-home-project-image">
-                                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=300&h=200&fit=crop" alt="Project 1">
-                                    </div>
-                                    <div class="main-home-project-content">
-                                        <h4 class="main-home-project-title">E-Commerce Platform</h4>
-                                        <p class="main-home-project-description">Modern e-commerce solution with React and Node.js</p>
-                                        <div class="main-home-project-tech">
-                                            <span class="main-home-tech-tag">React</span>
-                                            <span class="main-home-tech-tag">Node.js</span>
-                                            <span class="main-home-tech-tag">MongoDB</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="main-home-project-card">
-                                    <div class="main-home-project-image">
-                                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=300&h=200&fit=crop" alt="Project 2">
-                                    </div>
-                                    <div class="main-home-project-content">
-                                        <h4 class="main-home-project-title">Analytics Dashboard</h4>
-                                        <p class="main-home-project-description">Real-time analytics dashboard with data visualization</p>
-                                        <div class="main-home-project-tech">
-                                            <span class="main-home-tech-tag">Vue.js</span>
-                                            <span class="main-home-tech-tag">Python</span>
-                                            <span class="main-home-tech-tag">D3.js</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right Column -->
-                <div class="col-lg-4">
-                    <!-- Contact Info -->
-                    <div class="main-home-profile-card mb-4">
-                        <div class="main-home-card-header">
-                            <h3 class="main-home-card-title">
-                                <i class="bx bx-envelope"></i> Contact
-                            </h3>
-                        </div>
-                        <div class="main-home-card-content">
-                            <div class="main-home-contact-item">
-                                <i class="bx bx-envelope"></i>
-                                <span>amine.saidi@example.com</span>
-                            </div>
-                            <div class="main-home-contact-item">
-                                <i class="bx bx-phone"></i>
-                                <span>+1 (555) 123-4567</span>
-                            </div>
-                            <div class="main-home-contact-item">
-                                <i class="bx bx-globe"></i>
-                                <span>www.aminesaidi.dev</span>
-                            </div>
-                            <div class="main-home-contact-item">
-                                <i class="bx bxl-github"></i>
-                                <span>github.com/aminesaidi</span>
-                            </div>
-                            <div class="main-home-contact-item">
-                                <i class="bx bxl-linkedin"></i>
-                                <span>linkedin.com/in/aminesaidi</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Skills -->
-                    <div class="main-home-profile-card mb-4">
-                        <div class="main-home-card-header">
-                            <h3 class="main-home-card-title">
-                                <i class="bx bx-code"></i> Skills
-                            </h3>
-                        </div>
-                        <div class="main-home-card-content">
-                            <div class="main-home-skill-item">
-                                <span class="main-home-skill-name">JavaScript</span>
-                                <div class="main-home-skill-bar">
-                                    <div class="main-home-skill-progress" style="width: 95%"></div>
-                                </div>
-                            </div>
-                            <div class="main-home-skill-item">
-                                <span class="main-home-skill-name">React</span>
-                                <div class="main-home-skill-bar">
-                                    <div class="main-home-skill-progress" style="width: 90%"></div>
-                                </div>
-                            </div>
-                            <div class="main-home-skill-item">
-                                <span class="main-home-skill-name">Node.js</span>
-                                <div class="main-home-skill-bar">
-                                    <div class="main-home-skill-progress" style="width: 85%"></div>
-                                </div>
-                            </div>
-                            <div class="main-home-skill-item">
-                                <span class="main-home-skill-name">Python</span>
-                                <div class="main-home-skill-bar">
-                                    <div class="main-home-skill-progress" style="width: 80%"></div>
-                                </div>
-                            </div>
-                            <div class="main-home-skill-item">
-                                <span class="main-home-skill-name">PHP</span>
-                                <div class="main-home-skill-bar">
-                                    <div class="main-home-skill-progress" style="width: 75%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Achievements -->
-                    <div class="main-home-profile-card mb-4">
-                        <div class="main-home-card-header">
-                            <h3 class="main-home-card-title">
-                                <i class="bx bx-trophy"></i> Achievements
-                            </h3>
-                        </div>
-                        <div class="main-home-card-content">
-                            <div class="main-home-achievement-item">
-                                <div class="main-home-achievement-icon">
-                                    <i class="bx bx-code-alt"></i>
-                                </div>
-                                <div class="main-home-achievement-content">
-                                    <h4>Code Master</h4>
-                                    <p>1000+ commits this year</p>
-                                </div>
-                            </div>
-                            <div class="main-home-achievement-item">
-                                <div class="main-home-achievement-icon">
-                                    <i class="bx bx-star"></i>
-                                </div>
-                                <div class="main-home-achievement-content">
-                                    <h4>Top Contributor</h4>
-                                    <p>Most active developer</p>
-                                </div>
-                            </div>
-                            <div class="main-home-achievement-item">
-                                <div class="main-home-achievement-icon">
-                                    <i class="bx bx-rocket"></i>
-                                </div>
-                                <div class="main-home-achievement-content">
-                                    <h4>Innovation Award</h4>
-                                    <p>Best project of 2023</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    [data-theme="light"] .profile-settings-modal-backdrop { background: rgba(0,0,0,0.35); }
+    [data-theme="light"] .profile-settings-modal-card { background: linear-gradient(160deg, rgba(255,255,255,0.98) 0%, #f5f7fa 100%); border: 1.5px solid #e3e8f7; box-shadow: 0 20px 60px rgba(0,0,0,0.12); }
+    [data-theme="light"] .profile-settings-modal-header { border-bottom-color: #e3e8f7; }
+    [data-theme="light"] .profile-settings-modal-header h3 { color: #23272f; }
+    [data-theme="light"] .profile-settings-modal-subtitle { color: #5c6370; }
+    [data-theme="light"] .profile-settings-modal-close { background: #e3e8f7; color: #23272f; }
+    [data-theme="light"] .profile-settings-modal-close:hover { background: #d0d5e0; color: #23272f; }
+    [data-theme="light"] .profile-settings-modal-body label { color: #23272f; }
+    [data-theme="light"] .profile-settings-modal-body input[type="text"],
+    [data-theme="light"] .profile-settings-modal-body input[type="number"],
+    [data-theme="light"] .profile-settings-modal-body textarea { background: #fff; border: 1px solid #e3e8f7; color: #23272f; }
+    [data-theme="light"] .profile-settings-modal-body input[type="text"]:focus,
+    [data-theme="light"] .profile-settings-modal-body input[type="number"]:focus,
+    [data-theme="light"] .profile-settings-modal-body textarea:focus { border-color: #0072ff; background: #fff; }
+    [data-theme="light"] .profile-settings-modal-body input[type="text"]::placeholder,
+    [data-theme="light"] .profile-settings-modal-body textarea::placeholder { color: #8b92a0; }
+    [data-theme="light"] .profile-settings-modal-actions .profile-settings-btn-cancel { background: #e3e8f7; color: #23272f; border-color: #d0d5e0; }
+    [data-theme="light"] .profile-settings-modal-actions .profile-settings-btn-cancel:hover { background: #d0d5e0; color: #23272f; }
+    [data-theme="light"] .profile-settings-modal-actions .profile-settings-btn-save { background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); color: #fff; box-shadow: 0 2px 8px rgba(0,123,255,0.15); }
+    [data-theme="light"] .profile-settings-modal-actions .profile-settings-btn-save:hover { background: linear-gradient(90deg, #0072ff 0%, #00c6ff 100%); color: #fff; }
+</style>
+<div id="profile-settings-modal" class="profile-settings-modal-wrap" style="display: none;">
+    <div class="profile-settings-modal-backdrop" id="profile-settings-modal-backdrop"></div>
+    <div class="profile-settings-modal-card">
+        <div class="profile-settings-modal-header">
+            <div>
+                <h3>Profile settings</h3>
+                <p class="profile-settings-modal-subtitle">Avatar, theme, locale, timezone and bio.</p>
             </div>
+            <button type="button" class="profile-settings-modal-close" id="profile-settings-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="profile-settings-modal-body">
+            {% if profileForm is defined %}
+            {{ form_start(profileForm, { 'attr': {
+                'id': 'profile-settings-form',
+                'method': 'post',
+                'action': path('frontend_profile'),
+                'class': 'profile-settings-form'
+            } }) }}
+            {{ form_row(profileForm.avatar, { 'row_attr': { 'class': 'mb-3' } }) }}
+            {{ form_row(profileForm.description_profile, { 'row_attr': { 'class': 'mb-3' } }) }}
+            {{ form_row(profileForm.theme, { 'row_attr': { 'class': 'mb-3' } }) }}
+            {{ form_row(profileForm.locale, { 'row_attr': { 'class': 'mb-3' } }) }}
+            {{ form_row(profileForm.timezone, { 'row_attr': { 'class': 'mb-3' } }) }}
+            {{ form_row(profileForm.preferences, { 'row_attr': { 'class': 'mb-3' } }) }}
+            <div class="profile-settings-modal-actions">
+                <button type="button" class="profile-settings-btn-cancel" id="profile-settings-modal-cancel">Cancel</button>
+                <span class="profile-settings-modal-actions-spacer"></span>
+                <button type="submit" class="profile-settings-btn-save">Save changes</button>
+            </div>
+            {{ form_end(profileForm) }}
+            {% endif %}
         </div>
     </div>
+</div>
 
-    <!-- Footer -->
-    <footer class="main-home-footer-island">
-        <div class="main-home-footer-content">
-            <div class="main-home-footer-left">
-                <p>&copy; 2024 PiDev. Made with ❤️ by Amine</p>
-            </div>
-            <div class="main-home-footer-right">
-                <a href="#" class="main-home-footer-link">Privacy</a>
-                <a href="#" class="main-home-footer-link">Terms</a>
-                <a href="#" class="main-home-footer-link">Support</a>
-            </div>
-        </div>
-    </footer>
+<script>
+(function() {
+    var modal = document.getElementById('profile-settings-modal');
+    var openBtn = document.getElementById('profile-settings-open');
+    var closeBtn = document.getElementById('profile-settings-modal-close');
+    var cancelBtn = document.getElementById('profile-settings-modal-cancel');
+    var backdrop = document.getElementById('profile-settings-modal-backdrop');
+    if (!modal || !openBtn) return;
+    function openModal() { if (modal) modal.style.display = 'flex'; }
+    function closeModal() { if (modal) modal.style.display = 'none'; }
+    openBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    if (backdrop) backdrop.addEventListener('click', closeModal);
+})();
 
-    {% include 'frontend/shared/_scroll_pill.html.twig' %}
-    <script src="{{ asset('frontend/js/scroll-pill.js') }}" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ asset('frontend/js/main-home.js') }}"></script>
-    <script>
-    // Theme, accent, and language settings logic removed from My Profile page
-    </script>
-    <script src="{{ asset('js/page-loader.js') }}"></script>
+(function() {
+    var form = document.getElementById('profile-avatar-upload-form');
+    var fileInput = document.getElementById('profile-avatar-file-input');
+    if (form && fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files && fileInput.files.length) form.submit();
+        });
+    }
+})();
+</script>
+
+{% include 'frontend/shared/_scroll_pill.html.twig' %}
+<script src="{{ asset('frontend/js/scroll-pill.js') }}" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ asset('frontend/js/main-home.js') }}"></script>
+<script src="{{ asset('js/page-loader.js') }}"></script>
 </body>
 </html>
