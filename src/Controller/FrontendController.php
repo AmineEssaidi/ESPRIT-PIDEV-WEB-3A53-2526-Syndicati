@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\Onboarding\Onboarding;
 use App\Entity\Profile\Profile;
+use App\Form\Onboarding\OnboardingType;
 use App\Form\Profile\ProfileType;
+use App\Repository\Onboarding\OnboardingRepository;
 use App\Repository\Profile\ProfileRepository;
 use App\Repository\User\UserRepository;
 use App\Service\PageStatusService;
@@ -27,11 +30,22 @@ class FrontendController extends AbstractController
     ) {}
 
     #[Route('/', name: 'main_home')]
-    public function mainHome(PageStatusService $pageStatusService, Request $request): Response
+    public function mainHome(PageStatusService $pageStatusService, Request $request, UserRepository $userRepository, OnboardingRepository $onboardingRepository): Response
     {
         // Check if main home is offline
         if (!$pageStatusService->isPageOnline('main_home')) {
-            return $this->redirectToRoute('maintenance_with_page', ['pageId' => 'main_home']); // Redirection remains, no user-facing string
+            return $this->redirectToRoute('maintenance_with_page', ['pageId' => 'main_home']);
+        }
+
+        $session = $request->getSession();
+        if ($session->get('is_logged_in') && $session->get('user') && isset($session->get('user')['id'])) {
+            $user = $userRepository->find((int) $session->get('user')['id']);
+            if ($user) {
+                $onboarding = $onboardingRepository->findOneByUser($user);
+                if ($onboarding === null || !$onboarding->isCompleted()) {
+                    return $this->redirectToRoute('onboarding');
+                }
+            }
         }
         
         $response = $this->render('frontend/home/main-home.html.twig');
@@ -51,6 +65,7 @@ class FrontendController extends AbstractController
         Request $request,
         UserRepository $userRepository,
         ProfileRepository $profileRepository,
+        OnboardingRepository $onboardingRepository,
         EntityManagerInterface $em
     ): Response {
         if (!$pageStatusService->isPageOnline('profile')) {
@@ -80,6 +95,22 @@ class FrontendController extends AbstractController
             $em->flush();
         }
 
+        $onboarding = $onboardingRepository->findOneByUser($user);
+        if ($onboarding !== null) {
+            $needsFlush = false;
+            if ($profile->getLocale() === null || $profile->getLocale() === '') {
+                $profile->setLocale($onboarding->getSelectedLocale());
+                $needsFlush = true;
+            }
+            if ($profile->getTheme() === null) {
+                $profile->setTheme($onboarding->getSelectedTheme() === 'light' ? 1 : 0);
+                $needsFlush = true;
+            }
+            if ($needsFlush) {
+                $em->flush();
+            }
+        }
+
         $profileForm = $this->createForm(ProfileType::class, $profile);
         $profileForm->handleRequest($request);
         if ($profileForm->isSubmitted() && $profileForm->isValid()) {
@@ -88,14 +119,82 @@ class FrontendController extends AbstractController
             return $this->redirectToRoute('frontend_profile');
         }
 
+        $onboarding = $onboardingRepository->findOneByUser($user);
+        $onboardingFormView = null;
+        if ($onboarding !== null) {
+            $onboardingFormView = $this->createForm(\App\Form\Onboarding\OnboardingType::class, $onboarding, ['admin_edit' => false, 'profile_edit' => true])->createView();
+        }
+
         $response = $this->render('frontend/profile/profile.html.twig', [
             'user' => $user,
             'profile' => $profile,
             'profileForm' => $profileForm->createView(),
+            'onboarding' => $onboarding,
+            'onboardingForm' => $onboardingFormView,
         ]);
         $response->setPrivate();
         $response->setMaxAge(0);
         return $response;
+    }
+
+    #[Route('/profile/onboarding-update', name: 'frontend_profile_onboarding_update', methods: ['POST'])]
+    public function profileOnboardingUpdate(
+        Request $request,
+        UserRepository $userRepository,
+        OnboardingRepository $onboardingRepository,
+        EntityManagerInterface $em
+    ): Response {
+        $session = $request->getSession();
+        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+            $this->addFlash('danger', 'Please sign in to update onboarding.');
+            return $this->redirectToRoute('auth_sign_in');
+        }
+        $userId = (int) $session->get('user')['id'];
+        $user = $userRepository->find($userId);
+        if (!$user) {
+            return $this->redirectToRoute('auth_sign_in');
+        }
+        $onboarding = $onboardingRepository->findOneByUser($user);
+        if (!$onboarding instanceof Onboarding) {
+            $onboarding = new Onboarding();
+            $onboarding->setUser($user);
+            $onboarding->setStep(1);
+            $onboarding->setStartedAt(new \DateTime());
+            $em->persist($onboarding);
+        }
+        $form = $this->createForm(OnboardingType::class, $onboarding, ['admin_edit' => false, 'profile_edit' => true]);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $prefs = $request->request->all('prefs');
+            $defaults = [
+                'notification_channel' => 'EMAIL',
+                'notification_frequency' => 'DAILY_DIGEST',
+                'property_type' => 'APARTMENT',
+                'occupancy_status' => 'OWNER_OCCUPIED',
+                'parking_type' => 'NONE',
+                'meeting_participation' => 'HYBRID',
+                'document_delivery' => 'DIGITAL',
+                'contact_preference' => 'EMAIL',
+                'maintenance_priority' => 'FLEXIBLE',
+                'community_engagement' => 'MODERATE',
+                'payment_method_preference' => 'ONLINE',
+                'noise_sensitivity' => 'MODERATE',
+                'pets_status' => 'NO_PETS',
+                'accessibility_needs' => 'NONE',
+            ];
+            $prefs = array_merge($defaults, is_array($prefs) ? $prefs : []);
+            $prefs['language_preference'] = match ($onboarding->getSelectedLocale()) {
+                'en' => 'EN', 'ar' => 'AR', 'fr_ar' => 'FR_AR', default => 'FR',
+            };
+            $prefs['theme_preference'] = $onboarding->getSelectedTheme() === 'light' ? 'LIGHT' : 'DARK';
+            $onboarding->setSelectedPreferences($prefs);
+            $onboarding->setUpdatedAt(new \DateTime());
+            $em->flush();
+            $this->addFlash('success', 'Onboarding choices updated.');
+            return $this->redirectToRoute('frontend_profile');
+        }
+        $this->addFlash('danger', 'Invalid form.');
+        return $this->redirectToRoute('frontend_profile');
     }
 
     #[Route('/profile/avatar-upload', name: 'frontend_profile_avatar_upload', methods: ['POST'])]
@@ -200,7 +299,7 @@ class FrontendController extends AbstractController
     }
 
     #[Route('/sign-in', name: 'auth_sign_in', methods: ['GET', 'POST'])]
-    public function signIn(Request $request, UserRepository $userRepository, ProfileRepository $profileRepository, UserPasswordHasherInterface $passwordHasher): Response
+    public function signIn(Request $request, UserRepository $userRepository, ProfileRepository $profileRepository, OnboardingRepository $onboardingRepository, UserPasswordHasherInterface $passwordHasher): Response
     {
         $session = $request->getSession();
         $error = null;
@@ -231,6 +330,10 @@ class FrontendController extends AbstractController
                             'role' => $user->getRoleUser(),
                             'avatar' => $avatar,
                         ]);
+                        $onboarding = $onboardingRepository->findOneByUser($user);
+                        if ($onboarding === null || !$onboarding->isCompleted()) {
+                            return $this->redirectToRoute('onboarding');
+                        }
                         return $this->redirectToRoute('main_home');
                     }
                 } else {

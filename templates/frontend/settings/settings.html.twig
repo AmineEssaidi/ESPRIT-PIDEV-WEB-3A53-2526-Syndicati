@@ -5,7 +5,7 @@
     <script src="{{ asset('frontend/js/smart-translate.js') }}"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - SyndiGest</title>
+    <title>Settings - Syndicati</title>
 
     <link rel="preload" href="{{ asset('frontend/css/main-home.css') }}" as="style">
     <link rel="preload" href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" as="style">
@@ -84,18 +84,16 @@
                                             <p class="settings-section-desc" data-i18n="Personnalisez l'apparence de votre interface">Personnalisez l'apparence de votre interface</p>
                                             
                                             <div class="settings-accent-grid">
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)" data-name="Violet" data-i18n="Violet" style="background: linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4);">
-                                                    <span class="settings-accent-check">✓</span>
-                                                </button>
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #ff1493, #8b5cf6, #06b6d4)" data-name="Rose" data-i18n="Rose" style="background: linear-gradient(135deg, #ff1493, #8b5cf6, #06b6d4);">
-                                                    <span class="settings-accent-check">✓</span>
-                                                </button>
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #06b6d4, #6c5ce7, #ff1493)" data-name="Cyan" data-i18n="Cyan" style="background: linear-gradient(135deg, #06b6d4, #6c5ce7, #ff1493);">
-                                                    <span class="settings-accent-check">✓</span>
-                                                </button>
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #800020, #800020)" data-name="Bordeaux" data-i18n="Bordeaux" style="background: linear-gradient(135deg, #800020, #800020);">
-                                                    <span class="settings-accent-check">✓</span>
-                                                </button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)" data-name="Violet" data-i18n="Violet" style="background: linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #ff1493, #8b5cf6, #06b6d4)" data-name="Rose" data-i18n="Rose" style="background: linear-gradient(135deg, #ff1493, #8b5cf6, #06b6d4);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #06b6d4, #6c5ce7, #ff1493)" data-name="Cyan" data-i18n="Cyan" style="background: linear-gradient(135deg, #06b6d4, #6c5ce7, #ff1493);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #800020, #800020)" data-name="Bordeaux" data-i18n="Bordeaux" style="background: linear-gradient(135deg, #800020, #800020);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #ff6b6b, #feca57, #ff9ff3)" data-name="Coral" data-i18n="Coral" style="background: linear-gradient(135deg, #ff6b6b, #feca57, #ff9ff3);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #0abde3, #2e86de, #54a0ff)" data-name="Ocean" data-i18n="Ocean" style="background: linear-gradient(135deg, #0abde3, #2e86de, #54a0ff);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #1dd1a1, #10ac84, #00d2d3)" data-name="Forest" data-i18n="Forest" style="background: linear-gradient(135deg, #1dd1a1, #10ac84, #00d2d3);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #f39c12, #e74c3c, #e67e22)" data-name="Amber" data-i18n="Amber" style="background: linear-gradient(135deg, #f39c12, #e74c3c, #e67e22);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #a29bfe, #6c5ce7, #fd79a8)" data-name="Lavender" data-i18n="Lavender" style="background: linear-gradient(135deg, #a29bfe, #6c5ce7, #fd79a8);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #00b894, #00cec9, #81ecec)" data-name="Mint" data-i18n="Mint" style="background: linear-gradient(135deg, #00b894, #00cec9, #81ecec);"><span class="settings-accent-check">✓</span></button>
                                             </div>
                                             
                                             <div class="settings-custom-color">
@@ -130,10 +128,42 @@
                             </div>
 
                             <style>
+                                /* Match header/footer width: they use width calc(100% - 60px) with 30px margin. Content wrapper has 20px padding so inner width is 100% - 40px; we need section to be 20px narrower = viewport - 60px. */
+                                .settings-page .main-home-content-wrapper .container-xxl {
+                                    max-width: none;
+                                }
+                                .settings-page .main-home-landing-section {
+                                    width: calc(100% - 20px);
+                                    max-width: none;
+                                    margin-left: auto;
+                                    margin-right: auto;
+                                }
+
+                                .settings-page .main-home-hero-title {
+                                    text-align: center;
+                                }
+                                .settings-page .main-home-hero-subtitle {
+                                    text-align: center;
+                                    display: block;
+                                    margin-left: auto;
+                                    margin-right: auto;
+                                    margin-bottom: 2rem;
+                                    background: var(--main-home-accent-gradient, linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4));
+                                    -webkit-background-clip: text;
+                                    -webkit-text-fill-color: transparent;
+                                    background-clip: text;
+                                    color: var(--main-home-accent-color, #6c5ce7);
+                                }
+
                                 .settings-container {
                                     display: flex;
                                     flex-direction: column;
-                                    gap: 1.5rem;
+                                }
+
+                                #theme-customization-form {
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 2.5rem;
                                 }
 
                                 .settings-section {
@@ -141,7 +171,7 @@
                                     gap: 1.5rem;
                                     padding: 1.5rem;
                                     background: rgba(0, 0, 0, 0.3);
-                                    border: 1px solid rgba(108, 92, 231, 0.2);
+                                    border: 1px solid rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.2);
                                     border-radius: 20px;
                                     backdrop-filter: blur(10px);
                                     transition: all 0.3s ease;
@@ -149,8 +179,8 @@
 
                                 .settings-section:hover {
                                     background: rgba(0, 0, 0, 0.4);
-                                    border-color: rgba(108, 92, 231, 0.4);
-                                    box-shadow: 0 8px 32px rgba(108, 92, 231, 0.15);
+                                    border-color: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.4);
+                                    box-shadow: 0 8px 32px rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.15);
                                 }
 
                                 .settings-section-icon {
@@ -161,9 +191,9 @@
                                     display: flex;
                                     align-items: center;
                                     justify-content: center;
-                                    background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(139, 92, 246, 0.1));
+                                    background: linear-gradient(135deg, rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.2), rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.1));
                                     border-radius: 15px;
-                                    border: 1px solid rgba(108, 92, 231, 0.3);
+                                    border: 1px solid rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.3);
                                 }
 
                                 .settings-section-content {
@@ -174,10 +204,10 @@
                                     font-size: 1.3rem;
                                     font-weight: 700;
                                     margin: 0 0 0.5rem 0;
-                                    background: linear-gradient(120deg, #6c5ce7, #8b5cf6, #06b6d4);
-                                            -webkit-background-clip: text;
-                                            -webkit-text-fill-color: transparent;
-                                            background-clip: text;
+                                    background: var(--main-home-accent-gradient, linear-gradient(120deg, #6c5ce7, #8b5cf6, #06b6d4));
+                                    -webkit-background-clip: text;
+                                    -webkit-text-fill-color: transparent;
+                                    background-clip: text;
                                 }
 
                                 .settings-section-desc {
@@ -206,7 +236,7 @@
                                 .settings-theme-card-content {
                                             padding: 1.25rem;
                                             background: rgba(0, 0, 0, 0.4);
-                                            border: 2px solid rgba(108, 92, 231, 0.2);
+                                            border: 2px solid rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.2);
                                             border-radius: 16px;
                                             display: flex;
                                             align-items: center;
@@ -216,14 +246,14 @@
 
                                 .settings-theme-card:hover .settings-theme-card-content {
                                             background: rgba(0, 0, 0, 0.5);
-                                            border-color: rgba(108, 92, 231, 0.4);
+                                            border-color: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.4);
                                     transform: translateY(-2px);
                                 }
 
                                 .settings-theme-card input:checked + .settings-theme-card-content {
-                                            background: rgba(108, 92, 231, 0.15);
-                                            border-color: var(--main-home-accent-gradient, linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4));
-                                            box-shadow: 0 4px 20px rgba(108, 92, 231, 0.3);
+                                            background: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.15);
+                                            border-color: var(--main-home-accent-color, #6c5ce7);
+                                            box-shadow: 0 4px 20px rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.3);
                                 }
 
                                 .settings-theme-icon {
@@ -254,7 +284,7 @@
                                             width: 24px;
                                             height: 24px;
                                             border-radius: 50%;
-                                            border: 2px solid rgba(108, 92, 231, 0.3);
+                                            border: 2px solid rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.3);
                                             display: flex;
                                             align-items: center;
                                             justify-content: center;
@@ -275,27 +305,29 @@
 
                                 .settings-accent-grid {
                                             display: grid;
-                                            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-                                            gap: 1rem;
+                                            grid-template-columns: repeat(10, minmax(0, 1fr));
+                                            gap: 0.65rem;
                                             margin-bottom: 1.5rem;
+                                            max-width: 100%;
                                 }
 
                                 .settings-accent-btn {
                                             position: relative;
                                             width: 100%;
+                                            max-width: 56px;
                                             aspect-ratio: 1;
-                                            border-radius: 16px;
-                                            border: 3px solid rgba(255, 255, 255, 0.1);
+                                            border-radius: 12px;
+                                            border: 2px solid rgba(255, 255, 255, 0.15);
                                             cursor: pointer;
                                             overflow: hidden;
-                                            transition: all 0.3s ease;
-                                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                                            transition: all 0.25s ease;
+                                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
                                 }
 
                                 .settings-accent-btn:hover {
-                                    transform: scale(1.1);
-                                            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.4);
-                                            border-color: rgba(255, 255, 255, 0.3);
+                                            transform: scale(1.12);
+                                            box-shadow: 0 4px 14px rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.35);
+                                            border-color: rgba(255, 255, 255, 0.35);
                                 }
 
                                 .settings-accent-btn.selected {
@@ -309,11 +341,11 @@
                                             left: 50%;
                                             transform: translate(-50%, -50%);
                                             color: white;
-                                            font-size: 1.2rem;
+                                            font-size: 1rem;
                                             font-weight: 700;
                                             opacity: 0;
-                                            transition: all 0.3s ease;
-                                    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+                                            transition: all 0.25s ease;
+                                            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
                                 }
 
                                 .settings-accent-btn.selected .settings-accent-check {
@@ -322,7 +354,7 @@
 
                                 .settings-custom-color {
                                             background: rgba(0, 0, 0, 0.3);
-                                            border: 1px solid rgba(108, 92, 231, 0.2);
+                                            border: 1px solid rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.2);
                                             border-radius: 12px;
                                             padding: 1rem;
                                 }
@@ -351,7 +383,7 @@
 
                                 .settings-color-picker:hover {
                                     transform: scale(1.1);
-                                            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
+                                            box-shadow: 0 6px 20px rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.4);
                                 }
 
                                 .settings-color-picker::-webkit-color-swatch-wrapper {
@@ -376,7 +408,7 @@
                                 .settings-hex-input {
                                     flex: 1;
                                     background: rgba(0, 0, 0, 0.4);
-                                    border: 2px solid rgba(108, 92, 231, 0.2);
+                                    border: 2px solid rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.2);
                                     border-radius: 10px;
                                     padding: 0.9rem 1rem;
                                     color: #fff;
@@ -387,8 +419,8 @@
                                 }
 
                                 .settings-hex-input:focus {
-                                    border-color: #06b6d4;
-                                    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+                                    border-color: var(--main-home-accent-color, #06b6d4);
+                                    box-shadow: 0 0 0 3px rgba(var(--main-home-accent-rgb), 0.2);
                                 }
 
                                 .settings-color-hint {
@@ -404,7 +436,7 @@
                                 .settings-select {
                                     width: 100%;
                                     background: rgba(0, 0, 0, 0.4);
-                                    border: 2px solid rgba(108, 92, 231, 0.2);
+                                    border: 2px solid rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.2);
                                     border-radius: 12px;
                                     padding: 1rem 1.2rem;
                                     color: #fff;
@@ -422,12 +454,12 @@
                                 }
 
                                 .settings-select:hover {
-                                    border-color: rgba(108, 92, 231, 0.4);
+                                    border-color: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.4);
                                 }
 
                                 .settings-select:focus {
-                                    border-color: #06b6d4;
-                                    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+                                    border-color: var(--main-home-accent-color, #06b6d4);
+                                    box-shadow: 0 0 0 3px rgba(var(--main-home-accent-rgb), 0.2);
                                 }
 
                                 .settings-select option {
@@ -452,7 +484,11 @@
                                     }
 
                                     .settings-accent-grid {
-                                        grid-template-columns: repeat(4, 1fr);
+                                        grid-template-columns: repeat(5, minmax(0, 1fr));
+                                        gap: 0.5rem;
+                                    }
+                                    .settings-accent-btn {
+                                        max-width: 48px;
                                     }
 
                                     .settings-color-inputs {
@@ -467,17 +503,17 @@
 
                                 [data-theme="light"] .settings-section {
                                     background: rgba(255, 255, 255, 0.7);
-                                    border-color: rgba(108, 92, 231, 0.15);
+                                    border-color: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.15);
                                 }
 
                                 [data-theme="light"] .settings-section:hover {
                                     background: rgba(255, 255, 255, 0.85);
-                                    border-color: rgba(108, 92, 231, 0.3);
+                                    border-color: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.3);
                                 }
 
                                 [data-theme="light"] .settings-theme-card-content {
                                     background: rgba(0, 0, 0, 0.05);
-                                    border-color: rgba(108, 92, 231, 0.15);
+                                    border-color: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.15);
                                 }
 
                                 [data-theme="light"] .settings-theme-card:hover .settings-theme-card-content {
@@ -494,13 +530,13 @@
 
                                 [data-theme="light"] .settings-hex-input {
                                     background: rgba(0, 0, 0, 0.05);
-                                    border-color: rgba(108, 92, 231, 0.15);
+                                    border-color: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.15);
                                     color: #1a1a2e;
                                 }
 
                                 [data-theme="light"] .settings-select {
                                     background: rgba(0, 0, 0, 0.05);
-                                    border-color: rgba(108, 92, 231, 0.15);
+                                    border-color: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.15);
                                     color: #1a1a2e;
                                 }
 
@@ -600,6 +636,15 @@
                                                 SmartTranslate.init(lang);
                                             }
                                         }, 200);
+
+                                        function updateSelectArrowColor() {
+                                            const sel = document.getElementById('languageSelect');
+                                            if (!sel) return;
+                                            const accent = getComputedStyle(document.documentElement).getPropertyValue('--main-home-accent-color').trim() || '#6c5ce7';
+                                            const hex = accent.replace('#', '%23');
+                                            sel.style.backgroundImage = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='${hex}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`;
+                                        }
+                                        updateSelectArrowColor();
                                     });
 </script>
 </body>

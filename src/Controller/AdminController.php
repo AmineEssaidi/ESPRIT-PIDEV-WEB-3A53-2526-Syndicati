@@ -2,8 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Onboarding\Onboarding;
+use App\Entity\Profile\Profile;
 use App\Entity\User\User;
+use App\Form\Onboarding\OnboardingType;
+use App\Form\Profile\ProfileType;
 use App\Form\User\UserType;
+use App\Repository\Onboarding\OnboardingRepository;
+use App\Repository\Profile\ProfileRepository;
 use App\Repository\User\UserRepository;
 use App\Service\PageStatusService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,18 +25,44 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 class AdminController extends AbstractController
 {
     #[Route('/admin/users', name: 'admin_users')]
-    public function users(PageStatusService $pageStatusService, Request $request, UserRepository $userRepository): Response
+    public function users(PageStatusService $pageStatusService, Request $request, UserRepository $userRepository, ProfileRepository $profileRepository, OnboardingRepository $onboardingRepository): Response
     {
         $users = $userRepository->findBy([], ['created_at' => 'DESC']);
+        $profiles = $profileRepository->findBy([], ['id_profile' => 'DESC']);
+        $onboardings = $onboardingRepository->findBy([], ['id_onboarding' => 'DESC']);
         $editUser = new User();
         $editForm = $this->createForm(UserType::class, $editUser, ['signup' => false, 'edit' => true]);
         $addUser = new User();
         $addForm = $this->createForm(UserType::class, $addUser, ['signup' => false, 'edit' => false, 'add' => true]);
+        $profileEditForm = $this->createForm(ProfileType::class, new Profile());
+        $onboardingEditForm = $this->createForm(OnboardingType::class, new Onboarding(), ['admin_edit' => true, 'use_prefs_from_request' => true]);
         return $this->render('admin/Users/index.html.twig', [
             'users' => $users,
+            'profiles' => $profiles,
+            'onboardings' => $onboardings,
             'editForm' => $editForm->createView(),
             'addForm' => $addForm->createView(),
+            'profileEditForm' => $profileEditForm->createView(),
+            'onboardingEditForm' => $onboardingEditForm->createView(),
         ]);
+    }
+
+    #[Route('/admin/profile/{id}/edit', name: 'admin_profile_edit', methods: ['GET', 'POST'])]
+    public function profileEdit(int $id, Request $request, ProfileRepository $profileRepository, EntityManagerInterface $em): Response
+    {
+        $profile = $profileRepository->find($id);
+        if (!$profile instanceof Profile) {
+            $this->addFlash('danger', 'Profile not found.');
+            return $this->redirectToRoute('admin_users');
+        }
+        $form = $this->createForm(ProfileType::class, $profile);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+            $this->addFlash('success', 'Profile updated successfully.');
+            return $this->redirectToRoute('admin_users');
+        }
+        return $this->redirectToRoute('admin_users');
     }
 
     #[Route('/admin/users/add', name: 'admin_users_add', methods: ['POST'])]
@@ -98,6 +130,49 @@ class AdminController extends AbstractController
         $this->addFlash('success', 'User deleted successfully.');
         return $this->redirectToRoute('admin_users');
     }
+
+    #[Route('/admin/onboarding/{id}/edit', name: 'admin_onboarding_edit', methods: ['GET', 'POST'])]
+    public function onboardingEdit(int $id, Request $request, OnboardingRepository $onboardingRepository, EntityManagerInterface $em): Response
+    {
+        $onboarding = $onboardingRepository->find($id);
+        if (!$onboarding instanceof Onboarding) {
+            $this->addFlash('danger', 'Onboarding not found.');
+            return $this->redirectToRoute('admin_users');
+        }
+        $form = $this->createForm(OnboardingType::class, $onboarding, ['admin_edit' => true, 'use_prefs_from_request' => true]);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $prefs = $request->request->all('prefs');
+            $defaults = [
+                'notification_channel' => 'EMAIL',
+                'notification_frequency' => 'DAILY_DIGEST',
+                'property_type' => 'APARTMENT',
+                'occupancy_status' => 'OWNER_OCCUPIED',
+                'parking_type' => 'NONE',
+                'meeting_participation' => 'HYBRID',
+                'document_delivery' => 'DIGITAL',
+                'contact_preference' => 'EMAIL',
+                'maintenance_priority' => 'FLEXIBLE',
+                'community_engagement' => 'MODERATE',
+                'payment_method_preference' => 'ONLINE',
+                'noise_sensitivity' => 'MODERATE',
+                'pets_status' => 'NO_PETS',
+                'accessibility_needs' => 'NONE',
+            ];
+            $prefs = array_merge($defaults, is_array($prefs) ? $prefs : []);
+            $prefs['language_preference'] = match ($onboarding->getSelectedLocale()) {
+                'en' => 'EN', 'ar' => 'AR', 'fr_ar' => 'FR_AR', default => 'FR',
+            };
+            $prefs['theme_preference'] = $onboarding->getSelectedTheme() === 'light' ? 'LIGHT' : 'DARK';
+            $onboarding->setSelectedPreferences($prefs);
+            $onboarding->setUpdatedAt(new \DateTime());
+            $em->flush();
+            $this->addFlash('success', 'Onboarding updated successfully.');
+            return $this->redirectToRoute('admin_users');
+        }
+        return $this->redirectToRoute('admin_users');
+    }
+
     #[Route('/admin/residence', name: 'admin_residence')]
     public function residence(PageStatusService $pageStatusService, Request $request): Response
     {

@@ -21,17 +21,14 @@ class Profile
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $avatar = null;
 
-    #[ORM\Column(type: 'smallint', nullable: true)]
+    #[ORM\Column(type: 'smallint', nullable: true, options: ['default' => null])]
     private ?int $theme = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $locale = null;
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $locale = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $timezone = null;
-
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $preferences = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true, name: 'description_profile')]
     private ?string $description_profile = null;
@@ -74,12 +71,12 @@ class Profile
         return $this;
     }
 
-    public function getLocale(): ?int
+    public function getLocale(): ?string
     {
         return $this->locale;
     }
 
-    public function setLocale(?int $locale): self
+    public function setLocale(?string $locale): self
     {
         $this->locale = $locale;
         return $this;
@@ -93,17 +90,6 @@ class Profile
     public function setTimezone(?int $timezone): self
     {
         $this->timezone = $timezone;
-        return $this;
-    }
-
-    public function getPreferences(): ?int
-    {
-        return $this->preferences;
-    }
-
-    public function setPreferences(?int $preferences): self
-    {
-        $this->preferences = $preferences;
         return $this;
     }
 

@@ -17,6 +17,21 @@
         .main-home-profile-avatar-clickable { display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; }
         .main-home-profile-avatar-clickable:hover .profile-avatar-upload-hint { opacity: 1; }
         .profile-avatar-upload-hint { position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: #fff; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem; opacity: 0; transition: opacity 0.2s; border-radius: 50%; }
+        .profile-onboarding-pill { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
+        .profile-onboarding-pill-label { font-size: 0.8rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.05em; }
+        .profile-onboarding-pill-value { font-size: 1rem; font-weight: 600; color: rgba(255,255,255,0.95); }
+        .profile-onboarding-preferences-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.5rem; }
+        .profile-onboarding-pref-item { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.04); border-radius: 8px; font-size: 0.9rem; }
+        .profile-onboarding-pref-key { color: rgba(255,255,255,0.6); text-transform: capitalize; }
+        .profile-onboarding-pref-value { color: rgba(255,255,255,0.9); font-weight: 500; }
+        .profile-onboarding-suggestions-text { margin: 0; padding: 0.75rem 1rem; background: rgba(255,255,255,0.04); border-radius: 8px; color: rgba(255,255,255,0.85); font-size: 0.95rem; line-height: 1.5; }
+        [data-theme="light"] .profile-onboarding-pill { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); }
+        [data-theme="light"] .profile-onboarding-pill-label { color: #64748b; }
+        [data-theme="light"] .profile-onboarding-pill-value { color: #1e293b; }
+        [data-theme="light"] .profile-onboarding-pref-item { background: rgba(0,0,0,0.03); }
+        [data-theme="light"] .profile-onboarding-pref-key { color: #64748b; }
+        [data-theme="light"] .profile-onboarding-pref-value { color: #1e293b; }
+        [data-theme="light"] .profile-onboarding-suggestions-text { background: rgba(0,0,0,0.04); color: #334155; }
     </style>
 </head>
 <body>
@@ -92,12 +107,12 @@
                     </div>
                 </div>
 
-                <!-- Account info (from user table - read-only) -->
+                <!-- Account info (from user + profile: Bio, Timezone) -->
                 <div class="row mb-4">
                     <div class="col-12">
                         <div class="main-home-profile-card mb-4">
                             <div class="main-home-card-header">
-                                <h3 class="main-home-card-title"><i class="bx bx-user"></i> Account (from user)</h3>
+                                <h3 class="main-home-card-title"><i class="bx bx-user"></i> Account</h3>
                             </div>
                             <div class="main-home-card-content">
                                 <dl class="row mb-0">
@@ -113,45 +128,18 @@
                                     <dd class="col-sm-9">{{ user.isVerified ? 'Yes' : 'No (pending admin)' }}</dd>
                                     <dt class="col-sm-3">Account created</dt>
                                     <dd class="col-sm-9">{{ user.createdAt|date('d/m/Y H:i') }}</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Content row -->
-                <div class="row">
-                    <div class="col-lg-8">
-                        <!-- Left column: empty or future content -->
-                    </div>
-                    <div class="col-lg-4">
-                        <!-- About: Bio, Timezone, Preferences (from profile) -->
-                        <div class="main-home-profile-card mb-4">
-                            <div class="main-home-card-header">
-                                <h3 class="main-home-card-title"><i class="bx bx-info-circle"></i> About</h3>
-                            </div>
-                            <div class="main-home-card-content">
-                                <dl class="row mb-0">
-                                    <dt class="col-sm-4">Bio</dt>
-                                    <dd class="col-sm-8 main-home-profile-bio">
+                                    <dt class="col-sm-3">Bio</dt>
+                                    <dd class="col-sm-9 main-home-profile-bio">
                                         {% if profile.descriptionProfile %}
                                             {{ profile.descriptionProfile }}
                                         {% else %}
                                             <span class="text-muted">—</span>
                                         {% endif %}
                                     </dd>
-                                    <dt class="col-sm-4">Timezone</dt>
-                                    <dd class="col-sm-8">
+                                    <dt class="col-sm-3">Timezone</dt>
+                                    <dd class="col-sm-9">
                                         {% if profile.timezone is not null %}
                                             {{ profile.timezone }}
-                                        {% else %}
-                                            <span class="text-muted">—</span>
-                                        {% endif %}
-                                    </dd>
-                                    <dt class="col-sm-4">Preferences</dt>
-                                    <dd class="col-sm-8">
-                                        {% if profile.preferences is not null %}
-                                            {{ profile.preferences }}
                                         {% else %}
                                             <span class="text-muted">—</span>
                                         {% endif %}
@@ -161,6 +149,102 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Your onboarding choices (read-only display, same style as onboarding steps pills) -->
+                {% if onboarding is not null %}
+                {% set _ob_pref_labels = {
+                    'notification_channel': 'Notification Channel',
+                    'notification_frequency': 'Notification Frequency',
+                    'property_type': 'Property Type',
+                    'occupancy_status': 'Occupancy Status',
+                    'parking_type': 'Parking Type',
+                    'meeting_participation': 'Meeting Participation',
+                    'document_delivery': 'Document Delivery',
+                    'contact_preference': 'Contact Preference',
+                    'maintenance_priority': 'Maintenance Priority',
+                    'community_engagement': 'Community Engagement',
+                    'payment_method_preference': 'Payment Method',
+                    'noise_sensitivity': 'Noise Sensitivity',
+                    'pets_status': 'Pets Status',
+                    'accessibility_needs': 'Accessibility Needs',
+                    'language_preference': 'Language Preference',
+                    'theme_preference': 'Theme Preference'
+                } %}
+                {% set _ob_pref_order = ['notification_channel','notification_frequency','property_type','occupancy_status','parking_type','meeting_participation','document_delivery','contact_preference','maintenance_priority','community_engagement','payment_method_preference','noise_sensitivity','pets_status','accessibility_needs','language_preference','theme_preference'] %}
+                {% set _ob_value_labels = {
+                    'EMAIL':'Email','SMS':'SMS','IN_APP':'In app','ALL':'All','NONE':'None',
+                    'INSTANT':'Instant','DAILY_DIGEST':'Daily digest','WEEKLY_DIGEST':'Weekly','MONTHLY':'Monthly','IMPORTANT_ONLY':'Important only',
+                    'APARTMENT':'Apartment','STUDIO':'Studio','DUPLEX':'Duplex',
+                    'OWNER_OCCUPIED':'Owner occupied','OWNER_RENTING':'Owner renting','TENANT':'Tenant','TEMPORARY':'Temporary',
+                    'OUTDOOR':'Outdoor','COVERED':'Covered','UNDERGROUND':'Underground','MULTIPLE':'Multiple',
+                    'IN_PERSON':'In person','ONLINE':'Online','HYBRID':'Hybrid','PROXY_ONLY':'Proxy only',
+                    'DIGITAL':'Digital','PAPER':'Paper','BOTH':'Both','ECO_FRIENDLY':'Eco-friendly',
+                    'PHONE':'Phone','WHATSAPP':'WhatsApp','NO_CONTACT':'Urgency only',
+                    'URGENT_ONLY':'Urgent only','PREVENTIVE':'Preventive','SCHEDULED':'Scheduled','FLEXIBLE':'Flexible',
+                    'VERY_ACTIVE':'Very active','ACTIVE':'Active','MODERATE':'Moderate','OBSERVER':'Observer','MINIMAL':'Minimal',
+                    'BANK_TRANSFER':'Bank transfer','CASH':'Cash','CHECK':'Check','AUTO_DEBIT':'Auto debit',
+                    'HIGH':'High','LOW':'Low','NOT_CONCERNED':'Not concerned',
+                    'NO_PETS':'None','CAT':'Cat','DOG':'Dog','MULTIPLE':'Multiple','OTHER':'Other',
+                    'ELEVATOR_REQUIRED':'Elevator required','WHEELCHAIR':'Wheelchair','VISUAL_IMPAIRMENT':'Visual',
+                    'FR':'Français','EN':'English','AR':'Arabic','FR_AR':'Bilingue FR/AR',
+                    'LIGHT':'Light','DARK':'Dark'
+                } %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="main-home-profile-card mb-4">
+                            <div class="main-home-card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+                                <h3 class="main-home-card-title" style="margin: 0;"><i class="bx bx-check-double"></i> Your onboarding choices</h3>
+                                <button type="button" class="main-home-btn main-home-btn-primary" id="profile-onboarding-modify-open" title="Modify onboarding choices" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                    <i class="bx bx-edit"></i> Modify onboarding choices
+                                </button>
+                            </div>
+                            <div class="main-home-card-content">
+                                <div class="row g-3">
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="profile-onboarding-pill">
+                                            <span class="profile-onboarding-pill-label">Language</span>
+                                            <span class="profile-onboarding-pill-value">{{ _ob_value_labels[onboarding.selectedLocale|upper] is defined ? _ob_value_labels[onboarding.selectedLocale|upper] : onboarding.selectedLocale|upper }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="profile-onboarding-pill">
+                                            <span class="profile-onboarding-pill-label">Theme</span>
+                                            <span class="profile-onboarding-pill-value">{{ _ob_value_labels[onboarding.selectedTheme|upper] is defined ? _ob_value_labels[onboarding.selectedTheme|upper] : onboarding.selectedTheme|capitalize }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="profile-onboarding-pill">
+                                            <span class="profile-onboarding-pill-label">Status</span>
+                                            <span class="profile-onboarding-pill-value">{{ onboarding.completed ? 'Completed' : 'In progress' }}</span>
+                                        </div>
+                                    </div>
+                                    {% if onboarding.selectedPreferences is not null and onboarding.selectedPreferences is not empty %}
+                                    <div class="col-12 mt-2">
+                                        <span class="profile-onboarding-pill-label" style="display: block; margin-bottom: 0.75rem;">Preferences</span>
+                                        <div class="profile-onboarding-preferences-grid">
+                                            {% for key in _ob_pref_order %}
+                                            {% if onboarding.selectedPreferences[key] is defined and onboarding.selectedPreferences[key] is not null and onboarding.selectedPreferences[key] != '' %}
+                                            <div class="profile-onboarding-pref-item">
+                                                <span class="profile-onboarding-pref-key">{{ _ob_pref_labels[key] is defined ? _ob_pref_labels[key] : key|replace({'_': ' '})|title }}</span>
+                                                <span class="profile-onboarding-pref-value">{{ _ob_value_labels[onboarding.selectedPreferences[key]] is defined ? _ob_value_labels[onboarding.selectedPreferences[key]] : onboarding.selectedPreferences[key] }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% if onboarding.suggestions %}
+                                    <div class="col-12 mt-2">
+                                        <span class="profile-onboarding-pill-label" style="display: block; margin-bottom: 0.5rem;">Suggestions</span>
+                                        <p class="profile-onboarding-suggestions-text">{{ onboarding.suggestions }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -218,14 +302,288 @@
     [data-theme="light"] .profile-settings-modal-actions .profile-settings-btn-cancel:hover { background: #d0d5e0; color: #23272f; }
     [data-theme="light"] .profile-settings-modal-actions .profile-settings-btn-save { background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); color: #fff; box-shadow: 0 2px 8px rgba(0,123,255,0.15); }
     [data-theme="light"] .profile-settings-modal-actions .profile-settings-btn-save:hover { background: linear-gradient(90deg, #0072ff 0%, #00c6ff 100%); color: #fff; }
+
+    /* Onboarding edit modal: same pill/step UI as onboarding page */
+    #profile-onboarding-modal .profile-onboarding-modal-card { max-width: 580px; }
+    #profile-onboarding-modal .ob-progress { display: flex; gap: 0.4rem; margin-bottom: 1.25rem; justify-content: center; flex-wrap: wrap; }
+    #profile-onboarding-modal .ob-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.25); transition: all 0.3s ease; }
+    #profile-onboarding-modal .ob-dot.ob-active { background: linear-gradient(135deg, #6c5ce7, #06b6d4); transform: scale(1.3); box-shadow: 0 0 16px rgba(108,92,231,0.5); }
+    #profile-onboarding-modal .ob-dot.ob-done { background: rgba(108,92,231,0.6); }
+    #profile-onboarding-modal .ob-step { display: none; }
+    #profile-onboarding-modal .ob-step.ob-step-visible { display: block; }
+    #profile-onboarding-modal .ob-label { display: block; font-size: 0.9rem; font-weight: 600; color: rgba(255,255,255,0.95); margin-bottom: 0.5rem; }
+    #profile-onboarding-modal .ob-options { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    #profile-onboarding-modal .ob-opt { position: relative; }
+    #profile-onboarding-modal .ob-opt input { position: absolute; opacity: 0; }
+    #profile-onboarding-modal .ob-opt label { display: flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1rem; background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.12); border-radius: 12px; cursor: pointer; transition: all 0.25s ease; font-size: 0.9rem; color: rgba(255,255,255,0.95); }
+    #profile-onboarding-modal .ob-opt input:checked + label { background: linear-gradient(135deg, rgba(108,92,231,0.28), rgba(6,182,212,0.18)); border-color: rgba(108,92,231,0.55); box-shadow: 0 4px 16px rgba(108,92,231,0.25); }
+    #profile-onboarding-modal .ob-opt label:hover { border-color: rgba(108,92,231,0.4); }
+    #profile-onboarding-modal .ob-section { margin-bottom: 1.25rem; }
+    #profile-onboarding-modal .ob-actions { display: flex; justify-content: space-between; margin-top: 1.5rem; gap: 0.75rem; }
+    #profile-onboarding-modal .ob-btn { padding: 0.6rem 1.25rem; border-radius: 12px; font-weight: 600; font-size: 0.95rem; border: none; cursor: pointer; transition: all 0.25s ease; display: inline-flex; align-items: center; gap: 0.4rem; }
+    #profile-onboarding-modal .ob-btn-prev { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.95); }
+    #profile-onboarding-modal .ob-btn-prev:hover { background: rgba(255,255,255,0.16); }
+    #profile-onboarding-modal .ob-btn-next { background: linear-gradient(135deg, #6c5ce7, #8b5cf6); color: #fff; box-shadow: 0 4px 16px rgba(108,92,231,0.4); }
+    #profile-onboarding-modal .ob-btn-next:hover { box-shadow: 0 6px 20px rgba(108,92,231,0.5); }
+    #profile-onboarding-modal .ob-select-hidden { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+    #profile-onboarding-modal .ob-textarea { width: 100%; padding: 0.9rem 1rem; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fff; font-size: 0.95rem; line-height: 1.5; resize: vertical; min-height: 100px; font-family: inherit; box-sizing: border-box; }
+    #profile-onboarding-modal .ob-textarea:focus { outline: none; border-color: rgba(108,92,231,0.6); }
+    [data-theme="light"] #profile-onboarding-modal .ob-label { color: #1e293b; }
+    [data-theme="light"] #profile-onboarding-modal .ob-opt label { background: #fff; border-color: #e2e8f0; color: #334155; }
+    [data-theme="light"] #profile-onboarding-modal .ob-opt input:checked + label { background: linear-gradient(135deg, rgba(108,92,231,0.12), rgba(6,182,212,0.08)); border-color: #6c5ce7; }
+    [data-theme="light"] #profile-onboarding-modal .ob-btn-prev { background: #e2e8f0; color: #334155; }
+    [data-theme="light"] #profile-onboarding-modal .ob-textarea { background: #fff; border-color: #e2e8f0; color: #1e293b; }
 </style>
+<!-- Onboarding edit modal: 7-step wizard with custom Locale/Theme pills and preference radios -->
+{% if onboardingForm is defined and onboardingForm is not null %}
+{% set _ob_prefs = onboarding.selectedPreferences|default({}) %}
+<div id="profile-onboarding-modal" class="profile-settings-modal-wrap" style="display: none;">
+    <div class="profile-settings-modal-backdrop" id="profile-onboarding-modal-backdrop"></div>
+    <div class="profile-settings-modal-card profile-onboarding-modal-card">
+        <div class="profile-settings-modal-header">
+            <div>
+                <h3>Modify onboarding choices</h3>
+                <p class="profile-settings-modal-subtitle">Update language, theme, preferences and suggestions.</p>
+            </div>
+            <button type="button" class="profile-settings-modal-close" id="profile-onboarding-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="profile-settings-modal-body">
+            {{ form_start(onboardingForm, { 'attr': {
+                'id': 'profile-onboarding-form',
+                'method': 'post',
+                'action': path('frontend_profile_onboarding_update'),
+                'class': 'profile-settings-form'
+            } }) }}
+            <div class="ob-progress" id="ob-progress">
+                {% for i in 1..7 %}<div class="ob-dot" data-step="{{ i }}"></div>{% endfor %}
+            </div>
+
+            <div id="ob-step-1" class="ob-step ob-step-visible">
+                <div class="ob-section">
+                    <span class="ob-label">Language</span>
+                    <div class="ob-options ob-locale-pills">
+                        {% for val, label in {'fr':'🇫🇷 Français','en':'🇺🇸 English','ar':'🇸🇦 العربية','fr_ar':'🇫🇷🇸🇦 Bilingue FR/AR'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="ob_locale_radio" id="ob_locale_{{ val }}" value="{{ val }}" {{ onboarding.selectedLocale == val ? 'checked' : '' }}>
+                            <label for="ob_locale_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Theme</span>
+                    <div class="ob-options ob-theme-pills">
+                        <div class="ob-opt">
+                            <input type="radio" name="ob_theme_radio" id="ob_theme_light" value="light" {{ onboarding.selectedTheme == 'light' ? 'checked' : '' }}>
+                            <label for="ob_theme_light">☀️ Light</label>
+                        </div>
+                        <div class="ob-opt">
+                            <input type="radio" name="ob_theme_radio" id="ob_theme_dark" value="dark" {{ onboarding.selectedTheme == 'dark' ? 'checked' : '' }}>
+                            <label for="ob_theme_dark">🌙 Dark</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ob-step-2" class="ob-step">
+                <div class="ob-section">
+                    <span class="ob-label">Notification channel</span>
+                    <div class="ob-options">
+                        {% for val, label in {'EMAIL':'📧 Email','SMS':'📱 SMS','IN_APP':'🔔 In app','ALL':'📬 All','NONE':'🔕 None'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[notification_channel]" id="ob_nc_{{ val }}" value="{{ val }}" {{ (_ob_prefs.notification_channel|default('EMAIL')) == val ? 'checked' : '' }}>
+                            <label for="ob_nc_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Frequency</span>
+                    <div class="ob-options">
+                        {% for val, label in {'INSTANT':'Instant','DAILY_DIGEST':'Daily','WEEKLY_DIGEST':'Weekly','MONTHLY':'Monthly','IMPORTANT_ONLY':'Important only'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[notification_frequency]" id="ob_nf_{{ val }}" value="{{ val }}" {{ (_ob_prefs.notification_frequency|default('DAILY_DIGEST')) == val ? 'checked' : '' }}>
+                            <label for="ob_nf_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div id="ob-step-3" class="ob-step">
+                <div class="ob-section">
+                    <span class="ob-label">Property type</span>
+                    <div class="ob-options">
+                        {% for val, label in {'APARTMENT':'Apartment','STUDIO':'Studio','DUPLEX':'Duplex'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[property_type]" id="ob_pt_{{ val }}" value="{{ val }}" {{ (_ob_prefs.property_type|default('APARTMENT')) == val ? 'checked' : '' }}>
+                            <label for="ob_pt_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Occupancy</span>
+                    <div class="ob-options">
+                        {% for val, label in {'OWNER_OCCUPIED':'Owner','OWNER_RENTING':'Landlord','TENANT':'Tenant','TEMPORARY':'Temporary'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[occupancy_status]" id="ob_os_{{ val }}" value="{{ val }}" {{ (_ob_prefs.occupancy_status|default('OWNER_OCCUPIED')) == val ? 'checked' : '' }}>
+                            <label for="ob_os_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Parking</span>
+                    <div class="ob-options">
+                        {% for val, label in {'NONE':'None','OUTDOOR':'Outdoor','COVERED':'Covered','UNDERGROUND':'Underground','MULTIPLE':'Multiple'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[parking_type]" id="ob_pk_{{ val }}" value="{{ val }}" {{ (_ob_prefs.parking_type|default('NONE')) == val ? 'checked' : '' }}>
+                            <label for="ob_pk_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div id="ob-step-4" class="ob-step">
+                <div class="ob-section">
+                    <span class="ob-label">Meeting participation</span>
+                    <div class="ob-options">
+                        {% for val, label in {'IN_PERSON':'In person','ONLINE':'Online','HYBRID':'Hybrid','PROXY_ONLY':'Proxy only'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[meeting_participation]" id="ob_mp_{{ val }}" value="{{ val }}" {{ (_ob_prefs.meeting_participation|default('HYBRID')) == val ? 'checked' : '' }}>
+                            <label for="ob_mp_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Documents</span>
+                    <div class="ob-options">
+                        {% for val, label in {'DIGITAL':'Digital','PAPER':'Paper','BOTH':'Both','ECO_FRIENDLY':'Eco-friendly'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[document_delivery]" id="ob_dd_{{ val }}" value="{{ val }}" {{ (_ob_prefs.document_delivery|default('DIGITAL')) == val ? 'checked' : '' }}>
+                            <label for="ob_dd_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Contact preference</span>
+                    <div class="ob-options">
+                        {% for val, label in {'EMAIL':'Email','PHONE':'Phone','WHATSAPP':'WhatsApp','IN_PERSON':'In person','NO_CONTACT':'Urgency only'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[contact_preference]" id="ob_cp_{{ val }}" value="{{ val }}" {{ (_ob_prefs.contact_preference|default('EMAIL')) == val ? 'checked' : '' }}>
+                            <label for="ob_cp_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div id="ob-step-5" class="ob-step">
+                <div class="ob-section">
+                    <span class="ob-label">Maintenance</span>
+                    <div class="ob-options">
+                        {% for val, label in {'URGENT_ONLY':'Urgent only','PREVENTIVE':'Preventive','SCHEDULED':'Scheduled','FLEXIBLE':'Flexible'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[maintenance_priority]" id="ob_mt_{{ val }}" value="{{ val }}" {{ (_ob_prefs.maintenance_priority|default('FLEXIBLE')) == val ? 'checked' : '' }}>
+                            <label for="ob_mt_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Community engagement</span>
+                    <div class="ob-options">
+                        {% for val, label in {'VERY_ACTIVE':'Very active','ACTIVE':'Active','MODERATE':'Moderate','OBSERVER':'Observer','MINIMAL':'Minimal'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[community_engagement]" id="ob_ce_{{ val }}" value="{{ val }}" {{ (_ob_prefs.community_engagement|default('MODERATE')) == val ? 'checked' : '' }}>
+                            <label for="ob_ce_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div id="ob-step-6" class="ob-step">
+                <div class="ob-section">
+                    <span class="ob-label">Payment</span>
+                    <div class="ob-options">
+                        {% for val, label in {'BANK_TRANSFER':'Transfer','CASH':'Cash','CHECK':'Check','ONLINE':'Online','AUTO_DEBIT':'Auto debit'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[payment_method_preference]" id="ob_pm_{{ val }}" value="{{ val }}" {{ (_ob_prefs.payment_method_preference|default('ONLINE')) == val ? 'checked' : '' }}>
+                            <label for="ob_pm_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Noise sensitivity</span>
+                    <div class="ob-options">
+                        {% for val, label in {'HIGH':'High','MODERATE':'Moderate','LOW':'Low','NOT_CONCERNED':'Not concerned'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[noise_sensitivity]" id="ob_ns_{{ val }}" value="{{ val }}" {{ (_ob_prefs.noise_sensitivity|default('MODERATE')) == val ? 'checked' : '' }}>
+                            <label for="ob_ns_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Pets</span>
+                    <div class="ob-options">
+                        {% for val, label in {'NO_PETS':'None','CAT':'Cat','DOG':'Dog','MULTIPLE':'Multiple','OTHER':'Other'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[pets_status]" id="ob_ps_{{ val }}" value="{{ val }}" {{ (_ob_prefs.pets_status|default('NO_PETS')) == val ? 'checked' : '' }}>
+                            <label for="ob_ps_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Accessibility</span>
+                    <div class="ob-options">
+                        {% for val, label in {'NONE':'None','ELEVATOR_REQUIRED':'Elevator','WHEELCHAIR':'Wheelchair','VISUAL_IMPAIRMENT':'Visual','OTHER':'Other'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[accessibility_needs]" id="ob_an_{{ val }}" value="{{ val }}" {{ (_ob_prefs.accessibility_needs|default('NONE')) == val ? 'checked' : '' }}>
+                            <label for="ob_an_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div id="ob-step-7" class="ob-step">
+                <div class="ob-section">
+                    <span class="ob-label">Suggestions (optional)</span>
+                    {{ form_widget(onboardingForm.suggestions, { 'attr': { 'class': 'ob-textarea', 'placeholder': 'Your ideas or feedback...' } }) }}
+                </div>
+            </div>
+
+            <div class="ob-select-hidden" aria-hidden="true">
+                {{ form_widget(onboardingForm.selectedLocale) }}
+                {{ form_widget(onboardingForm.selectedTheme) }}
+            </div>
+
+            <div class="ob-actions">
+                <button type="button" class="ob-btn ob-btn-prev" id="ob-prev" style="visibility: hidden;"><i class="bx bx-chevron-left"></i> Previous</button>
+                <div style="flex: 1;"></div>
+                <button type="button" class="ob-btn ob-btn-next" id="ob-next">Next <i class="bx bx-chevron-right"></i></button>
+                <button type="submit" class="ob-btn ob-btn-next" id="ob-submit" style="display: none;">Save changes <i class="bx bx-check"></i></button>
+            </div>
+            {{ form_end(onboardingForm) }}
+        </div>
+    </div>
+</div>
+{% endif %}
 <div id="profile-settings-modal" class="profile-settings-modal-wrap" style="display: none;">
     <div class="profile-settings-modal-backdrop" id="profile-settings-modal-backdrop"></div>
     <div class="profile-settings-modal-card">
         <div class="profile-settings-modal-header">
             <div>
                 <h3>Profile settings</h3>
-                <p class="profile-settings-modal-subtitle">Avatar, theme, locale, timezone and bio.</p>
+                <p class="profile-settings-modal-subtitle">Avatar, theme, locale, timezone, bio.</p>
             </div>
             <button type="button" class="profile-settings-modal-close" id="profile-settings-modal-close" aria-label="Close">&times;</button>
         </div>
@@ -242,7 +600,6 @@
             {{ form_row(profileForm.theme, { 'row_attr': { 'class': 'mb-3' } }) }}
             {{ form_row(profileForm.locale, { 'row_attr': { 'class': 'mb-3' } }) }}
             {{ form_row(profileForm.timezone, { 'row_attr': { 'class': 'mb-3' } }) }}
-            {{ form_row(profileForm.preferences, { 'row_attr': { 'class': 'mb-3' } }) }}
             <div class="profile-settings-modal-actions">
                 <button type="button" class="profile-settings-btn-cancel" id="profile-settings-modal-cancel">Cancel</button>
                 <span class="profile-settings-modal-actions-spacer"></span>
@@ -268,6 +625,82 @@
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
     if (backdrop) backdrop.addEventListener('click', closeModal);
+})();
+
+(function() {
+    var onboardingModal = document.getElementById('profile-onboarding-modal');
+    var onboardingOpenBtn = document.getElementById('profile-onboarding-modify-open');
+    var onboardingCloseBtn = document.getElementById('profile-onboarding-modal-close');
+    var onboardingCancelBtn = document.getElementById('profile-onboarding-modal-cancel');
+    var onboardingBackdrop = document.getElementById('profile-onboarding-modal-backdrop');
+    if (!onboardingModal || !onboardingOpenBtn) return;
+    function openOnboardingModal() { if (onboardingModal) onboardingModal.style.display = 'flex'; }
+    function closeOnboardingModal() { if (onboardingModal) onboardingModal.style.display = 'none'; }
+    onboardingOpenBtn.addEventListener('click', openOnboardingModal);
+    if (onboardingCloseBtn) onboardingCloseBtn.addEventListener('click', closeOnboardingModal);
+    if (onboardingCancelBtn) onboardingCancelBtn.addEventListener('click', closeOnboardingModal);
+    if (onboardingBackdrop) onboardingBackdrop.addEventListener('click', closeOnboardingModal);
+})();
+
+(function() {
+    var modal = document.getElementById('profile-onboarding-modal');
+    if (!modal) return;
+    var form = document.getElementById('profile-onboarding-form');
+    var steps = [1,2,3,4,5,6,7];
+    var currentStep = 1;
+    var dots = modal.querySelectorAll('.ob-dot');
+    var prevBtn = document.getElementById('ob-prev');
+    var nextBtn = document.getElementById('ob-next');
+    var submitBtn = document.getElementById('ob-submit');
+
+    function getLocaleSelect() { return form ? form.querySelector('[name*="[selectedLocale]"]') : null; }
+    function getThemeSelect() { return form ? form.querySelector('[name*="[selectedTheme]"]') : null; }
+
+    function syncLocaleTheme() {
+        var localeRadio = modal.querySelector('input[name="ob_locale_radio"]:checked');
+        var themeRadio = modal.querySelector('input[name="ob_theme_radio"]:checked');
+        var localeSelect = getLocaleSelect();
+        var themeSelect = getThemeSelect();
+        if (localeRadio && localeSelect) localeSelect.value = localeRadio.value;
+        if (themeRadio && themeSelect) themeSelect.value = themeRadio.value;
+        /* Real-time theme: same as actual onboarding */
+        if (themeRadio) {
+            var themeVal = themeRadio.value;
+            document.documentElement.setAttribute('data-theme', themeVal);
+            try { localStorage.setItem('theme', themeVal); } catch (e) {}
+        }
+        /* Real-time language: same as actual onboarding */
+        if (localeRadio && typeof window.setLanguage === 'function') {
+            window.setLanguage(localeRadio.value);
+        }
+    }
+
+    modal.querySelectorAll('input[name="ob_locale_radio"], input[name="ob_theme_radio"]').forEach(function(r) {
+        r.addEventListener('change', syncLocaleTheme);
+    });
+
+    function showStep(step) {
+        currentStep = step;
+        steps.forEach(function(s) {
+            var el = document.getElementById('ob-step-' + s);
+            if (el) el.classList.toggle('ob-step-visible', s === step);
+        });
+        dots.forEach(function(d, i) {
+            d.classList.remove('ob-active', 'ob-done');
+            if (i + 1 < step) d.classList.add('ob-done');
+            else if (i + 1 === step) d.classList.add('ob-active');
+        });
+        if (prevBtn) prevBtn.style.visibility = step === 1 ? 'hidden' : 'visible';
+        if (nextBtn) nextBtn.style.display = step === 7 ? 'none' : 'inline-flex';
+        if (submitBtn) submitBtn.style.display = step === 7 ? 'inline-flex' : 'none';
+        syncLocaleTheme();
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', function() { if (currentStep > 1) showStep(currentStep - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function() { if (currentStep < 7) showStep(currentStep + 1); });
+
+    var openBtn = document.getElementById('profile-onboarding-modify-open');
+    if (openBtn) openBtn.addEventListener('click', function() { showStep(1); });
 })();
 
 (function() {
