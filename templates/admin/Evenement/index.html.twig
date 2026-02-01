@@ -2,10 +2,611 @@
 
 {% block title %}Evenement - Liquid Glass Admin{% endblock %}
 
+{% block stylesheets %}
+<style>
+
+</style>
+{% endblock %}
+
 {% block content %}
 {% include 'admin/_dashboard_header.html.twig' with { 'title': 'Evenement' } %}
+
+<div class="evenement-pagination-wrapper" style="margin-top: 2rem;">
+    <div class="evenement-pagination-pills pills-animated">
+        <div class="pill-slider-bar"><div class="pill-slider"></div></div>
+        <button class="pill-tab active" data-page="1">Page 1</button>
+        <button class="pill-tab" data-page="2">Page 2</button>
+        <button class="pill-tab" data-page="3">Page 3</button>
+        <button class="pill-tab" data-page="4">Page 4</button>
+    </div>
+</div>
+
+<div id="evenement-content" class="evenement-content" style="margin-top: 1.5rem;">
+    <div class="evenement-page-content" data-page="1">
+        <div class="liquid-glass-table-container">
+            <h3 style="margin-bottom:1.5rem">Demo Evenement Table (Page 1)</h3>
+
+            <div class="evenement-table-toolbar" style="display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; width: 100%; justify-content: space-between;">
+                <div style="display: flex; align-items: center;">
+                    <button class="evenement-btn-add-db" title="Add Evenement">
+                        <i class="bx bx-plus"></i> Add Evenement
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 0.7rem; align-items: center;">
+                    <button class="evenement-sort-dir-pill" id="evenement-sort-dir-pill" title="Toggle Sort Direction" aria-label="Toggle Sort Direction">
+                        <span id="evenement-sort-dir-icon-svg"></span>
+                    </button>
+
+                    <div class="evenement-sort-pill" id="evenement-sort-pill-custom" tabindex="0" style="position:relative;">
+                        <span class="evenement-sort-selected" id="evenement-sort-selected">Sort by Name</span>
+                        <span class="evenement-sort-arrow"></span>
+                        <div class="evenement-sort-dropdown" id="evenement-sort-dropdown" style="display:none; position:absolute; left:0; top:110%; min-width:100%;">
+                            <div class="evenement-sort-option" data-value="name">Sort by Name</div>
+                            <div class="evenement-sort-option" data-value="email">Sort by Email</div>
+                            <div class="evenement-sort-option" data-value="date">Sort by Date</div>
+                            <div class="evenement-sort-option" data-value="status">Sort by Status</div>
+                        </div>
+                    </div>
+
+                    <div class="evenement-search-pill">
+                        <input type="text" class="evenement-search-input" placeholder="Search evenement..." title="Search evenement...">
+                        <i class="bx bx-search evenement-search-icon"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="liquid-glass-table-scroll">
+                <table class="liquid-glass-table" id="evenement-table">
+                    <thead>
+                        <tr>
+                            {% for col in 1..8 %}
+                            <th>Col {{ col }}</th>
+                            {% endfor %}
+                            <th>Modify</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody id="evenement-table-body">
+                        <!-- Table rows will be rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-pagination-bar">
+                <button class="evenement-table-arrow" id="evenement-table-prev" title="Previous Page">
+                    <i class="bx bx-chevron-left"></i>
+                </button>
+                <div class="evenement-table-pages" id="evenement-table-pages"></div>
+                <button class="evenement-table-arrow" id="evenement-table-next" title="Next Page">
+                    <i class="bx bx-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="evenement-page-content" data-page="2" style="display:none">
+        <div class="evenement-list-demo">
+            <h3 style="margin-bottom:1rem">Demo Evenements (Page 2)</h3>
+            <ul style="list-style:none;padding:0">
+                <li style="padding:0.5rem 0;border-bottom:1px solid #eee">Evenement Alpha</li>
+                <li style="padding:0.5rem 0;border-bottom:1px solid #eee">Evenement Beta</li>
+                <li style="padding:0.5rem 0">Evenement Gamma</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="evenement-page-content" data-page="3" style="display:none">
+        <div class="evenement-list-demo">
+            <h3 style="margin-bottom:1rem">Demo Evenements (Page 3)</h3>
+            <ul style="list-style:none;padding:0">
+                <li style="padding:0.5rem 0;border-bottom:1px solid #eee">Evenement Delta</li>
+                <li style="padding:0.5rem 0">Evenement Epsilon</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="evenement-page-content" data-page="4" style="display:none">
+        <div class="evenement-list-demo">
+            <h3 style="margin-bottom:1rem">Demo Evenements (Page 4)</h3>
+            <ul style="list-style:none;padding:0">
+                <li style="padding:0.5rem 0">Evenement Zeta</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+
+</style>
+
+<script>
+// --- Demo data: 35 rows, 8 columns ---
+const evenementDemoTableRows = Array.from({length: 35}, (_, r) => 
+    Array.from({length: 8}, (_, c) => `R${r+1}C${c+1}`)
+);
+
+const evenementRowsPerPage = 10;
+let evenementCurrentPage = 1;
+let evenementSortValue = 'name';
+let evenementSortDirection = 'asc';
+let evenementFilteredRows = [...evenementDemoTableRows];
+
+const evenementSearchInput = document.querySelector('.evenement-search-input');
+const evenementSortDirBtn = document.getElementById('evenement-sort-dir-pill');
+const evenementSortDirIconSvg = document.getElementById('evenement-sort-dir-icon-svg');
+const evenementSortPill = document.getElementById('evenement-sort-pill-custom');
+const evenementSortDropdown = document.getElementById('evenement-sort-dropdown');
+const evenementSortSelected = document.getElementById('evenement-sort-selected');
+
+function updateEvenementSortDirIcon() {
+    evenementSortDirIconSvg.innerHTML = evenementSortDirection === 'asc' 
+        ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+        : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+function evenementFilterAndSortRows() {
+    let rows = [...evenementDemoTableRows];
+
+    const search = evenementSearchInput.value.trim().toLowerCase();
+    if (search) {
+        rows = rows.filter(row => row.some(cell => cell.toLowerCase().includes(search)));
+    }
+
+    if (evenementSortValue === 'name') {
+        rows.sort((a, b) => evenementSortDirection === 'asc' ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]));
+    } else if (evenementSortValue === 'email') {
+        rows.sort((a, b) => evenementSortDirection === 'asc' ? a[1].localeCompare(b[1]) : b[1].localeCompare(a[1]));
+    } else if (evenementSortValue === 'date') {
+        rows.sort((a, b) => evenementSortDirection === 'asc' ? a[2].localeCompare(b[2]) : b[2].localeCompare(a[2]));
+    } else if (evenementSortValue === 'status') {
+        rows.sort((a, b) => evenementSortDirection === 'asc' ? a[3].localeCompare(b[3]) : b[3].localeCompare(a[3]));
+    }
+
+    evenementFilteredRows = rows;
+    evenementCurrentPage = 1;
+    updateEvenementTablePagination();
+}
+
+function renderEvenementTablePage(page) {
+    const tbody = document.getElementById('evenement-table-body');
+    tbody.innerHTML = '';
+
+    const start = (page - 1) * evenementRowsPerPage;
+    const end = Math.min(start + evenementRowsPerPage, evenementFilteredRows.length);
+
+    for (let r = start; r < end; r++) {
+        const row = document.createElement('tr');
+
+        for (let c = 0; c < 8; c++) {
+            const td = document.createElement('td');
+            td.textContent = evenementFilteredRows[r][c];
+            row.appendChild(td);
+        }
+
+        // Modify button
+        const tdModify = document.createElement('td');
+        tdModify.innerHTML = `<button class="evenement-btn-modify" title="Modify"><i class="bx bx-edit"></i> Modify</button>`;
+        row.appendChild(tdModify);
+
+        // Delete button
+        const tdDelete = document.createElement('td');
+        tdDelete.innerHTML = `<button class="evenement-btn-delete" title="Delete"><i class="bx bx-trash"></i> Delete</button>`;
+        row.appendChild(tdDelete);
+
+        tbody.appendChild(row);
+    }
+}
+
+function renderEvenementTablePagination() {
+    const totalPages = Math.ceil(evenementFilteredRows.length / evenementRowsPerPage);
+    const pagesDiv = document.getElementById('evenement-table-pages');
+    pagesDiv.innerHTML = '';
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'evenement-table-page-btn' + (i === evenementCurrentPage ? ' active' : '');
+        btn.textContent = i;
+        btn.onclick = () => {
+            evenementCurrentPage = i;
+            updateEvenementTablePagination();
+        };
+        pagesDiv.appendChild(btn);
+    }
+
+    document.getElementById('evenement-table-prev').disabled = (evenementCurrentPage === 1);
+    document.getElementById('evenement-table-next').disabled = (evenementCurrentPage === totalPages);
+}
+
+function updateEvenementTablePagination() {
+    renderEvenementTablePage(evenementCurrentPage);
+    renderEvenementTablePagination();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateEvenementSortDirIcon();
+    updateEvenementTablePagination();
+    evenementSearchInput.addEventListener('input', evenementFilterAndSortRows);
+    evenementSortDirBtn.addEventListener('click', function() {
+        evenementSortDirection = evenementSortDirection === 'asc' ? 'desc' : 'asc';
+        updateEvenementSortDirIcon();
+        evenementFilterAndSortRows();
+    });
+    document.getElementById('evenement-table-prev').onclick = function() {
+        if (evenementCurrentPage > 1) { evenementCurrentPage--; updateEvenementTablePagination(); }
+    };
+    document.getElementById('evenement-table-next').onclick = function() {
+        const totalPages = Math.ceil(evenementFilteredRows.length / evenementRowsPerPage);
+        if (evenementCurrentPage < totalPages) { evenementCurrentPage++; updateEvenementTablePagination(); }
+    };
+    // --- Users-style sorting pill dropdown logic ---
+    const sortPill = document.getElementById('evenement-sort-pill-custom');
+    const sortDropdown = document.getElementById('evenement-sort-dropdown');
+    const sortSelected = document.getElementById('evenement-sort-selected');
+    let sortValue = evenementSortValue;
+    function closeSortDropdown() {
+        sortDropdown.style.display = 'none';
+        sortPill.classList.remove('open');
+    }
+    function openSortDropdown() {
+        sortDropdown.style.display = 'flex';
+        sortPill.classList.add('open');
+    }
+    sortPill.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (sortDropdown.style.display === 'flex') {
+            closeSortDropdown();
+        } else {
+            openSortDropdown();
+        }
+    });
+    document.querySelectorAll('.evenement-sort-option').forEach(opt => {
+        opt.addEventListener('click', function(e) {
+            sortValue = this.getAttribute('data-value');
+            evenementSortValue = sortValue;
+            sortSelected.textContent = this.textContent;
+            document.querySelectorAll('.evenement-sort-option').forEach(o => o.classList.remove('active'));
+            this.classList.add('active');
+            closeSortDropdown();
+            evenementFilterAndSortRows();
+        });
+    });
+    document.addEventListener('click', function(e) {
+        if (!sortPill.contains(e.target)) closeSortDropdown();
+    });
+    sortPill.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeSortDropdown();
+        if (e.key === 'ArrowDown') {
+            openSortDropdown();
+            const first = sortDropdown.querySelector('.evenement-sort-option');
+            if (first) first.focus();
+        }
+    });
+});
+</script>
+
+<script>
+// --- Users-style sort direction toggle for Evenement ---
+let evenementSortDirection = 'asc';
+const evenementSortDirBtn = document.getElementById('evenement-sort-dir-pill');
+const evenementSortDirIconSvg = document.getElementById('evenement-sort-dir-icon-svg');
+
+function updateEvenementSortDirIcon() {
+    evenementSortDirIconSvg.innerHTML = evenementSortDirection === 'asc' 
+        ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+        : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+if (evenementSortDirBtn && evenementSortDirIconSvg) {
+    updateEvenementSortDirIcon();
+    evenementSortDirBtn.addEventListener('click', function() {
+        evenementSortDirection = evenementSortDirection === 'asc' ? 'desc' : 'asc';
+        updateEvenementSortDirIcon();
+        if (typeof evenementFilterAndSortRows === 'function') {
+            evenementFilterAndSortRows();
+        }
+    });
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Pills logic ---
+    function showEvenementPage(page) {
+        document.querySelectorAll('.evenement-page-content').forEach(div => {
+            div.style.display = div.dataset.page === page ? '' : 'none';
+        });
+    }
+
+    // Pills animation logic
+    function updatePillSlider() {
+        const pills = document.querySelectorAll('.pill-tab');
+        const slider = document.querySelector('.pill-slider');
+        const active = document.querySelector('.pill-tab.active');
+
+        if (!active || !slider) return;
+
+        slider.style.left = active.offsetLeft + 'px';
+        slider.style.width = active.offsetWidth + 'px';
+    }
+
+    document.querySelectorAll('.pill-tab').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            updatePillSlider();
+            showEvenementPage(this.dataset.page);
+        });
+    });
+
+    // Initial load
+    showEvenementPage('1');
+    setTimeout(updatePillSlider, 100);
+
+    window.addEventListener('resize', updatePillSlider);
+});
+</script>
+
+<script>
+// --- Users-style dropdown and sort pill logic for Evenement (enhanced version in DOMContentLoaded) ---
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Users-style dropdown and sort pill logic for Evenement ---
+    const sortPill = document.getElementById('evenement-sort-pill-custom');
+    const sortDropdown = document.getElementById('evenement-sort-dropdown');
+    const sortSelected = document.getElementById('evenement-sort-selected');
+    let sortValue = 'name';
+
+    function closeSortDropdown() {
+        if (sortDropdown) {
+            sortDropdown.style.display = 'none';
+        }
+        if (sortPill) {
+            sortPill.classList.remove('open');
+        }
+    }
+
+    function openSortDropdown() {
+        if (sortDropdown) {
+            sortDropdown.style.display = 'flex';
+        }
+        if (sortPill) {
+            sortPill.classList.add('open');
+        }
+    }
+
+    if (sortPill && sortDropdown) {
+        sortPill.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (sortDropdown.style.display === 'flex') {
+                closeSortDropdown();
+            } else {
+                openSortDropdown();
+            }
+        });
+
+        document.querySelectorAll('.evenement-sort-option').forEach(opt => {
+            opt.addEventListener('click', function(e) {
+                sortValue = this.getAttribute('data-value');
+                sortSelected.textContent = this.textContent;
+                document.querySelectorAll('.evenement-sort-option').forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+                closeSortDropdown();
+                evenementSortValue = sortValue;
+                evenementFilterAndSortRows();
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!sortPill.contains(e.target)) {
+                closeSortDropdown();
+            }
+        });
+
+        sortPill.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeSortDropdown();
+            }
+            if (e.key === 'ArrowDown') {
+                openSortDropdown();
+                const first = sortDropdown.querySelector('.evenement-sort-option');
+                if (first) first.focus();
+            }
+        });
+    }
+
+    // --- Pills logic ---
+    function showEvenementPage(page) {
+        document.querySelectorAll('.evenement-page-content').forEach(div => {
+            div.style.display = div.dataset.page === page ? '' : 'none';
+        });
+    }
+
+    function updatePillSlider() {
+        const pills = document.querySelectorAll('.pill-tab');
+        const slider = document.querySelector('.pill-slider');
+        const active = document.querySelector('.pill-tab.active');
+
+        if (!active || !slider) return;
+
+        slider.style.left = active.offsetLeft + 'px';
+        slider.style.width = active.offsetWidth + 'px';
+    }
+
+    document.querySelectorAll('.pill-tab').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            updatePillSlider();
+            showEvenementPage(this.dataset.page);
+        });
+    });
+
+    showEvenementPage('1');
+    setTimeout(updatePillSlider, 100);
+    window.addEventListener('resize', updatePillSlider);
+
+    // --- Sort direction toggle logic ---
+    let evenementSortDirection = 'asc';
+    const evenementSortDirBtn = document.getElementById('evenement-sort-dir-pill');
+    const evenementSortDirIconSvg = document.getElementById('evenement-sort-dir-icon-svg');
+
+    function updateEvenementSortDirIcon() {
+        evenementSortDirIconSvg.innerHTML = evenementSortDirection === 'asc' 
+            ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+            : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    }
+
+    updateEvenementSortDirIcon();
+
+    evenementSortDirBtn.addEventListener('click', function() {
+        evenementSortDirection = evenementSortDirection === 'asc' ? 'desc' : 'asc';
+        updateEvenementSortDirIcon();
+        evenementFilterAndSortRows();
+    });
+
+    // --- Custom dropdown logic for sorting pill ---
+    const evenementSortPill = document.getElementById('evenement-sort-pill-custom');
+    const evenementSortDropdown = document.getElementById('evenement-sort-dropdown');
+    const evenementSortSelected = document.getElementById('evenement-sort-selected');
+    let evenementSortValue = 'name';
+
+    function closeEvenementSortDropdown() {
+        evenementSortDropdown.style.display = 'none';
+        evenementSortPill.classList.remove('open');
+    }
+
+    function openEvenementSortDropdown() {
+        evenementSortDropdown.style.display = 'flex';
+        evenementSortPill.classList.add('open');
+    }
+
+    evenementSortPill.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (evenementSortDropdown.style.display === 'flex') {
+            closeEvenementSortDropdown();
+        } else {
+            openEvenementSortDropdown();
+        }
+    });
+
+    document.querySelectorAll('.evenement-sort-option').forEach(opt => {
+        opt.addEventListener('click', function(e) {
+            evenementSortValue = this.getAttribute('data-value');
+            evenementSortSelected.textContent = this.textContent;
+            document.querySelectorAll('.evenement-sort-option').forEach(o => o.classList.remove('active'));
+            this.classList.add('active');
+            closeEvenementSortDropdown();
+            evenementFilterAndSortRows();
+        });
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!evenementSortPill.contains(e.target)) {
+            closeEvenementSortDropdown();
+        }
+    });
+
+    evenementSortPill.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeEvenementSortDropdown();
+        }
+        if (e.key === 'ArrowDown') {
+            openEvenementSortDropdown();
+            const first = evenementSortDropdown.querySelector('.evenement-sort-option');
+            if (first) first.focus();
+        }
+    });
+
+    // --- Search and sort logic ---
+    const evenementSearchInput = document.querySelector('.evenement-search-input');
+    let evenementFilteredRows = [...evenementDemoTableRows];
+
+    function evenementFilterAndSortRows() {
+        let rows = [...evenementDemoTableRows];
+
+        const search = evenementSearchInput.value.trim().toLowerCase();
+        if (search) {
+            rows = rows.filter(row => row.some(cell => cell.toLowerCase().includes(search)));
+        }
+
+        if (evenementSortValue === 'name') {
+            rows.sort((a, b) => evenementSortDirection === 'asc' ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]));
+        } else if (evenementSortValue === 'email') {
+            rows.sort((a, b) => evenementSortDirection === 'asc' ? a[1].localeCompare(b[1]) : b[1].localeCompare(a[1]));
+        } else if (evenementSortValue === 'date') {
+            rows.sort((a, b) => evenementSortDirection === 'asc' ? a[2].localeCompare(b[2]) : b[2].localeCompare(a[2]));
+        } else if (evenementSortValue === 'status') {
+            rows.sort((a, b) => evenementSortDirection === 'asc' ? a[3].localeCompare(b[3]) : b[3].localeCompare(a[3]));
+        }
+
+        evenementFilteredRows = rows;
+        evenementCurrentPage = 1;
+        updateEvenementTablePagination();
+    }
+
+    evenementSearchInput.addEventListener('input', evenementFilterAndSortRows);
+
+    // Patch renderEvenementTablePage to use evenementFilteredRows
+    const origRenderEvenementTablePage = renderEvenementTablePage;
+    renderEvenementTablePage = function(page) {
+        const tbody = document.getElementById('evenement-table-body');
+        tbody.innerHTML = '';
+
+        const start = (page - 1) * evenementRowsPerPage;
+        const end = Math.min(start + evenementRowsPerPage, evenementFilteredRows.length);
+
+        for (let r = start; r < end; r++) {
+            const row = document.createElement('tr');
+
+            for (let c = 0; c < 8; c++) {
+                const td = document.createElement('td');
+                td.textContent = evenementFilteredRows[r][c];
+                row.appendChild(td);
+            }
+
+            // Modify button
+            const tdModify = document.createElement('td');
+            tdModify.innerHTML = `<button class="evenement-btn-modify" title="Modify"><i class="bx bx-edit"></i> Modify</button>`;
+            row.appendChild(tdModify);
+
+            // Delete button
+            const tdDelete = document.createElement('td');
+            tdDelete.innerHTML = `<button class="evenement-btn-delete" title="Delete"><i class="bx bx-trash"></i> Delete</button>`;
+            row.appendChild(tdDelete);
+
+            tbody.appendChild(row);
+        }
+    };
+
+    // Patch renderEvenementTablePagination to use evenementFilteredRows
+    const origRenderEvenementTablePagination = renderEvenementTablePagination;
+    renderEvenementTablePagination = function() {
+        const totalPages = Math.ceil(evenementFilteredRows.length / evenementRowsPerPage);
+        const pagesDiv = document.getElementById('evenement-table-pages');
+        pagesDiv.innerHTML = '';
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'evenement-table-page-btn' + (i === evenementCurrentPage ? ' active' : '');
+            btn.textContent = i;
+            btn.onclick = () => {
+                evenementCurrentPage = i;
+                updateEvenementTablePagination();
+            };
+            pagesDiv.appendChild(btn);
+        }
+
+        document.getElementById('evenement-table-prev').disabled = (evenementCurrentPage === 1);
+        document.getElementById('evenement-table-next').disabled = (evenementCurrentPage === totalPages);
+    };
+
+    // Initial filter and sort
+    evenementFilterAndSortRows();
+});
+</script>
+
 {% endblock %}
 
 {% block javascripts %}
-	{{ parent() }}
+    {{ parent() }}
 {% endblock %}

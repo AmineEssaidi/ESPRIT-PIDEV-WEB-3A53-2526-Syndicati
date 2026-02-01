@@ -4,11 +4,30 @@
 {% block title %}Residence - Liquid Glass Admin{% endblock %}
 
 {% block content %}
+        <div class="liquid-glass-table-container">
+            
+            <div class="evenement-table-toolbar bg-faded" style="display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; width: 100%; justify-content: space-between;">
+                <div class="col-sm-3-auto">
+                        <input type="text" class="evenement-search-input" placeholder="Search evenement..." title="Search evenement...">
+                        <i class="bx bx-search evenement-search-icon"></i>
+                </div>
+                    <div class="col-sm-auto">
+                        <span>Trier par: </span><button class="btn btn-primary" title="Add Evenement">ID</span>
 
-<h1>Residence index</h1>
-    <div class="container">
-    <table class="table table-striped table-dark">
-        <thead>
+                    </div>
+                    <div class="col-sm-auto">
+                        <span>Filtres: </span><button class="btn btn-primary" title="Add Evenement">ID</span>
+
+                    </div>
+                    <div class="col-sm-auto">
+                    <button class="btn btn-info" title="Add Evenement">
+                        <i class="bx bx-plus"></i> Ajouter Résidence
+                    </button>
+                </div>
+                    </div>
+            <div class="container">
+                <table class="table table-striped">
+        <thead class="thead-dark">
             <tr>
                 <th>Id</th>
                 <th>Nom_r</th>
@@ -27,8 +46,10 @@
                 <td>{{ residence.imageR }}</td>
                 <td>{{ residence.dateAjout ? residence.dateAjout|date('Y-m-d') : '' }}</td>
                 <td>
-                    <a href="{{ path('admin_residence_show', {'id': residence.id}) }}">show</a>
-                    <a href="{{ path('admin_residence_edit', {'id': residence.id}) }}">edit</a>
+                <button class="btn btn-primary"><a class="text-white" href="{{ path('admin_residence_show', {'id': residence.id}) }}">Détails</a></button>
+                <button class="btn btn-info"><a class="text-white" href="{{ path('admin_residence_edit', {'id': residence.id}) }}">Modifier</a></button>
+                <button class="btn btn-danger"><a class="text-white" href="{{ path('admin_residence_delete', {'id': residence.id}) }}">Effacer</a></button>
+
                 </td>
             </tr>
         {% else %}
@@ -39,8 +60,11 @@
         </tbody>
     </table>
 </div>
-    <a href="{{ path('admin_residence_new') }}">Create new</a>
 
+                </div>
+
+</div>
+</div>
 </div>
 {% endblock %}
 {% block javascripts %}

@@ -16,6 +16,7 @@ class ResidenceType extends AbstractType
             ->add('adresse')
             ->add('image_r')
             ->add('date_ajout')
+
         ;
     }
 

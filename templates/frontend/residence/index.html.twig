@@ -2,49 +2,47 @@
 
 {% block title %}Residence index{% endblock %}
 
-{% block body %}
-<div class="main-home-layout-wrapper">
-    <div class="main-home-page">
-        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'services'} %}
-        <div class="main-home-content-box">
-            <h1 class="main-home-content-title">Residence</h1>
 
-            <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Nom_r</th>
-                <th>Adresse</th>
-                <th>Image_r</th>
-                <th>Date_ajout</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for residence in residences %}
-            <tr>
-                <td>{{ residence.id }}</td>
-                <td>{{ residence.nomR }}</td>
-                <td>{{ residence.adresse }}</td>
-                <td>{{ residence.imageR }}</td>
-                <td>{{ residence.dateAjout ? residence.dateAjout|date('Y-m-d') : '' }}</td>
-                <td>
-                    <a href="{{ path('frontend_residence_show', {'id': residence.id}) }}">show</a>
-                    <a href="{{ path('frontend_residence_edit', {'id': residence.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
+{% block body%}
+
+    <div class="main-home-layout-wrapper">
+        <div class="main-home-page">
+            {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'services'} %}
+
+            <hr>
+    <div class="container bg-faded">
+                        <h1 class="main-home-content-title text-center">Nos Résidences</h1>
+
+    <div class="row">
+    {% for residence in residences %}
+        <div class="col-sm-4 p-1">
+        <div class="main-home-testimonial-card ">
+            <div class="main-home-testimonial-content">
+                <h4 class="main-home-event-title main-home-content-title">{{ residence.nomR }}</h4>
+                <img src="{{ residence.imageR }}">
+            </div>
+            <div class="main-home-testimonial-author">
+                <div class="row ">
+                    <span class="col-sm-auto">{{ residence.adresse }}</span>
+                    <span class="main-home-participation-rate col-sm">{{ residence.dateAjout ? residence.dateAjout|date('Y-m-d') : '' }}</span>
+                </div>
+            </div>
+        </div>
+        </div>
+    {% else %}
             <tr>
                 <td colspan="6">no records found</td>
             </tr>
         {% endfor %}
-        </tbody>
-    </table>
+            <hr>
+            <br>
 
-    <a href="{{ path('frontend_residence_new') }}">Create new</a>
+            </div></div>
+            <hr>
+ <div class="container bg-faded">
+                        <h1 class="main-home-content-title text-center">Liste des appartements</h1>
+{{ render(controller('App\\Controller\\Frontend\\Residence\\AppartementController::index')) }}
 
-    </div>
-            {% include 'frontend/shared/_main_footer.html.twig' %}
-</div>
-</div>
+
+       
 {% endblock %}
