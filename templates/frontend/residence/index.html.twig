@@ -41,8 +41,10 @@
             <hr>
  <div class="container bg-faded">
                         <h1 class="main-home-content-title text-center">Liste des appartements</h1>
-{{ render(controller('App\\Controller\\Frontend\\Residence\\AppartementController::index')) }}
+                            <div class="row">
 
+{{ render(controller('App\\Controller\\Frontend\\Residence\\AppartementController::index')) }}
+</div>
 
        
 {% endblock %}

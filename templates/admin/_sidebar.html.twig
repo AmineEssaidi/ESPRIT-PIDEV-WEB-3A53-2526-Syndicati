@@ -52,10 +52,6 @@
                     <span class="menu-icon">👥</span>
                     <div data-i18n="Users">Users</div>
                 </div>
-                <div class="status-badge online">
-                    <span class="status-dot"></span>
-                    <span class="status-text">Online</span>
-                </div>
             </a>
         </li>
         <li class="menu-item {{ app.request.get('_route') == 'admin_forum' ? 'active' : '' }}">
@@ -63,10 +59,6 @@
                 <div class="menu-content">
                     <span class="menu-icon">💬</span>
                     <div data-i18n="Forum">Forum</div>
-                </div>
-                <div class="status-badge offline">
-                    <span class="status-dot"></span>
-                    <span class="status-text">Offline</span>
                 </div>
             </a>
         </li>
@@ -76,10 +68,6 @@
                     <span class="menu-icon">🏛️</span>
                     <div data-i18n="Syndicat">Syndicat</div>
                 </div>
-                <div class="status-badge online">
-                    <span class="status-dot"></span>
-                    <span class="status-text">Online</span>
-                </div>
             </a>
         </li>
         <li class="menu-item {{ app.request.get('_route') == 'admin_residence' ? 'active' : '' }}">
@@ -88,21 +76,22 @@
                     <span class="menu-icon">🏢</span>
                     <div data-i18n="Residence">Residence</div>
                 </div>
-                <div class="status-badge offline">
-                    <span class="status-dot"></span>
-                    <span class="status-text">Offline</span>
+            </a>
+        </li>
+        <li class="menu-item {{ app.request.get('_route') == 'admin_appartements' ? 'active' : '' }}">
+            <a href="{{ path('admin_appartement') }}" class="menu-link">
+                <div class="menu-content">
+                    <span class="menu-icon">🏢</span>
+                    <div data-i18n="Appartements">Appartements</div>
                 </div>
             </a>
         </li>
+        
         <li class="menu-item {{ app.request.get('_route') == 'admin_evenement' ? 'active' : '' }}">
             <a href="{{ path('admin_evenement') }}" class="menu-link">
                 <div class="menu-content">
                     <span class="menu-icon">🎉</span>
                     <div data-i18n="Evenement">Evenement</div>
-                </div>
-                <div class="status-badge online">
-                    <span class="status-dot"></span>
-                    <span class="status-text">Online</span>
                 </div>
             </a>
         </li>

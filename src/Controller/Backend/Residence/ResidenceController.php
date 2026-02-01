@@ -51,7 +51,7 @@ final class ResidenceController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/residence/{id}/edit', name: 'admin_residence_edit')]
+    #[Route('/admin/residence/edit/{id}', name: 'admin_residence_edit')]
     public function edit(Request $request, Residence $residence, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(ResidenceType::class, $residence);
@@ -69,7 +69,7 @@ final class ResidenceController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/residence/{id}', name: 'admin_residence_delete')]
+    #[Route('/admin/residence/delete/{id}', name: 'admin_residence_delete', methods: ['POST'])]
     public function delete(Request $request, Residence $residence, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$residence->getId(), $request->getPayload()->getString('_token'))) {
@@ -77,6 +77,6 @@ final class ResidenceController extends AbstractController
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('admin_residence', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('admin_residence');
     }
 }

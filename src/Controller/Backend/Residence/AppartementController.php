@@ -1,28 +1,29 @@
 <?php
 
-namespace App\Controller\Frontend\Residence;
+namespace App\Controller\Backend\Residence;
 
 use App\Entity\Frontend\Appartement;
-use App\Repository\Frontend\AppartementRepository;
+use App\Form\Frontend\AppartementType;
+use App\Repository\Backend\AppartementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/appartement')]
+use Doctrine\Persistence\ManagerRegistry;
+
 final class AppartementController extends AbstractController
 {
-    #[Route(name: 'frontend_residence_appartement', methods: ['GET'])]
+    #[Route('/admin/appartement',name: 'admin_appartement')]
     public function index(AppartementRepository $appartementRepository): Response
     {
-        return $this->render('frontend/residence/indexAppartement.html.twig', [
+        return $this->render('admin/Residence/indexAppartementBack.html.twig', [
             'appartements' => $appartementRepository->findAll(),
         ]);
     }
- 
 
-    #[Route('/appartement/new', name: 'frontend_residence_appartement_new', methods: ['GET', 'POST'])]
+    #[Route('/admin/appartement/new', name: 'admin_appartement_new')]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $appartement = new Appartement();
@@ -33,24 +34,24 @@ final class AppartementController extends AbstractController
             $entityManager->persist($appartement);
             $entityManager->flush();
 
-            return $this->redirectToRoute('frontend_residence_appartement', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('admin_appartement', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('frontend/residence/newAppartement.html.twig', [
+        return $this->render('admin/Residence/newAppartementBack.html.twig', [
             'appartement' => $appartement,
             'form' => $form,
         ]);
     }
 
-    #[Route('/appartement/{id}', name: 'frontend_residence_appartement_show', methods: ['GET'])]
+    #[Route('/admin/appartement/{id}', name: 'admin_appartement_show')]
     public function show(Appartement $appartement): Response
     {
-        return $this->render('frontend/residence/showAppartement.html.twig', [
+        return $this->render('admin/Residence/showAppartementBack.html.twig', [
             'appartement' => $appartement,
         ]);
     }
 
-    #[Route('/appartement/{id}/edit', name: 'frontend_residence_appartement_edit', methods: ['GET', 'POST'])]
+    #[Route('/admin/appartement/edit/{id}', name: 'admin_appartement_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Appartement $appartement, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(AppartementType::class, $appartement);
@@ -59,16 +60,16 @@ final class AppartementController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
-            return $this->redirectToRoute('frontend_residence_appartement', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('admin_appartement', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('frontend/residence/editAppartement.html.twig', [
+        return $this->render('admin/Residence/editAppartementBack.html.twig', [
             'appartement' => $appartement,
             'form' => $form,
         ]);
     }
 
-    #[Route('/appartement/delete/{id}', name: 'frontend_residence_appartement_delete')]
+    #[Route('/admin/appartement/delete/{id}', name: 'admin_appartement_delete')]
     public function delete(Request $request, Appartement $appartement, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$appartement->getId(), $request->getPayload()->getString('_token'))) {
@@ -76,6 +77,6 @@ final class AppartementController extends AbstractController
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('frontend_residence_appartement', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('admin_appartement', [], Response::HTTP_SEE_OTHER);
     }
 }

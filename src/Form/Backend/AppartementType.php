@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Form\Frontend;
+namespace App\Form\Backend;
 
-use App\Entity\Frontend\Appartement;
+use App\Entity\Backend\Appartement;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;

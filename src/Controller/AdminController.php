@@ -21,6 +21,11 @@ class AdminController extends AbstractController
     {
         return $this->render('admin/Residence/index.html.twig');
     }
+    #[Route('/admin/residence', name: 'admin_appartement')]
+    public function appartement(PageStatusService $pageStatusService, Request $request): Response
+    {
+        return $this->render('admin/Residence/indexAppartementBack.html.twig');
+    }
     #[Route('/admin/forum', name: 'admin_forum')]
     public function forum(PageStatusService $pageStatusService, Request $request): Response
     {
