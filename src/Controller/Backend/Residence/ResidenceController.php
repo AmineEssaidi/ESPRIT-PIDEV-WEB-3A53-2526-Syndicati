@@ -11,6 +11,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\String\Slugger\SluggerInterface;
+
 use Doctrine\Persistence\ManagerRegistry;
 
 final class ResidenceController extends AbstractController
@@ -24,13 +28,30 @@ final class ResidenceController extends AbstractController
     }
 
     #[Route('/admin/newResidence', name: 'admin_residence_new')]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger,
+    #[Autowire('%kernel.project_dir%/public/images/residence')] string $dirImage
+    ): Response
     {
         $residence = new Residence();
         $form = $this->createForm(ResidenceType::class, $residence);
+        $residence->setNAppartements(0);
+        $residence->setDateAjout(new \DateTime());
         $form->handleRequest($request);
 
+
         if ($form->isSubmitted() && $form->isValid()) {
+
+            $img = $form->get('image_r')->getData();
+            if ($img) {
+                $originalFilename = pathinfo($img->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$img->guessExtension();
+
+                $img->move($dirImage, $newFilename);
+
+                $residence->setImageR($newFilename);
+
+            }
             $entityManager->persist($residence);
             $entityManager->flush();
 
@@ -52,12 +73,25 @@ final class ResidenceController extends AbstractController
     }
 
     #[Route('/admin/residence/edit/{id}', name: 'admin_residence_edit')]
-    public function edit(Request $request, Residence $residence, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Residence $residence, EntityManagerInterface $entityManager,
+    SluggerInterface $slugger,
+    #[Autowire('%kernel.project_dir%/public/images/residence')] string $dirImage): Response
     {
         $form = $this->createForm(ResidenceType::class, $residence);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $img = $form->get('image_r')->getData();
+            if ($img) {
+                $originalFilename = pathinfo($img->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$img->guessExtension();
+
+                $img->move($dirImage, $newFilename);
+
+                $residence->setImageR($newFilename);
+
+            }
             $entityManager->flush();
 
             return $this->redirectToRoute('admin_residence', [], Response::HTTP_SEE_OTHER);

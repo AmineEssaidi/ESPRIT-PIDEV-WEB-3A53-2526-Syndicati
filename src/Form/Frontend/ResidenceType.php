@@ -16,7 +16,7 @@ class ResidenceType extends AbstractType
         $builder
             ->add('nom_r')
             ->add('adresse')
-            ->add('image_r')
+            ->add('image_r', FileType::class)
             ->add('date_ajout')
         ;
     }

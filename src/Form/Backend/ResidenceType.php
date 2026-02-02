@@ -8,6 +8,8 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class ResidenceType extends AbstractType
 {
@@ -16,8 +18,20 @@ class ResidenceType extends AbstractType
         $builder
             ->add('nom_r')
             ->add('adresse')
-            ->add('image_r')
-            ->add('date_ajout')
+            ->add('n_etages')
+            ->add('n_blocs')
+            ->add('image_r', FileType::class,[
+                'label' => 'image_r', 'required'=>false,
+                'constraints' => [
+                    new Assert\File(
+                        maxSize: '10M',
+                        extensions: ['png', 'jpg', 'jpeg'],
+                        extensionsMessage: 'Image invalide',
+                    )
+                ],
+            ])->add('image_r', FileType::class, array('data_class' => null,'required' => false))
+
+
 
         ;
     }

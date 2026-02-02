@@ -26,6 +26,15 @@ class Residence
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTime $date_ajout = null;
 
+    #[ORM\Column]
+    private ?int $n_appartements = null;
+
+    #[ORM\Column]
+    private ?int $n_etages = null;
+
+    #[ORM\Column]
+    private ?int $n_blocs = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -75,6 +84,42 @@ class Residence
     public function setDateAjout(\DateTime $date_ajout): static
     {
         $this->date_ajout = $date_ajout;
+
+        return $this;
+    }
+
+    public function getNAppartements(): ?int
+    {
+        return $this->n_appartements;
+    }
+
+    public function setNAppartements(int $n_appartements): static
+    {
+        $this->n_appartements = $n_appartements;
+
+        return $this;
+    }
+
+    public function getNEtages(): ?int
+    {
+        return $this->n_etages;
+    }
+
+    public function setNEtages(int $n_etages): static
+    {
+        $this->n_etages = $n_etages;
+
+        return $this;
+    }
+
+    public function getNBlocs(): ?int
+    {
+        return $this->n_blocs;
+    }
+
+    public function setNBlocs(int $n_blocs): static
+    {
+        $this->n_blocs = $n_blocs;
 
         return $this;
     }

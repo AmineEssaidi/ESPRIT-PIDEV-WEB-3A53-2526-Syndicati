@@ -19,7 +19,7 @@
         <div class="main-home-testimonial-card ">
             <div class="main-home-testimonial-content text-center">
                 <h4 class="main-home-event-title main-home-content-title">{{ residence.nomR }}</h4>
-                <img src="{{ residence.imageR }}">
+                                <img src="{{ residence.imageR ? asset('images/residence/' ~  residence.imageR) : '' }}" width="300">
             </div>
             <div class="main-home-testimonial-author">
                 <div class="row ">
