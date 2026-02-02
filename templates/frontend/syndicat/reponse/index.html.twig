@@ -1,0 +1,56 @@
+{% extends 'base_symfony.html.twig' %}
+
+{% block title %}Réclamations{% endblock %}
+
+{% block body %}
+<h2 class="mb-4">Réclamations à traiter</h2>
+
+{% if listreclamation is empty %}
+    <div class="alert alert-info">
+        Aucune réclamation disponible.
+    </div>
+{% else %}
+    <table class="table table-bordered table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th>#</th>
+                <th>Titre</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in listreclamation %}
+                <tr>
+                    <th scope="row">{{ loop.index }}</th>
+                    <td>{{ r.titrereclamations }}</td>
+                    <td>{{ r.descreclamation }}</td>
+                    <td>{{ r.datereclamation|date('Y-m-d') }}</td>
+                    <td>
+                        <a href="{{ path('frontend_syndicat_reponse_new', {'id': r.id}) }}"
+                           class="btn btn-sm btn-primary">
+                            💬 Répondre
+                        </a>
+
+                        <a href="{{ path('frontend_syndicat_reponse_show', {'id': r.id}) }}"
+                           class="btn btn-sm btn-secondary">
+                            👁️ Show
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% endblock %}
+
+
+
+
+
+
+
+
+

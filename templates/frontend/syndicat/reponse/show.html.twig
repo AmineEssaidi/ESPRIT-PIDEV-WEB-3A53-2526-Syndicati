@@ -1,0 +1,52 @@
+<h2>Conversation  Réclamation</h2>
+
+<h3>{{ reclamation.titrereclamations }}</h3>
+
+<p>
+    <strong>Description:</strong><br>
+    {{ reclamation.descreclamation }}
+</p>
+
+<p>
+    <strong>Date:</strong>
+    {{ reclamation.datereclamation | date }}
+</p>
+
+<hr>
+
+<h3>Réponses</h3>
+
+{% if reponses is empty %}
+    <p>Aucune réponse pour cette réclamation.</p>
+{% else %}
+    <table border="2">
+        <tr>
+            <td>Message</td>
+            <td>Date</td>
+            <td>Actions</td>
+        </tr>
+
+        {% for rep in reponses %}
+            <tr>
+                <td>{{ rep.messagereponse }}</td>
+                <td>{{ rep.datereponse | date }}</td>
+                <td>
+                    <a href="{{ path('frontend_syndicat_reponse_edit', {'id': rep.id}) }}">
+                        ✏️ Modifier
+                    </a>
+                    |
+                    <a href="{{ path('delete_reponse', {'id': rep.id}) }}"
+                       onclick="return confirm('Supprimer cette réponse ?')">
+                        🗑 Supprimer
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+
+<br>
+
+<a href="{{ path('frontend_syndicat_reponse_a_faire') }}">
+    ⬅ Retour au tableau de bord 
+</a>

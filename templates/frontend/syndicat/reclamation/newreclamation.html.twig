@@ -1,0 +1,11 @@
+{#
+{{ form(f)}}
+#}
+
+<h1>Create form</h1>
+{{form_start(f) }}
+    {{form_widget(f)}}
+    <button type="submit">create</button>
+{{form_end(f) }}
+
+<a href="{{path('frontend_syndicat_reclamation')}}">back to list</a>

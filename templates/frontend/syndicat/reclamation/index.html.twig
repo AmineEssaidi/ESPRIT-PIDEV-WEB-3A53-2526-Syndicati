@@ -1,0 +1,41 @@
+{% if listreclamation is empty%}
+<p>  vide add some books  </p>
+{% else %}
+
+<table border="3">
+    <tr>
+        <td>titre</td>
+        <td>description</td>
+        <td>date</td>
+        <td>status</td>
+        <td>voir</td>
+        <td>supprimer</td>
+        <td>modifier</td>
+    </tr>
+    
+
+    {% for i in listreclamation %}
+    <tr>
+        <td>{{i.titrereclamations}}</td> 
+        <td>{{i.descreclamation}}</td>
+        <td>{{i.datereclamation | date}}</td>
+        <td>{{i.statutreclamation}}</td>
+        <td><a href="{{ path('frontend_syndicat_reclamation_show', {'id': i.id}) }}"> 👁️ Show</a></td>
+        <td><a href="{{   path('delete_reclamation' , {'id':i.id} ) }}">supprimer</a></td>
+        <td><a href="{{ path('frontend_syndicat_reclamation_edit', {'id': i.id}) }}">✏️ Modifier</a></td>
+        
+        
+    
+    
+         
+    </tr>
+{% endfor %}
+{% endif %}
+
+      <div style="margin: 20px 0;">
+                <a href="{{ path('frontend_syndicat_reclamation_new') }}"
+                   class="btn btn-primary">
+                    ➕ Ajouter une réclamation
+                </a>
+            </div>
+</table>

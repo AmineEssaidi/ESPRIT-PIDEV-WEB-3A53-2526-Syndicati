@@ -1,0 +1,18 @@
+{#
+{{ form(f)}}
+#}
+
+<h1>Create form</h1>
+{{form_start(f) }}
+    {{form_widget(f)}}
+    <button type="submit">create</button>
+{{form_end(f) }}
+
+
+
+
+        <br/>
+        <a href="{{ path('frontend_syndicat_reponse_a_faire') }}"
+>
+                ⬅ Retour au tableau de bord 
+        </a>
