@@ -8,6 +8,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
+
 #[ORM\Entity(repositoryClass: ResidenceRepository::class)]
 class Residence
 {
@@ -17,12 +20,18 @@ class Residence
     private ?int $id = null;
 
     #[ORM\Column(length: 40)]
+
+    #[Assert\NotBlank(message: "Nom de la résidence obligatoire" )]
+    #[Assert\Length(min: 5, minMessage: "Nom de la résidence trop court" )]
     private ?string $nom_r = null;
 
     #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: "Adresse obligatoire" )]
+    #[Assert\Length(min: 4, minMessage: "Adresse trop courte" )]
     private ?string $adresse = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+
     private ?string $image_r = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
@@ -32,9 +41,15 @@ class Residence
     private ?int $n_appartements = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: "Nombre d'étages obligatoire" )]
+    #[Assert\Positive(message: "La valeur ne peut pas être négative" )]
+    #[Assert\LessThan(value: 6, message: "Nombre d'étages invalide" )]
     private ?int $n_etages = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: "Nombre de blocs obligatoire" )]
+    #[Assert\Positive(message: "La valeur ne peut pas être négative" )]
+    #[Assert\LessThan(value: 9, message: "Nombre de blocs invalide" )]
     private ?int $n_blocs = null;
 
     /**

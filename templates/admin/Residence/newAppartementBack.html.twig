@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Appartement{% endblock %}
+
+{% block title %}Ajouter un appartement{% endblock %}
 
 {% block content %}
     <h1>Create new Appartement</h1>
@@ -8,4 +9,7 @@
     {{ include('admin/Residence/_formAppartementBack.html.twig') }}
 
     <a href="{{ path('admin_appartement') }}">back to list</a>
+{% endblock %}
+{% block javascripts %}
+	{{ parent() }}
 {% endblock %}

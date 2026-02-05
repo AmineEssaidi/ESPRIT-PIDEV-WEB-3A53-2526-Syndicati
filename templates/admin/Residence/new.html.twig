@@ -1,3 +1,4 @@
+{% extends 'base.html.twig' %}
 
 {% block title %}New Residence{% endblock %}
 
@@ -7,4 +8,7 @@
     {{ include('admin/Residence/_form.html.twig') }}
 
     <a href="{{ path('admin_residence') }}">back to list</a>
+{% endblock %}
+{% block javascripts %}
+	{{ parent() }}
 {% endblock %}

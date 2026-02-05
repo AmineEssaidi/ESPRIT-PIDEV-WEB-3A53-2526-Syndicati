@@ -2,6 +2,7 @@
 
 {% block title %}Appartement index{% endblock %}
 
+
 {% block content %}
     <h1>Appartement index</h1>
 
@@ -30,7 +31,6 @@
                 <table class="table table-striped">
         <thead class="thead-dark">
             <tr>
-                <th>Id</th>
                 <th>Numero</th>
                 <th>Etage</th>
                 <th>Bloc</th>
@@ -44,7 +44,6 @@
         <tbody>
         {% for appartement in appartements %}
             <tr>
-                <td>{{ appartement.id }}</td>
                 <td>{{ appartement.numero }}</td>
                 <td>{{ appartement.etage }}</td>
                 <td>{{ appartement.bloc }}</td>

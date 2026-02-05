@@ -5,6 +5,7 @@ namespace App\Entity\Backend;
 use App\Repository\Backend\AppartementRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AppartementRepository::class)]
 class Appartement
@@ -15,12 +16,18 @@ class Appartement
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: "Le numéro de l'appartement ne peut pas être vide")]
+    #[Assert\Positive(message: "La valeur ne peut pas être négative" )]
+    #[Assert\LessThan(value: 20, message: "Numéro d'appartement invalide" )]
     private ?int $numero = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: "L'étage est obligatoire")]
     private ?int $etage = null;
 
     #[ORM\Column(length: 5)]
+    #[Assert\NotBlank(message: "Le bloc est obligatoire")]
+
     private ?string $bloc = null;
 
     #[ORM\Column]
@@ -33,10 +40,12 @@ class Appartement
     private ?string $image_a = null;
 
     #[ORM\Column(length: 10)]
+    #[Assert\NotBlank(message: "Ce champ est obligatoire")]
     private ?string $type_a = null;
 
     #[ORM\ManyToOne(inversedBy: 'appartements')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank(message: "La résidence est obligatoire")]
     private ?Residence $residence = null;
 
     public function getId(): ?int
