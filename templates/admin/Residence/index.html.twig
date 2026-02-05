@@ -7,13 +7,27 @@
         <div class="liquid-glass-table-container">
             
             <div class="evenement-table-toolbar bg-faded" style="display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; width: 100%; justify-content: space-between;">
-                <div class="col-sm-3-auto">
-                        <input type="text" class="evenement-search-input" placeholder="Search evenement..." title="Search evenement...">
+                <div class="col-sm-auto">
+
+                    <form method="GET" action=" {{ path('admin_residence') }}">
+                        <input type="text" 
+                        class="evenement-search-input" 
+                        name="cherche_residence"
+                        value="{{ app.request.query.get('query') }}"
+                        placeholder="Search evenement..." title="Search evenement...">
                         <i class="bx bx-search evenement-search-icon"></i>
+                    </form>
                 </div>
                     <div class="col-sm-auto">
-                        <span>Trier par: </span><button class="btn btn-primary" title="Add Evenement">ID</span>
-
+                        <form method="GET" action=" {{ path('admin_residence') }}">
+                        <select name="tri_r" id="tri_r"
+                        value="{{ app.request.query.get('query') }}">Trier par: </span><button class="btn btn-primary" title="Add Evenement">
+                            <option value="id">Défaut</option>
+                            <option value="nom_r">Nom</option>
+                            <option value="n_etages">Nombre étages</option>
+                        </select>
+                        <input type="submit" value="Trier">
+                        </form>
                     </div>
                     <div class="col-sm-auto">
                         <span>Filtres: </span><button class="btn btn-primary" title="Add Evenement">ID</span>

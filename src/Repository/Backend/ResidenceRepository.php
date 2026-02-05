@@ -16,6 +16,24 @@ class ResidenceRepository extends ServiceEntityRepository
         parent::__construct($registry, Residence::class);
     }
 
+    public function findByName($search): array
+       {
+        return $this->createQueryBuilder('r')
+        ->andWhere('r.nom_r LIKE :nom')
+                ->setParameter('nom', '%'.$search.'%')
+    //            ->orderBy('b.id', 'ASC')
+    //            ->setMaxResults(10)
+               ->getQuery()
+                ->getResult();
+    }
+    public function triResidence($critere): array
+       {
+        return $this->createQueryBuilder('r')
+                ->orderBy('r.' . $critere, 'ASC')
+               ->getQuery()
+                ->getResult();
+    }
+
     //    /**
     //     * @return Residence[] Returns an array of Residence objects
     //     */

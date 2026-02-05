@@ -20,10 +20,20 @@ use Doctrine\Persistence\ManagerRegistry;
 final class ResidenceController extends AbstractController
 {
     #[Route('/admin/residence', name: 'admin_residence')]
-    public function index(ResidenceRepository $residenceRepository): Response
+    public function index(ResidenceRepository $residenceRepository, Request $req): Response
     {
+        $residences=$residenceRepository->findAll();
+        
+        $search=$req->query->get('cherche_residence');
+        $critere=$req->query->get('tri_r');
+
+        if ($search)
+            $residences=$residenceRepository->findByName($search);
+        if ($critere)
+            $residences=$residenceRepository->triResidence($critere);
+        
         return $this->render('admin/Residence/index.html.twig', [
-            'residences' => $residenceRepository->findAll(),
+            'residences' => $residences,
         ]);
     }
 
@@ -113,4 +123,6 @@ final class ResidenceController extends AbstractController
 
         return $this->redirectToRoute('admin_residence');
     }
+
+
 }
