@@ -2,13 +2,16 @@
 
 namespace App\Controller\Frontend\Residence;
 
-use App\Entity\Frontend\Appartement;
-use App\Repository\Frontend\AppartementRepository;
+use App\Entity\Backend\Appartement;
+use App\Repository\Backend\AppartementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+
+use Doctrine\Persistence\ManagerRegistry;
+
 
 #[Route('/appartement')]
 final class AppartementController extends AbstractController

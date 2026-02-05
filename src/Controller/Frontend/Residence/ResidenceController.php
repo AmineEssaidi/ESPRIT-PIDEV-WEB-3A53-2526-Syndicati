@@ -2,10 +2,10 @@
 
 namespace App\Controller\Frontend\Residence;
 
-use App\Entity\Frontend\Residence;
+use App\Entity\Backend\Residence;
 
-use App\Form\Frontend\ResidenceType;
-use App\Repository\Frontend\ResidenceRepository;
+use App\Form\Backend\ResidenceType;
+use App\Repository\Backend\ResidenceRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

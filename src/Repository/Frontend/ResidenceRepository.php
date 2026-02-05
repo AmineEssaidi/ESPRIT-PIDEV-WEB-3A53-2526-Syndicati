@@ -2,7 +2,7 @@
 
 namespace App\Repository\Frontend;
 
-use App\Entity\Frontend\Residence;
+use App\Entity\Backend\Residence;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

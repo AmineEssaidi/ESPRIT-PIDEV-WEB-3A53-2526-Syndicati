@@ -3,6 +3,8 @@
 namespace App\Entity\Backend;
 
 use App\Repository\Backend\ResidenceRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -34,6 +36,17 @@ class Residence
 
     #[ORM\Column]
     private ?int $n_blocs = null;
+
+    /**
+     * @var Collection<int, Appartement>
+     */
+    #[ORM\OneToMany(targetEntity: Appartement::class, mappedBy: 'residence', orphanRemoval: true)]
+    private Collection $appartements;
+
+    public function __construct()
+    {
+        $this->appartements = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -120,6 +133,36 @@ class Residence
     public function setNBlocs(int $n_blocs): static
     {
         $this->n_blocs = $n_blocs;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Appartement>
+     */
+    public function getAppartements(): Collection
+    {
+        return $this->appartements;
+    }
+
+    public function addAppartement(Appartement $appartement): static
+    {
+        if (!$this->appartements->contains($appartement)) {
+            $this->appartements->add($appartement);
+            $appartement->setResidence($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAppartement(Appartement $appartement): static
+    {
+        if ($this->appartements->removeElement($appartement)) {
+            // set the owning side to null (unless already changed)
+            if ($appartement->getResidence() === $this) {
+                $appartement->setResidence(null);
+            }
+        }
 
         return $this;
     }

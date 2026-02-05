@@ -35,6 +35,10 @@ class Appartement
     #[ORM\Column(length: 10)]
     private ?string $type_a = null;
 
+    #[ORM\ManyToOne(inversedBy: 'appartements')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Residence $residence = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -120,6 +124,18 @@ class Appartement
     public function setTypeA(string $type_a): static
     {
         $this->type_a = $type_a;
+
+        return $this;
+    }
+
+    public function getResidence(): ?Residence
+    {
+        return $this->residence;
+    }
+
+    public function setResidence(?Residence $residence): static
+    {
+        $this->residence = $residence;
 
         return $this;
     }
