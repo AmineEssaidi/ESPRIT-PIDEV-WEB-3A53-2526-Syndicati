@@ -1,1168 +1,1736 @@
+{% block stylesheets %}
+	<style>
+	/* === RESIDENCE-STYLE MODAL & UI COMPONENTS === */
+			.users-edit-modal *, .users-edit-modal *::before, .users-edit-modal *::after { box-sizing: border-box !important; }
+			.users-edit-modal { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+			.users-edit-modal-backdrop { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); cursor: pointer; }
+			.users-edit-modal-card { position: relative; background: linear-gradient(165deg, rgba(32, 38, 52, 0.98) 0%, rgba(20, 24, 32, 0.98) 100%); border-radius: 24px; box-shadow: 0 25px 80px rgba(0,0,0,0.7); max-width: 800px; width: 100%; border: 1px solid rgba(255,255,255,0.12); overflow: visible; max-height: 90vh; display: flex; flex-direction: column; }
+			.users-edit-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.75rem 2.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+			.users-edit-modal-header h3 { margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
+			.users-edit-modal-subtitle { margin: 0.5rem 0 0 0; font-size: 0.9rem; color: rgba(191,201,216,0.8); font-weight: 400; }
+			.users-edit-modal-close { background: rgba(255,255,255,0.08); border: none; color: #bfc9d8; width: 2.4rem; height: 2.4rem; border-radius: 50%; font-size: 1.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.25s ease; }
+			.users-edit-modal-close:hover { background: rgba(255,255,255,0.15); color: #fff; transform: rotate(90deg); }
+			.users-edit-modal-body { padding: 2.25rem 2.5rem; display: flex; flex-direction: column; align-items: stretch; overflow-y: auto; scrollbar-width: none; overflow-x: visible; }
+			.users-edit-modal-body::-webkit-scrollbar { display: none; }
+			.users-edit-modal-actions { display: flex; gap: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 1rem; align-items: center; }
+			.users-edit-modal-actions-spacer { flex: 1; }
+			.residence-form-group { margin-bottom: 1.75rem; width: 100%; display: flex; flex-direction: column; }
+			.residence-edit-label { display: block; margin-bottom: 0.75rem; color: #bfc9d8; font-weight: 600; font-size: 0.95rem; letter-spacing: 0.02em; }
+			.residence-edit-input { width: 100%; border: 1px solid rgba(255, 255, 255, 0.12); padding: 0.95rem 1.25rem; border-radius: 16px; background: rgba(0, 0, 0, 0.3); color: #fff; font-size: 1rem; outline: none; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); border-left: 4px solid transparent; }
+			.residence-edit-input:focus { border-color: rgba(0, 198, 255, 0.5); border-left-color: #00c6ff; background: rgba(0, 0, 0, 0.45); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+			.users-edit-modal-body input[type="text"], .users-edit-modal-body input[type="email"], .users-edit-modal-body input[type="password"], .users-edit-modal-body input[type="number"], .users-edit-modal-body textarea, .users-edit-modal-body select { width: 100%; border: 1px solid rgba(255, 255, 255, 0.12); padding: 0.95rem 1.25rem; border-radius: 16px; background: rgba(0, 0, 0, 0.3); color: #fff; font-size: 1rem; outline: none; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); border-left: 4px solid transparent; }
+			.users-edit-modal-body input:focus, .users-edit-modal-body textarea:focus, .users-edit-modal-body select:focus { border-color: rgba(0, 198, 255, 0.5); border-left-color: #00c6ff; background: rgba(0, 0, 0, 0.45); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+			.users-edit-modal-body label { display: block; margin-bottom: 0.75rem; color: #bfc9d8; font-weight: 600; font-size: 0.95rem; letter-spacing: 0.02em; }
+			.custom-glass-dropdown { position: relative; width: 100%; user-select: none; }
+			.custom-glass-dropdown-trigger { width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 0 1.25rem; color: #fff; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.25s ease; font-size: 1rem; height: 56px; border-left: 4px solid transparent; }
+			.custom-glass-dropdown-trigger:hover { border-color: rgba(0, 198, 255, 0.45); background: rgba(0, 0, 0, 0.4); }
+			.custom-glass-dropdown.open .custom-glass-dropdown-trigger { border-color: #0072ff; border-left-color: #00c6ff; box-shadow: 0 10px 30px rgba(0, 114, 255, 0.15); }
+			.custom-glass-dropdown-arrow { font-size: 1.4rem; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: #00c6ff; }
+			.custom-glass-dropdown.open .custom-glass-dropdown-arrow { transform: rotate(180deg); }
+			.custom-glass-dropdown-menu { position: absolute; top: 115%; left: 0; width: 100%; background: rgba(26, 30, 40, 0.98); backdrop-filter: blur(35px) saturate(210%); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7); z-index: 1000; display: none; flex-direction: column; padding: 0.75rem; max-height: 250px; overflow-y: auto; scrollbar-width: thin; animation: dropdown-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards; }
+			@keyframes dropdown-pop { 0% { opacity: 0; transform: translateY(-10px) scale(0.95); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+			.custom-glass-dropdown-menu::-webkit-scrollbar { width: 5px; }
+			.custom-glass-dropdown-menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+			.custom-glass-dropdown-option { padding: 0.9rem 1.25rem; border-radius: 12px; color: rgba(191, 201, 216, 0.9); cursor: pointer; transition: all 0.2s ease; font-size: 1rem; margin-bottom: 4px; }
+			.custom-glass-dropdown-option:hover { background: rgba(255, 255, 255, 0.12); color: #fff; transform: scale(1.02); padding-left: 1.5rem; }
+			.custom-glass-dropdown-option.selected { background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); color: #fff; font-weight: 700; box-shadow: 0 4px 15px rgba(0, 114, 255, 0.3); }
+			.hidden-select { display: none !important; visibility: hidden !important; height: 0 !important; width: 0 !important; position: absolute !important; opacity: 0 !important; overflow: hidden !important; }
+			.modal-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; width: 100%; margin-bottom: 1.75rem; }
+			.custom-file-wrapper { position: relative; width: 100%; }
+			.custom-file-trigger { width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.3s ease; }
+			.custom-file-trigger:hover { background: rgba(0, 198, 255, 0.05); border-color: #00c6ff; }
+			.custom-file-icon { font-size: 1.8rem; color: #00c6ff; }
+			.custom-file-text { flex: 1; color: rgba(191, 201, 216, 0.8); font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+			.custom-file-btn { background: rgba(255, 255, 255, 0.1); color: #fff; padding: 0.5rem 1rem; border-radius: 10px; font-weight: 600; font-size: 0.85rem; }
+			.forum-view-row { display: flex; gap: 1.5rem; padding: 1.25rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+			.forum-view-label { min-width: 120px; font-size: 0.9rem; font-weight: 700; color: rgba(191,201,216,0.7); text-transform: uppercase; letter-spacing: 0.08em; }
+			.forum-view-value { flex: 1; font-size: 1.05rem; color: #e3e8f7; line-height: 1.6; }
+			.users-btn-cancel, .users-btn-modify, .users-btn-delete { border: none; border-radius: 14px; padding: 0.9rem 1.75rem; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: inline-flex; align-items: center; gap: 0.75rem; }
+			.users-btn-cancel { background: rgba(255, 255, 255, 0.08); color: #bfc9d8; }
+			.users-btn-cancel:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: translateY(-2px); }
+			.users-btn-modify { background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); color: #fff; box-shadow: 0 10px 25px rgba(0, 114, 255, 0.3); }
+			.users-btn-modify:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0, 114, 255, 0.45); }
+			.users-btn-delete { background: linear-gradient(135deg, #ff3b30 0%, #ff2d92 100%); color: #fff; box-shadow: 0 10px 25px rgba(255, 45, 146, 0.25); }
+			.users-btn-delete:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(255, 45, 146, 0.4); }
+			[data-theme="light"] .custom-glass-dropdown-trigger { background: #f0f4f8; border-color: #dce2e8; color: #1c202a; }
+			[data-theme="light"] .custom-glass-dropdown-menu { background: #fff; border-color: #dce2e8; }
+			[data-theme="light"] .custom-file-trigger { background: #f0f4f8; border-color: #dce2e8; }
+			[data-theme="light"] .residence-edit-input { background: #f0f4f8; border-color: #dce2e8; color: #1c202a; }
+			[data-theme="light"] .residence-edit-input:focus { background: #fff; border-color: #0072ff; border-left-color: #00c6ff; }
+			[data-theme="light"] .residence-edit-label { color: #4a5568; }
+			[data-theme="light"] .users-edit-modal-body input, [data-theme="light"] .users-edit-modal-body textarea, [data-theme="light"] .users-edit-modal-body select { background: #f0f4f8; border-color: #dce2e8; color: #1c202a; }
+			[data-theme="light"] .users-edit-modal-body input:focus, [data-theme="light"] .users-edit-modal-body textarea:focus, [data-theme="light"] .users-edit-modal-body select:focus { background: #fff; border-color: #0072ff; border-left-color: #00c6ff; }
+			[data-theme="light"] .users-edit-modal-body label { color: #4a5568; }
+			/* === END RESIDENCE-STYLE COMPONENTS === */
+
+			/* Users-style up/down arrow pill CSS for Evenement */
+			[data-theme="light"] .evenement-sort-dir-pill {
+				background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
+				color: #23272f;
+			}
+			[data-theme="light"] .evenement-sort-dir-icon svg polyline {
+				stroke: #0072ff;
+			}
+			.evenement-sort-dir-pill {
+				background: linear-gradient(90deg, #2a2e39 0%, #23272f 100%);
+				border: none;
+				border-radius: 999px;
+				padding: 0.3rem 0.7rem;
+				box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				cursor: pointer;
+				transition: background 0.18s, color 0.18s;
+				outline: none;
+				font-size: 1.1rem;
+				color: #fff;
+			}
+			.evenement-sort-dir-pill:active, .evenement-sort-dir-pill:focus {
+				background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
+			}
+			.evenement-sort-dir-icon {
+				font-size: 1.2rem;
+				color: #bfc9d8;
+			}
+		/* Light theme improvements for search, sort, arrow pills (from Users) */
+		[data-theme="light"] .evenement-sort-dir-pill {
+			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
+			color: #23272f;
+		}
+		[data-theme="light"] .evenement-sort-dir-icon svg polyline {
+			stroke: #0072ff;
+		}
+		[data-theme="light"] .evenement-sort-pill {
+			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
+			color: #fff !important;
+			box-shadow: 0 2px 8px rgba(0,123,255,0.08);
+		}
+		[data-theme="light"] .evenement-search-pill {
+			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
+		}
+		[data-theme="light"] .evenement-search-input {
+			color: #23272f;
+		}
+		[data-theme="light"] .evenement-search-icon {
+			color: #0072ff;
+		}
+		/* Users-style arrow, sort pill, search bar, and dropdown CSS for Evenement */
+		.evenement-search-pill {
+			display: flex;
+			align-items: center;
+			background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
+			border-radius: 999px;
+			padding: 0.3rem 1.1rem 0.3rem 1.1rem;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+			position: relative;
+		}
+		.evenement-search-input {
+			background: transparent;
+			border: none;
+			color: #fff;
+			font-size: 1rem;
+			outline: none;
+			width: 160px;
+			padding: 0.2rem 0.5rem 0.2rem 0;
+		}
+		.evenement-search-icon {
+			color: #bfc9d8;
+			font-size: 1.2rem;
+			margin-left: 0.3rem;
+		}
+		.evenement-sort-pill {
+			position: relative;
+			z-index: 20;
+			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+			border-radius: 999px;
+			padding: 0.3rem 1.1rem;
+			box-shadow: 0 2px 8px rgba(0,123,255,0.10);
+			display: flex;
+			align-items: center;
+			min-width: 160px;
+			cursor: pointer;
+			user-select: none;
+			color: #fff;
+			transition: background 0.18s, color 0.18s;
+			overflow: visible;
+		}
+		[data-theme="light"] .evenement-sort-pill {
+			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+			color: #fff !important;
+			box-shadow: 0 2px 8px rgba(0,123,255,0.08);
+		}
+		.evenement-sort-selected {
+			flex: 1;
+			font-size: 1rem;
+			font-weight: 600;
+			padding-right: 1.2rem;
+		}
+		.evenement-sort-arrow {
+			display: inline-block;
+			width: 1.1em;
+			height: 1.1em;
+			background: url('data:image/svg+xml;utf8,<svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>') no-repeat center/contain;
+			margin-left: -1.1em;
+			pointer-events: none;
+		}
+		.evenement-sort-pill::after { display: none !important; }
+		.evenement-sort-dropdown {
+			position: absolute;
+			left: 0;
+			top: 110%;
+			min-width: 100%;
+			background: rgba(30, 60, 120, 0.85);
+			border-radius: 1.2em;
+			box-shadow: 0 8px 32px rgba(0,198,255,0.18);
+			backdrop-filter: blur(16px) saturate(160%);
+			-webkit-backdrop-filter: blur(16px) saturate(160%);
+			z-index: 10;
+			padding: 0.3em 0;
+			display: flex;
+			flex-direction: column;
+			gap: 0.1em;
+			animation: evenement-sort-dropdown-fade 0.18s cubic-bezier(.4,1.4,.6,1) both;
+		}
+		@keyframes evenement-sort-dropdown-fade {
+			0% { opacity: 0; transform: translateY(-10px) scale(0.98); }
+			100% { opacity: 1; transform: translateY(0) scale(1); }
+		}
+		.evenement-sort-option {
+			padding: 0.7em 1.5em;
+			border-radius: 1em;
+			color: #fff;
+			font-size: 1rem;
+			cursor: pointer;
+			transition: background 0.13s, color 0.13s;
+		}
+		.evenement-sort-option:hover, .evenement-sort-option.active {
+			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+			color: #fff;
+		}
+		[data-theme="light"] .evenement-sort-dropdown {
+			background: rgba(255,255,255,0.95);
+			box-shadow: 0 8px 32px rgba(0,198,255,0.13);
+		}
+		[data-theme="light"] .evenement-sort-option {
+			color: #0072ff;
+		}
+			[data-theme="light"] .evenement-sort-option:hover, [data-theme="light"] .evenement-sort-option.active {
+			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+			color: #fff;
+		}
+
+        /* Evenement Edit Modal Inputs */
+        .evenement-edit-input {
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.25);
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .evenement-edit-input:focus {
+            border-color: rgba(0, 198, 255, 0.5);
+            background: rgba(0, 0, 0, 0.35);
+            box-shadow: 0 0 0 3px rgba(0, 198, 255, 0.15);
+        }
+        .evenement-edit-label {
+            display: block;
+            margin-bottom: 0.6rem;
+            text-transform: none;
+            color: #bfc9d8;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        [data-theme="light"] .evenement-edit-input {
+            background: #f0f4f8;
+            border-color: #dce2e8;
+            color: #1c202a;
+        }
+        [data-theme="light"] .evenement-edit-input:focus {
+            background: #fff;
+            border-color: #0072ff;
+            box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.15);
+        }
+        [data-theme="light"] .evenement-edit-label {
+            color: #4a5568;
+        }
+
+
+{% endblock %}
 {% extends 'base.html.twig' %}
 
 {% block title %}Evenement - Liquid Glass Admin{% endblock %}
 
-{% block stylesheets %}
-<style>
-/* Light theme improvements copied from Users */
-[data-theme="light"] .liquid-glass-table-container {
-    background: rgba(255,255,255,0.85);
-    border: 1.5px solid #e3e8f7;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-}
-
-[data-theme="light"] .liquid-glass-table {
-    background: rgba(255,255,255,0.98);
-    color: #23272f;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-}
-
-[data-theme="light"] .liquid-glass-table th {
-    background: #f5f7fa;
-    color: #23272f;
-}
-
-[data-theme="light"] .liquid-glass-table td {
-    background: transparent;
-    color: #23272f;
-}
-
-[data-theme="light"] .evenement-btn-add-db {
-    background: linear-gradient(90deg, #00bfae 0%, #00e676 100%);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(0,230,118,0.08);
-}
-
-[data-theme="light"] .evenement-btn-add-db:hover {
-    background: linear-gradient(90deg, #00e676 0%, #00bfae 100%);
-}
-
-[data-theme="light"] .evenement-btn-modify {
-    background: linear-gradient(90deg, #0072ff 0%, #00c6ff 100%);
-    color: #fff;
-}
-
-[data-theme="light"] .evenement-btn-delete {
-    background: linear-gradient(90deg, #ff2d92 0%, #ff3b30 100%);
-    color: #fff;
-}
-
-[data-theme="light"] .evenement-pagination-pills {
-    background: linear-gradient(135deg, #f5f7fa 80%, #e3e8f7 100%);
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-}
-
-[data-theme="light"] .pill-tab {
-    color: #23272f;
-}
-
-[data-theme="light"] .pill-tab.active,
-[data-theme="light"] .pill-tab:focus {
-    color: #fff;
-    text-shadow: 0 2px 8px rgba(0,123,255,0.10);
-}
-
-[data-theme="light"] .pill-slider {
-    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-    box-shadow: 0 4px 16px rgba(0,123,255,0.10);
-}
-
-[data-theme="light"] .evenement-sort-dir-pill {
-    background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-    color: #23272f;
-}
-
-[data-theme="light"] .evenement-sort-dir-icon svg polyline {
-    stroke: #0072ff;
-}
-
-[data-theme="light"] .evenement-sort-pill {
-    background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-}
-
-[data-theme="light"] .evenement-search-pill {
-    background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-}
-
-[data-theme="light"] .evenement-search-input {
-    color: #23272f;
-}
-
-[data-theme="light"] .evenement-search-icon {
-    color: #0072ff;
-}
-
-[data-theme="light"] .table-pagination-bar {
-    background: transparent;
-}
-
-[data-theme="light"] .evenement-table-arrow {
-    background: #fff;
-    color: #0072ff;
-    border: 1px solid #e3e8f7;
-}
-
-[data-theme="light"] .evenement-table-arrow svg polyline {
-    stroke: #0072ff;
-}
-
-[data-theme="light"] .evenement-table-page-btn {
-    background: #fff;
-    color: #23272f;
-    border: 1px solid #e3e8f7;
-}
-
-[data-theme="light"] .evenement-table-page-btn.active,
-[data-theme="light"] .evenement-table-page-btn:hover {
-    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-    color: #fff;
-    border: none;
-}
-
-/* Users-style updown arrow pill CSS for Evenement */
-[data-theme="light"] .evenement-sort-dir-pill {
-    background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-    color: #23272f;
-}
-
-[data-theme="light"] .evenement-sort-dir-icon svg polyline {
-    stroke: #0072ff;
-}
-
-.evenement-sort-dir-pill {
-    background: linear-gradient(90deg, #2a2e39 0%, #23272f 100%);
-    border: none;
-    border-radius: 999px;
-    padding: 0.3rem 0.7rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.18s, color 0.18s;
-    outline: none;
-    font-size: 1.1rem;
-    color: #fff;
-}
-
-.evenement-sort-dir-pill:active,
-.evenement-sort-dir-pill:focus {
-    background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
-}
-
-.evenement-sort-dir-icon {
-    font-size: 1.2rem;
-    color: #bfc9d8;
-}
-
-/* Light theme improvements for search, sort, arrow pills from Users */
-[data-theme="light"] .evenement-sort-dir-pill {
-    background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-    color: #23272f;
-}
-
-[data-theme="light"] .evenement-sort-dir-icon svg polyline {
-    stroke: #0072ff;
-}
-
-[data-theme="light"] .evenement-sort-pill {
-    background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-    color: #fff !important;
-    box-shadow: 0 2px 8px rgba(0,123,255,0.08);
-}
-
-[data-theme="light"] .evenement-search-pill {
-    background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-}
-
-[data-theme="light"] .evenement-search-input {
-    color: #23272f;
-}
-
-[data-theme="light"] .evenement-search-icon {
-    color: #0072ff;
-}
-
-/* Users-style arrow, sort pill, search bar, and dropdown CSS for Evenement */
-.evenement-search-pill {
-    display: flex;
-    align-items: center;
-    background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
-    border-radius: 999px;
-    padding: 0.3rem 1.1rem 0.3rem 1.1rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-    position: relative;
-}
-
-.evenement-search-input {
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 1rem;
-    outline: none;
-    width: 160px;
-    padding: 0.2rem 0.5rem 0.2rem 0;
-}
-
-.evenement-search-icon {
-    color: #bfc9d8;
-    font-size: 1.2rem;
-    margin-left: 0.3rem;
-}
-
-.evenement-sort-pill {
-    position: relative;
-    z-index: 20;
-    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-    border-radius: 999px;
-    padding: 0.3rem 1.1rem;
-    box-shadow: 0 2px 8px rgba(0,123,255,0.10);
-    display: flex;
-    align-items: center;
-    min-width: 160px;
-    cursor: pointer;
-    user-select: none;
-    color: #fff;
-    transition: background 0.18s, color 0.18s;
-    overflow: visible;
-}
-
-[data-theme="light"] .evenement-sort-pill {
-    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-    color: #fff !important;
-    box-shadow: 0 2px 8px rgba(0,123,255,0.08);
-}
-
-.evenement-sort-selected {
-    flex: 1;
-    font-size: 1rem;
-    font-weight: 600;
-    padding-right: 1.2rem;
-}
-
-.evenement-sort-arrow {
-    display: inline-block;
-    width: 1.1em;
-    height: 1.1em;
-    background: url("data:image/svg+xml;utf8,<svg fill='white' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><polyline points='6 9 12 15 18 9' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>") no-repeat center/contain;
-    margin-left: -1.1em;
-    pointer-events: none;
-}
-
-.evenement-sort-pill::after {
-    display: none !important;
-}
-
-.evenement-sort-dropdown {
-    position: absolute;
-    left: 0;
-    top: 110%;
-    min-width: 100%;
-    background: rgba(30, 60, 120, 0.85);
-    border-radius: 1.2em;
-    box-shadow: 0 8px 32px rgba(0,198,255,0.18);
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-    z-index: 10;
-    padding: 0.3em 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.1em;
-    animation: evenement-sort-dropdown-fade 0.18s cubic-bezier(.4,1.4,.6,1) both;
-}
-
-@keyframes evenement-sort-dropdown-fade {
-    0% {
-        opacity: 0;
-        transform: translateY(-10px) scale(0.98);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.evenement-sort-option {
-    padding: 0.7em 1.5em;
-    border-radius: 1em;
-    color: #fff;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.13s, color 0.13s;
-}
-
-.evenement-sort-option:hover,
-.evenement-sort-option.active {
-    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-    color: #fff;
-}
-
-[data-theme="light"] .evenement-sort-dropdown {
-    background: rgba(255,255,255,0.95);
-    box-shadow: 0 8px 32px rgba(0,198,255,0.13);
-}
-
-[data-theme="light"] .evenement-sort-option {
-    color: #0072ff;
-}
-
-[data-theme="light"] .evenement-sort-option:hover,
-[data-theme="light"] .evenement-sort-option.active {
-    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-    color: #fff;
-}
-</style>
-{% endblock %}
-
 {% block content %}
 {% include 'admin/_dashboard_header.html.twig' with { 'title': 'Evenement' } %}
-
-<div class="evenement-pagination-wrapper" style="margin-top: 2rem;">
-    <div class="evenement-pagination-pills pills-animated">
-        <div class="pill-slider-bar"><div class="pill-slider"></div></div>
-        <button class="pill-tab active" data-page="1">Page 1</button>
-        <button class="pill-tab" data-page="2">Page 2</button>
-        <button class="pill-tab" data-page="3">Page 3</button>
-        <button class="pill-tab" data-page="4">Page 4</button>
-    </div>
+<div class="evenement-pagination-wrapper" style="margin-top: 2rem; display: flex; justify-content: center;">
+	<div class="evenement-pagination-pills pills-animated">
+		<button class="pill-tab active" data-page="1">Evenement</button>
+		<button class="pill-tab" data-page="2">Participation</button>
+		<button class="pill-tab" data-page="3">Page 3</button>
+		<button class="pill-tab" data-page="4">Page 4</button>
+	</div>
 </div>
-
 <div id="evenement-content" class="evenement-content" style="margin-top: 1.5rem;">
-    <div class="evenement-page-content" data-page="1">
-        <div class="liquid-glass-table-container">
-            <h3 style="margin-bottom:1.5rem">Demo Evenement Table (Page 1)</h3>
+		<div class="evenement-page-content" data-page="1">
+			<div class="liquid-glass-table-container">
+				<h3 style="margin-bottom:1.5rem;">Evenements</h3>
+				<div class="evenement-table-toolbar" style="display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; width: 100%; justify-content: space-between;">
+					<div style="display: flex; align-items: center;">
+						<button class="evenement-btn-add-db" title="Add Evenement"><i class="bx bx-plus"></i> Add Evenement</button>
+					</div>
+					<div style="display: flex; gap: 0.7rem; align-items: center;">
+						<button class="evenement-sort-dir-pill" id="evenement-sort-dir-pill" title="Toggle Sort Direction" aria-label="Toggle Sort Direction">
+							<span id="evenement-sort-dir-icon-svg"></span>
+						</button>
+						<div class="evenement-sort-pill" id="evenement-sort-pill-custom" tabindex="0">
+							<span class="evenement-sort-selected" id="evenement-sort-selected">Sort by Date</span>
+							<span class="evenement-sort-arrow"></span>
+							<div class="evenement-sort-dropdown" id="evenement-sort-dropdown" style="display:none;">
+								<div class="evenement-sort-option" data-value="date">Sort by Date</div>
+								<div class="evenement-sort-option" data-value="bg">Sort by Title</div>
+								<div class="evenement-sort-option" data-value="type">Sort by Type</div>
+								<div class="evenement-sort-option" data-value="status">Sort by Status</div>
+							</div>
+						</div>
+						<div class="evenement-search-pill">
+							<input type="text" class="evenement-search-input" placeholder="Search evenement..." title="Search evenement..." />
+							<i class="bx bx-search evenement-search-icon"></i>
+						</div>
+					</div>
+				</div>
+				<div class="liquid-glass-table-scroll">
+					<table class="liquid-glass-table" id="evenement-table">
+						<thead>
+							<tr>
+								<th>Title</th>
+								<th>Date</th>
+								<th>Location</th>
+								<th>Type</th>
+								<th>Status</th>
+								<th>Host</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody id="evenement-table-body">
+							<!-- Table rows will be rendered by JS -->
+						</tbody>
+					</table>
+				</div>
+				<div class="table-pagination-bar">
+					<button class="evenement-table-arrow" id="evenement-table-prev" title="Previous Page"><i class="bx bx-chevron-left"></i></button>
+					<div class="evenement-table-pages" id="evenement-table-pages"></div>
+					<button class="evenement-table-arrow" id="evenement-table-next" title="Next Page"><i class="bx bx-chevron-right"></i></button>
+				</div>
+			</div>
+			<script>
+				// Evenement data from controller
+				const evenementData = [
+				{% for e in evenements|default([]) %}
+				[
+					"{{ e.titreEvent|e('js') }}",
+					"{{ e.dateEvent|date('Y-m-d H:i') }}",
+					"{{ e.lieuEvent|e('js') }}",
+					"{{ e.typeEvent|e('js') }}",
+					"{{ e.statutEvent|e('js') }}",
+					"{{ e.user ? (e.user.firstName ~ ' ' ~ e.user.lastName)|e('js') : '—' }}",
+					"{{ e.id }}",
+					"{{ e.descriptionEvent|e('js') }}",
+					"{{ e.dateEvent|date('Y-m-d H:i') }}",
+					"{{ e.nbPlaces }}",
+					"{{ e.nbRestants }}",
+					"{{ e.imageEvent|e('js') }}"
+				]{% if not loop.last %},{% endif %}
+				{% endfor %}
+				];
 
-            <div class="evenement-table-toolbar" style="display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; width: 100%; justify-content: space-between;">
-                <div style="display: flex; align-items: center;">
-                    <button class="evenement-btn-add-db" title="Add Evenement">
-                        <i class="bx bx-plus"></i> Add Evenement
-                    </button>
-                </div>
+				const evenementRowsPerPage = 10;
+				let evenementCurrentPage = 1;
+				let evenementSortValue = 'date';
+				let evenementSortDirection = 'desc'; // Default to newest first
+				let evenementFilteredRows = [...evenementData];
+				
+				const evenementSearchInput = document.querySelector('.evenement-search-input');
+				const evenementSortDirBtn = document.getElementById('evenement-sort-dir-pill');
+				const evenementSortDirIconSvg = document.getElementById('evenement-sort-dir-icon-svg');
+				const evenementSortPill = document.getElementById('evenement-sort-pill-custom');
+				const evenementSortDropdown = document.getElementById('evenement-sort-dropdown');
+				const evenementSortSelected = document.getElementById('evenement-sort-selected');
+				
+				function updateEvenementSortDirIcon() {
+					evenementSortDirIconSvg.innerHTML = evenementSortDirection === 'asc'
+						? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+						: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+				}
+				
+				function evenementFilterAndSortRows() {
+					let rows = [...evenementData];
+					const search = evenementSearchInput.value.trim().toLowerCase();
+					
+					if (search) {
+						rows = rows.filter(row => 
+							row[0].toLowerCase().includes(search) || // Title
+							row[2].toLowerCase().includes(search) || // Location
+							row[3].toLowerCase().includes(search)    // Type
+						);
+					}
+					
+					// Sort indices: 0=Title, 1=Date, 2=Location, 3=Type, 4=Status, 5=Host
+					let sortIdx = 1; // Default Date
+					if (evenementSortValue === 'bg') sortIdx = 0; // Title (using 'bg' from prev example logic but keeping it consistent)
+					else if (evenementSortValue === 'type') sortIdx = 3;
+					else if (evenementSortValue === 'status') sortIdx = 4;
+					else if (evenementSortValue === 'date') sortIdx = 1;
+					
+					rows.sort((a, b) => {
+						let valA = a[sortIdx].toLowerCase();
+						let valB = b[sortIdx].toLowerCase();
+						if (evenementSortDirection === 'asc') return valA.localeCompare(valB);
+						else return valB.localeCompare(valA);
+					});
+					
+					evenementFilteredRows = rows;
+					evenementCurrentPage = 1;
+					updateEvenementTablePagination();
+				}
+				
+				function renderEvenementTablePage(page) {
+					const tbody = document.getElementById('evenement-table-body');
+					tbody.innerHTML = '';
+					
+					if (evenementFilteredRows.length === 0) {
+						 const row = document.createElement('tr');
+						 row.innerHTML = '<td colspan="7" style="padding: 2rem; opacity: 0.7;">No events found.</td>';
+						 tbody.appendChild(row);
+						 return;
+					}
 
-                <div style="display: flex; gap: 0.7rem; align-items: center;">
-                    <button class="evenement-sort-dir-pill" id="evenement-sort-dir-pill" title="Toggle Sort Direction" aria-label="Toggle Sort Direction">
-                        <span id="evenement-sort-dir-icon-svg"></span>
-                    </button>
+					const start = (page-1)*evenementRowsPerPage;
+					const end = Math.min(start+evenementRowsPerPage, evenementFilteredRows.length);
+					
+					for (let r = start; r < end; r++) {
+						const row = document.createElement('tr');
+						const data = evenementFilteredRows[r];
+						
+						// Title
+						const tdTitle = document.createElement('td');
+						tdTitle.style.fontWeight = "600";
+						tdTitle.textContent = data[0];
+						row.appendChild(tdTitle);
+						
+						// Date
+						const tdDate = document.createElement('td');
+						tdDate.textContent = data[1];
+						row.appendChild(tdDate);
 
-                    <div class="evenement-sort-pill" id="evenement-sort-pill-custom" tabindex="0" style="position:relative;">
-                        <span class="evenement-sort-selected" id="evenement-sort-selected">Sort by Name</span>
-                        <span class="evenement-sort-arrow"></span>
-                        <div class="evenement-sort-dropdown" id="evenement-sort-dropdown" style="display:none; position:absolute; left:0; top:110%; min-width:100%;">
-                            <div class="evenement-sort-option" data-value="name">Sort by Name</div>
-                            <div class="evenement-sort-option" data-value="email">Sort by Email</div>
-                            <div class="evenement-sort-option" data-value="date">Sort by Date</div>
-                            <div class="evenement-sort-option" data-value="status">Sort by Status</div>
-                        </div>
-                    </div>
+						// Location
+						const tdLoc = document.createElement('td');
+						tdLoc.textContent = data[2];
+						row.appendChild(tdLoc);
+						
+						// Type
+						const tdType = document.createElement('td');
+						tdType.innerHTML = `<span class="badge" style="background:rgba(0,198,255,0.15); color:#00c6ff; padding:0.25rem 0.6rem; border-radius:12px; font-size:0.85rem;">${data[3]}</span>`;
+						row.appendChild(tdType);
+						
+						// Status
+						const tdStatus = document.createElement('td');
+						let statusColor = '#2ecc71'; // planifie (green)
+						if(data[4] === 'en_cours') statusColor = '#f1c40f';
+						else if(data[4] === 'termine') statusColor = '#95a5a6';
+						else if(data[4] === 'annule') statusColor = '#e74c3c';
+						
+						tdStatus.innerHTML = `<span style="color:${statusColor}; font-weight:600;">${data[4]}</span>`;
+						row.appendChild(tdStatus);
+						
+						// Host
+						const tdHost = document.createElement('td');
+						tdHost.textContent = data[5];
+						row.appendChild(tdHost);
 
-                    <div class="evenement-search-pill">
-                        <input type="text" class="evenement-search-input" placeholder="Search evenement..." title="Search evenement...">
-                        <i class="bx bx-search evenement-search-icon"></i>
-                    </div>
-                </div>
+						// Actions - View Details pill
+						const tdActions = document.createElement('td');
+						tdActions.innerHTML = `
+							<button class="evenement-btn-modify evenement-view-btn" 
+									data-event-id="${data[6]}"
+									title="View Details" 
+									style="padding: 0.35rem 1.25rem; font-size: 0.9rem;">
+								<i class="bx bx-show"></i> View Details
+							</button>
+						`;
+						row.appendChild(tdActions);
+						
+						tbody.appendChild(row);
+					}
+				}
+				
+				function renderEvenementTablePagination() {
+					const totalPages = Math.ceil(evenementFilteredRows.length / evenementRowsPerPage);
+					const pagesDiv = document.getElementById('evenement-table-pages');
+					pagesDiv.innerHTML = '';
+					for (let i = 1; i <= totalPages; i++) {
+						const btn = document.createElement('button');
+						btn.className = 'evenement-table-page-btn' + (i === evenementCurrentPage ? ' active' : '');
+						btn.textContent = i;
+						btn.onclick = () => { evenementCurrentPage = i; updateEvenementTablePagination(); };
+						pagesDiv.appendChild(btn);
+					}
+					document.getElementById('evenement-table-prev').disabled = evenementCurrentPage === 1;
+					document.getElementById('evenement-table-next').disabled = evenementCurrentPage === totalPages;
+				}
+				
+				function updateEvenementTablePagination() {
+					renderEvenementTablePage(evenementCurrentPage);
+					renderEvenementTablePagination();
+				}
+				
+				document.addEventListener('DOMContentLoaded', function() {
+					updateEvenementSortDirIcon();
+					updateEvenementTablePagination();
+					
+					evenementSearchInput.addEventListener('input', evenementFilterAndSortRows);
+					
+					evenementSortDirBtn.addEventListener('click', function() {
+						evenementSortDirection = (evenementSortDirection === 'asc') ? 'desc' : 'asc';
+						updateEvenementSortDirIcon();
+						evenementFilterAndSortRows();
+					});
+					
+					// Users-style pagination arrow logic
+					document.getElementById('evenement-table-prev').onclick = function() {
+						if (evenementCurrentPage > 1) { evenementCurrentPage--; updateEvenementTablePagination(); }
+					};
+					document.getElementById('evenement-table-next').onclick = function() {
+						const totalPages = Math.ceil(evenementFilteredRows.length / evenementRowsPerPage);
+						if (evenementCurrentPage < totalPages) { evenementCurrentPage++; updateEvenementTablePagination(); }
+					};
+					
+					function closeEvenementSortDropdown() {
+						if (evenementSortDropdown) {
+							evenementSortDropdown.style.display = 'none';
+							evenementSortPill.classList.remove('open');
+						}
+					}
+
+					evenementSortPill.addEventListener('click', function(e) {
+						e.stopPropagation();
+						if (evenementSortDropdown.style.display === 'flex') {
+							closeEvenementSortDropdown();
+						} else {
+							evenementSortDropdown.style.display = 'flex';
+							evenementSortPill.classList.add('open');
+						}
+					});
+					
+					document.querySelectorAll('.evenement-sort-option').forEach(opt => {
+						opt.addEventListener('click', function(e) {
+							e.stopPropagation(); // Prevent bubbling
+							evenementSortValue = this.getAttribute('data-value');
+							evenementSortSelected.textContent = this.textContent;
+							document.querySelectorAll('.evenement-sort-option').forEach(o => o.classList.remove('active'));
+							this.classList.add('active');
+							closeEvenementSortDropdown();
+							evenementFilterAndSortRows();
+						});
+					});
+					
+					document.addEventListener('click', function(e) {
+						if (!evenementSortPill.contains(e.target)) {
+							closeEvenementSortDropdown();
+						}
+					});
+					
+					// --- CUSTOM CONFIRMATION MODAL LOGIC ---
+					const customConfirmModal = document.getElementById('custom-confirm-modal');
+					const confirmTitle = document.getElementById('confirm-title');
+					const confirmText = document.getElementById('confirm-text');
+					const confirmBtnCancel = document.getElementById('confirm-btn-cancel');
+					const confirmBtnConfirm = document.getElementById('confirm-btn-confirm');
+					let confirmCallback = null;
+
+					function showCustomConfirm(title, message, callback) {
+						confirmTitle.textContent = title;
+						confirmText.textContent = message;
+						confirmCallback = callback;
+						if (customConfirmModal) customConfirmModal.style.display = 'flex';
+					}
+
+					function closeCustomConfirm() {
+						if (customConfirmModal) customConfirmModal.style.display = 'none';
+						confirmCallback = null;
+					}
+
+					if (confirmBtnCancel) confirmBtnCancel.addEventListener('click', closeCustomConfirm);
+					if (confirmBtnConfirm) {
+						confirmBtnConfirm.addEventListener('click', function() {
+							if (confirmCallback) confirmCallback();
+							closeCustomConfirm();
+						});
+					}
+					if (customConfirmModal) {
+						customConfirmModal.querySelector('.users-edit-modal-backdrop').addEventListener('click', closeCustomConfirm);
+					}
+
+					// --- EVENEMENT VIEW MODAL LOGIC ---
+					const evenementViewModal = document.getElementById('evenement-view-modal');
+					const evenementViewCloseBtn = document.getElementById('evenement-view-modal-close');
+					const evenementViewCloseBtnBottom = document.getElementById('evenement-view-close-btn');
+					const evenementViewDeleteForm = document.getElementById('view-evenement-delete-form');
+
+					window.openEvenementViewModal = function(id) {
+						const data = evenementData.find(e => e[6] == id);
+						if (!data) return;
+
+						document.getElementById('view-evenement-title').textContent = data[0];
+						document.getElementById('view-evenement-date').textContent = data[1];
+						document.getElementById('view-evenement-location').textContent = data[2];
+						document.getElementById('view-evenement-type').textContent = data[3];
+						document.getElementById('view-evenement-status').textContent = data[4];
+						document.getElementById('view-evenement-host').textContent = data[5];
+
+						// Set ID for modify button and delete form
+						document.getElementById('view-evenement-modify-btn').setAttribute('data-id', id);
+                        
+                        if (evenementViewDeleteForm) {
+                            evenementViewDeleteForm.setAttribute('data-id', id);
+                            // Populate CSRF token
+                            const tokenEl = document.getElementById('view-evenement-delete-token');
+                            if (tokenEl) tokenEl.value = '{{ csrf_token("evenement_delete") }}';
+                        }
+
+						if (evenementViewModal) evenementViewModal.style.display = 'flex';
+					};
+
+					window.closeEvenementViewModal = function() {
+						if (evenementViewModal) evenementViewModal.style.display = 'none';
+					};
+
+					if (evenementViewCloseBtn) evenementViewCloseBtn.addEventListener('click', window.closeEvenementViewModal);
+					if (evenementViewCloseBtnBottom) evenementViewCloseBtnBottom.addEventListener('click', window.closeEvenementViewModal);
+					if (evenementViewModal) {
+						evenementViewModal.querySelector('.users-edit-modal-backdrop').addEventListener('click', window.closeEvenementViewModal);
+					}
+
+					// Event delegation for View Details buttons
+					document.addEventListener('click', function(e) {
+						const viewBtn = e.target.closest('.evenement-view-btn');
+						if (viewBtn) {
+							e.preventDefault();
+							e.stopPropagation();
+							const id = viewBtn.getAttribute('data-event-id');
+							if (id) {
+								window.openEvenementViewModal(id);
+							}
+							return false;
+						}
+					});
+				});
+			</script>
+<style>
+    /* Table & Pagination CSS (Residence Unified) */
+    .liquid-glass-table-container { background: rgba(30, 34, 44, 0.7); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); backdrop-filter: blur(18px); padding: 2.5rem 3rem 2rem 3rem; border: 1.5px solid rgba(255,255,255,0.08); position: relative; }
+    .liquid-glass-table-scroll { overflow-x: auto; margin-top: 1.75rem; }
+    .liquid-glass-table { width: 100%; min-width: 1000px; border-collapse: separate; border-spacing: 0; background: rgba(255,255,255,0.04); border-radius: 20px; overflow: hidden; color:#e3e8f7; border: 1px solid rgba(255,255,255,0.06); }
+    .liquid-glass-table th { background: rgba(255,255,255,0.12); padding: 1.4rem; font-weight: 800; color:#fff; text-align: center; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; border-top: none; }
+    .liquid-glass-table td { padding: 1.4rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: middle; }
+    .liquid-glass-table tr:last-child td { border-bottom: none; }
+    
+    .evenement-btn-add-db { background: linear-gradient(135deg, #00e676 0%, #00bfae 100%); color:#fff; border:none; border-radius:999px; padding:0.85rem 2rem; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:0.75rem; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 8px 20px rgba(0, 230, 118, 0.25); height: fit-content; text-decoration: none; }
+    .evenement-btn-add-db:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 30px rgba(0, 230, 118, 0.35); color: #fff; }
+    
+    .table-pagination-bar { display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-top: 3rem; }
+    .evenement-table-arrow { width: 48px; height: 48px; border-radius: 50%; border: none; background: rgba(255,255,255,0.07); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 1.8rem; border: 1px solid rgba(255,255,255,0.1); }
+    .evenement-table-arrow:hover:not(:disabled) { background: #0072ff; transform: scale(1.1); box-shadow: 0 0 20px rgba(0, 114, 255, 0.5); }
+    .evenement-table-arrow:disabled { opacity: 0.2; cursor: not-allowed; }
+    .evenement-table-page-btn { padding: 0.6rem 1.4rem; border-radius: 999px; border: none; background: transparent; color: #bfc9d8; cursor: pointer; transition: all 0.25s; font-weight: 700; font-size: 1rem; }
+    .evenement-table-page-btn.active { background: #0072ff; color: #fff; box-shadow: 0 6px 15px rgba(0, 114, 255, 0.4); }
+
+    /* Action Buttons */
+    .evenement-btn-modify, .evenement-btn-delete { border: none; border-radius: 12px; padding: 0.6rem 1.2rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; }
+    .evenement-btn-modify { background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); color: #fff; box-shadow: 0 4px 12px rgba(0,123,255,0.2); }
+    .evenement-btn-modify:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,123,255,0.3); color: #fff; }
+    .evenement-btn-delete { background: linear-gradient(90deg, #ff3b30 0%, #ff2d92 100%); color: #fff; box-shadow: 0 4px 12px rgba(255,59,48,0.2); }
+    .evenement-btn-delete:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255,59,48,0.3); color: #fff; }
+</style>
+		</div>
+		<div class="evenement-page-content" data-page="2" style="display:none;">
+			<div class="liquid-glass-table-container">
+				<h3 style="margin-bottom:1.5rem;">Participations</h3>
+				<div class="evenement-table-toolbar" style="display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; width: 100%; justify-content: space-between;">
+					<div style="display: flex; align-items: center;">
+						<!-- Optional: Button to add participation manually if needed -->
+					</div>
+					<div style="display: flex; gap: 0.7rem; align-items: center;">
+						<button class="evenement-sort-dir-pill" id="participation-sort-dir-pill" title="Toggle Sort Direction" aria-label="Toggle Sort Direction">
+							<span id="participation-sort-dir-icon-svg"></span>
+						</button>
+						<div class="evenement-sort-pill" id="participation-sort-pill-custom" tabindex="0">
+							<span class="evenement-sort-selected" id="participation-sort-selected">Sort by Date</span>
+							<span class="evenement-sort-arrow"></span>
+							<div class="evenement-sort-dropdown" id="participation-sort-dropdown" style="display:none;">
+								<div class="evenement-sort-option" data-value="date">Sort by Date</div>
+								<div class="evenement-sort-option" data-value="event">Sort by Event</div>
+								<div class="evenement-sort-option" data-value="user">Sort by User</div>
+								<div class="evenement-sort-option" data-value="status">Sort by Status</div>
+							</div>
+						</div>
+						<div class="evenement-search-pill">
+							<input type="text" class="evenement-search-input" id="participation-search-input" placeholder="Search participation..." title="Search participation..." />
+							<i class="bx bx-search evenement-search-icon"></i>
+						</div>
+					</div>
+				</div>
+				<div class="liquid-glass-table-scroll">
+					<table class="liquid-glass-table" id="participation-table">
+						<thead>
+							<tr>
+								<th>Event</th>
+								<th>User</th>
+								<th>Date</th>
+								<th>Status</th>
+								<th>Guests</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody id="participation-table-body">
+							<!-- Table rows will be rendered by JS -->
+						</tbody>
+					</table>
+				</div>
+				<div class="table-pagination-bar">
+					<button class="evenement-table-arrow" id="participation-table-prev" title="Previous Page"><i class="bx bx-chevron-left"></i></button>
+					<div class="evenement-table-pages" id="participation-table-pages"></div>
+					<button class="evenement-table-arrow" id="participation-table-next" title="Next Page"><i class="bx bx-chevron-right"></i></button>
+				</div>
+			</div>
+			<script>
+				// Participation data from controller
+				const participationData = [
+				{% for p in participations|default([]) %}
+				[
+					"{{ p.evenement ? p.evenement.titreEvent|e('js') : 'Deleted Event' }}",
+					"{{ p.user ? (p.user.firstName ~ ' ' ~ p.user.lastName)|e('js') : '—' }}",
+					"{{ p.dateParticipation|date('Y-m-d H:i') }}",
+					"{{ p.statutParticipation|e('js') }}",
+					"{{ p.nbAccompagnants }}",
+					"{{ p.id }}",
+					"{{ p.user ? p.user.emailUser|e('js') : '' }}",
+					"{{ p.commentaireParticipation|e('js') }}"
+				]{% if not loop.last %},{% endif %}
+				{% endfor %}
+				];
+
+				const participationRowsPerPage = 10;
+				let participationCurrentPage = 1;
+				let participationSortValue = 'date';
+				let participationSortDirection = 'desc'; 
+				let participationFilteredRows = [...participationData];
+				
+				const participationSearchInput = document.getElementById('participation-search-input');
+				const participationSortDirBtn = document.getElementById('participation-sort-dir-pill');
+				const participationSortDirIconSvg = document.getElementById('participation-sort-dir-icon-svg');
+				const participationSortPill = document.getElementById('participation-sort-pill-custom');
+				const participationSortDropdown = document.getElementById('participation-sort-dropdown');
+				const participationSortSelected = document.getElementById('participation-sort-selected');
+				
+				function updateParticipationSortDirIcon() {
+					participationSortDirIconSvg.innerHTML = participationSortDirection === 'asc'
+						? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+						: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+				}
+				
+				function participationFilterAndSortRows() {
+					let rows = [...participationData];
+					const search = participationSearchInput.value.trim().toLowerCase();
+					
+					if (search) {
+						rows = rows.filter(row => 
+							row[0].toLowerCase().includes(search) || // Event
+							row[1].toLowerCase().includes(search) || // User
+							row[6].toLowerCase().includes(search)    // Email
+						);
+					}
+					
+					// Indices: 0=Event, 1=User, 2=Date, 3=Status, 4=Guests
+					let sortIdx = 2; // Default Date
+					if (participationSortValue === 'event') sortIdx = 0;
+					else if (participationSortValue === 'user') sortIdx = 1;
+					else if (participationSortValue === 'status') sortIdx = 3;
+					else if (participationSortValue === 'date') sortIdx = 2;
+					
+					rows.sort((a, b) => {
+						let valA = a[sortIdx].toLowerCase();
+						let valB = b[sortIdx].toLowerCase();
+						if (participationSortDirection === 'asc') return valA.localeCompare(valB);
+						else return valB.localeCompare(valA);
+					});
+					
+					participationFilteredRows = rows;
+					participationCurrentPage = 1;
+					updateParticipationTablePagination();
+				}
+				
+				function renderParticipationTablePage(page) {
+					const tbody = document.getElementById('participation-table-body');
+					tbody.innerHTML = '';
+					
+					if (participationFilteredRows.length === 0) {
+						 const row = document.createElement('tr');
+						 row.innerHTML = '<td colspan="6" style="padding: 2rem; opacity: 0.7;">No participations found.</td>';
+						 tbody.appendChild(row);
+						 return;
+					}
+
+					const start = (page-1)*participationRowsPerPage;
+					const end = Math.min(start+participationRowsPerPage, participationFilteredRows.length);
+					
+					for (let r = start; r < end; r++) {
+						const row = document.createElement('tr');
+						const data = participationFilteredRows[r];
+						
+						// Event
+						const tdEvent = document.createElement('td');
+						tdEvent.style.fontWeight = "600";
+						tdEvent.textContent = data[0];
+						row.appendChild(tdEvent);
+						
+						// User
+						const tdUser = document.createElement('td');
+						tdUser.innerHTML = `${data[1]}<br><small style="opacity:0.7">${data[6]}</small>`;
+						row.appendChild(tdUser);
+						
+						// Date
+						const tdDate = document.createElement('td');
+						tdDate.textContent = data[2];
+						row.appendChild(tdDate);
+						
+						// Status
+						const tdStatus = document.createElement('td');
+						let statusColor = '#f1c40f'; // en_attente (yellow)
+						if(data[3] === 'confirme') statusColor = '#2ecc71';
+						else if(data[3] === 'refuse' || data[3] === 'annule') statusColor = '#e74c3c';
+						
+						tdStatus.innerHTML = `<span style="color:${statusColor}; font-weight:600;">${data[3]}</span>`;
+						row.appendChild(tdStatus);
+						
+						// Guests
+						const tdGuests = document.createElement('td');
+						tdGuests.textContent = data[4];
+						row.appendChild(tdGuests);
+
+						// Actions
+						const tdActions = document.createElement('td');
+						tdActions.innerHTML = `
+							<button class="evenement-btn-modify participation-view-btn" 
+									data-participation-id="${data[5]}"
+									title="View Details" 
+									style="padding: 0.35rem 1.25rem; font-size: 0.9rem;">
+								<i class="bx bx-show"></i> View Details
+							</button>
+						`;
+						row.appendChild(tdActions);
+						
+						tbody.appendChild(row);
+					}
+				}
+				
+				function renderParticipationTablePagination() {
+					const totalPages = Math.ceil(participationFilteredRows.length / participationRowsPerPage);
+					const pagesDiv = document.getElementById('participation-table-pages');
+					pagesDiv.innerHTML = '';
+					for (let i = 1; i <= totalPages; i++) {
+						const btn = document.createElement('button');
+						btn.className = 'evenement-table-page-btn' + (i === participationCurrentPage ? ' active' : '');
+						btn.textContent = i;
+						btn.onclick = () => { participationCurrentPage = i; updateParticipationTablePagination(); };
+						pagesDiv.appendChild(btn);
+					}
+					document.getElementById('participation-table-prev').disabled = participationCurrentPage === 1;
+					document.getElementById('participation-table-next').disabled = participationCurrentPage === totalPages;
+				}
+				
+				function updateParticipationTablePagination() {
+					renderParticipationTablePage(participationCurrentPage);
+					renderParticipationTablePagination();
+				}
+				
+				document.addEventListener('DOMContentLoaded', function() {
+					updateParticipationSortDirIcon();
+					updateParticipationTablePagination();
+					
+					participationSearchInput.addEventListener('input', participationFilterAndSortRows);
+					
+					participationSortDirBtn.addEventListener('click', function() {
+						participationSortDirection = (participationSortDirection === 'asc') ? 'desc' : 'asc';
+						updateParticipationSortDirIcon();
+						participationFilterAndSortRows();
+					});
+					
+					document.getElementById('participation-table-prev').onclick = function() {
+						if (participationCurrentPage > 1) { participationCurrentPage--; updateParticipationTablePagination(); }
+					};
+					document.getElementById('participation-table-next').onclick = function() {
+						const totalPages = Math.ceil(participationFilteredRows.length / participationRowsPerPage);
+						if (participationCurrentPage < totalPages) { participationCurrentPage++; updateParticipationTablePagination(); }
+					};
+					
+					participationSortPill.addEventListener('click', function(e) {
+						e.stopPropagation();
+						if (participationSortDropdown.style.display === 'flex') {
+							participationSortDropdown.style.display = 'none';
+							participationSortPill.classList.remove('open');
+						} else {
+							participationSortDropdown.style.display = 'flex';
+							participationSortPill.classList.add('open');
+						}
+					});
+					
+					document.querySelectorAll('#participation-sort-dropdown .evenement-sort-option').forEach(opt => {
+						opt.addEventListener('click', function(e) {
+							participationSortValue = this.getAttribute('data-value');
+							participationSortSelected.textContent = this.textContent;
+							document.querySelectorAll('#participation-sort-dropdown .evenement-sort-option').forEach(o => o.classList.remove('active'));
+							this.classList.add('active');
+							participationSortDropdown.style.display = 'none';
+							participationSortPill.classList.remove('open');
+							participationFilterAndSortRows();
+						});
+					});
+					
+					document.addEventListener('click', function(e) {
+						if (!participationSortPill.contains(e.target)) {
+							participationSortDropdown.style.display = 'none';
+							participationSortPill.classList.remove('open');
+						}
+					});
+				
+				// --- PARTICIPATION VIEW MODAL LOGIC ---
+				const participationViewModal = document.getElementById('participation-view-modal');
+				const participationViewCloseBtn = document.getElementById('participation-view-modal-close');
+				const participationViewCloseBtnBottom = document.getElementById('participation-view-close-btn');
+
+				window.openParticipationViewModal = function(id) {
+					const data = participationData.find(p => p[5] == id);
+					if (!data) return;
+
+					document.getElementById('view-participation-event').textContent = data[0];
+					document.getElementById('view-participation-user').textContent = data[1];
+					document.getElementById('view-participation-email').textContent = data[6];
+					document.getElementById('view-participation-date').textContent = data[2];
+					document.getElementById('view-participation-status').textContent = data[3];
+					document.getElementById('view-participation-guests').textContent = data[4];
+
+					// Set ID for modify and delete
+					const modifyBtn = document.getElementById('view-participation-modify-btn');
+					if(modifyBtn) modifyBtn.setAttribute('data-id', id);
+                    
+                    const deleteForm = document.getElementById('view-participation-delete-form');
+                    if(deleteForm) deleteForm.setAttribute('data-id', id);
+
+					if (participationViewModal) participationViewModal.style.display = 'flex';
+				};
+
+				window.closeParticipationViewModal = function() {
+					if (participationViewModal) participationViewModal.style.display = 'none';
+				};
+
+				if (participationViewCloseBtn) participationViewCloseBtn.addEventListener('click', window.closeParticipationViewModal);
+				if (participationViewCloseBtnBottom) participationViewCloseBtnBottom.addEventListener('click', window.closeParticipationViewModal);
+				if (participationViewModal) {
+					participationViewModal.querySelector('.users-edit-modal-backdrop').addEventListener('click', window.closeParticipationViewModal);
+				}
+
+				// Event delegation for Participation View Details buttons
+				document.addEventListener('click', function(e) {
+					const viewBtn = e.target.closest('.participation-view-btn');
+					if (viewBtn) {
+						e.preventDefault();
+						e.stopPropagation();
+						const id = viewBtn.getAttribute('data-participation-id');
+						if (id) {
+							window.openParticipationViewModal(id);
+						}
+						return false;
+					}
+				});
+
+                // --- EDIT MODAL LOGIC (New) ---
+                
+                // Evenement Edit
+                const evenementEditModal = document.getElementById('evenement-edit-modal');
+                const evenementEditForm = document.getElementById('evenement-edit-form');
+                const evenementEditCancel = document.getElementById('evenement-edit-cancel-btn');
+                const evenementEditClose = document.getElementById('evenement-edit-modal-close');
+                const evenementModifyBtn = document.getElementById('view-evenement-modify-btn');
+
+                window.openEvenementEditModal = function(id) {
+                    console.log('Opening Evenement Edit Modal for ID:', id);
+                    const data = evenementData.find(e => e[6] == id);
+                    if (!data) {
+                        console.error('Evenement data not found for ID:', id);
+                        return;
+                    }
+                    
+                    // Prefill form with robust selectors
+                    const setVal = (idCustom, idSymfo, val) => {
+                        const el = document.getElementById(idCustom) || document.getElementById(idSymfo) || document.querySelector(`[name*="${idSymfo.split('_').pop()}"]`);
+                        if(el) el.value = val;
+                    };
+
+                    setVal('edit_evenement_titre', 'evenement_titre_event', data[0]);
+                    setVal('edit_evenement_date', 'evenement_date_event', data[8].replace(' ', 'T'));
+                    setVal('edit_evenement_lieu', 'evenement_lieu_event', data[2]);
+                    setVal('edit_evenement_type', 'evenement_type_event', data[3]);
+                    setVal('edit_evenement_statut', 'evenement_statut_event', data[4]);
+                    setVal('edit_evenement_description', 'evenement_description_event', data[7]);
+                    setVal('edit_evenement_nb_places', 'evenement_nb_places', data[9]);
+                    setVal('edit_evenement_nb_restants', 'evenement_nb_restants', data[10]);
+
+                    // Image Preview
+                    const imgPreviewCtx = document.getElementById('edit_evenement_image_preview_container');
+                    const imgPreview = document.getElementById('edit_evenement_image_preview');
+                    if (data[11] && imgPreviewCtx && imgPreview) {
+                        imgPreview.src = '/event_images/' + data[11];
+                        imgPreviewCtx.style.display = 'block';
+                    } else if (imgPreviewCtx) {
+                        imgPreviewCtx.style.display = 'none';
+                    }
+
+                    if (typeof closeEvenementViewModal === 'function') closeEvenementViewModal();
+                    if(evenementEditForm) evenementEditForm.action = '/admin/evenement/' + id + '/edit';
+                    if (evenementEditModal) evenementEditModal.style.display = 'flex';
+                }
+
+                window.closeEvenementEditModal = function() {
+                     if (evenementEditModal) evenementEditModal.style.display = 'none';
+                }
+
+                if (evenementModifyBtn) {
+                    evenementModifyBtn.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        if(id) window.openEvenementEditModal(id);
+                    });
+                }
+                
+                if (evenementEditClose) evenementEditClose.addEventListener('click', window.closeEvenementEditModal);
+                if (evenementEditCancel) evenementEditCancel.addEventListener('click', window.closeEvenementEditModal);
+                if (evenementEditModal) evenementEditModal.querySelector('.users-edit-modal-backdrop').addEventListener('click', window.closeEvenementEditModal);
+
+                // Evenement Form Submit
+                if (evenementEditForm) {
+                    evenementEditForm.addEventListener('submit', function(e) {
+                         e.preventDefault();
+                         const formData = new FormData(this);
+                         fetch(this.action, {
+                             method: 'POST',
+                             body: formData
+                         })
+                         .then(response => response.json())
+                         .then(data => {
+                             if(data.success) {
+                                  showCoolPopup('Updated!', 'Event details saved successfully.', 'success');
+                                  setTimeout(() => location.reload(), 1500);
+                             } else {
+                                  showCoolPopup('Error', data.message, 'error');
+                             }
+                         })
+                         .catch(err => {
+                              console.error(err);
+                              showCoolPopup('Error', 'An unexpected error occurred.', 'error');
+                         });
+                    });
+                }
+
+                // Evenement Delete Confirmation
+                const eventDeleteForm = document.getElementById('view-evenement-delete-form');
+                if (eventDeleteForm) {
+                    eventDeleteForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const id = this.getAttribute('data-id');
+                        if(!id) return;
+
+                        showCoolPopup('Delete Event?', 'This event and all its participations will be permanently removed. Proceed?', 'confirm', () => {
+                            if (typeof showLoader === 'function') showLoader();
+                            const formData = new FormData();
+                            formData.append('_token', '{{ csrf_token("evenement_delete") }}');
+
+                            fetch('/admin/evenement/' + id + '/delete', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (typeof hideLoader === 'function') hideLoader();
+                                if(data.success) {
+                                    // Remove from local data and re-render
+                                    evenementData = evenementData.filter(e => e[6] != id);
+                                    if (typeof evenementFilterAndSortRows === 'function') evenementFilterAndSortRows();
+                                    if (typeof closeEvenementViewModal === 'function') closeEvenementViewModal();
+                                    
+                                    showCoolPopup('Deleted!', 'Event deleted successfully.', 'success');
+                                } else {
+                                    showCoolPopup('Error', data.message, 'error');
+                                }
+                            })
+                            .catch(err => {
+                                if (typeof hideLoader === 'function') hideLoader();
+                                showCoolPopup('Error', 'An error occurred.', 'error');
+                                console.error(err);
+                            });
+                        });
+                    });
+                }
+
+                // Participation Edit
+                const participationEditModal = document.getElementById('participation-edit-modal');
+                const participationEditForm = document.getElementById('participation-edit-form');
+                const participationEditCancel = document.getElementById('participation-edit-cancel-btn');
+                const participationEditClose = document.getElementById('participation-edit-modal-close');
+                
+                window.openParticipationEditModal = function(id) {
+                     console.log('Opening Participation Edit Modal for ID:', id);
+                     const data = participationData.find(p => p[5] == id);
+                     if (!data) {
+                         console.error('Participation data not found for ID:', id);
+                         return;
+                     }
+                     
+                     const setVal = (idCustom, idSymfo, val) => {
+                        const el = document.getElementById(idCustom) || document.getElementById(idSymfo) || document.querySelector(`[name*="${idSymfo.split('_').pop()}"]`);
+                        if(el) el.value = val;
+                     };
+
+                     setVal('edit_participation_statut', 'participation_statut_participation', data[3]);
+                     setVal('edit_participation_guests', 'participation_nb_accompagnants', data[4]);
+                     setVal('edit_participation_comment', 'participation_commentaire_participation', data[7]);
+                     
+                     if(document.getElementById('edit_participation_event_display')) document.getElementById('edit_participation_event_display').textContent = data[0];
+                     if(document.getElementById('edit_participation_user_display')) document.getElementById('edit_participation_user_display').textContent = data[1];
+
+                     if (typeof closeParticipationViewModal === 'function') closeParticipationViewModal();
+                     if(participationEditForm) participationEditForm.action = '/admin/participation/' + id + '/edit';
+                     if (participationEditModal) participationEditModal.style.display = 'flex';
+                }
+
+                window.closeParticipationEditModal = function() {
+                     if (participationEditModal) participationEditModal.style.display = 'none';
+                }
+
+                if (participationEditClose) participationEditClose.addEventListener('click', window.closeParticipationEditModal);
+                if (participationEditCancel) participationEditCancel.addEventListener('click', window.closeParticipationEditModal);
+                if (participationEditModal) participationEditModal.querySelector('.users-edit-modal-backdrop').addEventListener('click', window.closeParticipationEditModal);
+
+                // Participation Modify Button Event (added dynamically)
+                const participationModifyBtn = document.getElementById('view-participation-modify-btn');
+                if (participationModifyBtn) {
+                    participationModifyBtn.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        if(id) openParticipationEditModal(id);
+                    });
+                }
+
+                if (participationEditForm) {
+                    participationEditForm.addEventListener('submit', function(e) {
+                         e.preventDefault();
+                         if (typeof showLoader === 'function') showLoader();
+                         const formData = new FormData(this);
+                         fetch(this.action, {
+                             method: 'POST',
+                             body: formData
+                         })
+                         .then(response => response.json())
+                         .then(data => {
+                             if(data.success) {
+                                  showCoolPopup('Success', data.message, 'success');
+                                  setTimeout(() => location.reload(), 1500);
+                             } else {
+                                  if (typeof hideLoader === 'function') hideLoader();
+                                  showCoolPopup('Error', data.message, 'error');
+                             }
+                         })
+                         .catch(err => {
+                              if (typeof hideLoader === 'function') hideLoader();
+                              showCoolPopup('Error', 'An unexpected error occurred.', 'error');
+                              console.error(err);
+                         });
+                    });
+                }
+
+
+                // Participation Delete
+                const participationDeleteForm = document.getElementById('view-participation-delete-form');
+                if(participationDeleteForm) {
+                    participationDeleteForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const id = this.getAttribute('data-id');
+                        if(!id) return;
+                        
+                        showCoolPopup('Delete Participation?', 'Are you sure you want to remove this participation? This will also return the seats to the event.', 'confirm', () => {
+                            if (typeof showLoader === 'function') showLoader();
+                            const formData = new FormData();
+                            formData.append('_token', '{{ csrf_token("participation_delete") }}');
+                            
+                            fetch('/admin/participation/' + id + '/delete', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (typeof hideLoader === 'function') hideLoader();
+                                if(data.success) {
+                                    // Remove from local data and re-render
+                                    participationData = participationData.filter(p => p[5] != id);
+                                    if (typeof participationFilterAndSortRows === 'function') participationFilterAndSortRows();
+                                    if (typeof closeParticipationViewModal === 'function') closeParticipationViewModal();
+
+                                    showCoolPopup('Deleted', data.message, 'success');
+                                } else {
+                                    showCoolPopup('Error', data.message, 'error');
+                                }
+                            })
+                            .catch(err => {
+                                if (typeof hideLoader === 'function') hideLoader();
+                                showCoolPopup('Error', 'An error occurred.', 'error');
+                                console.error(err);
+                            });
+                        });
+                    });
+                }
+                
+                // Creating Modify button dynamically for Participation View Modal 
+                // since I missed it before.
+                // Or I'll fix the HTML in a separate step or try to inject it now using JS?
+                // Better to fix the HTML. I'll stick to logic here.
+                
+                const participationViewActions = document.querySelector('#participation-view-modal .users-edit-modal-actions');
+                // I'll add the button HTML injection in the next step to be sure.
+                
+			});
+		</script>
+		</div>
+		<div class="evenement-page-content" data-page="3" style="display:none;">
+			<div class="evenement-list-demo">
+				<h3 style="margin-bottom:1rem;">Demo Evenements (Page 3)</h3>
+				<ul style="list-style:none;padding:0;">
+					<li style="padding:0.5rem 0;border-bottom:1px solid #eee;">Evenement Delta</li>
+					<li style="padding:0.5rem 0;">Evenement Epsilon</li>
+				</ul>
+			</div>
+		</div>
+		<div class="evenement-page-content" data-page="4" style="display:none;">
+			<div class="evenement-list-demo">
+				<h3 style="margin-bottom:1rem;">Demo Evenements (Page 4)</h3>
+				<ul style="list-style:none;padding:0;">
+					<li style="padding:0.5rem 0;">Evenement Zeta</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+<style>
+	.evenement-pagination-pills {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		position: relative;
+		margin: 0 auto;
+		padding: 0.25rem 0.5rem;
+		background: linear-gradient(135deg, #23272f 80%, #2a2e39 100%);
+		border-radius: 999px;
+		min-width: 340px;
+		box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+		width: fit-content;
+	}
+	.pill-tab {
+		background: transparent;
+		color: rgba(191,201,216,0.8);
+		border: none;
+		border-radius: 999px;
+		padding: 0.75rem 2rem;
+		font-size: 1rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		outline: none;
+		position: relative;
+		z-index: 2;
+		white-space: nowrap;
+	}
+	.pill-tab:hover {
+		color: #fff;
+		background: rgba(255,255,255,0.05);
+	}
+	.pill-tab.active, .pill-tab:focus {
+		background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+		color: #fff;
+		text-shadow: none;
+		box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
+	}
+</style>
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		function showEvenementPage(page) {
+			document.querySelectorAll('.evenement-page-content').forEach(div => {
+				div.style.display = (div.dataset.page == page) ? '' : 'none';
+			});
+		}
+
+
+		document.querySelectorAll('.pill-tab').forEach(btn => {
+			btn.addEventListener('click', function() {
+				document.querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+				this.classList.add('active');
+
+				showEvenementPage(this.dataset.page);
+			});
+		});
+
+		// Initial load
+		showEvenementPage(1);
+
+	});
+</script>
+
+<!-- Evenement View Details Modal -->
+<div id="evenement-view-modal" class="users-edit-modal" style="display: none;">
+    <div class="users-edit-modal-backdrop"></div>
+    <div class="users-edit-modal-card">
+        <div class="users-edit-modal-header">
+            <div>
+                <h3>Event Details</h3>
+                <p class="users-edit-modal-subtitle">View event information</p>
             </div>
-
-            <div class="liquid-glass-table-scroll">
-                <table class="liquid-glass-table" id="evenement-table">
-                    <thead>
-                        <tr>
-                            {% for col in 1..8 %}
-                            <th>Col {{ col }}</th>
-                            {% endfor %}
-                            <th>Modify</th>
-                            <th>Delete</th>
-                        </tr>
-                    </thead>
-                    <tbody id="evenement-table-body">
-                        <!-- Table rows will be rendered by JS -->
-                    </tbody>
-                </table>
+            <button type="button" class="users-edit-modal-close" id="evenement-view-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="users-edit-modal-body">
+            <div class="forum-view-row">
+                <div class="forum-view-label">Title</div>
+                <div class="forum-view-value" id="view-evenement-title">—</div>
             </div>
-
-            <div class="table-pagination-bar">
-                <button class="evenement-table-arrow" id="evenement-table-prev" title="Previous Page">
-                    <i class="bx bx-chevron-left"></i>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Date & Time</div>
+                <div class="forum-view-value" id="view-evenement-date">—</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Location</div>
+                <div class="forum-view-value" id="view-evenement-location">—</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Type</div>
+                <div class="forum-view-value" id="view-evenement-type">—</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Status</div>
+                <div class="forum-view-value" id="view-evenement-status">—</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Host</div>
+                <div class="forum-view-value" id="view-evenement-host">—</div>
+            </div>
+            
+            <div class="users-edit-modal-actions" style="margin-top: 2rem;">
+                <button type="button" href="javascript:void(0)" class="users-btn-cancel" id="evenement-view-close-btn">Close</button>
+                <span class="users-edit-modal-actions-spacer"></span>
+                <button type="button" href="javascript:void(0)" class="users-btn-modify forum-btn-modify" id="view-evenement-modify-btn" data-id="">
+                    <i class="bx bx-edit"></i> Modify
                 </button>
-                <div class="evenement-table-pages" id="evenement-table-pages"></div>
-                <button class="evenement-table-arrow" id="evenement-table-next" title="Next Page">
-                    <i class="bx bx-chevron-right"></i>
-                </button>
+                <form method="post" id="view-evenement-delete-form" style="display: inline;" data-ajax="true">
+                    <input type="hidden" name="_token" id="view-evenement-delete-token" value="">
+                    <button type="submit" class="users-btn-delete forum-btn-delete">
+                        <i class="bx bx-trash"></i> Delete
+                    </button>
+                </form>
             </div>
-        </div>
-    </div>
-
-    <div class="evenement-page-content" data-page="2" style="display:none">
-        <div class="evenement-list-demo">
-            <h3 style="margin-bottom:1rem">Demo Evenements (Page 2)</h3>
-            <ul style="list-style:none;padding:0">
-                <li style="padding:0.5rem 0;border-bottom:1px solid #eee">Evenement Alpha</li>
-                <li style="padding:0.5rem 0;border-bottom:1px solid #eee">Evenement Beta</li>
-                <li style="padding:0.5rem 0">Evenement Gamma</li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="evenement-page-content" data-page="3" style="display:none">
-        <div class="evenement-list-demo">
-            <h3 style="margin-bottom:1rem">Demo Evenements (Page 3)</h3>
-            <ul style="list-style:none;padding:0">
-                <li style="padding:0.5rem 0;border-bottom:1px solid #eee">Evenement Delta</li>
-                <li style="padding:0.5rem 0">Evenement Epsilon</li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="evenement-page-content" data-page="4" style="display:none">
-        <div class="evenement-list-demo">
-            <h3 style="margin-bottom:1rem">Demo Evenements (Page 4)</h3>
-            <ul style="list-style:none;padding:0">
-                <li style="padding:0.5rem 0">Evenement Zeta</li>
-            </ul>
         </div>
     </div>
 </div>
 
-<style>
-.evenement-pagination-pills {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    margin: 0 auto;
-    padding: 0.25rem 0.5rem;
-    background: linear-gradient(135deg, #23272f 80%, #2a2e39 100%);
-    border-radius: 999px;
-    min-width: 340px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    width: fit-content;
-}
 
-.pill-slider-bar {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 999px;
-    background: transparent;
-    z-index: 0;
-    pointer-events: none;
-}
-
-.pill-slider {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 40px;
-    width: 0;
-    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-    border-radius: 999px;
-    z-index: 2;
-    transition: left 0.35s cubic-bezier(0.4,0,0.2,1), width 0.35s cubic-bezier(0.4,0,0.2,1);
-    box-shadow: 0 4px 16px rgba(0,123,255,0.15);
-    pointer-events: none;
-    opacity: 1;
-}
-
-.pill-tab {
-    background: transparent;
-    color: #bfc9d8;
-    border: none;
-    border-radius: 999px;
-    padding: 0.5rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: color 0.2s, box-shadow 0.2s;
-    box-shadow: none;
-    outline: none;
-    position: relative;
-    z-index: 3;
-}
-
-.pill-tab.active,
-.pill-tab:focus {
-    color: #fff;
-    text-shadow: 0 2px 8px rgba(0,123,255,0.10);
-    z-index: 3;
-}
-</style>
-
-<style>
-.table-pagination-bar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1.2rem;
-    margin: 1.5rem 0 0.5rem 0;
-}
-
-.evenement-table-arrow {
-    background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-    cursor: pointer;
-    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
-    outline: none;
-}
-
-.evenement-table-arrow:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-.evenement-table-pages {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.evenement-table-page-btn {
-    background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
-    color: #fff;
-    border: none;
-    border-radius: 999px;
-    padding: 0.5rem 1.1rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
-    outline: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-.evenement-table-page-btn.active,
-.evenement-table-page-btn:hover {
-    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-    color: #fff;
-    box-shadow: 0 4px 16px rgba(0,123,255,0.10);
-}
-
-.evenement-btn-add-db {
-    border: none;
-    border-radius: 999px;
-    padding: 0.5rem 1.5rem;
-    font-size: 1.1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
-    outline: none;
-    margin: 0 auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    justify-content: center;
-    background: linear-gradient(90deg, #00e676 0%, #00bfae 100%);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(0,230,118,0.10);
-}
-
-.evenement-btn-add-db:hover {
-    background: linear-gradient(90deg, #00bfae 0%, #00e676 100%);
-    color: #fff;
-}
-
-.liquid-glass-table-container {
-    background: rgba(30, 34, 44, 0.7);
-    border-radius: 24px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-    backdrop-filter: blur(18px) saturate(180%);
-    padding: 2.5rem 3rem 2rem 3rem;
-    margin: 0 auto 2rem auto;
-    max-width: 1600px;
-    border: 1.5px solid rgba(255,255,255,0.08);
-    position: relative;
-}
-
-.liquid-glass-table-scroll {
-    overflow-x: auto;
-}
-
-.liquid-glass-table {
-    min-width: 1400px;
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    background: rgba(255,255,255,0.04);
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
-    font-size: 1rem;
-    color: #e3e8f7;
-}
-
-.liquid-glass-table th,
-.liquid-glass-table td {
-    padding: 0.75rem 1.1rem;
-    text-align: center;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(8px);
-    vertical-align: middle;
-    word-break: break-word;
-    white-space: normal;
-    max-width: 180px;
-}
-
-.liquid-glass-table td {
-    display: table-cell;
-    text-align: center;
-    vertical-align: middle;
-}
-
-.liquid-glass-table th {
-    background: rgba(255,255,255,0.10);
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    color: #fff;
-    border-top: none;
-    text-align: center;
-    vertical-align: middle;
-}
-
-.liquid-glass-table tr:last-child td {
-    border-bottom: none;
-}
-
-.evenement-btn-modify,
-.evenement-btn-delete {
-    border: none;
-    border-radius: 999px;
-    padding: 0.4rem 1.1rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
-    outline: none;
-    margin: 0 auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    justify-content: center;
-}
-
-.evenement-btn-modify {
-    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(0,123,255,0.10);
-}
-
-.evenement-btn-modify:hover {
-    background: linear-gradient(90deg, #0072ff 0%, #00c6ff 100%);
-    color: #fff;
-}
-
-.evenement-btn-delete {
-    background: linear-gradient(90deg, #ff3b30 0%, #ff2d92 100%);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(255,59,48,0.10);
-}
-
-.evenement-btn-delete:hover {
-    background: linear-gradient(90deg, #ff2d92 0%, #ff3b30 100%);
-    color: #fff;
-}
-
-.liquid-glass-table i.bx {
-    font-size: 1.1em;
-    vertical-align: middle;
-}
-</style>
-
-<script>
-// --- Demo data: 35 rows, 8 columns ---
-const evenementDemoTableRows = Array.from({length: 35}, (_, r) => 
-    Array.from({length: 8}, (_, c) => `R${r+1}C${c+1}`)
-);
-
-const evenementRowsPerPage = 10;
-let evenementCurrentPage = 1;
-let evenementSortValue = 'name';
-let evenementSortDirection = 'asc';
-let evenementFilteredRows = [...evenementDemoTableRows];
-
-const evenementSearchInput = document.querySelector('.evenement-search-input');
-const evenementSortDirBtn = document.getElementById('evenement-sort-dir-pill');
-const evenementSortDirIconSvg = document.getElementById('evenement-sort-dir-icon-svg');
-const evenementSortPill = document.getElementById('evenement-sort-pill-custom');
-const evenementSortDropdown = document.getElementById('evenement-sort-dropdown');
-const evenementSortSelected = document.getElementById('evenement-sort-selected');
-
-function updateEvenementSortDirIcon() {
-    evenementSortDirIconSvg.innerHTML = evenementSortDirection === 'asc' 
-        ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-        : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-}
-
-function evenementFilterAndSortRows() {
-    let rows = [...evenementDemoTableRows];
-
-    const search = evenementSearchInput.value.trim().toLowerCase();
-    if (search) {
-        rows = rows.filter(row => row.some(cell => cell.toLowerCase().includes(search)));
-    }
-
-    if (evenementSortValue === 'name') {
-        rows.sort((a, b) => evenementSortDirection === 'asc' ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]));
-    } else if (evenementSortValue === 'email') {
-        rows.sort((a, b) => evenementSortDirection === 'asc' ? a[1].localeCompare(b[1]) : b[1].localeCompare(a[1]));
-    } else if (evenementSortValue === 'date') {
-        rows.sort((a, b) => evenementSortDirection === 'asc' ? a[2].localeCompare(b[2]) : b[2].localeCompare(a[2]));
-    } else if (evenementSortValue === 'status') {
-        rows.sort((a, b) => evenementSortDirection === 'asc' ? a[3].localeCompare(b[3]) : b[3].localeCompare(a[3]));
-    }
-
-    evenementFilteredRows = rows;
-    evenementCurrentPage = 1;
-    updateEvenementTablePagination();
-}
-
-function renderEvenementTablePage(page) {
-    const tbody = document.getElementById('evenement-table-body');
-    tbody.innerHTML = '';
-
-    const start = (page - 1) * evenementRowsPerPage;
-    const end = Math.min(start + evenementRowsPerPage, evenementFilteredRows.length);
-
-    for (let r = start; r < end; r++) {
-        const row = document.createElement('tr');
-
-        for (let c = 0; c < 8; c++) {
-            const td = document.createElement('td');
-            td.textContent = evenementFilteredRows[r][c];
-            row.appendChild(td);
-        }
-
-        // Modify button
-        const tdModify = document.createElement('td');
-        tdModify.innerHTML = `<button class="evenement-btn-modify" title="Modify"><i class="bx bx-edit"></i> Modify</button>`;
-        row.appendChild(tdModify);
-
-        // Delete button
-        const tdDelete = document.createElement('td');
-        tdDelete.innerHTML = `<button class="evenement-btn-delete" title="Delete"><i class="bx bx-trash"></i> Delete</button>`;
-        row.appendChild(tdDelete);
-
-        tbody.appendChild(row);
-    }
-}
-
-function renderEvenementTablePagination() {
-    const totalPages = Math.ceil(evenementFilteredRows.length / evenementRowsPerPage);
-    const pagesDiv = document.getElementById('evenement-table-pages');
-    pagesDiv.innerHTML = '';
-
-    for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement('button');
-        btn.className = 'evenement-table-page-btn' + (i === evenementCurrentPage ? ' active' : '');
-        btn.textContent = i;
-        btn.onclick = () => {
-            evenementCurrentPage = i;
-            updateEvenementTablePagination();
-        };
-        pagesDiv.appendChild(btn);
-    }
-
-    document.getElementById('evenement-table-prev').disabled = (evenementCurrentPage === 1);
-    document.getElementById('evenement-table-next').disabled = (evenementCurrentPage === totalPages);
-}
-
-function updateEvenementTablePagination() {
-    renderEvenementTablePage(evenementCurrentPage);
-    renderEvenementTablePagination();
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    updateEvenementSortDirIcon();
-    updateEvenementTablePagination();
-    evenementSearchInput.addEventListener('input', evenementFilterAndSortRows);
-    evenementSortDirBtn.addEventListener('click', function() {
-        evenementSortDirection = evenementSortDirection === 'asc' ? 'desc' : 'asc';
-        updateEvenementSortDirIcon();
-        evenementFilterAndSortRows();
-    });
-    document.getElementById('evenement-table-prev').onclick = function() {
-        if (evenementCurrentPage > 1) { evenementCurrentPage--; updateEvenementTablePagination(); }
-    };
-    document.getElementById('evenement-table-next').onclick = function() {
-        const totalPages = Math.ceil(evenementFilteredRows.length / evenementRowsPerPage);
-        if (evenementCurrentPage < totalPages) { evenementCurrentPage++; updateEvenementTablePagination(); }
-    };
-    // --- Users-style sorting pill dropdown logic ---
-    const sortPill = document.getElementById('evenement-sort-pill-custom');
-    const sortDropdown = document.getElementById('evenement-sort-dropdown');
-    const sortSelected = document.getElementById('evenement-sort-selected');
-    let sortValue = evenementSortValue;
-    function closeSortDropdown() {
-        sortDropdown.style.display = 'none';
-        sortPill.classList.remove('open');
-    }
-    function openSortDropdown() {
-        sortDropdown.style.display = 'flex';
-        sortPill.classList.add('open');
-    }
-    sortPill.addEventListener('click', function(e) {
-        e.stopPropagation();
-        if (sortDropdown.style.display === 'flex') {
-            closeSortDropdown();
-        } else {
-            openSortDropdown();
-        }
-    });
-    document.querySelectorAll('.evenement-sort-option').forEach(opt => {
-        opt.addEventListener('click', function(e) {
-            sortValue = this.getAttribute('data-value');
-            evenementSortValue = sortValue;
-            sortSelected.textContent = this.textContent;
-            document.querySelectorAll('.evenement-sort-option').forEach(o => o.classList.remove('active'));
-            this.classList.add('active');
-            closeSortDropdown();
-            evenementFilterAndSortRows();
-        });
-    });
-    document.addEventListener('click', function(e) {
-        if (!sortPill.contains(e.target)) closeSortDropdown();
-    });
-    sortPill.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeSortDropdown();
-        if (e.key === 'ArrowDown') {
-            openSortDropdown();
-            const first = sortDropdown.querySelector('.evenement-sort-option');
-            if (first) first.focus();
-        }
-    });
-});
-</script>
-
-<script>
-// --- Users-style sort direction toggle for Evenement ---
-let evenementSortDirection = 'asc';
-const evenementSortDirBtn = document.getElementById('evenement-sort-dir-pill');
-const evenementSortDirIconSvg = document.getElementById('evenement-sort-dir-icon-svg');
-
-function updateEvenementSortDirIcon() {
-    evenementSortDirIconSvg.innerHTML = evenementSortDirection === 'asc' 
-        ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-        : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-}
-
-if (evenementSortDirBtn && evenementSortDirIconSvg) {
-    updateEvenementSortDirIcon();
-    evenementSortDirBtn.addEventListener('click', function() {
-        evenementSortDirection = evenementSortDirection === 'asc' ? 'desc' : 'asc';
-        updateEvenementSortDirIcon();
-        if (typeof evenementFilterAndSortRows === 'function') {
-            evenementFilterAndSortRows();
-        }
-    });
-}
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // --- Pills logic ---
-    function showEvenementPage(page) {
-        document.querySelectorAll('.evenement-page-content').forEach(div => {
-            div.style.display = div.dataset.page === page ? '' : 'none';
-        });
-    }
-
-    // Pills animation logic
-    function updatePillSlider() {
-        const pills = document.querySelectorAll('.pill-tab');
-        const slider = document.querySelector('.pill-slider');
-        const active = document.querySelector('.pill-tab.active');
-
-        if (!active || !slider) return;
-
-        slider.style.left = active.offsetLeft + 'px';
-        slider.style.width = active.offsetWidth + 'px';
-    }
-
-    document.querySelectorAll('.pill-tab').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            updatePillSlider();
-            showEvenementPage(this.dataset.page);
-        });
-    });
-
-    // Initial load
-    showEvenementPage('1');
-    setTimeout(updatePillSlider, 100);
-
-    window.addEventListener('resize', updatePillSlider);
-});
-</script>
-
-<script>
-// --- Users-style dropdown and sort pill logic for Evenement (enhanced version in DOMContentLoaded) ---
-document.addEventListener('DOMContentLoaded', function() {
-    // --- Users-style dropdown and sort pill logic for Evenement ---
-    const sortPill = document.getElementById('evenement-sort-pill-custom');
-    const sortDropdown = document.getElementById('evenement-sort-dropdown');
-    const sortSelected = document.getElementById('evenement-sort-selected');
-    let sortValue = 'name';
-
-    function closeSortDropdown() {
-        if (sortDropdown) {
-            sortDropdown.style.display = 'none';
-        }
-        if (sortPill) {
-            sortPill.classList.remove('open');
-        }
-    }
-
-    function openSortDropdown() {
-        if (sortDropdown) {
-            sortDropdown.style.display = 'flex';
-        }
-        if (sortPill) {
-            sortPill.classList.add('open');
-        }
-    }
-
-    if (sortPill && sortDropdown) {
-        sortPill.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (sortDropdown.style.display === 'flex') {
-                closeSortDropdown();
-            } else {
-                openSortDropdown();
-            }
-        });
-
-        document.querySelectorAll('.evenement-sort-option').forEach(opt => {
-            opt.addEventListener('click', function(e) {
-                sortValue = this.getAttribute('data-value');
-                sortSelected.textContent = this.textContent;
-                document.querySelectorAll('.evenement-sort-option').forEach(o => o.classList.remove('active'));
-                this.classList.add('active');
-                closeSortDropdown();
-                evenementSortValue = sortValue;
-                evenementFilterAndSortRows();
-            });
-        });
-
-        document.addEventListener('click', function(e) {
-            if (!sortPill.contains(e.target)) {
-                closeSortDropdown();
-            }
-        });
-
-        sortPill.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeSortDropdown();
-            }
-            if (e.key === 'ArrowDown') {
-                openSortDropdown();
-                const first = sortDropdown.querySelector('.evenement-sort-option');
-                if (first) first.focus();
-            }
-        });
-    }
-
-    // --- Pills logic ---
-    function showEvenementPage(page) {
-        document.querySelectorAll('.evenement-page-content').forEach(div => {
-            div.style.display = div.dataset.page === page ? '' : 'none';
-        });
-    }
-
-    function updatePillSlider() {
-        const pills = document.querySelectorAll('.pill-tab');
-        const slider = document.querySelector('.pill-slider');
-        const active = document.querySelector('.pill-tab.active');
-
-        if (!active || !slider) return;
-
-        slider.style.left = active.offsetLeft + 'px';
-        slider.style.width = active.offsetWidth + 'px';
-    }
-
-    document.querySelectorAll('.pill-tab').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            updatePillSlider();
-            showEvenementPage(this.dataset.page);
-        });
-    });
-
-    showEvenementPage('1');
-    setTimeout(updatePillSlider, 100);
-    window.addEventListener('resize', updatePillSlider);
-
-    // --- Sort direction toggle logic ---
-    let evenementSortDirection = 'asc';
-    const evenementSortDirBtn = document.getElementById('evenement-sort-dir-pill');
-    const evenementSortDirIconSvg = document.getElementById('evenement-sort-dir-icon-svg');
-
-    function updateEvenementSortDirIcon() {
-        evenementSortDirIconSvg.innerHTML = evenementSortDirection === 'asc' 
-            ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-            : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-    }
-
-    updateEvenementSortDirIcon();
-
-    evenementSortDirBtn.addEventListener('click', function() {
-        evenementSortDirection = evenementSortDirection === 'asc' ? 'desc' : 'asc';
-        updateEvenementSortDirIcon();
-        evenementFilterAndSortRows();
-    });
-
-    // --- Custom dropdown logic for sorting pill ---
-    const evenementSortPill = document.getElementById('evenement-sort-pill-custom');
-    const evenementSortDropdown = document.getElementById('evenement-sort-dropdown');
-    const evenementSortSelected = document.getElementById('evenement-sort-selected');
-    let evenementSortValue = 'name';
-
-    function closeEvenementSortDropdown() {
-        evenementSortDropdown.style.display = 'none';
-        evenementSortPill.classList.remove('open');
-    }
-
-    function openEvenementSortDropdown() {
-        evenementSortDropdown.style.display = 'flex';
-        evenementSortPill.classList.add('open');
-    }
-
-    evenementSortPill.addEventListener('click', function(e) {
-        e.stopPropagation();
-        if (evenementSortDropdown.style.display === 'flex') {
-            closeEvenementSortDropdown();
-        } else {
-            openEvenementSortDropdown();
-        }
-    });
-
-    document.querySelectorAll('.evenement-sort-option').forEach(opt => {
-        opt.addEventListener('click', function(e) {
-            evenementSortValue = this.getAttribute('data-value');
-            evenementSortSelected.textContent = this.textContent;
-            document.querySelectorAll('.evenement-sort-option').forEach(o => o.classList.remove('active'));
-            this.classList.add('active');
-            closeEvenementSortDropdown();
-            evenementFilterAndSortRows();
-        });
-    });
-
-    document.addEventListener('click', function(e) {
-        if (!evenementSortPill.contains(e.target)) {
-            closeEvenementSortDropdown();
-        }
-    });
-
-    evenementSortPill.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeEvenementSortDropdown();
-        }
-        if (e.key === 'ArrowDown') {
-            openEvenementSortDropdown();
-            const first = evenementSortDropdown.querySelector('.evenement-sort-option');
-            if (first) first.focus();
-        }
-    });
-
-    // --- Search and sort logic ---
-    const evenementSearchInput = document.querySelector('.evenement-search-input');
-    let evenementFilteredRows = [...evenementDemoTableRows];
-
-    function evenementFilterAndSortRows() {
-        let rows = [...evenementDemoTableRows];
-
-        const search = evenementSearchInput.value.trim().toLowerCase();
-        if (search) {
-            rows = rows.filter(row => row.some(cell => cell.toLowerCase().includes(search)));
-        }
-
-        if (evenementSortValue === 'name') {
-            rows.sort((a, b) => evenementSortDirection === 'asc' ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]));
-        } else if (evenementSortValue === 'email') {
-            rows.sort((a, b) => evenementSortDirection === 'asc' ? a[1].localeCompare(b[1]) : b[1].localeCompare(a[1]));
-        } else if (evenementSortValue === 'date') {
-            rows.sort((a, b) => evenementSortDirection === 'asc' ? a[2].localeCompare(b[2]) : b[2].localeCompare(a[2]));
-        } else if (evenementSortValue === 'status') {
-            rows.sort((a, b) => evenementSortDirection === 'asc' ? a[3].localeCompare(b[3]) : b[3].localeCompare(a[3]));
-        }
-
-        evenementFilteredRows = rows;
-        evenementCurrentPage = 1;
-        updateEvenementTablePagination();
-    }
-
-    evenementSearchInput.addEventListener('input', evenementFilterAndSortRows);
-
-    // Patch renderEvenementTablePage to use evenementFilteredRows
-    const origRenderEvenementTablePage = renderEvenementTablePage;
-    renderEvenementTablePage = function(page) {
-        const tbody = document.getElementById('evenement-table-body');
-        tbody.innerHTML = '';
-
-        const start = (page - 1) * evenementRowsPerPage;
-        const end = Math.min(start + evenementRowsPerPage, evenementFilteredRows.length);
-
-        for (let r = start; r < end; r++) {
-            const row = document.createElement('tr');
-
-            for (let c = 0; c < 8; c++) {
-                const td = document.createElement('td');
-                td.textContent = evenementFilteredRows[r][c];
-                row.appendChild(td);
-            }
-
-            // Modify button
-            const tdModify = document.createElement('td');
-            tdModify.innerHTML = `<button class="evenement-btn-modify" title="Modify"><i class="bx bx-edit"></i> Modify</button>`;
-            row.appendChild(tdModify);
-
-            // Delete button
-            const tdDelete = document.createElement('td');
-            tdDelete.innerHTML = `<button class="evenement-btn-delete" title="Delete"><i class="bx bx-trash"></i> Delete</button>`;
-            row.appendChild(tdDelete);
-
-            tbody.appendChild(row);
-        }
-    };
-
-    // Patch renderEvenementTablePagination to use evenementFilteredRows
-    const origRenderEvenementTablePagination = renderEvenementTablePagination;
-    renderEvenementTablePagination = function() {
-        const totalPages = Math.ceil(evenementFilteredRows.length / evenementRowsPerPage);
-        const pagesDiv = document.getElementById('evenement-table-pages');
-        pagesDiv.innerHTML = '';
-
-        for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement('button');
-            btn.className = 'evenement-table-page-btn' + (i === evenementCurrentPage ? ' active' : '');
-            btn.textContent = i;
-            btn.onclick = () => {
-                evenementCurrentPage = i;
-                updateEvenementTablePagination();
-            };
-            pagesDiv.appendChild(btn);
-        }
-
-        document.getElementById('evenement-table-prev').disabled = (evenementCurrentPage === 1);
-        document.getElementById('evenement-table-next').disabled = (evenementCurrentPage === totalPages);
-    };
-
-    // Initial filter and sort
-    evenementFilterAndSortRows();
-});
-</script>
-
+<!-- Participation View Details Modal -->
+<div id="participation-view-modal" class="users-edit-modal" style="display: none;">
+    <div class="users-edit-modal-backdrop"></div>
+    <div class="users-edit-modal-card">
+        <div class="users-edit-modal-header">
+            <div>
+                <h3>Participation Details</h3>
+                <p class="users-edit-modal-subtitle">View participation information</p>
+            </div>
+            <button type="button" class="users-edit-modal-close" id="participation-view-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="users-edit-modal-body">
+            <div class="forum-view-row">
+                <div class="forum-view-label">Event</div>
+                <div class="forum-view-value" id="view-participation-event">—</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Participant</div>
+                <div class="forum-view-value" id="view-participation-user">—</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Email</div>
+                <div class="forum-view-value" id="view-participation-email">—</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Date</div>
+                <div class="forum-view-value" id="view-participation-date">—</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Status</div>
+                <div class="forum-view-value" id="view-participation-status">—</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Guests</div>
+                <div class="forum-view-value" id="view-participation-guests">—</div>
+            </div>
+            
+            <div class="users-edit-modal-actions" style="margin-top: 2rem;">
+                <button type="button" href="javascript:void(0)" class="users-btn-cancel" id="participation-view-close-btn">Close</button>
+                <span class="users-edit-modal-actions-spacer"></span>
+                <button type="button" href="javascript:void(0)" class="users-btn-modify forum-btn-modify" id="view-participation-modify-btn">
+                    <i class="bx bx-edit"></i> Modify
+                </button>
+                <form method="post" id="view-participation-delete-form" style="display: inline;" data-ajax="true">
+                    <input type="hidden" name="_token" id="view-participation-delete-token" value="">
+                    <button type="submit" class="users-btn-delete forum-btn-delete">
+                        <i class="bx bx-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Evenement Edit Modal -->
+<div id="evenement-edit-modal" class="users-edit-modal" style="display: none; z-index: 10001;">
+    <div class="users-edit-modal-backdrop"></div>
+    <div class="users-edit-modal-card" style="max-height: 95vh; overflow-y: auto;">
+        <div class="users-edit-modal-header">
+            <div>
+                <h3>Edit Event</h3>
+                <p class="users-edit-modal-subtitle">Modify event details</p>
+            </div>
+            <button type="button" class="users-edit-modal-close" id="evenement-edit-modal-close">&times;</button>
+        </div>
+        {{ form_start(evenementEditForm, {'attr': {'id': 'evenement-edit-form', 'class': 'users-edit-modal-body'}}) }}
+            <div class="forum-view-row" style="display:block; border:none; padding-bottom:0;">
+                <label class="evenement-edit-label">Title</label>
+                {{ form_widget(evenementEditForm.titre_event, {'id': 'edit_evenement_titre', 'attr': {'class': 'evenement-edit-input'}}) }}
+            </div>
+            <div class="forum-view-row" style="display:block; border:none; padding-bottom:0;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label class="evenement-edit-label">Date</label>
+                        {{ form_widget(evenementEditForm.date_event, {'id': 'edit_evenement_date', 'attr': {'class': 'evenement-edit-input', 'style': 'color-scheme: dark;'}}) }}
+                    </div>
+                     <div>
+                        <label class="evenement-edit-label">Location</label>
+                        {{ form_widget(evenementEditForm.lieu_event, {'id': 'edit_evenement_lieu', 'attr': {'class': 'evenement-edit-input'}}) }}
+                    </div>
+                </div>
+            </div>
+             <div class="forum-view-row" style="display:block; border:none; padding-bottom:0;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label class="evenement-edit-label">Type</label>
+                        {{ form_widget(evenementEditForm.type_event, {'id': 'edit_evenement_type', 'attr': {'class': 'evenement-edit-input'}}) }}
+                    </div>
+                     <div>
+                        <label class="evenement-edit-label">Status</label>
+                        {{ form_widget(evenementEditForm.statut_event, {'id': 'edit_evenement_statut', 'attr': {'class': 'evenement-edit-input'}}) }}
+                    </div>
+                </div>
+            </div>
+            <div class="forum-view-row" style="display:block; border:none; padding-bottom:0;">
+                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label class="evenement-edit-label">Total Places</label>
+                        {{ form_widget(evenementEditForm.nb_places, {'id': 'edit_evenement_nb_places', 'attr': {'class': 'evenement-edit-input'}}) }}
+                    </div>
+                     <div>
+                        <label class="evenement-edit-label">Remaining</label>
+                        {{ form_widget(evenementEditForm.nb_restants, {'id': 'edit_evenement_nb_restants', 'attr': {'class': 'evenement-edit-input'}}) }}
+                    </div>
+                </div>
+            </div>
+             <div class="forum-view-row" style="display:block; border:none; padding-bottom:0;">
+                <label class="evenement-edit-label">Description</label>
+                {{ form_widget(evenementEditForm.description_event, {'id': 'edit_evenement_description', 'attr': {'class': 'evenement-edit-input', 'style': 'min-height:80px;'}}) }}
+            </div>
+            <div class="forum-view-row" style="display:block; border:none; padding-bottom:0;">
+                <label class="evenement-edit-label">Event Image</label>
+                <div id="edit_evenement_image_preview_container" style="margin-bottom: 0.5rem; display: none;">
+                    <img id="edit_evenement_image_preview" src="" alt="Current Image" style="max-height: 100px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                </div>
+                {{ form_widget(evenementEditForm.image_event, {'attr': {'class': 'evenement-edit-input', 'style': 'padding: 0.5rem;'}}) }}
+            </div>
+
+            <div class="users-edit-modal-actions" style="margin-top: 1.5rem;">
+                <button type="button" class="users-btn-cancel" id="evenement-edit-cancel-btn">Cancel</button>
+                <span class="users-edit-modal-actions-spacer"></span>
+                <button type="submit" class="users-btn-modify">Save Changes</button>
+            </div>
+        {{ form_end(evenementEditForm) }}
+    </div>
+</div>
+
+<!-- Participation Edit Modal -->
+<div id="participation-edit-modal" class="users-edit-modal" style="display: none; z-index: 10001;">
+    <div class="users-edit-modal-backdrop"></div>
+    <div class="users-edit-modal-card">
+         <div class="users-edit-modal-header">
+            <div>
+                <h3>Edit Participation</h3>
+                <p class="users-edit-modal-subtitle">Modify participation details</p>
+            </div>
+            <button type="button" class="users-edit-modal-close" id="participation-edit-modal-close">&times;</button>
+        </div>
+        {{ form_start(participationEditForm, {'attr': {'id': 'participation-edit-form', 'class': 'users-edit-modal-body'}}) }}
+            <div class="forum-view-row" style="display:block; border:none; padding-bottom:0;">
+                <label class="evenement-edit-label">Event (Read-only)</label>
+                <div id="edit_participation_event_display" class="evenement-edit-input" style="opacity: 0.7; pointer-events: none; background: rgba(0,0,0,0.1);"></div>
+            </div>
+             <div class="forum-view-row" style="display:block; border:none; padding-bottom:0;">
+                <label class="evenement-edit-label">User (Read-only)</label>
+                <div id="edit_participation_user_display" class="evenement-edit-input" style="opacity: 0.7; pointer-events: none; background: rgba(0,0,0,0.1);"></div>
+            </div>
+            <div class="forum-view-row" style="display:block; border:none; padding-bottom:0;">
+                <label class="evenement-edit-label">Status</label>
+                {{ form_widget(participationEditForm.statut_participation, {'id': 'edit_participation_statut', 'attr': {'class': 'evenement-edit-input'}}) }}
+            </div>
+            <div class="forum-view-row" style="display:block; border:none; padding-bottom:0;">
+                <label class="evenement-edit-label">Number of Guests</label>
+                {{ form_widget(participationEditForm.nb_accompagnants, {'id': 'edit_participation_guests', 'attr': {'class': 'evenement-edit-input'}}) }}
+            </div>
+             <div class="forum-view-row" style="display:block; border:none; padding-bottom:0;">
+                <label class="evenement-edit-label">Comment</label>
+                {{ form_widget(participationEditForm.commentaire_participation, {'id': 'edit_participation_comment', 'attr': {'class': 'evenement-edit-input', 'style': 'min-height:80px;'}}) }}
+            </div>
+             <div class="users-edit-modal-actions" style="margin-top: 1.5rem;">
+                <button type="button" class="users-btn-cancel" id="participation-edit-cancel-btn">Cancel</button>
+                <span class="users-edit-modal-actions-spacer"></span>
+                <button type="submit" class="users-btn-modify">Save Changes</button>
+            </div>
+        {{ form_end(participationEditForm) }}
+    </div>
+</div>
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
+   {{ parent() }}
+    <!-- PREMIUM COOL POPUP SYSTEM -->
+    <div id="coolPopup" class="cool-popup-overlay">
+        <div class="cool-popup-glow-1"></div>
+        <div class="cool-popup-glow-2"></div>
+        <div class="cool-popup-content">
+            <div id="coolPopupIcon" class="cool-popup-icon"></div>
+            <h2 id="coolPopupTitle" class="cool-popup-title"></h2>
+            <p id="coolPopupMessage" class="cool-popup-message"></p>
+            
+            <div id="coolPopupActions" class="cool-popup-actions">
+                <!-- Buttons will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .cool-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 12, 16, 0.7);
+            backdrop-filter: blur(8px); /* Reduced from 25px for performance */
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 30000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .cool-popup-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .cool-popup-glow-1 {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 198, 255, 0.1) 0%, transparent 70%);
+            top: 25%;
+            left: 25%;
+            filter: blur(40px);
+            z-index: 1;
+        }
+
+        .cool-popup-glow-2 {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 114, 255, 0.1) 0%, transparent 70%);
+            bottom: 25%;
+            right: 25%;
+            filter: blur(40px);
+            z-index: 1;
+        }
+
+        .cool-popup-content {
+            background: rgba(255, 255, 255, 0.05); /* Slightly more opaque glass */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px); /* Localized blur is faster usually */
+            padding: 3.5rem 2.5rem;
+            border-radius: 35px;
+            text-align: center;
+            max-width: 480px;
+            width: 90%;
+            transform: scale(0.95);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+        }
+
+        .cool-popup-overlay.show .cool-popup-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .cool-popup-icon {
+            font-size: 6rem;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 20px rgba(0, 198, 255, 0.3));
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .cool-popup-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.6) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .cool-popup-message {
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 1.2rem;
+            line-height: 1.7;
+            margin-bottom: 3rem;
+            font-weight: 500;
+        }
+
+        .cool-popup-actions {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+
+        .cool-popup-btn {
+            border: none;
+            padding: 1.2rem 2.5rem;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .cool-popup-btn-primary {
+            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+            color: white;
+            box-shadow: 0 15px 35px -10px rgba(0, 114, 255, 0.5);
+        }
+
+        .cool-popup-btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cool-popup-btn-danger {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+            box-shadow: 0 15px 35px -10px rgba(255, 75, 43, 0.5);
+        }
+
+        .cool-popup-btn:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
+    </style>
+
+    <script>
+        function showCoolPopup(title, message, type = 'success', onConfirm = null) {
+            const popup = document.getElementById('coolPopup');
+            const icon = document.getElementById('coolPopupIcon');
+            const titleEl = document.getElementById('coolPopupTitle');
+            const msgEl = document.getElementById('coolPopupMessage');
+            const actionsEl = document.getElementById('coolPopupActions');
+
+            if(!popup || !icon || !titleEl || !msgEl || !actionsEl) return;
+
+            titleEl.textContent = title;
+            msgEl.innerHTML = message;
+            actionsEl.innerHTML = ''; // Clear prior buttons
+
+            if (type === 'success') {
+                icon.innerHTML = "<i class='bx bxs-check-shield' style='color: #00d2ff;'></i>";
+            } else if (type === 'error') {
+                icon.innerHTML = "<i class='bx bxs-error-circle' style='color: #ff4d4d;'></i>";
+            } else if (type === 'confirm') {
+                icon.innerHTML = "<i class='bx bxs-help-circle' style='color: #ffcc00;'></i>";
+            }
+
+            if (type === 'confirm') {
+                // Add Cancel Button
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className = 'cool-popup-btn cool-popup-btn-secondary';
+                cancelBtn.textContent = 'Cancel';
+                cancelBtn.onclick = closeCoolPopup;
+                actionsEl.appendChild(cancelBtn);
+
+                // Add Confirm/Delete Button
+                const confirmBtn = document.createElement('button');
+                confirmBtn.className = 'cool-popup-btn cool-popup-btn-danger';
+                confirmBtn.textContent = 'Confirm Delete';
+                confirmBtn.onclick = () => {
+                    closeCoolPopup();
+                    if (onConfirm) onConfirm();
+                };
+                actionsEl.appendChild(confirmBtn);
+            } else {
+                // Single "Got it" Button for alerts
+                const okBtn = document.createElement('button');
+                okBtn.className = 'cool-popup-btn cool-popup-btn-primary';
+                okBtn.textContent = 'Got it';
+                okBtn.onclick = closeCoolPopup;
+                actionsEl.appendChild(okBtn);
+            }
+
+            popup.style.display = 'flex';
+            setTimeout(() => popup.classList.add('show'), 10);
+        }
+
+        function closeCoolPopup() {
+            const popup = document.getElementById('coolPopup');
+            if(!popup) return;
+            popup.classList.remove('show');
+            setTimeout(() => popup.style.display = 'none', 400);
+        }
+    </script>
 {% endblock %}

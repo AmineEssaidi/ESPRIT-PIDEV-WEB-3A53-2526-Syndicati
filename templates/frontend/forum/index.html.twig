@@ -1,14 +1,454 @@
 {% extends 'base_symfony.html.twig' %}
-{% block title %}Forum{% endblock %}
+{% block title %}Forum - Join the Discussion{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset('frontend/css/forum.css') }}" rel="stylesheet">
+{% endblock %}
+
 {% block body %}
 <div class="main-home-layout-wrapper">
     <div class="main-home-page">
-        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'services'} %}
-        <div class="main-home-content-box">
-            <h1 class="main-home-content-title">Forum</h1>
-            <!-- Forum content goes here -->
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'forum'} %}
+        
+        <div class="forum-container" style="padding: 2rem 1rem;">
+            
+            <!-- Hero / Announcements Section -->
+            <div class="forum-hero-section">
+                <div class="forum-hero-bg-glow"></div>
+                <div class="forum-hero-content">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="forum-hero-badge">Community</span>
+                            <h1 class="forum-hero-title">Welcome to the Community</h1>
+                            <p class="forum-hero-text">
+                                Share your ideas, discuss video games, and talk about the latest tech. 
+                                This is your space to connect with other residents and share what matters to you.
+                            </p>
+                        </div>
+                        
+                        <div class="d-flex gap-3 align-items-center">
+                            {% set currentUser = app.session.get('user') %}
+                            
+                            {# Restricted Button (Announcements) - ONLY for Admin/Owner/Syndic #}
+                            {% if currentUser is not null and (
+                                currentUser.role|default('') == 'ADMIN' or 
+                                currentUser.role|default('') == 'SUPERADMIN' or 
+                                currentUser.role|default('') == 'OWNER' or 
+                                currentUser.role|default('') == 'SYNDIC'
+                               ) 
+                            %}
+                                <a href="#" id="btnHeroCreate" class="btn-hero-create">
+                                    <i class='bx bx-plus'></i> New Announcement
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Announcements Section (Specific box below Hero) -->
+            {% set announcements = publications|filter(p => p.categoriePub == 'Announcement') %}
+            {% if announcements|length > 0 %}
+                <div class="mb-5">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class='bx bxs-megaphone' style="color: #ff4d4d; font-size: 1.5rem; margin-right: 0.5rem;"></i>
+                        <h3 class="text-white m-0" style="font-weight: 700;">Announcements</h3>
+                    </div>
+                    <div class="forum-publications-grid">
+                        {% for publication in announcements %}
+                            {% include 'frontend/forum/_card.html.twig' with {
+                                'publication': publication,
+                                'author_profile': author_profiles[publication.user.idUser]|default(null)
+                            } %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Publications Grid -->
+            <!-- Publications Grid -->
+            <div class="mb-4">
+                <h2 style="color:white; margin-bottom: 0; font-weight: 700;">Latest Discussions</h2>
+            </div>
+            
+            <div class="forum-publications-grid">
+                {# Create Post Card (Visible when there are posts) #}
+                 {% set filteredPubs = publications|filter(p => p.categoriePub != 'Announcement') %}
+                 
+                {% if app.session.get('user') and filteredPubs|length > 0 %}
+                    <div class="forum-card create-post-card btn-discussion-create" style="cursor: pointer;">
+                        <div class="forum-card-body">
+                            <div class="plus-icon mb-3 d-flex align-items-center justify-content-center" 
+                                 style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); box-shadow: 0 10px 25px rgba(37, 117, 252, 0.4);">
+                                <i class='bx bx-plus' style="font-size: 36px; color: white;"></i>
+                            </div>
+                            <h3 class="m-0" style="font-weight: 700; font-size: 1.5rem; letter-spacing: 0.5px;">Create Post</h3>
+                            <p class="m-0 mt-2" style="font-size: 1rem; opacity: 0.7;">Share your thoughts with the community</p>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% for publication in filteredPubs %}
+                    {% include 'frontend/forum/_card.html.twig' with {
+                        'publication': publication,
+                        'author_profile': author_profiles[publication.user.idUser]|default(null)
+                    } %}
+                {% else %}
+                    <div class="forum-empty-state">
+                        <i class='bx bx-message-square-dots' style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                        <p>No publications found. Be the first to start a conversation!</p>
+                        {% if app.session.get('user') %}
+                            <a href="#" id="btnDiscussionCreate" class="btn-discussion-create" style="margin-top: 1rem;">
+                                <i class='bx bx-plus'></i> Create Post
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
         </div>
+
         {% include 'frontend/shared/_main_footer.html.twig' %}
     </div>
 </div>
+
+<!-- Create Post Modal -->
+<div id="createPostModal" class="forum-modal">
+    <div class="forum-modal-content">
+        <div class="forum-modal-header">
+            <h2>Create New Post</h2>
+            <span class="forum-modal-close">&times;</span>
+        </div>
+        <div class="forum-modal-body">
+             {{ form_start(form, {'attr': {'id': 'createPostForm', 'class': 'main-home-auth-form', 'data-ajax': 'true'}}) }}
+                
+                <div class="main-home-form-group">
+                    <label class="main-home-form-label">Title</label>
+                    {{ form_widget(form.titre_pub, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Enter a catchy title'}}) }}
+                    <div class="text-danger small">{{ form_errors(form.titre_pub) }}</div>
+                </div>
+
+                <div class="main-home-form-group">
+                    <label class="main-home-form-label">Category</label>
+                    {{ form_widget(form.categorie_pub, {'attr': {'class': 'main-home-form-input'}}) }}
+                    <div class="text-danger small">{{ form_errors(form.categorie_pub) }}</div>
+                </div>
+
+                 <div class="main-home-form-group">
+                    <label class="main-home-form-label">Description</label>
+                    {{ form_widget(form.description_pub, {'attr': {'class': 'main-home-form-input', 'rows': '4', 'placeholder': 'What is on your mind?'}}) }}
+                    <div class="text-danger small">{{ form_errors(form.description_pub) }}</div>
+                </div>
+
+                <div class="main-home-form-group">
+                    <label class="main-home-form-label">Image (Optional)</label>
+                    {{ form_widget(form.image_pub, {'attr': {'class': 'main-home-form-input'}}) }}
+                    <div class="text-danger small">{{ form_errors(form.image_pub) }}</div>
+                </div>
+
+                <button type="submit" class="main-home-btn-auth-submit mt-4">Post</button>
+             {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+
+<!-- Post Details Modal (Premium Redesign v2) -->
+<div id="postDetailsModal" class="forum-modal">
+    <div id="detailsModalContent" class="forum-modal-content details-modal-content" style="max-width: 900px; padding: 0; border: none; overflow: hidden; background: #0a0a0f; border-radius: 24px; box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8);">
+        
+        <!-- Header Section -->
+        <div id="modalPostImage" class="details-hero">
+            <div class="details-hero-overlay">
+                <div class="details-hero-content">
+                    <span id="modalPostCategory" class="forum-category-badge mb-3"></span>
+                    <h2 id="modalPostTitle" class="details-title"></h2>
+                </div>
+            </div>
+            <span class="forum-modal-close details-close-btn">&times;</span>
+        </div>
+
+        <!-- Meta Bar (Floating-like) -->
+        <div class="details-meta-wrapper">
+            <div class="details-meta-bar">
+                <div class="d-flex align-items-center">
+                    <div id="modalPostUserAvatar" class="details-author-avatar"></div>
+                    <div class="ms-3">
+                        <span id="modalPostUserName" class="details-author-name"></span>
+                        <span id="modalPostDate" class="details-post-date"></span>
+                    </div>
+                </div>
+                <div class="details-actions">
+                    <button class="action-btn" title="Like"><i class='bx bxs-like'></i></button>
+                    <button class="action-btn" title="Dislike"><i class='bx bxs-dislike'></i></button>
+                    <button class="action-btn" title="Bookmark"><i class='bx bxs-bookmark'></i></button>
+                    <button class="action-btn" title="Share"><i class='bx bxs-share-alt'></i></button>
+                    
+                    {# Author Actions (Hidden by default, shown via JS) #}
+                    <div id="authorActions" class="d-none" style="margin-left: 15px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px; flex-direction: row; align-items: center; gap: 15px; flex-wrap: nowrap;">
+                        <button id="btnEditPost" class="action-btn" title="Edit Post" style="background: rgba(var(--primary-rgb), 0.2); border-color: rgba(var(--primary-rgb), 0.3); color: var(--primary-color);">
+                            <i class='bx bxs-edit-alt'></i>
+                        </button>
+                        <button id="btnDeletePost" class="action-btn" title="Delete Post" style="background: rgba(255, 77, 77, 0.15); border-color: rgba(255, 77, 77, 0.3); color: #ff4d4d;">
+                            <i class='bx bxs-trash'></i>
+                        </button>
+                    </div>
+                </div>
+
+                {# Current User Context for JS #}
+                <input type="hidden" id="currentUserId" value="{{ app.session.get('user').id_user|default(app.session.get('user').id|default('')) }}">
+                <input type="hidden" id="currentUserRole" value="{{ app.session.get('user').role|default('') }}">
+            </div>
+        </div>
+
+        <!-- Content Body -->
+        <div class="details-body-scroll">
+            <div class="details-article">
+                <div id="modalPostDescription" class="details-text-content"></div>
+                
+                <!-- Comments Section (Hidden for Announcements) -->
+                <div id="commentsSection" class="comments-section d-none">
+                    <h4 class="comments-section-title">
+                        <i class='bx bx-message-rounded-dots'></i> Discussion
+                    </h4>
+                    
+                    <!-- List of Comments -->
+                    <div id="commentsList" class="comments-wrapper">
+                        <!-- Comments injected via JS -->
+                    </div>
+
+                    <!-- Add Comment Form -->
+                     {% if app.session.get('user') %}
+                        <div class="comment-form-container">
+                            <form id="addCommentForm" action="" method="POST">
+                                <div class="comment-form-header">
+                                    <h5 class="comment-form-title">Leave a comment</h5>
+                                    
+                                    <!-- Visibility Toggle (Premium Pill) -->
+                                    <div class="comment-toggle-wrapper">
+                                        <label class="visibility-btn-group" style="cursor: pointer; display: flex; align-items: center; margin: 0;">
+                                            <input type="checkbox" name="visibility" class="toggle-switch-checkbox" checked>
+                                            <span class="toggle-option toggle-label-anon" style="border-radius: 99px 0 0 99px; padding-right: 12px;">
+                                                <i class='bx bx-user-secret'></i> Anon
+                                            </span>
+                                            <span class="toggle-option toggle-label-public" style="border-radius: 0 99px 99px 0; padding-left: 12px;">
+                                                <i class='bx bx-world'></i> Public
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <textarea name="description" class="comment-input-area" rows="4" placeholder="Share your thoughts..."></textarea>
+                                </div>
+                                
+                                <!-- Action Bar: Image Upload & Submit -->
+                                <div class="comment-form-actions mt-3">
+                                    <div class="comment-upload-group">
+                                        <label class="comment-img-upload-btn" title="Attach Image">
+                                            <i class='bx bx-image-add'></i>
+                                            <input type="file" name="image_commentaire" id="commentImageInput" accept="image/*" style="display: none;">
+                                        </label>
+                                        <div id="commentImagePreviewContainer" class="d-none">
+                                            <div id="commentImagePreview" class="comment-img-preview-box" title="View / Change"></div>
+                                            <span id="removeCommentImg" class="comment-img-remove-btn" title="Remove"><i class='bx bx-x'></i></span>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="comment-submit-btn">
+                                        <span>Post Comment</span>
+                                        <i class='bx bx-send'></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="details-footer-tags">
+                    <span class="text-white-50 small d-block">Posted in:</span>
+                    <div class="d-flex flex-wrap gap-3 mt-3">
+                        <span class="tag-label">General</span>
+                        <span class="tag-label">Discussion</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Post Modal (New) -->
+<div id="editPostModal" class="forum-modal">
+    <div class="forum-modal-content" style="max-width: 600px;">
+        <div class="forum-modal-header">
+            <h2>Edit Post</h2>
+            <span class="forum-modal-close" onclick="closeEditModal()">&times;</span>
+        </div>
+        <div class="forum-modal-body">
+            <form id="editPostForm" method="POST" enctype="multipart/form-data" class="main-home-auth-form" data-ajax="true">
+                <div class="main-home-form-group">
+                    <label class="main-home-form-label">Title</label>
+                    <input type="text" name="title" id="editPostTitle" class="main-home-form-input" required>
+                </div>
+
+                <div class="main-home-form-group">
+                    <label class="main-home-form-label">Category</label>
+                    <select name="category" id="editPostCategory" class="main-home-form-input" required>
+                        {% for cat in constant('App\\Entity\\Forum\\Publication::CATEGORIES') %}
+                            <option value="{{ cat }}">{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="main-home-form-group">
+                    <label class="main-home-form-label">Description</label>
+                    <textarea name="description" id="editPostDescription" class="main-home-form-input" rows="5" required></textarea>
+                </div>
+
+                <div class="main-home-form-group">
+                    <label class="main-home-form-label">Update Image (Optional)</label>
+                    <input type="file" name="image_pub" class="main-home-form-input" accept="image/*">
+                </div>
+
+                <div class="d-flex flex-row gap-3 mt-4" style="width: 100%;">
+                    <button type="button" class="btn-discussion-create" style="flex: 1; justify-content: center; margin-top: 0;" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="main-home-btn-auth-submit" style="flex: 2; margin: 0; width: auto;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- Custom Confirmation Modal (Premium) -->
+<div id="confirmDeleteModal" class="forum-modal" style="z-index: 2000;">
+    <div class="confirm-modal-content">
+        <div class="confirm-icon-wrapper">
+            <i class='bx bx-error-circle'></i>
+        </div>
+        <h3>Are you sure?</h3>
+        <p>This post will be permanently deleted. This action cannot be undone.</p>
+        <div class="confirm-actions">
+            <button class="btn-cancel-delete" onclick="closeConfirmModal()">No, Cancel</button>
+            <button id="btnConfirmDelete" class="btn-confirm-delete">Yes, Delete Post</button>
+        </div>
+    </div>
+</div>
+
+<!-- Integrated Notification Toast -->
+    <div id="forumToast" class="forum-toast">
+        <div class="toast-content">
+            <i id="toastIcon" class='bx bx-check-circle'></i>
+            <span id="toastMessage"></span>
+        </div>
+        <div class="toast-progress"></div>
+    </div>
+
+    <!-- COOL CUSTOM POPUP SYSTEM -->
+    <script>
+        const popupHTML = `
+        <div id="cool-popup-wrapper" class="cool-popup-wrapper">
+            <div class="cool-popup-card">
+                <div class="cool-popup-icon-container">
+                    <div class="cool-popup-icon" id="cool-popup-icon"></div>
+                </div>
+                <h3 class="cool-popup-title" id="cool-popup-title"></h3>
+                <p class="cool-popup-message" id="cool-popup-message"></p>
+                <button class="cool-popup-btn" onclick="closeCoolPopup()">Got it</button>
+            </div>
+        </div>
+        <style>
+        .cool-popup-wrapper {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .cool-popup-wrapper.active {
+            display: flex;
+            opacity: 1;
+        }
+        .cool-popup-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 32px;
+            padding: 3rem 2rem;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(var(--main-home-accent-rgb), 0.2);
+            transform: scale(0.8) translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .cool-popup-wrapper.active .cool-popup-card {
+            transform: scale(1) translateY(0);
+        }
+        .cool-popup-icon-container {
+            width: 80px; height: 80px;
+            margin: 0 auto 1.5rem;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem;
+        }
+        .cool-popup-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            color: #fff;
+        }
+        .cool-popup-message {
+            color: rgba(255,255,255,0.7);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        .cool-popup-btn {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border: none;
+            padding: 0.8rem 2.5rem;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .cool-popup-btn:hover { transform: scale(1.05); }
+        
+        /* Success State */
+        .popup-success .cool-popup-icon-container { background: rgba(46, 213, 115, 0.15); border: 2px solid #2ed573; color: #2ed573; }
+        .popup-success .cool-popup-icon::before { content: '✓'; }
+        
+        /* Error State */
+        .popup-error .cool-popup-icon-container { background: rgba(255, 71, 87, 0.15); border: 2px solid #ff4757; color: #ff4757; }
+        .popup-error .cool-popup-icon::before { content: '×'; }
+        </style>
+        `;
+        document.body.insertAdjacentHTML('beforeend', popupHTML);
+
+        window.showCoolPopup = function(title, message, type = 'error') {
+            const wrapper = document.getElementById('cool-popup-wrapper');
+            const card = wrapper.querySelector('.cool-popup-card');
+            document.getElementById('cool-popup-title').textContent = title;
+            document.getElementById('cool-popup-message').innerHTML = message;
+            
+            card.className = 'cool-popup-card popup-' + type;
+            wrapper.classList.add('active');
+        };
+
+        window.closeCoolPopup = function() {
+            document.getElementById('cool-popup-wrapper').classList.remove('active');
+        };
+    </script>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('frontend/js/forum.js') }}"></script>
 {% endblock %}

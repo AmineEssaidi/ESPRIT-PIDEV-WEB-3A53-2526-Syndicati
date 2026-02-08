@@ -1,0 +1,274 @@
+/* ==========================================================================
+   RESIDENCE MODULE STYLES
+   "Horizon" Sick UI Design System
+   ========================================================================== */
+
+:root {
+    --residence-accent: var(--main-home-accent-color, #6c5ce7);
+    --residence-gradient: var(--main-home-accent-gradient, linear-gradient(135deg, #6c5ce7 0%, #a855f7 100%));
+    --residence-glass: rgba(255, 255, 255, 0.03);
+    --residence-border: rgba(255, 255, 255, 0.08);
+}
+
+/* Hero Section */
+.residence-hero {
+    position: relative;
+    padding: 10rem 4rem;
+    margin: 2rem auto !important;
+    width: 95%;
+    max-width: 1800px;
+    background: #000;
+    border-radius: 48px;
+    overflow: hidden;
+    border: 1px solid var(--residence-border);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    min-height: 600px;
+}
+
+.residence-hero-glow {
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 900px;
+    height: 900px;
+    background: radial-gradient(circle, rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.2) 0%, transparent 70%);
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.residence-hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.residence-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1.4rem;
+    background: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.1);
+    border: 1px solid rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.3);
+    border-radius: 100px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 2.5rem;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 20px rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.1);
+}
+
+.residence-title {
+    font-size: 5.5rem;
+    font-weight: 950;
+    line-height: 0.9;
+    margin-bottom: 2rem;
+    background: linear-gradient(to bottom, #fff 30%, rgba(255, 255, 255, 0.7) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -3px;
+}
+
+.residence-subtitle {
+    font-size: 1.4rem;
+    color: rgba(255, 255, 255, 0.5);
+    max-width: 700px;
+    line-height: 1.6;
+    margin-bottom: 3.5rem;
+    font-weight: 400;
+}
+
+/* Showcase Section */
+.residence-showcase {
+    padding: 6rem 0;
+    background: transparent;
+}
+
+.section-label {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.section-label h2 {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 1rem;
+    background: var(--residence-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.section-label p {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 1.1rem;
+}
+
+/* Residence Card */
+.residence-card {
+    background: #0a0a0a;
+    border-radius: 32px;
+    border: 1px solid var(--residence-border);
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    height: 100%;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.residence-card:hover {
+    transform: translateY(-15px) scale(1.02);
+    border-color: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.4);
+    box-shadow: 0 30px 70px rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.15);
+}
+
+.residence-card-img {
+    height: 280px;
+    width: 100%;
+    object-fit: cover;
+    transition: transform 0.8s ease;
+}
+
+.residence-card:hover .residence-card-img {
+    transform: scale(1.1);
+}
+
+.residence-card-overlay {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.residence-price-tag {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(12px);
+    padding: 0.6rem 1.2rem;
+    border-radius: 20px;
+    color: #fff;
+    font-weight: 700;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.residence-card-body {
+    padding: 2rem;
+}
+
+.residence-type {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 100px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.residence-card-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 1rem;
+}
+
+.residence-location {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+}
+
+.residence-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.residence-stat-item {
+    text-align: center;
+}
+
+.residence-stat-value {
+    display: block;
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+
+.residence-stat-label {
+    display: block;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-top: 0.2rem;
+}
+
+/* Hover Accent Bar */
+.residence-card-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--residence-gradient);
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+    transform-origin: left;
+}
+
+.residence-card:hover .residence-card-bar {
+    transform: scaleX(1);
+}
+
+/* Light Theme Overrides */
+[data-theme="light"] .residence-hero {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .residence-title {
+    background: linear-gradient(to bottom, #1e293b 30%, #475569 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+[data-theme="light"] .residence-subtitle {
+    color: #64748b;
+}
+
+[data-theme="light"] .residence-card {
+    background: #fff;
+    border-color: #e2e8f0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .residence-stat-value {
+    color: #1e293b;
+}
+
+[data-theme="light"] .residence-stat-label {
+    color: #94a3b8;
+}
+
+[data-theme="light"] .residence-card-title {
+    color: #1e293b;
+}
+
+[data-theme="light"] .residence-type {
+    background: #f1f5f9;
+    color: #64748b;
+}

@@ -6,7 +6,7 @@
 (function() {
     'use strict';
     
-    const LOADER_DURATION = 2000; // 2 seconds
+    const LOADER_DURATION = 400; // 0.4 seconds
     const loader = document.getElementById('pageLoader');
     
     if (!loader) return;
@@ -53,14 +53,22 @@
         // Skip if no href
         if (!href) return;
         
-        // Skip external links, anchors, javascript:, mailto:, tel:, etc.
-        if (href.startsWith('#') || 
-            href.startsWith('javascript:') || 
-            href.startsWith('mailto:') || 
-            href.startsWith('tel:') ||
-            href.startsWith('http://') && !href.includes(window.location.host) ||
-            href.startsWith('https://') && !href.includes(window.location.host)) {
-            return;
+        // Force loader for cross-section links (Dashboard, Main Home, etc.)
+        const forceLoader = link.hasAttribute('data-page-loader');
+        
+        if (!forceLoader) {
+            // Skip external links, anchors, javascript:, mailto:, tel:, etc.
+            if (href.startsWith('#') || 
+                href.startsWith('javascript:') || 
+                href.startsWith('mailto:') || 
+                href.startsWith('tel:') ||
+                (href.startsWith('http://') && !href.includes(window.location.host)) ||
+                (href.startsWith('https://') && !href.includes(window.location.host))) {
+                return;
+            }
+        } else {
+            // data-page-loader: only skip anchors and empty
+            if (href.startsWith('#') || href === '') return;
         }
         
         // Skip links that open in new tab

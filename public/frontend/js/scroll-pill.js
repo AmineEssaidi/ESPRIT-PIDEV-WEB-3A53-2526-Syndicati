@@ -64,14 +64,6 @@
       }
     }
 
-    function updateHeroVisibility() {
-      const hero = document.querySelector('.main-home-hero');
-      if (!hero) return;
-      const rect = hero.getBoundingClientRect();
-      if (rect.bottom < 120) pill.classList.add('hide');
-      else pill.classList.remove('hide');
-    }
-
     // Down: single click = one viewport down, double click = bottom
     btnDown.addEventListener('click', (e) => {
       e.preventDefault();
@@ -107,7 +99,6 @@
     function handleScroll() {
       resetIfAtTop();
       resetIfAtBottom();
-      updateHeroVisibility();
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true });
