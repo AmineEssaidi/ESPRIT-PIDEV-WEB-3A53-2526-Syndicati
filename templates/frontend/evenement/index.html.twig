@@ -1,14 +1,916 @@
 {% extends 'base_symfony.html.twig' %}
-{% block title %}Evenement{% endblock %}
+{% block title %}Events - Explore What's Happening{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset('frontend/css/evenement.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/evenement-form-custom.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+{% endblock %}
+
 {% block body %}
 <div class="main-home-layout-wrapper">
     <div class="main-home-page">
-        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'services'} %}
-        <div class="main-home-content-box">
-            <h1 class="main-home-content-title">Evenement</h1>
-            <!-- Evenement content goes here -->
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'evenement'} %}
+        
+        <div class="main-home-page-content" style="padding: 2rem 0;">
+            <!-- Hero Section -->
+            <div class="event-hero-section">
+                <div class="event-hero-bg-glow"></div>
+                <div class="event-bg-glow-secondary"></div>
+                
+                <div class="container position-relative" style="z-index: 2;">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <span class="event-hero-badge">
+                                <i class='bx bxs-zap'></i> Community Experiences
+                            </span>
+                            <h1 class="event-hero-title">Discover. Connect.<br>Experience.</h1>
+                            <p class="event-hero-subtitle">Join exclusive events, workshops, and gatherings designed for our community. Your next great story starts here.</p>
+                            
+                            <div class="d-flex gap-3 mt-4">
+                                <a href="#events" class="btn-event-action" style="padding: 1rem 2.5rem; font-size: 1rem;">Explore Events</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event Content -->
+            <div id="events" class="pb-5">
+                
+                <!-- 1. PERMANENT DASHBOARD (Formerly Empty State) -->
+                <div class="forum-empty-state mb-5">
+                    <!-- Mini Hero Glows -->
+                    <div class="event-hero-bg-glow" style="opacity: 0.4;"></div>
+                    <div class="event-bg-glow-secondary" style="opacity: 0.3;"></div>
+                    
+                    <!-- Left Column: Dynamic Messaging -->
+                    <div class="empty-state-left">
+                        <span class="event-section-pill" style="margin-bottom: 2rem;">
+                            <i class='bx bx-calendar-event'></i> Event Dashboard
+                        </span>
+                        
+                        {% if evenements|length > 0 %}
+                            <h3 class="event-hero-title" style="font-size: 3rem; margin-bottom: 1.5rem;">Join the Action.<br>{{ evenements|length }} Events Upcoming.</h3>
+                            <p class="event-hero-subtitle" style="margin: 0 0 3rem 0; width: 100%; max-width: 500px;">The community is buzzing! Browse the events below and secure your spot before they fill up.</p>
+                        {% else %}
+                            <h3 class="event-hero-title" style="font-size: 3rem; margin-bottom: 1.5rem;">The Stage is Set...<br>Awaiting Your Pulse.</h3>
+                            <p class="event-hero-subtitle" style="margin: 0 0 3rem 0; width: 100%; max-width: 500px;">It looks like there are no events scheduled at the moment. Be the heartbeat of our community and organize something truly legendary.</p>
+                        {% endif %}
+                        
+                        <div class="d-flex gap-3 mt-4">
+                                <div class="main-home-made-with-love" style="background: rgba(255,255,255,0.02); padding: 1rem 2rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
+                                <span style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Join 500+ members in our next gathering</span>
+                                </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Interactive Dashboard & Actions -->
+                    <div class="empty-state-right">
+                        {% if app.session.get('is_logged_in') %}
+                            <div id="btnHostEventDashboard" class="event-host-pill-trigger">
+                                <div style="width: 40px; height: 40px; background: var(--event-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                    <i class='bx bx-plus'></i>
+                                </div>
+                                <div class="text-start">
+                                    <div style="font-size: 0.95rem; font-weight: 800;">Host an Event</div>
+                                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); font-weight: 600;">Start your community journey</div>
+                                </div>
+                                <i class='bx bx-chevron-right' style="margin-left: auto; font-size: 1.5rem; opacity: 0.5;"></i>
+                            </div>
+                        {% endif %}
+
+                        <!-- Mini Glass Calendar -->
+                        <div class="glass-calendar">
+                            <div class="calendar-header">
+                                <div class="calendar-month" id="calendarMonthDisplay">{{ "now"|date("F Y") }}</div>
+                                <div class="d-flex gap-2">
+                                    <i class='bx bx-chevron-left' id="prevMonth" style="cursor: pointer; opacity: 0.5;"></i>
+                                    <i class='bx bx-chevron-right' id="nextMonth" style="cursor: pointer; opacity: 0.5;"></i>
+                                </div>
+                            </div>
+                            <div class="calendar-grid" id="calendarGrid">
+                                <!-- Days labels -->
+                                <div class="calendar-day-label">Mo</div>
+                                <div class="calendar-day-label">Tu</div>
+                                <div class="calendar-day-label">We</div>
+                                <div class="calendar-day-label">Th</div>
+                                <div class="calendar-day-label">Fr</div>
+                                <div class="calendar-day-label">Sa</div>
+                                <div class="calendar-day-label">Su</div>
+                                
+                                <!-- Days will be injected by JS -->
+                            </div>
+                        </div>
+
+                        {# Pass detailed event data to JS for calendar previews #}
+                        <script>
+                            window.calendarEvents = {
+                                {% for event in evenements %}
+                                    "{{ event.dateEvent|date('Y-m-d') }}": {
+                                        "id": "{{ event.id }}",
+                                        "title": "{{ event.titreEvent }}",
+                                        "image": "{{ event.imageEvent ? asset('event_images/' ~ event.imageEvent) : '' }}",
+                                        "type": "{{ event.typeEvent }}",
+                                        "lieu": "{{ event.lieuEvent }}",
+                                        "date": "{{ event.dateEvent|date('F d, Y • H:i') }}"
+                                    }{% if not loop.last %},{% endif %}
+                                {% endfor %}
+                            };
+                        </script>
+
+                        <!-- Category Insight Pills -->
+                        <div class="category-tags-list">
+                            <span class="tag-pill">#Workshops</span>
+                            <span class="tag-pill">#Meetups</span>
+                            <span class="tag-pill">#Social</span>
+                            <span class="tag-pill">#Sports</span>
+                            <span class="tag-pill">+ {{ evenements|length }} Events</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Event Preview -->
+                <div id="calendarEventPreview" class="calendar-event-preview">
+                    <div class="preview-card">
+                        <div class="preview-banner" id="previewBanner"></div>
+                        <div class="preview-content">
+                            <span class="preview-tag" id="previewType"></span>
+                            <h4 class="preview-title" id="previewTitle"></h4>
+                            <div class="preview-meta">
+                                <i class='bx bx-time-five'></i> <span id="previewDate"></span>
+                            </div>
+                            <button class="preview-btn" id="previewViewBtn">View Details</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. EVENTS GRID (Below) -->
+                {% if evenements|length > 0 %}
+                    <div style="padding: 0 3rem;">
+                        <div class="mb-4 d-flex justify-content-between align-items-center">
+                            <span class="event-section-pill">
+                                <i class='bx bx-calendar-check'></i> Upcoming Events
+                            </span>
+                            <div class="event-pagination-info" id="eventPaginationInfo">
+                                <span style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Showing <span id="currentEventRange"></span> of {{ evenements|length }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="event-grid" id="eventGrid">
+                            {% for evenement in evenements %}
+                                {% include 'frontend/evenement/_card.html.twig' with {'evenement': evenement} %}
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="event-pagination-controls" id="eventPaginationControls">
+                            <button class="event-pagination-btn" id="prevEventPage" disabled>
+                                <i class='bx bx-chevron-left'></i>
+                            </button>
+                            <div class="event-pagination-pages" id="eventPaginationPages"></div>
+                            <button class="event-pagination-btn" id="nextEventPage">
+                                <i class='bx bx-chevron-right'></i>
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
         </div>
+
         {% include 'frontend/shared/_main_footer.html.twig' %}
     </div>
 </div>
+
+<!-- CREATE EVENT MODAL -->
+<div id="createEventModal" class="event-modal">
+    <div class="event-modal-content" style="max-width: 600px;">
+        <span class="event-modal-close" onclick="closeCreateModal()">&times;</span>
+        <div class="main-home-auth-header">
+            <h1 class="main-home-auth-title">Organize Event</h1>
+            <p class="main-home-auth-subtitle">Create a memorable experience</p>
+        </div>
+
+                {{ form_start(form, {'attr': {'class': 'main-home-auth-form', 'enctype': 'multipart/form-data', 'id': 'createEventForm', 'data-ajax': 'true'}}) }}
+                    <div class="main-home-form-group">
+                        <label class="main-home-form-label">Event Title</label>
+                        {{ form_widget(form.titre_event, {'attr': {'class': 'main-home-form-input', 'placeholder': 'What is the event called?'}}) }}
+                        <div class="text-danger small">{{ form_errors(form.titre_event) }}</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="main-home-form-group">
+                                <label class="main-home-form-label">Date & Time</label>
+                                {{ form_widget(form.date_event, {'attr': {'class': 'main-home-form-input flatpickr-input'}}) }}
+                                <div class="text-danger small">{{ form_errors(form.date_event) }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="main-home-form-group">
+                                <label class="main-home-form-label">Event Type</label>
+                                <div class="custom-select-wrapper">
+                                    <select name="{{ form.type_event.vars.full_name }}" id="{{ form.type_event.vars.id }}" class="main-home-form-input">
+                                        {% for choice in form.type_event.vars.choices %}
+                                            <option value="{{ choice.value }}">{{ choice.value|replace({'_': ' '})|title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    {% do form.type_event.setRendered %}
+                                </div>
+                                <div class="text-danger small">{{ form_errors(form.type_event) }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="main-home-form-group">
+                        <label class="main-home-form-label">Location</label>
+                        {{ form_widget(form.lieu_event, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Where is it happening?'}}) }}
+                        <div class="text-danger small">{{ form_errors(form.lieu_event) }}</div>
+                    </div>
+
+                    <div class="main-home-form-group">
+                        <label class="main-home-form-label">Description</label>
+                        {{ form_widget(form.description_event, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Tell us more about it...'}}) }}
+                        <div class="text-danger small">{{ form_errors(form.description_event) }}</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="main-home-form-group">
+                                <label class="main-home-form-label">Total Places</label>
+                                {{ form_widget(form.nb_places, {'attr': {'class': 'main-home-form-input'}}) }}
+                                <div class="text-danger small">{{ form_errors(form.nb_places) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="main-home-form-group">
+                                <label class="main-home-form-label">Remaining</label>
+                                {{ form_widget(form.nb_restants, {'attr': {'class': 'main-home-form-input'}}) }}
+                                <div class="text-danger small">{{ form_errors(form.nb_restants) }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="main-home-form-group">
+                        <label class="main-home-form-label">Event Status</label>
+                        <div class="custom-status-selector">
+                            <div class="status-pill" data-value="planifie"><span>Upcoming</span></div>
+                            <div class="status-pill" data-value="en_cours"><span>Ongoing</span></div>
+                            <div class="status-pill" data-value="termine"><span>Completed</span></div>
+                            <div class="status-pill" data-value="annule"><span>Cancelled</span></div>
+                        </div>
+                        {{ form_widget(form.statut_event, {'attr': {'style': 'position: absolute; opacity: 0; pointer-events: none;'}}) }}
+                        <div class="text-danger small">{{ form_errors(form.statut_event) }}</div>
+                    </div>
+
+                    <div class="main-home-form-group">
+                        <label class="main-home-form-label">Event Banner</label>
+                        {{ form_widget(form.image_event, {'attr': {'class': 'main-home-form-input'}}) }}
+                        <div class="text-danger small">{{ form_errors(form.image_event) }}</div>
+                    </div>
+
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="button" class="btn-event-action" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex: 1;" onclick="closeCreateModal()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="main-home-btn-auth-submit" style="flex: 2; margin: 0;">
+                            Live the Event
+                        </button>
+                    </div>
+                {{ form_end(form) }}
+    </div>
+</div>
+
+<!-- EVENT DETAILS MODAL -->
+<div id="eventDetailsModal" class="event-modal">
+    <div class="event-modal-content">
+        <span class="event-modal-close" onclick="closeDetailsModal()">&times;</span>
+        <div id="modalEventBanner" class="event-details-hero-modal">
+            <div class="hero-overlay"></div>
+        </div>
+        
+        <div class="event-details-body">
+            <div class="event-details-grid">
+                <!-- LEFT COLUMN: Main Info -->
+                <div class="main-info">
+                    <span id="modalEventType" class="event-hero-badge mb-3"></span>
+                    <h2 id="modalEventTitle" class="event-hero-title mb-2"></h2>
+                    <p id="modalEventDescription" class="event-hero-subtitle" style="font-size: 1.1rem; max-width: 100%; color: rgba(255,255,255,0.7);"></p>
+
+                    <!-- Host/Admin Actions (Left Side) -->
+                    <div id="modalAdminActions" class="d-none mt-5 pt-4 border-top border-secondary">
+                        <div style="display: flex; gap: 1rem; align-items: stretch;">
+                            <button id="btnOpenEdit" class="btn-event-action" style="flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff;">
+                                <i class='bx bxs-edit-alt'></i> Edit
+                            </button>
+                            <form id="deleteEventForm" method="POST" style="flex: 1; display: flex;">
+                                <input type="hidden" name="_token" id="deleteEventToken">
+                                <button type="button" id="btnOpenDeleteConfirm" class="btn-event-action" style="background: rgba(255, 77, 77, 0.15); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.3); width: 100%;">
+                                    <i class='bx bxs-trash'></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- RIGHT COLUMN: Sidebar Info -->
+                <div class="sidebar-info">
+                    <div class="sidebar-card">
+                        <div class="event-details-meta-pill">
+                            <i class='bx bxs-calendar'></i>
+                            <div class="event-details-meta-content">
+                                <label>Date & Time</label>
+                                <span id="modalEventDate" style="font-weight: 600;"></span>
+                            </div>
+                        </div>
+
+                        <div class="event-details-meta-pill">
+                            <i class='bx bxs-map-pin'></i>
+                            <div class="event-details-meta-content">
+                                <label>Location</label>
+                                <span id="modalEventLieu" style="font-weight: 600;"></span>
+                            </div>
+                        </div>
+
+                        <div class="event-details-meta-pill">
+                            <i class='bx bxs-group'></i>
+                            <div class="event-details-meta-content">
+                                <label>Availability</label>
+                                <span id="modalEventAvailability" style="font-weight: 600;"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="event-details-meta-pill">
+                            <i class='bx bxs-category'></i>
+                            <div class="event-details-meta-content">
+                                <label>Type</label>
+                                <span id="modalEventTypeDisplay" style="font-weight: 600;"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btnOpenParticipation" class="main-home-btn-auth-submit w-100 mt-3" style="height: 60px;">
+                        Participate
+                    </button>
+                    <div style="height: 1rem;"></div>
+                </div>
+            </div>
+            <!-- Extra spacer at bottom of modal body -->
+        </div>
+    </div>
+</div>
+
+<!-- EDIT EVENT MODAL (Refined UI) -->
+<div id="editEventModal" class="event-modal">
+    <div class="event-modal-content" style="max-width: 600px;">
+        <span class="event-modal-close" onclick="closeEditModal()">&times;</span>
+        <div class="main-home-auth-header">
+            <h1 class="main-home-auth-title">Edit Event</h1>
+            <p class="main-home-auth-subtitle">Update your event details</p>
+        </div>
+
+        <form id="editEventForm" method="POST" enctype="multipart/form-data" class="main-home-auth-form" data-ajax="true">
+            <input type="hidden" name="evenement[_token]" value="{{ csrf_token('evenement') }}">
+            
+            <div class="main-home-form-group">
+                <label class="main-home-form-label">Event Title</label>
+                <input type="text" name="evenement[titre_event]" id="editTitre" class="main-home-form-input" required placeholder="What is the event called?">
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="main-home-form-group">
+                        <label class="main-home-form-label">Event Type</label>
+                        <div class="custom-select-wrapper">
+                            <select name="evenement[type_event]" id="editType" class="main-home-form-input">
+                                {% for choice in form.type_event.vars.choices %}
+                                    <option value="{{ choice.value }}">{{ choice.value|replace({'_': ' '})|title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="main-home-form-group">
+                        <label class="main-home-form-label">Date & Time</label>
+                        <input type="text" name="evenement[date_event]" id="editDate" class="main-home-form-input flatpickr-input" required placeholder="Pick a date">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="main-home-form-group">
+                         <label class="main-home-form-label">Event Status</label>
+                        <div class="custom-status-selector">
+                            {% set statusMap = {
+                                'planifie': 'Upcoming',
+                                'en_cours': 'Ongoing',
+                                'termine': 'Completed',
+                                'annule': 'Cancelled'
+                            } %}
+                            {% for choice in form.statut_event.vars.choices %}
+                                <div class="status-pill" data-value="{{ choice.value }}">
+                                    <span>{{ statusMap[choice.value]|default(choice.value|title) }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <select name="evenement[statut_event]" id="editStatut" style="position: absolute; opacity: 0; pointer-events: none;">
+                            {% for choice in form.statut_event.vars.choices %}
+                                <option value="{{ choice.value }}">{{ statusMap[choice.value]|default(choice.value|title) }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-home-form-group">
+                <label class="main-home-form-label">Location</label>
+                <input type="text" name="evenement[lieu_event]" id="editLieu" class="main-home-form-input" required placeholder="Where is it happening?">
+            </div>
+
+            <div class="main-home-form-group">
+                <label class="main-home-form-label">Description</label>
+                <textarea name="evenement[description_event]" id="editDesc" class="main-home-form-input" rows="4" placeholder="Tell us more..."></textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="main-home-form-group">
+                        <label class="main-home-form-label">Total Places</label>
+                        <input type="number" name="evenement[nb_places]" id="editPlaces" class="main-home-form-input">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="main-home-form-group">
+                        <label class="main-home-form-label">Remaining</label>
+                        <input type="number" name="evenement[nb_restants]" id="editRestants" class="main-home-form-input">
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-home-form-group">
+                <label class="main-home-form-label">Update Banner (Optional)</label>
+                <input type="file" name="evenement[image_event]" class="main-home-form-input" style="padding-top: 0.7rem;">
+            </div>
+
+            <div class="d-flex gap-3 mt-4">
+                <button type="button" class="btn-event-action" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex: 1;" onclick="closeEditModal()">
+                    Cancel
+                </button>
+                <button type="submit" class="main-home-btn-auth-submit" style="flex: 2; margin: 0;">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<input type="hidden" id="currentUserId" value="{{ currentUserId }}">
+<input type="hidden" id="currentUserRole" value="{{ currentUserRole }}">
+
+<!-- Custom Delete Confirmation Modal -->
+<div id="deleteConfirmModal" class="event-modal">
+    <div class="event-modal-content" style="max-width: 450px; text-align: center; padding: 3rem 2rem;">
+        <div class="delete-icon-wrapper mb-4" style="font-size: 4rem; color: #ff4d4d;">
+            <i class='bx bxs-error-circle'></i>
+        </div>
+        <h2 class="event-hero-title mb-3" style="font-size: 1.8rem;">Are you sure?</h2>
+        <p style="color: rgba(255,255,255,0.7); font-size: 1.1rem; margin-bottom: 2.5rem;">
+            This action cannot be undone. This event will be permanently removed from Horizon.
+        </p>
+        <div class="d-flex gap-3">
+            <button type="button" class="btn-event-action" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex: 1;" onclick="closeDeleteConfirm()">
+                Cancel
+            </button>
+            <button type="button" id="confirmDeleteBtn" class="btn-event-action" style="background: rgba(255, 77, 77, 0.15); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.3); flex: 1.5;">
+                Yes, Delete it
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- PARTICIPATION MODAL -->
+<div id="participationModal" class="event-modal">
+    <div class="event-modal-content" style="max-width: 500px;">
+        <span class="event-modal-close" onclick="closeParticipationModal()">&times;</span>
+        <div class="main-home-auth-header">
+            <h1 class="main-home-auth-title" style="font-size: 2rem;">Event Participation</h1>
+            <p class="main-home-auth-subtitle">Confirm your spot for <span id="participationEventTitle" style="color: var(--event-accent); font-weight: 800;"></span></p>
+        </div>
+
+        {{ form_start(participationForm, {'attr': {'id': 'participationForm', 'class': 'main-home-auth-form'}}) }}
+            <div class="main-home-form-group">
+                <label class="main-home-form-label">Number of Guests</label>
+                {{ form_widget(participationForm.nb_accompagnants, {'attr': {'class': 'main-home-form-input', 'placeholder': 'How many people are joining you?'}}) }}
+                <div class="text-danger small">{{ form_errors(participationForm.nb_accompagnants) }}</div>
+            </div>
+
+            <div class="main-home-form-group">
+                <label class="main-home-form-label">Special Note / Comment</label>
+                {{ form_widget(participationForm.commentaire_participation, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Anything you want to let the host know?', 'rows': '3'}}) }}
+                <div class="text-danger small">{{ form_errors(participationForm.commentaire_participation) }}</div>
+            </div>
+
+            <div class="main-home-made-with-love mb-4" style="background: rgba(var(--main-home-accent-rgb), 0.05); padding: 1rem; border-radius: 15px; border: 1px solid rgba(var(--main-home-accent-rgb), 0.1);">
+                <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">By participating, your details (Name, Email) will be shared with the event host.</div>
+            </div>
+
+            <div class="d-flex gap-3">
+                <button type="button" class="btn-event-action" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex: 1;" onclick="closeParticipationModal()">
+                    Cancel
+                </button>
+                <button type="submit" class="main-home-btn-auth-submit" style="flex: 2; margin: 0;">
+                    Confirm Participation
+                </button>
+            </div>
+        {{ form_end(participationForm) }}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="{{ asset('frontend/js/evenement.js') }}"></script>
+    <script>
+        // Create custom dropdown for select elements
+        function createCustomDropdown(selectElement) {
+            // Check if already converted
+            if (selectElement.parentElement.querySelector('.custom-dropdown-trigger')) {
+                return;
+            }
+
+            const wrapper = selectElement.closest('.custom-select-wrapper');
+            if (!wrapper) return;
+
+            // Get options from select
+            const options = Array.from(selectElement.options);
+            
+            // Create custom dropdown elements
+            const trigger = document.createElement('div');
+            trigger.className = 'custom-dropdown-trigger';
+            trigger.innerHTML = `
+                <span class="selected-text">${selectElement.value || selectElement.options[0]?.text || 'Select...'}</span>
+                <span class="arrow">&#xea4e;</span>
+            `;
+
+            const menu = document.createElement('div');
+            menu.className = 'custom-dropdown-menu';
+
+            options.forEach(option => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'custom-dropdown-option';
+                optionDiv.textContent = option.text;
+                optionDiv.dataset.value = option.value;
+                
+                if (option.value === selectElement.value) {
+                    optionDiv.classList.add('selected');
+                }
+
+                optionDiv.addEventListener('click', () => {
+                    // Update select
+                    selectElement.value = option.value;
+                    
+                    // Update UI
+                    trigger.querySelector('.selected-text').textContent = option.text;
+                    menu.querySelectorAll('.custom-dropdown-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    optionDiv.classList.add('selected');
+                    
+                    // Close menu
+                    trigger.classList.remove('active');
+                    menu.classList.remove('active');
+                });
+
+                menu.appendChild(optionDiv);
+            });
+
+            // Toggle dropdown
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isActive = trigger.classList.contains('active');
+                
+                // Close all other dropdowns
+                document.querySelectorAll('.custom-dropdown-trigger.active').forEach(t => {
+                    t.classList.remove('active');
+                    t.nextElementSibling?.classList.remove('active');
+                });
+
+                if (!isActive) {
+                    trigger.classList.add('active');
+                    menu.classList.add('active');
+                }
+            });
+
+            // Add elements to DOM
+            wrapper.appendChild(trigger);
+            wrapper.appendChild(menu);
+
+            // Hide native select
+            selectElement.style.position = 'absolute';
+            selectElement.style.opacity = '0';
+            selectElement.style.pointerEvents = 'none';
+        }
+
+        // Initialize Custom Form Elements
+        function initializeCustomFormElements() {
+            // Create custom dropdowns
+            const selectElements = document.querySelectorAll('.custom-select-wrapper select');
+            selectElements.forEach(select => {
+                createCustomDropdown(select);
+            });
+
+            // Flatpickr for all datetime inputs
+            const dateInputs = document.querySelectorAll('input[name*="date_event"], input.flatpickr-input, input[type="datetime-local"]');
+            dateInputs.forEach(input => {
+                if (!input._flatpickr) {
+                    flatpickr(input, {
+                        enableTime: true,
+                        dateFormat: "Y-m-d H:i",
+                        time_24hr: true,
+                        minDate: "today"
+                    });
+                }
+            });
+
+            // Custom Status Selector - FIXED
+            const statusSelects = document.querySelectorAll('select[name*="statut_event"]');
+            statusSelects.forEach(select => {
+                const pillContainer = select.closest('.main-home-form-group');
+                if (!pillContainer) return;
+
+                const pills = pillContainer.querySelectorAll('.status-pill');
+                if (pills.length === 0) return;
+
+                // Ensure a default value is set if none matches
+                let hasActive = false;
+                
+                // Set initial active state
+                pills.forEach(pill => {
+                    if (pill.dataset.value === select.value) {
+                        pill.classList.add('active');
+                        hasActive = true;
+                    } else {
+                        pill.classList.remove('active');
+                    }
+                });
+                
+                // If no value matched, set default to the first pill
+                if (!hasActive && pills.length > 0) {
+                     const firstPill = pills[0];
+                     firstPill.classList.add('active');
+                     select.value = firstPill.dataset.value;
+                }
+
+                // Add click handlers - using event delegation on container
+                const statusContainer = pillContainer.querySelector('.custom-status-selector');
+                if (statusContainer && !statusContainer.dataset.initialized) {
+                    statusContainer.dataset.initialized = 'true';
+                    
+                    statusContainer.addEventListener('click', (e) => {
+                        const pill = e.target.closest('.status-pill');
+                        if (!pill) return;
+
+                        // Remove active from ALL pills
+                        pills.forEach(p => p.classList.remove('active'));
+                        
+                        // Add active to clicked pill
+                        pill.classList.add('active');
+                        
+                        // Update hidden select
+                        select.value = pill.dataset.value;
+                    });
+                }
+            });
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.custom-dropdown-trigger.active').forEach(trigger => {
+                trigger.classList.remove('active');
+                trigger.nextElementSibling?.classList.remove('active');
+            });
+        });
+
+        // Run on page load
+        document.addEventListener('DOMContentLoaded', initializeCustomFormElements);
+
+        // Re-initialize when modals are shown
+        const modals = document.querySelectorAll('.event-modal');
+        modals.forEach(modal => {
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.attributeName === 'class' && modal.classList.contains('show')) {
+                        setTimeout(initializeCustomFormElements, 100);
+                    }
+                });
+            });
+            observer.observe(modal, { attributes: true });
+        });
+
+        // Event Grid Pagination - Run after DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const eventGrid = document.getElementById('eventGrid');
+            if (!eventGrid) return;
+            
+            const eventsPerPage = 4;
+            const allEventCards = Array.from(eventGrid.querySelectorAll('.event-card'));
+            const totalPages = Math.ceil(allEventCards.length / eventsPerPage);
+            let currentPage = 1;
+
+            const prevBtn = document.getElementById('prevEventPage');
+            const nextBtn = document.getElementById('nextEventPage');
+            const pagesContainer = document.getElementById('eventPaginationPages');
+            const rangeDisplay = document.getElementById('currentEventRange');
+            const paginationControls = document.getElementById('eventPaginationControls');
+
+            // Hide pagination if only 1 page or less
+            if (totalPages <= 1) {
+                if (paginationControls) paginationControls.style.display = 'none';
+            }
+
+            function showPage(page) {
+                currentPage = page;
+                
+                // Hide all cards
+                allEventCards.forEach(card => {
+                    card.style.display = 'none';
+                });
+                
+                // Show cards for current page
+                const start = (page - 1) * eventsPerPage;
+                const end = start + eventsPerPage;
+                allEventCards.slice(start, end).forEach(card => {
+                    card.style.display = 'flex';
+                });
+                
+                // Update range display
+                if (rangeDisplay) {
+                    const showingStart = start + 1;
+                    const showingEnd = Math.min(end, allEventCards.length);
+                    rangeDisplay.textContent = `${showingStart}-${showingEnd}`;
+                }
+                
+                // Update button states
+                if (prevBtn) prevBtn.disabled = page === 1;
+                if (nextBtn) nextBtn.disabled = page === totalPages;
+                
+                // Update page indicators
+                renderPageIndicators();
+                
+                // Scroll to top of grid
+                eventGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            function renderPageIndicators() {
+                if (!pagesContainer) return;
+                pagesContainer.innerHTML = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageBtn = document.createElement('button');
+                    pageBtn.className = 'event-pagination-page' + (i === currentPage ? ' active' : '');
+                    pageBtn.textContent = i;
+                    pageBtn.onclick = () => showPage(i);
+                    pagesContainer.appendChild(pageBtn);
+                }
+            }
+
+            if (prevBtn) {
+                prevBtn.onclick = () => {
+                    if (currentPage > 1) showPage(currentPage - 1);
+                };
+            }
+
+            if (nextBtn) {
+                nextBtn.onclick = () => {
+                    if (currentPage < totalPages) showPage(currentPage + 1);
+                };
+            }
+
+            // Initial render
+            showPage(1);
+        });
+    </script>
+
+    <!-- COOL POPUP SYSTEM INTEGRATION -->
+    <div id="coolPopup" class="cool-popup-overlay">
+        <div class="cool-popup-content">
+            <div id="coolPopupIcon" class="cool-popup-icon"></div>
+            <h2 id="coolPopupTitle" class="cool-popup-title"></h2>
+            <p id="coolPopupMessage" class="cool-popup-message"></p>
+            <button class="cool-popup-btn" onclick="closeCoolPopup()">Got it</button>
+        </div>
+    </div>
+
+    <style>
+        .cool-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cool-popup-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .cool-popup-content {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .cool-popup-overlay.show .cool-popup-content {
+            transform: scale(1);
+        }
+
+        .cool-popup-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .cool-popup-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: var(--event-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .cool-popup-message {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .cool-popup-btn {
+            background: var(--event-gradient);
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 15px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px -5px rgba(var(--main-home-accent-rgb), 0.5);
+        }
+
+        .cool-popup-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px -5px rgba(var(--main-home-accent-rgb), 0.6);
+        }
+    </style>
+
+    <script>
+        function showCoolPopup(title, message, type = 'success') {
+            const popup = document.getElementById('coolPopup');
+            const icon = document.getElementById('coolPopupIcon');
+            const titleEl = document.getElementById('coolPopupTitle');
+            const msgEl = document.getElementById('coolPopupMessage');
+
+            titleEl.textContent = title;
+            msgEl.innerHTML = message;
+
+            if (type === 'success') {
+                icon.innerHTML = "<i class='bx bxs-check-circle' style='color: #00d2ff;'></i>";
+            } else {
+                icon.innerHTML = "<i class='bx bxs-error-circle' style='color: #ff4d4d;'></i>";
+            }
+
+            popup.style.display = 'flex';
+            setTimeout(() => popup.classList.add('show'), 10);
+        }
+
+        function closeCoolPopup() {
+            const popup = document.getElementById('coolPopup');
+            popup.classList.remove('show');
+            setTimeout(() => popup.style.display = 'none', 300);
+        }
+    </script>
 {% endblock %}

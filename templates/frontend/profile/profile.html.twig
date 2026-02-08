@@ -32,6 +32,287 @@
         [data-theme="light"] .profile-onboarding-pref-key { color: #64748b; }
         [data-theme="light"] .profile-onboarding-pref-value { color: #1e293b; }
         [data-theme="light"] .profile-onboarding-suggestions-text { background: rgba(0,0,0,0.04); color: #334155; }
+        [data-theme="light"] #profile-onboarding-modal .ob-textarea { background: #fff; border-color: #e2e8f0; color: #1e293b; }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* Sick Pagination Styles */
+        .profile-nav-container {
+            margin: 2rem 0;
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.6rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .profile-nav-pill {
+            padding: 0.8rem 1.8rem;
+            border-radius: 100px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.75rem;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+
+        .profile-nav-pill i {
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-nav-pill:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .profile-nav-pill:hover i {
+            transform: translateY(-2px);
+        }
+
+        .profile-nav-pill.active {
+            background: var(--syndicat-accent-gradient);
+            color: #fff;
+            box-shadow: 0 0 25px var(--syndicat-accent);
+            transform: scale(1.05);
+        }
+
+        .profile-tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.4s ease-out;
+        }
+
+        .profile-tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        [data-theme="light"] .profile-nav-container {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0, 0, 0, 0.08);
+        }
+        [data-theme="light"] .profile-nav-pill {
+            color: #64748b;
+        }
+        [data-theme="light"] .profile-nav-pill:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: #1e293b;
+        }
+
+        /* Reclamation List Styles */
+        .reclamation-image-preview:hover {
+            transform: scale(1.05);
+            border-color: var(--syndicat-accent) !important;
+        }
+
+        .reclamation-item, .publication-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 1.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .reclamation-item.active, .publication-item.active {
+            display: block !important;
+            opacity: 1 !important;
+            transform: translateY(0);
+        }
+
+        .reclamation-item:hover, .publication-item:hover {
+            border-color: rgba(var(--syndicat-accent-rgb), 0.3);
+            background: rgba(var(--syndicat-accent-rgb), 0.02);
+            transform: translateY(-5px) !important;
+        }
+
+        .reclamation-status-text {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+        }
+
+        .reclamation-desc-text, .publication-desc-text, .event-desc-text,
+        .reclamation-item h5, .publication-item h5, .event-item h5 {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .reclamation-item h5, .publication-item h5 {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        [data-theme="light"] .reclamation-item {
+            background: #fff;
+            border-color: #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        [data-theme="light"] .reclamation-status-text {
+            color: #64748b;
+        }
+        [data-theme="light"] .reclamation-desc-text, [data-theme="light"] .publication-desc-text,
+        [data-theme="light"] .reclamation-item h5, [data-theme="light"] .publication-item h5 {
+            color: #475569;
+        }
+
+        /* Pagination Controls Styles */
+        .reclamation-pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 100px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .pagination-pill {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .pagination-pill:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .pagination-pill.active {
+            background: var(--syndicat-accent-gradient);
+            color: #fff;
+            box-shadow: 0 0 15px var(--syndicat-accent);
+        }
+
+        .reclamation-page {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+        }
+
+        .reclamation-page.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        [data-theme="light"] .reclamation-pagination {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0, 0, 0, 0.05);
+        }
+        [data-theme="light"] .pagination-pill {
+            color: #64748b;
+        }
+
+        /* Image Lightbox Styles */
+        .reclamation-lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: zoom-out;
+        }
+
+        .reclamation-lightbox.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: default;
+        }
+
+        .reclamation-lightbox.active .lightbox-content {
+            transform: scale(1);
+        }
+
+        .lightbox-image {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
     </style>
 </head>
 <body>
@@ -52,12 +333,6 @@
 
         <div class="main-home-content-wrapper">
             <div class="container-xxl">
-                {% for label, messages in app.flashes %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ label }}" style="margin: 1rem 0; padding: 0.75rem 1rem; border-radius: 8px; background: {{ label == 'success' ? 'rgba(0,230,118,0.15)' : 'rgba(255,59,48,0.15)' }}; color: {{ label == 'success' ? '#00e676' : '#ff3b30' }};">{{ message }}</div>
-                    {% endfor %}
-                {% endfor %}
-
                 <!-- Profile Header: user data from user table -->
                 <div class="row mb-4">
                     <div class="col-12">
@@ -107,7 +382,29 @@
                     </div>
                 </div>
 
-                <!-- Account info (from user + profile: Bio, Timezone) -->
+                <!-- Sick Pagination Navigation -->
+                <div class="row mb-5">
+                    <div class="col-12">
+                        <div class="profile-nav-container">
+                            <div class="profile-nav-pill active" data-tab="account">
+                                <i class="bx bx-user"></i> Account
+                            </div>
+                            <div class="profile-nav-pill" data-tab="forum">
+                                <i class="bx bx-message-square-detail"></i> Forum
+                            </div>
+                            <div class="profile-nav-pill" data-tab="events">
+                                <i class="bx bx-calendar-event"></i> Events
+                            </div>
+                            <div class="profile-nav-pill" data-tab="reclamation">
+                                <i class="bx bx-error-alt"></i> Reclamation
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Page 1 (Account & Onboarding) -->
+                <div id="tab-account" class="profile-tab-content active">
+                    <!-- Account info (from user + profile: Bio, Timezone) -->
                 <div class="row mb-4">
                     <div class="col-12">
                         <div class="main-home-profile-card mb-4">
@@ -245,10 +542,265 @@
                     </div>
                 </div>
                 {% endif %}
+                </div>
+
+                <!-- Tab Content: Page 2 (Forum Placeholder) -->
+                <div id="tab-forum" class="profile-tab-content">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="main-home-profile-card">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <h3 class="main-home-card-title"><i class="bx bx-message-square-detail"></i> Your Forum Activity</h3>
+                                    {% if isAdmin %}
+                                        <div class="admin-toggle-wrapper d-flex align-items-center gap-2 p-1 rounded-pill" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-forum-filter-btn btn-outline-light" data-filter="my" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">My Own</button>
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-forum-filter-btn active btn-primary" data-filter="all" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">Everyone</button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="main-home-card-content">
+                                    {% if publications|length > 0 %}
+                                        <div id="forum-publications-container">
+                                            <div class="forum-publication-list">
+                                                {% for pub in publications %}
+                                                    <div class="publication-item mb-3" data-publication-id="{{ pub.id }}" data-user-id="{{ pub.user ? pub.user.idUser : '0' }}" data-bs-toggle="modal" data-bs-target="#publicationModal-{{ pub.id }}" style="cursor: pointer;">
+                                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <div style="width: 50px; height: 50px; background: rgba(var(--syndicat-accent-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                                    <i class="bx bx-message-square-dots" style="font-size: 1.5rem; color: var(--syndicat-accent);"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h5 class="mb-1" style="font-weight: 700;">{{ pub.titrePub }}</h5>
+                                                                    <p class="reclamation-status-text mb-0"><i class="bx bx-calendar"></i> Posted on {{ pub.dateCreationPub|date('d M Y') }}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <span class="status-badge" style="background: rgba(var(--syndicat-accent-rgb), 0.1); color: var(--syndicat-accent); padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border: 1px solid rgba(var(--syndicat-accent-rgb), 0.2);">
+                                                                    {{ pub.categoriePub }}
+                                                                </span>
+                                                                <i class="bx bx-chevron-right text-muted" style="font-size: 1.5rem;"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mt-3">
+                                                            <p class="publication-desc-text mb-3">{{ pub.descriptionPub|slice(0, 150) }}{{ pub.descriptionPub|length > 150 ? '...' : '' }}</p>
+                                                            
+                                                            {% if pub.imagePub %}
+                                                                <div class="reclamation-image-preview" style="width: 80px; height: 80px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="event.stopPropagation();">
+                                                                    <img src="{{ asset('forum_images/' ~ pub.imagePub) }}" alt="Publication Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="event.stopPropagation(); openLightbox(this.src)">
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            <div id="forum-pagination" class="reclamation-pagination"></div>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-5">
+                                            <p class="text-muted">No publications found.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Page 3 (Events) -->
+                <div id="tab-events" class="profile-tab-content">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="main-home-profile-card">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <h3 class="main-home-card-title"><i class="bx bx-calendar-event"></i> Your Events</h3>
+                                    {% if isAdmin %}
+                                        <div class="admin-toggle-wrapper d-flex align-items-center gap-2 p-1 rounded-pill" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-events-filter-btn btn-outline-light" data-filter="my" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">My Own</button>
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-events-filter-btn active btn-primary" data-filter="all" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">Everyone</button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="main-home-card-content">
+                                    {% if events|length > 0 %}
+                                        <div id="events-container">
+                                            <div class="events-list">
+                                                {% for event in events %}
+                                                    <div class="event-item mb-3" 
+                                                         data-event-id="{{ event.id }}" 
+                                                         data-user-id="{{ event.user ? event.user.idUser : '0' }}"
+                                                         data-title="{{ event.titreEvent }}"
+                                                         data-description="{{ event.descriptionEvent }}"
+                                                         data-date="{{ event.dateEvent|date('Y-m-d\\TH:i') }}"
+                                                         data-date-formatted="{{ event.dateEvent|date('d M Y, H:i') }}"
+                                                         data-location="{{ event.lieuEvent }}"
+                                                         data-places="{{ event.nbPlaces }}"
+                                                         data-remaining="{{ event.nbRestants }}"
+                                                         data-status="{{ event.statutEvent }}"
+                                                         data-type="{{ event.typeEvent }}"
+                                                         data-image="{{ event.imageEvent ? asset('event_images/' ~ event.imageEvent) : '' }}"
+                                                         style="cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 1.25rem; background: rgba(255,255,255,0.02);">
+                                                        <div class="d-flex flex-column flex-md-row gap-4">
+                                                            {% if event.imageEvent %}
+                                                                <div class="event-list-image-wrap" style="width: 140px; height: 100px; border-radius: 14px; overflow: hidden; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1);">
+                                                                    <img src="{{ asset('event_images/' ~ event.imageEvent) }}" alt="{{ event.titreEvent }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                                                </div>
+                                                            {% else %}
+                                                                <div class="event-list-image-wrap d-flex align-items-center justify-content-center" style="width: 140px; height: 100px; border-radius: 14px; background: rgba(var(--syndicat-accent-rgb), 0.05); flex-shrink: 0; border: 1px dashed rgba(255,255,255,0.1);">
+                                                                    <i class="bx bx-calendar-event text-muted fs-2"></i>
+                                                                </div>
+                                                            {% endif %}
+                                                            
+                                                            <div class="flex-grow-1">
+                                                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                                                    <div>
+                                                                        <h5 class="mb-1" style="font-weight: 700; color: #fff; overflow-wrap: break-word;">{{ event.titreEvent }}</h5>
+                                                                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                                                                            <p class="reclamation-status-text mb-0"><i class="bx bx-calendar"></i> {{ event.dateEvent|date('d M Y, H:i') }}</p>
+                                                                            <p class="reclamation-status-text mb-0"><i class="bx bx-map"></i> {{ event.lieuEvent }}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    {% set status_colors = {
+                                                                        'planifie': '#4fc3f7',
+                                                                        'en_cours': '#00e676',
+                                                                        'termine': '#9e9e9e',
+                                                                        'annule': '#ff3b30'
+                                                                    } %}
+                                                                    <span class="status-badge" style="background: {{ status_colors[event.statutEvent|default('planifie')] }}20; color: {{ status_colors[event.statutEvent|default('planifie')] }}; padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border: 1px solid {{ status_colors[event.statutEvent|default('planifie')] }}40;">
+                                                                        {{ event.statutEvent|replace({'_': ' '})|title }}
+                                                                    </span>
+                                                                </div>
+                                                                <div class="mt-2">
+                                                                    <p class="reclamation-desc-text mb-1" style="overflow-wrap: break-word;">{{ event.descriptionEvent|slice(0, 100) }}{{ event.descriptionEvent|length > 100 ? '...' : '' }}</p>
+                                                                    <div class="d-flex align-items-center gap-3 text-muted" style="font-size: 0.8rem; opacity: 0.7;">
+                                                                        <span><i class="bx bx-purchase-tag-alt"></i> {{ event.typeEvent|title }}</span>
+                                                                        <span><i class="bx bx-user"></i> {{ event.nbRestants }}/{{ event.nbPlaces }} enrolled</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            <div id="events-pagination" class="reclamation-pagination"></div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-5">
+                                            <p class="text-muted">No events found.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Page 4 (Reclamation) -->
+                <div id="tab-reclamation" class="profile-tab-content">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="main-home-profile-card">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                        <h3 class="main-home-card-title"><i class="bx bx-error-alt"></i> Your Reclamations</h3>
+                                        {% if isAdmin %}
+                                            <div class="admin-toggle-wrapper d-flex align-items-center gap-2 p-1 rounded-pill" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                                <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-reclamation-filter-btn btn-outline-light" data-filter="my" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">My Own</button>
+                                                <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-reclamation-filter-btn active btn-primary" data-filter="all" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">Everyone</button>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                <div class="main-home-card-content">
+                                    {% if reclamations|length > 0 %}
+                                        <div class="reclamation-container">
+                                            <div class="reclamation-list">
+                                                {% for rec in reclamations %}
+                                                    <div class="reclamation-item mb-3" data-reclamation-id="{{ rec.id }}" data-user-id="{{ rec.user ? rec.user.idUser : '0' }}" data-bs-toggle="modal" data-bs-target="#reclamationModal-{{ rec.id }}" style="cursor: pointer;">
+                                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <div style="width: 50px; height: 50px; background: rgba(var(--syndicat-accent-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                                    <i class="bx bx-file" style="font-size: 1.5rem; color: var(--syndicat-accent);"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h5 class="mb-1" style="font-weight: 700;">{{ rec.titrereclamations }}</h5>
+                                                                    <p class="reclamation-status-text mb-0" data-reclamation-id="{{ rec.id }}"><i class="bx bx-calendar"></i> Submitted on {{ rec.createdAt is not null ? rec.createdAt|date('d M Y') : 'N/A' }}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                {% set status_colors = {
+                                                                    'confirme': '#00e676',
+                                                                    'active': '#00e676',
+                                                                    'en_attente': '#ffeb3b',
+                                                                    'refuse': '#ff3b30',
+                                                                    'annule': '#9e9e9e',
+                                                                    'termine': '#4fc3f7'
+                                                                } %}
+                                                                {% set status_labels = {
+                                                                    'confirme': 'Confirmed',
+                                                                    'active': 'Active',
+                                                                    'en_attente': 'In Progress',
+                                                                    'refuse': 'Rejected',
+                                                                    'annule': 'Cancelled',
+                                                                    'termine': 'Completed'
+                                                                } %}
+                                                                <span class="status-badge" style="background: {{ status_colors[rec.statutreclamation|default('en_attente')] }}20; color: {{ status_colors[rec.statutreclamation|default('en_attente')] }}; padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border: 1px solid {{ status_colors[rec.statutreclamation|default('en_attente')] }}40;">
+                                                                    {{ status_labels[rec.statutreclamation|default('en_attente')] }}
+                                                                </span>
+                                                                <i class="bx bx-chevron-right text-muted" style="font-size: 1.5rem;"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mt-3">
+                                                            <p class="reclamation-desc-text mb-3">{{ rec.descreclamation|slice(0, 150) }}{{ rec.descreclamation|length > 150 ? '...' : '' }}</p>
+                                                            
+                                                            {% if rec.decodedImages is defined and rec.decodedImages|length > 0 %}
+                                                                <div class="d-flex flex-wrap gap-2">
+                                                                    {% for img in rec.decodedImages %}
+                                                                        <div class="reclamation-image-preview" style="width: 80px; height: 80px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="event.stopPropagation();">
+                                                                            <img src="{{ asset('reclamation_images/' ~ img) }}" alt="Reclamation Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="event.stopPropagation(); openLightbox(this.src)">
+                                                                        </div>
+                                                                    {% endfor %}
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+
+                                                {% endfor %}
+                                            </div>
+
+                                            {# Pagination Controls #}
+                                            {% if reclamations|length > 3 %}
+                                                <div class="reclamation-pagination" id="reclamation-pagination">
+                                                    {# Will be populated by JS #}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-5">
+                                            <div style="background: rgba(255,255,255,0.03); border-radius: 50%; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                                                <i class="bx bx-error-alt" style="font-size: 3.5rem; color: var(--syndicat-accent);"></i>
+                                            </div>
+                                            <h3 class="mb-2" style="font-weight: 700;">No Reclamations Yet</h3>
+                                            <p class="text-muted mx-auto" style="max-width: 400px;">You haven't submitted any reclamations yet. When you do, they'll appear here with their current status.</p>
+                                            <a href="{{ path('frontend_syndicat') }}" class="main-home-btn main-home-btn-primary mt-3" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem;">
+                                                <i class="bx bx-plus"></i> Submit a Reclamation
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         {% include 'frontend/shared/_main_footer.html.twig' %}
+    </div>
+</div>
+
+<!-- Image Lightbox -->
+<div class="reclamation-lightbox" id="reclamation-lightbox">
+    <div class="lightbox-content">
+        <button class="lightbox-close" id="lightbox-close"><i class="bx bx-x"></i></button>
+        <img src="" alt="View Enlarged" class="lightbox-image" id="lightbox-image">
     </div>
 </div>
 
@@ -712,6 +1264,73 @@
         });
     }
 })();
+
+/* Tab Switching Logic */
+(function() {
+    const pills = document.querySelectorAll('.profile-nav-pill');
+    const contents = document.querySelectorAll('.profile-tab-content');
+
+    pills.forEach(pill => {
+        pill.addEventListener('click', () => {
+            const tabName = pill.dataset.tab;
+            
+            // Update Active Pill
+            pills.forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            
+            // Update Active Content
+            contents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            const activeContent = document.getElementById('tab-' + tabName);
+            if (activeContent) {
+                activeContent.classList.add('active');
+            }
+        });
+    });
+
+    // List initialization logic moved to the main DOMContentLoaded block below to avoid scope issues
+
+    // Lightbox Functionality (Global)
+    const lightbox = document.getElementById('reclamation-lightbox');
+    const lightboxImg = document.getElementById('lightbox-image');
+    const lightboxClose = document.getElementById('lightbox-close');
+
+    window.openLightbox = function(src) {
+        if (!lightbox || !lightboxImg) return;
+        lightboxImg.src = src;
+        lightbox.style.display = 'flex';
+        // Force reflow for transition
+        lightbox.offsetHeight;
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+    };
+
+    window.closeLightbox = function() {
+        if (!lightbox) return;
+        lightbox.classList.remove('active');
+        setTimeout(() => {
+            lightbox.style.display = 'none';
+            if (lightboxImg) lightboxImg.src = '';
+            document.body.style.overflow = '';
+        }, 300);
+    };
+
+    if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
+    if (lightbox) {
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) closeLightbox();
+        });
+    }
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightbox && lightbox.classList.contains('active')) {
+            closeLightbox();
+        }
+    });
+})();
 </script>
 
 {% include 'frontend/shared/_scroll_pill.html.twig' %}
@@ -719,5 +1338,1155 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('frontend/js/main-home.js') }}"></script>
 <script src="{{ asset('js/page-loader.js') }}"></script>
+
+
+
+<!-- Modals Container at End of Body -->
+{% for rec in reclamations %}
+    <!-- Individual Modal for Reclamation -->
+    <!-- Added data-bs-theme="dark" for explicit bootstrap dark mode style on modal -->
+    <div class="modal fade" id="reclamationModal-{{ rec.id }}" tabindex="-1" aria-hidden="true" style="backdrop-filter: blur(2px);">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="background: #000000; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px;">
+                <div class="modal-header border-bottom border-light border-opacity-10 py-4 px-4">
+                    <div class="d-flex flex-column gap-1">
+                        {% set status_colors = {
+                            'confirme': '#00e676',
+                            'active': '#00e676',
+                            'en_attente': '#ffeb3b',
+                            'refuse': '#ff3b30',
+                            'annule': '#9e9e9e',
+                            'termine': '#4fc3f7'
+                        } %}
+                        {% set status_labels = {
+                            'confirme': 'Confirmed',
+                            'active': 'Active',
+                            'en_attente': 'In Progress',
+                            'refuse': 'Rejected',
+                            'annule': 'Cancelled',
+                            'termine': 'Completed'
+                        } %}
+                        <div class="d-flex align-items-center gap-2">
+                             <span class="badge" style="background: {{ status_colors[rec.statutreclamation|default('en_attente')] }}15; color: {{ status_colors[rec.statutreclamation|default('en_attente')] }}; border: 1px solid {{ status_colors[rec.statutreclamation|default('en_attente')] }}30; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                {{ status_labels[rec.statutreclamation|default('en_attente')] }}
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 class="modal-title text-white fw-bold mb-0">{{ rec.titrereclamations }}</h4>
+                            {% if isAdmin %}
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 edit-reclamation-trigger" data-reclamation-id="{{ rec.id }}" style="font-size: 0.75rem; font-weight: 600; border-width: 1px; transition: all 0.2s;">
+                                    <i class="bx bx-edit-alt"></i> Edit
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white bg-white bg-opacity-10 p-2 rounded-circle w-auto h-auto" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.8; transition: all 0.2s;"></button>
+                </div>
+                <div class="modal-body p-0 scrollbar-hide">
+                    <div class="p-4 border-bottom border-light border-opacity-10" style="background: rgba(255,255,255,0.01);">
+                        <p class="mb-3 text-light opacity-90" style="font-size: 1.05rem; line-height: 1.6;">{{ rec.descreclamation }}</p>
+                        
+                        <!-- Images -->
+                        {% if rec.decodedImages is defined and rec.decodedImages is not empty %}
+                            <div class="d-flex gap-2 overflow-auto pb-2 scrollbar-hide">
+                                {% for img in rec.decodedImages %}
+                                    <a href="javascript:void(0)" onclick="openLightbox('{{ asset('reclamation_images/' ~ img) }}')" class="flex-shrink-0">
+                                        <div class="position-relative group">
+                                            <img src="{{ asset('reclamation_images/' ~ img) }}" class="rounded-3 border border-secondary border-opacity-25" style="height: 100px; width: 100px; object-fit: cover; transition: transform 0.2s;" loading="lazy">
+                                            <div class="position-absolute inset-0 d-flex align-items-center justify-content-center bg-black bg-opacity-25 opacity-0 hover-opacity-100 rounded-3 transition-all">
+                                                <i class='bx bx-zoom-in text-white fs-4'></i>
+                                            </div>
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-flex align-items-center gap-3 mt-2 text-secondary small">
+                             <span><i class="bx bx-calendar"></i> {{ rec.createdAt is not null ? rec.createdAt|date('d M Y, H:i') : 'N/A' }}</span>
+                             {% if rec.user %}
+                                <span><i class="bx bx-user"></i> {{ rec.user.firstName }} {{ rec.user.lastName }}</span>
+                             {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Discussion Area -->
+                    <div class="d-flex flex-column h-100" style="min-height: 300px; background: #000000;">
+                        <div class="px-4 py-3 border-bottom border-light border-opacity-10" style="background: #000000;">
+                            <h6 class="text-white mb-0 d-flex align-items-center gap-2">
+                                <i class='bx bx-message-rounded-dots text-primary'></i> Discussion History
+                            </h6>
+                        </div>
+                        
+                        <div class="flex-grow-1 p-4 d-flex flex-column gap-3 scrollbar-hide" id="responses-list-{{ rec.id }}" style="max-height: 400px; overflow-y: auto;">
+                            <!-- Responses injected via JS -->
+                            <div class="text-center text-white-50 py-5">
+                                <i class="bx bx-loader-alt bx-spin fs-3 mb-2"></i>
+                                <p>Loading discussion...</p>
+                            </div>
+                        </div>
+
+                        <!-- Reply Input Area -->
+                        <div class="p-3 border-top border-light border-opacity-10" style="background: #000000;">
+                            <form action="{{ path('api_reponse_add', {'id': rec.id}) }}" method="post" enctype="multipart/form-data" class="reponse-api-form" data-reclamation-id="{{ rec.id }}">
+                                <div class="rounded-3 border border-secondary border-opacity-25 p-2" style="background: #000000;">
+                                    <div class="d-flex align-items-start gap-2">
+                                         <button type="button" class="btn btn-link text-secondary text-decoration-none p-0 mt-2" onclick="this.nextElementSibling.click()" title="Attach Image">
+                                            <i class='bx bx-image-add fs-4'></i>
+                                        </button>
+                                        <input type="file" name="image" class="d-none" onchange="const preview = this.parentElement.nextElementSibling; const file = this.files[0]; if(file){ const reader = new FileReader(); reader.onload = function(e){ preview.innerHTML = `<img src='${e.target.result}' class='rounded-3 border border-secondary border-opacity-25' style='height: 60px; object-fit: cover;'> <button type='button' class='btn-close btn-close-white position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger p-1' onclick='this.parentElement.innerHTML=\'\'; this.parentElement.previousElementSibling.querySelector(\'input[type=file]\').value=\'\';'></button>`; preview.classList.remove('d-none'); }; reader.readAsDataURL(file); }">
+                                        
+                                        <div class="flex-grow-1 d-flex flex-column gap-1">
+                                            <input type="text" name="title" class="form-control bg-transparent border-0 shadow-none p-0 px-2" placeholder="Title (optional)" style="font-size: 0.85rem; height: auto; color: white !important;">
+                                            <textarea name="message" class="form-control bg-transparent border-0 shadow-none p-0 px-2" placeholder="Type a message..." rows="1" style="resize: none; min-height: 40px; color: white !important;" required></textarea>
+                                        </div>
+ 
+                                        <button type="submit" class="btn btn-primary rounded-3 px-3 py-2 fw-bold align-self-end"><i class='bx bx-send'></i></button>
+                                    </div>
+                                    <div class="position-relative d-none mt-2 px-2" id="image-preview-container-{{ rec.id }}"></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if isAdmin %}
+    <!-- Admin Edit Modal for Reclamation -->
+    <div class="modal fade" id="adminEditReclamationModal-{{ rec.id }}" tabindex="-1" aria-hidden="true" style="backdrop-filter: blur(2px); z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="background: #0a0a0a; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px;">
+                <div class="modal-header border-bottom border-light border-opacity-10 py-3 px-4">
+                    <h5 class="modal-title text-white fw-bold m-0"><i class="bx bx-edit-alt text-primary"></i> Edit Reclamation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form action="{{ path('api_reclamation_update', {'id': rec.id}) }}" method="post" class="admin-reclamation-edit-form" data-reclamation-id="{{ rec.id }}">
+                        <div class="mb-4">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Title</label>
+                            <input type="text" name="title" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" value="{{ rec.titrereclamations }}" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Description</label>
+                            <textarea name="description" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" rows="4" required>{{ rec.descreclamation }}</textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Status</label>
+                            <select name="status" class="form-select bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3">
+                                <option value="active" {{ rec.statutreclamation == 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="en_attente" {{ rec.statutreclamation == 'en_attente' ? 'selected' : '' }}>In Progress</option>
+                                <option value="refuse" {{ rec.statutreclamation == 'refuse' ? 'selected' : '' }}>Rejected</option>
+                                <option value="termine" {{ rec.statutreclamation == 'termine' ? 'selected' : '' }}>Completed</option>
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary px-4 py-2 rounded-pill fw-bold" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+
+{# --- Forum Publication Modals --- #}
+{% for pub in publications %}
+    <!-- View Publication Modal -->
+    <div class="modal fade" id="publicationModal-{{ pub.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 overflow-hidden" style="background: #000; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 24px;">
+                <div class="modal-header border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width: 45px; height: 45px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <i class="bx bx-message-square-dots" style="font-size: 1.4rem; color: #fff;"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold text-white mb-0" style="font-size: 1.25rem;">{{ pub.titrePub }}</h5>
+                            <span class="badge" style="background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 0.7rem; text-transform: uppercase; border: 1px solid rgba(255, 255, 255, 0.1);">{{ pub.categoriePub }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        {% if isAdmin %}
+                            <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#adminEditPublicationModal-{{ pub.id }}">
+                                <i class="bx bx-edit-alt"></i> Edit
+                            </button>
+                        {% endif %}
+                        <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="text-secondary small text-uppercase fw-bold mb-2 d-block">Publication Details</label>
+                        <p class="text-white-50 leading-relaxed">{{ pub.descriptionPub }}</p>
+                        
+                        {% if pub.imagePub %}
+                            <div class="mt-3">
+                                <img src="{{ asset('forum_images/' ~ pub.imagePub) }}" alt="Publication Image" 
+                                     style="max-width: 100%; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;"
+                                     onclick="openLightbox(this.src)">
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="discussion-section">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <label class="text-secondary small text-uppercase fw-bold m-0"><i class="bx bx-comment-detail"></i> Discussion</label>
+                            <span class="text-white-50 small" id="comments-count-{{ pub.id }}">...</span>
+                        </div>
+                        <div id="comments-list-{{ pub.id }}" class="scrollbar-hide" style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; padding-right: 5px;">
+                            <div class="text-center py-4">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                <p class="text-muted small mt-2">Loading discussion...</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Add Comment form -->
+                        <div class="mt-4 pt-4 border-top border-white border-opacity-10">
+                            <form class="comment-submission-form" data-publication-id="{{ pub.id }}" action="{{ path('forum_comment_add', {'id': pub.id}) }}">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <div style="flex: 1;">
+                                        <textarea name="description" class="form-control bg-white bg-opacity-5 border-0 text-white p-3 rounded-4 shadow-none" 
+                                                  placeholder="Add a comment..." rows="2" style="resize: none;"></textarea>
+                                        <div class="d-flex align-items-center justify-content-between mt-2">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" name="visibility" id="anon-{{ pub.id }}" checked>
+                                                <label class="form-check-label text-secondary small" for="anon-{{ pub.id }}">Public</label>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-sm px-4 py-2 rounded-pill fw-bold">Send message</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Edit Publication Modal -->
+    {% if isAdmin %}
+    <div class="modal fade" id="adminEditPublicationModal-{{ pub.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="background: #000; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 20px;">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="modal-title fw-bold text-white"><i class="bx bx-edit"></i> Edit Publication #{{ pub.id }}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form class="admin-publication-edit-form" data-publication-id="{{ pub.id }}" action="{{ path('api_forum_publication_update', {'id': pub.id}) }}">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Title</label>
+                            <input type="text" name="title" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" value="{{ pub.titrePub }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Description</label>
+                            <textarea name="description" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" rows="4" required>{{ pub.descriptionPub }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Category</label>
+                            <select name="category" class="form-select bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3">
+                                {% for cat in ['Announcement', 'Suggestion', 'Jeux Video', 'Informatique', 'Nouveauté', 'Discussion General', 'Culture', 'Sport'] %}
+                                    <option value="{{ cat }}" {{ pub.categoriePub == cat ? 'selected' : '' }}>{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary px-4 py-2 rounded-pill fw-bold" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}    <!-- Event View Modal -->
+    <div class="modal fade" id="eventViewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-dark border-secondary border-opacity-25 text-white shadow-lg" style="border-radius: 24px; overflow: hidden;">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="modal-title fw-bold fs-4">Event Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-5">
+                            <div id="event-modal-image-container" class="rounded-4 overflow-hidden shadow-sm" style="height: 250px; background: rgba(255,255,255,0.05);">
+                                <img id="event-modal-image" src="" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h2 id="event-modal-title" class="fw-bold mb-0"></h2>
+                                <span id="event-modal-status" class="status-badge" style="padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700;"></span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-3 mb-4 text-secondary">
+                                <span class="d-flex align-items-center gap-1"><i class="bx bx-calendar"></i> <span id="event-modal-date"></span></span>
+                                <span class="d-flex align-items-center gap-1"><i class="bx bx-map"></i> <span id="event-modal-location"></span></span>
+                                <span class="d-flex align-items-center gap-1"><i class="bx bx-purchase-tag"></i> <span id="event-modal-type"></span></span>
+                            </div>
+                            <p id="event-modal-description" class="text-light opacity-75 mb-4" style="line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem;"></p>
+                            <div class="d-flex align-items-center gap-4 py-3 border-top border-white border-opacity-10">
+                                <div>
+                                    <small class="text-secondary d-block">Places</small>
+                                    <span id="event-modal-places" class="fw-bold"></span>
+                                </div>
+                                <div>
+                                    <small class="text-secondary d-block">Remaining</small>
+                                    <span id="event-modal-remaining" class="fw-bold"></span>
+                                </div>
+                            </div>
+                            <div id="event-modal-admin-actions" class="mt-4 pt-3 d-none">
+                                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-bold w-100" id="btn-edit-event">
+                                    <i class="bx bx-edit-alt me-2"></i>Edit Event
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Edit Modal -->
+    <div class="modal fade" id="eventEditModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark border-secondary border-opacity-25 text-white shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title fw-bold">Edit Event</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <form id="event-edit-form" enctype="multipart/form-data">
+                        <input type="hidden" name="id" id="edit-event-id">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Title</label>
+                            <input type="text" name="titre_event" id="edit-event-title" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Description</label>
+                            <textarea name="description_event" id="edit-event-description" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" rows="3" required></textarea>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Date</label>
+                                <input type="datetime-local" name="date_event" id="edit-event-date" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Location</label>
+                                <input type="text" name="lieu_event" id="edit-event-location" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" required>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Total</label>
+                                <input type="number" name="nb_places" id="edit-event-places" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" min="0">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Remaining</label>
+                                <input type="number" name="nb_restants" id="edit-event-remaining" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" min="0">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Type</label>
+                                <select name="type_event" id="edit-event-type" class="form-select bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3">
+                                    {% for type in ['reunion', 'social', 'formation', 'maintenance', 'culturel', 'sportif'] %}
+                                        <option value="{{ type }}">{{ type|title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Status</label>
+                            <select name="statut_event" id="edit-event-status" class="form-select bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3">
+                                {% for status in ['planifie', 'en_cours', 'termine', 'annule'] %}
+                                    <option value="{{ status }}">{{ status|replace({'_': ' '})|title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Image</label>
+                            <input type="file" name="image_event" id="edit-event-image" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" accept="image/*">
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary px-4 py-2 rounded-pill fw-bold" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold" id="save-event-btn">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const currentUserId = {{ user.idUser|default('0') }};
+    const isAdmin = {{ isAdmin ? 'true' : 'false' }};
+    let currentAdminFilter = isAdmin ? 'all' : 'my';
+
+
+    // Pagination & Filtering Variables
+    const itemsPerPage = 3;
+    const allReclamationItems = Array.from(document.querySelectorAll('.reclamation-item'));
+    const paginationContainer = document.getElementById('reclamation-pagination');
+
+
+    window.initializeReclamationPagination = function() {
+        try {
+            // console.log("Initializing Reclamation Pagination. Filter:", currentAdminFilter);
+            
+            // 1. Filter items
+            const filteredItems = allReclamationItems.filter(item => {
+                if (currentAdminFilter === 'all') return true;
+                const itemUserId = String(item.dataset.userId);
+                const currentId = String(currentUserId);
+                return itemUserId === currentId;
+            });
+
+
+            // 2. Hide all items initially
+            allReclamationItems.forEach(item => {
+                item.style.display = 'none';
+                item.classList.remove('active');
+            });
+
+            if (filteredItems.length === 0) {
+                if (paginationContainer) paginationContainer.innerHTML = '';
+                return;
+            }
+
+            // 3. Simple Display if no pagination needed
+            if (!paginationContainer || filteredItems.length <= itemsPerPage) {
+                if (paginationContainer) paginationContainer.innerHTML = '';
+                filteredItems.forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+                return;
+            }
+
+            // 4. Advanced Pagination
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+            paginationContainer.innerHTML = '';
+            
+            function showPage(page) {
+                const start = (page - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                
+                filteredItems.forEach((item, idx) => {
+                    if (idx >= start && idx < end) {
+                        item.style.display = 'block';
+                        setTimeout(() => item.classList.add('active'), 10);
+                    } else {
+                        item.style.display = 'none';
+                        item.classList.remove('active');
+                    }
+                });
+
+                paginationContainer.querySelectorAll('.pagination-pill').forEach(pill => {
+                    pill.classList.toggle('active', parseInt(pill.dataset.page) === page);
+                });
+            }
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pill = document.createElement('div');
+                pill.className = 'pagination-pill';
+                pill.textContent = i;
+                pill.dataset.page = i;
+                if (i === 1) pill.classList.add('active');
+                
+                pill.addEventListener('click', () => {
+                    showPage(i);
+                    document.getElementById('tab-reclamation').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                
+                paginationContainer.appendChild(pill);
+            }
+
+            showPage(1);
+        } catch (e) { console.error("Reclamation Pagination Error:", e); }
+    };
+
+    // Initial load
+    if (typeof window.initializeReclamationPagination === 'function') {
+        window.initializeReclamationPagination();
+    }
+
+    // --- Forum Pagination & Filtering ---
+    const allForumItems = Array.from(document.querySelectorAll('.publication-item'));
+    const forumPaginationContainer = document.getElementById('forum-pagination');
+    let currentForumAdminFilter = isAdmin ? 'all' : 'my';
+
+    window.initializeForumPagination = function() {
+        try {
+            const filteredItems = allForumItems.filter(item => {
+                if (currentForumAdminFilter === 'all') return true;
+                return item.dataset.userId == currentUserId;
+            });
+
+            allForumItems.forEach(item => {
+                item.style.display = 'none';
+                item.classList.remove('active');
+            });
+
+            if (!forumPaginationContainer) {
+                filteredItems.forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+                return;
+            }
+
+            forumPaginationContainer.innerHTML = '';
+            if (filteredItems.length === 0) return;
+
+            if (filteredItems.length <= itemsPerPage) {
+                filteredItems.forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+                return;
+            }
+
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+            
+            function showForumPage(page) {
+                const start = (page - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                
+                filteredItems.forEach(item => {
+                    item.style.display = 'none';
+                    item.classList.remove('active');
+                });
+
+                filteredItems.slice(start, end).forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+
+                forumPaginationContainer.querySelectorAll('.pagination-pill').forEach(pill => {
+                    pill.classList.toggle('active', parseInt(pill.dataset.page) === page);
+                });
+            }
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pill = document.createElement('div');
+                pill.className = 'pagination-pill';
+                pill.textContent = i;
+                pill.dataset.page = i;
+                if (i === 1) pill.classList.add('active');
+                
+                pill.addEventListener('click', () => {
+                    showForumPage(i);
+                    document.getElementById('tab-forum').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                
+                forumPaginationContainer.appendChild(pill);
+            }
+            showForumPage(1);
+        } catch (e) { console.error("Forum Pagination Error:", e); }
+    };
+
+    window.initializeForumPagination();
+
+    // --- Events Pagination & Filtering ---
+    const allEventItems = Array.from(document.querySelectorAll('.event-item'));
+    const eventPaginationContainer = document.getElementById('events-pagination');
+    let currentEventAdminFilter = isAdmin ? 'all' : 'my';
+
+    window.initializeEventsPagination = function() {
+        try {
+            const filteredItems = allEventItems.filter(item => {
+                if (currentEventAdminFilter === 'all') return true;
+                return item.dataset.userId == currentUserId;
+            });
+
+            allEventItems.forEach(item => {
+                item.style.display = 'none';
+                item.classList.remove('active');
+            });
+
+            if (!eventPaginationContainer) {
+                filteredItems.forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+                return;
+            }
+
+            eventPaginationContainer.innerHTML = '';
+            if (filteredItems.length === 0) return;
+
+            if (filteredItems.length <= itemsPerPage) {
+                filteredItems.forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+                return;
+            }
+
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+            
+            function showEventPage(page) {
+                const start = (page - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                
+                filteredItems.forEach(item => {
+                    item.style.display = 'none';
+                    item.classList.remove('active');
+                });
+
+                filteredItems.slice(start, end).forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+
+                eventPaginationContainer.querySelectorAll('.pagination-pill').forEach(pill => {
+                    pill.classList.toggle('active', parseInt(pill.dataset.page) === page);
+                });
+            }
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pill = document.createElement('div');
+                pill.className = 'pagination-pill';
+                pill.textContent = i;
+                pill.dataset.page = i;
+                if (i === 1) pill.classList.add('active');
+                
+                pill.addEventListener('click', () => {
+                    showEventPage(i);
+                    document.getElementById('tab-events').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                
+                eventPaginationContainer.appendChild(pill);
+            }
+            showEventPage(1);
+        } catch (e) { console.error("Event Pagination Error:", e); }
+    };
+
+    window.initializeEventsPagination();
+
+
+    window.loadComments = function(publicationId, isSilent = false) {
+        const list = document.getElementById(`comments-list-${publicationId}`);
+        if (!list) return;
+
+        const hasContent = list.children.length > 0 && !list.innerHTML.includes('spinner-border');
+        const lastFetch = list.dataset.lastFetch || 0;
+        const now = Date.now();
+        
+        if (!isSilent && hasContent && (now - lastFetch < 30000)) return; 
+
+        if (!isSilent && !hasContent) {
+            list.innerHTML = `
+                <div class="text-center text-white-50 py-5">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <p class="small mt-2">Loading discussion...</p>
+                </div>`;
+        }
+
+        fetch(`/forum/comment/list/${publicationId}`)
+            .then(res => res.json())
+            .then(comments => {
+                try {
+                    document.getElementById(`comments-count-${publicationId}`).textContent = `${comments.length} comments`;
+                    if (comments.length === 0) {
+                        list.innerHTML = `
+                            <div class="text-center text-secondary py-5 opacity-50">
+                                <i class='bx bx-message-square-dots fs-3 mb-2'></i>
+                                <p>No comments yet. Be the first!</p>
+                            </div>`;
+                        return;
+                    }
+
+                    const newContent = comments.map(c => {
+                        const isMe = c.isOwner;
+                        const avatar = c.author.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face';
+                        return `
+                            <div class="d-flex w-100 ${isMe ? 'justify-content-end' : 'justify-content-start'}">
+                                <div class="d-flex flex-column ${isMe ? 'align-items-end' : 'align-items-start'}" style="max-width: 80%;">
+                                    <div class="d-flex align-items-center gap-2 mb-1 px-1">
+                                        <div class="details-author-avatar" style="width: 24px; height: 24px;">
+                                            <img src="${avatar}" alt="${c.author.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;" loading="lazy">
+                                        </div>
+                                        <small class="text-secondary" style="font-size: 0.75rem;">${c.author.name}</small>
+                                        <small class="text-secondary opacity-50" style="font-size: 0.7rem;">${c.createdAt}</small>
+                                    </div>
+                                    <div class="card border-0 shadow-sm p-3 ${isMe ? 'bg-primary text-white' : 'border border-secondary border-opacity-25 text-light'}" 
+                                         style="border-radius: 18px; ${isMe ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px; background-color: #111;'}">
+                                        <p class="mb-0" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5;">${c.description}</p>
+                                        ${c.image ? `
+                                            <div class="mt-2 pt-2 border-top border-white border-opacity-10">
+                                                <img src="${c.image}" class="rounded-3" style="max-height: 150px; cursor: pointer;" onclick="openLightbox('${c.image}')" loading="lazy">
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>`;
+                    }).join('');
+
+                    list.innerHTML = newContent;
+                    list.dataset.lastFetch = now;
+                    list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
+                } catch (e) { console.error("Render Error:", e); }
+            });
+    };
+
+    window.loadResponses = function(reclamationId, isSilent = false) {
+        const list = document.getElementById(`responses-list-${reclamationId}`);
+        if (!list) return;
+
+        // SMART LOADING: Avoid refetching if we have content and it's recent (or just exists)
+        const hasContent = list.children.length > 0 && !list.innerHTML.includes('bx-loader-alt');
+        const lastFetch = list.dataset.lastFetch || 0;
+        const now = Date.now();
+        
+        // If not silent and we have content fetched less than 30s ago, don't show loader or refetch
+        if (!isSilent && hasContent && (now - lastFetch < 30000)) {
+            list.scrollTo({ top: list.scrollHeight, behavior: 'auto' });
+            return; 
+        }
+
+        if (!isSilent && !hasContent) {
+            list.innerHTML = `
+                <div class="text-center text-white-50 py-5 disc-loader">
+                    <i class="bx bx-loader-alt bx-spin fs-3 mb-2"></i>
+                    <p>Loading discussion...</p>
+                </div>`;
+        }
+
+        fetch(`/api/syndicat/reponse/list/${reclamationId}`)
+            .then(res => res.json())
+            .then(responses => {
+                try {
+                    if (responses.length === 0) {
+                        list.innerHTML = `
+                            <div class="text-center text-secondary py-5 opacity-50">
+                                <i class='bx bx-message-square-dots fs-3 mb-2'></i>
+                                <p>Start the conversation</p>
+                            </div>`;
+                        return;
+                    }
+
+                    const newContent = responses.map(r => {
+                        const isMe = r.isMe;
+                        return `
+                            <div class="d-flex w-100 ${isMe ? 'justify-content-end' : 'justify-content-start'}">
+                                <div class="d-flex flex-column ${isMe ? 'align-items-end' : 'align-items-start'}" style="max-width: 80%;">
+                                    <div class="d-flex align-items-center gap-2 mb-1 px-1">
+                                        <div class="details-author-avatar" style="width: 24px; height: 24px;">
+                                            <img src="${r.author.avatar}" alt="${r.author.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;" loading="lazy">
+                                        </div>
+                                        <small class="text-secondary" style="font-size: 0.75rem;">${r.author.name}</small>
+                                        <small class="text-secondary opacity-50" style="font-size: 0.7rem;">${r.createdAt}</small>
+                                    </div>
+                                    <div class="card border-0 shadow-sm p-3 ${isMe ? 'bg-primary text-white' : 'border border-secondary border-opacity-25 text-light'}" 
+                                         style="border-radius: 18px; ${isMe ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px; background-color: #111;'} overflow-wrap: break-word; word-wrap: break-word; word-break: break-word;">
+                                        ${r.title ? `<div class="fw-bold mb-1 border-bottom border-white border-opacity-10 pb-1" style="font-size: 0.85rem; overflow-wrap: break-word;">${r.title}</div>` : ''}
+                                        <p class="mb-0" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; overflow-wrap: break-word;">${r.message}</p>
+                                        ${r.images && r.images.length > 0 ? `
+                                            <div class="mt-2 pt-2 border-top border-white border-opacity-10 row g-2">
+                                                ${r.images.map(img => `
+                                                    <div class="col-auto">
+                                                        <a href="javascript:void(0)" onclick="openLightbox('${img}')">
+                                                                <img src="${img}" class="rounded-3" style="max-height: 40px; width: 40px; object-fit: cover;" loading="lazy">
+                                                        </a>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    list.innerHTML = newContent;
+                    list.dataset.lastFetch = Date.now();
+                    list.scrollTo({ top: list.scrollHeight, behavior: isSilent ? 'smooth' : 'auto' });
+                } catch (renderError) { console.error("History Render Error:", renderError); }
+            })
+            .catch(err => {
+                console.error(err);
+                if (!isSilent) list.innerHTML = '<div class="text-center text-danger py-4">Failed to load discussion.</div>';
+            });
+    };
+
+    // Global Submission Handler
+    document.body.addEventListener('submit', function(e) {
+        if (e.target.classList.contains('reponse-api-form')) {
+            e.preventDefault();
+            const form = e.target;
+            const recId = form.dataset.reclamationId;
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn.disabled) return;
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            
+            fetch(form.action, { method: 'POST', body: new FormData(form) })
+            .then(res => res.json())
+            .then(data => {
+                    if(data.success) {
+                        form.reset();
+                        const preview = form.querySelector('[id^="image-preview-container-"]');
+                        if(preview) { preview.innerHTML = ''; preview.classList.add('d-none'); }
+                        
+                        // Incremental Update: Just reload the list silently to avoid flicker, 
+                        // but force a fetch to show the new message
+                        list.dataset.lastFetch = 0; 
+                        window.loadResponses(recId, true);
+                    } else { alert(data.message || 'Error'); }
+                btn.disabled = false; btn.innerHTML = original;
+            })
+            .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = original; });
+        }
+        
+        if (e.target.classList.contains('admin-reclamation-edit-form')) {
+            e.preventDefault();
+            const form = e.target;
+            const recId = form.dataset.reclamationId;
+            const btn = form.querySelector('button[type="submit"]');
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+            fetch(form.action, { method: 'POST', body: new FormData(form) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const editModalEl = document.getElementById(`adminEditReclamationModal-${recId}`);
+                    const editModalBootstrap = bootstrap.Modal.getInstance(editModalEl);
+                    if (editModalBootstrap) editModalBootstrap.hide();
+                    
+                    const formData = new FormData(form);
+                    const newTitle = formData.get('title');
+                    const newDesc = formData.get('description');
+                    const newStatus = formData.get('status');
+                    
+                    // 1. Update List Item UI
+                    const listItem = document.querySelector(`.reclamation-item[data-reclamation-id="${recId}"]`);
+                    if (listItem) {
+                        const titleEl = listItem.querySelector('h5');
+                        if (titleEl) titleEl.textContent = newTitle;
+                        const descEl = listItem.querySelector('.reclamation-desc-text');
+                        if (descEl) descEl.textContent = newDesc.substring(0, 150) + (newDesc.length > 150 ? '...' : '');
+                        
+                        // Status Badge in List
+                        const listBadge = listItem.querySelector('.status-badge');
+                        if (listBadge) {
+                            const colors = { 'confirme': '#00e676', 'active': '#00e676', 'en_attente': '#ffeb3b', 'refuse': '#ff3b30', 'annule': '#9e9e9e', 'termine': '#4fc3f7' };
+                            const labels = { 'confirme': 'Confirmed', 'active': 'Active', 'en_attente': 'In Progress', 'refuse': 'Rejected', 'annule': 'Cancelled', 'termine': 'Completed' };
+                            listBadge.style.background = (colors[newStatus] || '#9e9e9e') + '15';
+                            listBadge.style.color = colors[newStatus] || '#9e9e9e';
+                            listBadge.style.borderColor = (colors[newStatus] || '#9e9e9e') + '30';
+                            listBadge.textContent = labels[newStatus] || newStatus;
+                        }
+                    }
+                    
+                    // 2. Update Details Modal UI
+                    const detailsModalEl = document.getElementById(`reclamationModal-${recId}`);
+                    if (detailsModalEl) {
+                        const dTitle = detailsModalEl.querySelector('.modal-title');
+                        if (dTitle) dTitle.textContent = newTitle;
+                        const dDesc = detailsModalEl.querySelector('.modal-body p');
+                        if (dDesc) dDesc.textContent = newDesc;
+                        
+                        const dBadge = detailsModalEl.querySelector('.badge');
+                        if (dBadge) {
+                            const colors = { 'confirme': '#00e676', 'active': '#00e676', 'en_attente': '#ffeb3b', 'refuse': '#ff3b30', 'annule': '#9e9e9e', 'termine': '#4fc3f7' };
+                            const labels = { 'confirme': 'Confirmed', 'active': 'Active', 'en_attente': 'In Progress', 'refuse': 'Rejected', 'annule': 'Cancelled', 'termine': 'Completed' };
+                            dBadge.style.background = (colors[newStatus] || '#9e9e9e') + '15';
+                            dBadge.style.color = colors[newStatus] || '#9e9e9e';
+                            dBadge.style.borderColor = (colors[newStatus] || '#9e9e9e') + '30';
+                            dBadge.textContent = labels[newStatus] || newStatus;
+                        }
+                        
+                        // Show View Modal back
+                        setTimeout(() => {
+                            const viewModal = new bootstrap.Modal(detailsModalEl);
+                            viewModal.show();
+                        }, 400);
+                    }
+                } else { alert(data.message || 'Error'); }
+                btn.disabled = false; btn.innerHTML = original;
+            })
+            .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = original; });
+        }
+    });
+
+    // Modal Trigger for Admin
+    document.querySelectorAll('.edit-reclamation-trigger').forEach(trigger => {
+        trigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            new bootstrap.Modal(document.getElementById(`adminEditReclamationModal-${this.dataset.reclamationId}`)).show();
+        });
+    });
+
+    // Auto-load on show
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('show.bs.modal', function() {
+            // Reclamations
+            const recList = this.querySelector('[id^="responses-list-"]');
+            if (recList) window.loadResponses(recList.id.replace('responses-list-', ''));
+            
+            // Forum
+            const forumList = this.querySelector('[id^="comments-list-"]');
+            if (forumList) window.loadComments(forumList.id.replace('comments-list-', ''));
+        });
+    });
+
+    // Forum Comment Submission
+    document.body.addEventListener('submit', function(e) {
+        if (e.target.classList.contains('comment-submission-form')) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = form.querySelector('button[type="submit"]');
+            const original = btn.innerHTML;
+            const publicationId = form.dataset.publicationId;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>';
+
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    form.reset();
+                    window.loadComments(publicationId, true); // Silent refresh
+                } else { alert(data.message || 'Error'); }
+                btn.disabled = false; btn.innerHTML = original;
+            })
+            .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = original; });
+        }
+
+        // Admin Publication Edit
+        if (e.target.classList.contains('admin-publication-edit-form')) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = form.querySelector('button[type="submit"]');
+            const original = btn.innerHTML;
+            const pubId = form.dataset.publicationId;
+            const pubModalEl = document.getElementById(`publicationModal-${pubId}`);
+            const editModalEl = document.getElementById(`adminEditPublicationModal-${pubId}`);
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Saving...';
+
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI in list
+                    const pubItem = document.querySelector(`.publication-item[data-publication-id="${pubId}"]`);
+                    if (pubItem) {
+                        pubItem.querySelector('h5').textContent = formData.get('title');
+                        pubItem.querySelector('.status-badge').textContent = formData.get('category');
+                        const desc = formData.get('description');
+                        pubItem.querySelector('.publication-desc-text').textContent = desc.length > 150 ? desc.substring(0, 150) + '...' : desc;
+                    }
+
+                    // Update UI in View Modal
+                    if (pubModalEl) {
+                        pubModalEl.querySelector('.modal-title').textContent = formData.get('title');
+                        pubModalEl.querySelector('.badge').textContent = formData.get('category');
+                        pubModalEl.querySelector('.leading-relaxed').textContent = formData.get('description');
+                    }
+
+                    // Smooth Transition
+                    const editModal = bootstrap.Modal.getInstance(editModalEl);
+                    if (editModal) {
+                        editModal.hide();
+                        setTimeout(() => {
+                            const viewModal = new bootstrap.Modal(pubModalEl);
+                            viewModal.show();
+                        }, 400);
+                    }
+                } else { alert(data.message || 'Error'); }
+                btn.disabled = false; btn.innerHTML = original;
+            })
+            .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = original; });
+        }
+    });
+
+    // --- Event Modal Handling ---
+    let currentActiveEventData = null;
+
+    document.querySelectorAll('.event-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const data = this.dataset;
+            currentActiveEventData = data;
+            
+            // Populate View Modal
+            document.getElementById('event-modal-title').textContent = data.title;
+            document.getElementById('event-modal-description').textContent = data.description;
+            document.getElementById('event-modal-date').textContent = data.dateFormatted;
+            document.getElementById('event-modal-location').textContent = data.location;
+            document.getElementById('event-modal-type').textContent = data.type.charAt(0).toUpperCase() + data.type.slice(1);
+            document.getElementById('event-modal-places').textContent = data.places;
+            document.getElementById('event-modal-remaining').textContent = data.remaining;
+            
+            const img = document.getElementById('event-modal-image');
+            if (data.image) {
+                img.src = data.image;
+                img.style.display = 'block';
+            } else {
+                img.style.display = 'none';
+            }
+
+            const statusBadge = document.getElementById('event-modal-status');
+            const statusColors = { 'planifie': '#4fc3f7', 'en_cours': '#00e676', 'termine': '#9e9e9e', 'annule': '#ff3b30' };
+            statusBadge.style.background = (statusColors[data.status] || '#4fc3f7') + '15';
+            statusBadge.style.color = statusColors[data.status] || '#4fc3f7';
+            statusBadge.style.borderColor = (statusColors[data.status] || '#4fc3f7') + '30';
+            statusBadge.textContent = data.status.replace('_', ' ').charAt(0).toUpperCase() + data.status.replace('_', ' ').slice(1);
+
+            // Admin Logic
+            const moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'];
+            const userRole = '{{ user.roleUser|default('') }}';
+            const isModerator = moderatorRoles.includes(userRole);
+            const isOwner = data.userId == currentUserId;
+
+            if (isModerator || isOwner) {
+                document.getElementById('event-modal-admin-actions').classList.remove('d-none');
+            } else {
+                document.getElementById('event-modal-admin-actions').classList.add('d-none');
+            }
+
+            new bootstrap.Modal(document.getElementById('eventViewModal')).show();
+        });
+    });
+
+    document.getElementById('btn-edit-event').addEventListener('click', function() {
+        if (!currentActiveEventData) return;
+        const data = currentActiveEventData;
+
+        document.getElementById('edit-event-id').value = data.eventId;
+        document.getElementById('edit-event-title').value = data.title;
+        document.getElementById('edit-event-description').value = data.description;
+        document.getElementById('edit-event-date').value = data.date;
+        document.getElementById('edit-event-location').value = data.location;
+        document.getElementById('edit-event-places').value = data.places;
+        document.getElementById('edit-event-remaining').value = data.remaining;
+        document.getElementById('edit-event-type').value = data.type;
+        document.getElementById('edit-event-status').value = data.status;
+
+        bootstrap.Modal.getInstance(document.getElementById('eventViewModal')).hide();
+        setTimeout(() => {
+            new bootstrap.Modal(document.getElementById('eventEditModal')).show();
+        }, 400);
+    });
+
+    document.getElementById('event-edit-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = this;
+        const btn = document.getElementById('save-event-btn');
+        const original = btn.innerHTML;
+        const eventId = document.getElementById('edit-event-id').value;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Saving...';
+
+        const formData = new FormData(form);
+        fetch(`/api/evenement/update/${eventId}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Update specific event item in list
+                const item = document.querySelector(`.event-item[data-event-id="${eventId}"]`);
+                if (item) {
+                    item.dataset.title = formData.get('titre_event');
+                    item.dataset.description = formData.get('description_event');
+                    item.dataset.location = formData.get('lieu_event');
+                    item.dataset.date = formData.get('date_event');
+                    item.dataset.status = formData.get('statut_event');
+                    item.dataset.type = formData.get('type_event');
+                    item.dataset.places = formData.get('nb_places');
+                    item.dataset.remaining = formData.get('nb_restants');
+                    
+                    if (data.data.image) {
+                        item.dataset.image = data.data.image;
+                        const img = item.querySelector('.event-list-image-wrap img');
+                        if (img) img.src = data.data.image;
+                        else {
+                            const wrap = item.querySelector('.event-list-image-wrap');
+                            wrap.innerHTML = `<img src="${data.data.image}" alt="${data.data.title}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                            wrap.classList.remove('d-flex', 'align-items-center', 'justify-content-center');
+                            wrap.style.borderStyle = 'solid';
+                        }
+                    }
+
+                    item.querySelector('h5').textContent = data.data.title;
+                    item.querySelector('.reclamation-status-text i.bx-calendar').nextSibling.textContent = ' ' + data.data.date;
+                    item.querySelector('.reclamation-status-text i.bx-map').nextSibling.textContent = ' ' + formData.get('lieu_event');
+                    item.querySelector('.reclamation-desc-text').textContent = data.data.description.substring(0, 100) + (data.data.description.length > 100 ? '...' : '');
+                    
+                    const listBadge = item.querySelector('.status-badge');
+                    const statusColors = { 'planifie': '#4fc3f7', 'en_cours': '#00e676', 'termine': '#9e9e9e', 'annule': '#ff3b30' };
+                    listBadge.style.background = (statusColors[data.data.status] || '#4fc3f7') + '15';
+                    listBadge.style.color = statusColors[data.data.status] || '#4fc3f7';
+                    listBadge.style.borderColor = (statusColors[data.data.status] || '#4fc3f7') + '30';
+                    listBadge.textContent = data.data.status.replace('_', ' ').charAt(0).toUpperCase() + data.data.status.replace('_', ' ').slice(1);
+                    
+                    item.querySelector('.bx-purchase-tag-alt').nextSibling.textContent = ' ' + formData.get('type_event').charAt(0).toUpperCase() + formData.get('type_event').slice(1);
+                    item.querySelector('.bx-user').nextSibling.textContent = ` ${item.dataset.remaining}/${formData.get('nb_places')} enrolled`;
+                }
+
+                bootstrap.Modal.getInstance(document.getElementById('eventEditModal')).hide();
+                // Optionally re-open view modal with updated data
+                setTimeout(() => {
+                    const item = document.querySelector(`.event-item[data-event-id="${eventId}"]`);
+                    if (item) item.click();
+                }, 400);
+            } else { alert(data.message || 'Error updating event'); }
+            btn.disabled = false; btn.innerHTML = original;
+        })
+        .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = original; });
+    });
+
+    // Admin Filter logic for all tabs
+    function handleAdminFilter(btnClass, filterVarSetter, initFunc) {
+        document.querySelectorAll('.' + btnClass).forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.' + btnClass).forEach(b => {
+                    b.classList.remove('active', 'btn-primary');
+                    b.classList.add('btn-outline-light');
+                });
+                this.classList.remove('btn-outline-light');
+                this.classList.add('active', 'btn-primary');
+                filterVarSetter(this.dataset.filter);
+                initFunc();
+            });
+        });
+    }
+
+    if (isAdmin) {
+        handleAdminFilter('admin-reclamation-filter-btn', (val) => { currentAdminFilter = val; }, window.initializeReclamationPagination);
+        handleAdminFilter('admin-forum-filter-btn', (val) => { currentForumAdminFilter = val; }, window.initializeForumPagination);
+        handleAdminFilter('admin-events-filter-btn', (val) => { currentEventAdminFilter = val; }, window.initializeEventsPagination);
+    }
+
+    // Safety: Hide page loader if it's still spinning
+    setTimeout(() => {
+        const pageLoader = document.getElementById('pageLoader');
+        if (pageLoader) pageLoader.style.display = 'none';
+    }, 100);
+});
+</script>
 </body>
 </html>

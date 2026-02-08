@@ -33,13 +33,12 @@ class UserType extends AbstractType
 
         // Password for signup and admin add (not for edit)
         if (!($options['edit'] ?? false)) {
-            $builder->add('password_user', RepeatedType::class, [
+            $builder->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
-                'first_options'  => ['label' => 'Password'],
+                'first_options' => ['label' => 'Password'],
                 'second_options' => ['label' => 'Confirm Password'],
                 'invalid_message' => 'Passwords must match.',
                 'required' => true,
-                'mapped' => !($options['signup'] ?? false) && !($options['add'] ?? false),
             ]);
         }
 

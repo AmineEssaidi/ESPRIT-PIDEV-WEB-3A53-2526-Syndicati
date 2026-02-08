@@ -1,6 +1,29 @@
 // Global settings loader for theme, accent, and language
-(function() {
+(function () {
     try {
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('logout') === 'success') {
+            localStorage.removeItem('theme');
+            localStorage.removeItem('accent-gradient');
+            localStorage.removeItem('accent-color');
+            localStorage.removeItem('lang');
+            // Remove the param to avoid repeated clearing
+            var url = new URL(window.location);
+            url.searchParams.delete('logout');
+            window.history.replaceState({}, '', url);
+        }
+
+        // Sync from server settings if available
+        var serverSettings = window.serverSettings || {};
+        if (Array.isArray(serverSettings)) serverSettings = {};
+
+        if (Object.keys(serverSettings).length > 0) {
+            if (serverSettings.theme) localStorage.setItem('theme', serverSettings.theme);
+            if (serverSettings['accent-gradient']) localStorage.setItem('accent-gradient', serverSettings['accent-gradient']);
+            if (serverSettings['accent-color']) localStorage.setItem('accent-color', serverSettings['accent-color']);
+            if (serverSettings.lang) localStorage.setItem('lang', serverSettings.lang);
+        }
+
         var html = document.documentElement;
         var theme = localStorage.getItem('theme') || 'dark';
         var accentGradient = localStorage.getItem('accent-gradient') || 'linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)';
@@ -24,7 +47,7 @@
         html.style.setProperty('--main-home-accent-gradient-border', gradientBorder);
         html.style.setProperty('--primary-gradient', accentGradient);
         html.setAttribute('lang', lang);
-        
+
         var translations = {
             fr: {
                 "Settings": "Paramètres",
@@ -463,9 +486,9 @@
                 "Terminer": "إنهاء"
             }
         };
-        
+
         function translateAll(toLang) {
-            document.querySelectorAll('[data-i18n]').forEach(function(el) {
+            document.querySelectorAll('[data-i18n]').forEach(function (el) {
                 var key = el.getAttribute('data-i18n');
                 var t;
                 if (translations[toLang] && Object.prototype.hasOwnProperty.call(translations[toLang], key)) {
@@ -480,22 +503,22 @@
                 el.textContent = t;
             });
         }
-        
+
         function initSmartTranslate(preferredLang) {
             translateAll(preferredLang);
         }
-        
-        document.addEventListener('DOMContentLoaded', function() {
+
+        document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => {
                 let lang = localStorage.getItem('lang') || 'fr';
                 initSmartTranslate(lang);
             }, 200);
         });
-        
+
         window.SmartTranslate = { init: initSmartTranslate };
         window.translations = translations;
-        
-        window.setLanguage = function(newLang) {
+
+        window.setLanguage = function (newLang) {
             localStorage.setItem('lang', newLang);
             document.documentElement.setAttribute('lang', newLang);
             if (window.SmartTranslate) {
@@ -503,5 +526,5 @@
             }
             translateAll(newLang);
         };
-    } catch (e) {}
+    } catch (e) { }
 })();

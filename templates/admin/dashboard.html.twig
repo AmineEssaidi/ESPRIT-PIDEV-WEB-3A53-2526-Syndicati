@@ -5,158 +5,172 @@
 {% block content %}
 {% include 'admin/_dashboard_header.html.twig' with { 'title': 'Dashboard' } %}
 
-<!-- Rotating Dashboard Widgets -->
-<div class="dashboard-carousel-container">
-    <!-- Carousel Controls -->
-    <div class="carousel-controls">
-        <button class="carousel-btn prev-btn" id="prevWidget" title="Previous Widget">
-            ←
-        </button>
-        <div class="carousel-indicators">
-            <span class="indicator active" data-slide="0"></span>
-            <span class="indicator" data-slide="1"></span>
-            <span class="indicator" data-slide="2"></span>
-            <span class="indicator" data-slide="3"></span>
+<div class="admin-dashboard">
+    <!-- Top Stat Cards -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <span class="stat-icon income-icon"></span>
+                <span class="stat-label">Currency income</span>
+            </div>
+            <div class="stat-value">$2700</div>
+            <div class="stat-sub">+12% vs last month</div>
         </div>
-        <button class="carousel-btn next-btn" id="nextWidget" title="Next Widget">
-            →
-        </button>
+
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <span class="stat-icon bills-icon"></span>
+                <span class="stat-label">Bills</span>
+            </div>
+            <div class="stat-value">$1250</div>
+            <div class="stat-sub">24 invoices pending</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <span class="stat-icon balance-icon"></span>
+                <span class="stat-label">Balance</span>
+            </div>
+            <div class="stat-value">$3450</div>
+            <div class="stat-sub">All accounts reconciled</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <span class="stat-icon payment-icon"></span>
+                <span class="stat-label">Pending payment</span>
+            </div>
+            <div class="stat-value">$3428</div>
+            <div class="stat-sub text-warning">5 invoices overdue</div>
+        </div>
     </div>
 
-    <!-- Carousel Wrapper -->
-    <div class="carousel-wrapper">
-        <div class="carousel-track" id="carouselTrack">
-            <!-- Widget 1: Revenue -->
-            <div class="carousel-slide active">
-                <div class="card revenue-card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="card-title expanding-text">Revenue</h5>
-                            <div class="time-toggle">
-                                <button class="toggle-btn">Month</button>
-                                <button class="toggle-btn active">Week</button>
-                                <button class="toggle-btn">Day</button>
+    <!-- Main Grid -->
+    <div class="dashboard-main">
+        <!-- Activity / Chart Section -->
+        <section class="activity-card glass-panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Activity</h2>
+                    <p class="panel-subtitle">Income vs Spent · This year</p>
+                </div>
+                <div class="legend">
+                    <span class="legend-dot income-dot"></span><span>Income</span>
+                    <span class="legend-dot spent-dot ms-3"></span><span>Spent</span>
+                </div>
+            </div>
+            <div class="activity-chart">
+                <!-- Simple bar chart inspired by the mockup -->
+                {% set months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'] %}
+                <div class="chart-bars">
+                    {% for month in months %}
+                        <div class="chart-bar">
+                            <div class="bar-group">
+                                <div class="bar bar-income"></div>
+                                <div class="bar bar-spent"></div>
                             </div>
+                            <span class="bar-label">{{ month }}</span>
                         </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="revenueChart" height="300"></canvas>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
 
-            <!-- Widget 2: Performance -->
-            <div class="carousel-slide">
-                <div class="card performance-card">
-                    <div class="performance-bg">
-                        <div class="performance-illustration">
-                            <div class="floating-character">
-                                <div class="character-body"></div>
-                                <div class="character-arms"></div>
-                                <div class="purple-object"></div>
-                            </div>
-                            <div class="rocket-trail"></div>
-                        </div>
-                        <button class="export-btn">Export</button>
-                    </div>
-                    <div class="performance-overlay">
-                        <div class="performance-stats">
-                            <div class="stat-row">
-                                <div class="stat-item">
-                                    <div class="stat-label">Paid Visit</div>
-                                    <div class="stat-value">6,550</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-label">Total Visit</div>
-                                    <div class="stat-value">5,646,454</div>
-                                </div>
-                            </div>
-                            <div class="stat-row">
-                                <div class="stat-item">
-                                    <div class="stat-label">Expense</div>
-                                    <div class="stat-value">$650</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-label">Commission</div>
-                                    <div class="stat-value">$56</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="activity-footer">
+                <div class="activity-metric">
+                    <span class="metric-label">Total income</span>
+                    <span class="metric-value">$124,580</span>
+                </div>
+                <div class="activity-metric">
+                    <span class="metric-label">Total spent</span>
+                    <span class="metric-value">$86,430</span>
+                </div>
+                <div class="activity-metric">
+                    <span class="metric-label">Net balance</span>
+                    <span class="metric-value text-success">+$38,150</span>
                 </div>
             </div>
+        </section>
 
-            <!-- Widget 3: Social Media -->
-            <div class="carousel-slide">
-                <div class="card social-card">
-                    <div class="card-header">
-                        <h5 class="card-title expanding-text">Social media</h5>
-                        <p class="card-subtitle">About Your Social Popularity</p>
-                    </div>
-                    <div class="card-body">
-                        <div class="social-illustration">
-                            <div class="desk-character">
-                                <div class="character-head"></div>
-                                <div class="character-body"></div>
-                                <div class="laptop-screen"></div>
-                                <div class="clock-icon"></div>
-                            </div>
-                        </div>
-                        <div class="followers-display">
-                            <div class="follower-box orange">
-                                <div class="follower-label">Followers</div>
-                                <div class="follower-count">35.6 K</div>
-                            </div>
-                            <div class="follower-box green">
-                                <div class="follower-label">Followers</div>
-                                <div class="follower-count">35.6 K</div>
-                            </div>
-                        </div>
-                    </div>
+        <!-- Right Column -->
+        <aside class="dashboard-side">
+            <!-- Upcoming Obligations -->
+            <section class="obligations-card glass-panel">
+                <h2 class="panel-title">Upcoming obligations</h2>
+                <div class="obligation-box">
+                    <h3 class="obligation-title">VAT declaration</h3>
+                    <p class="obligation-text">You have 27 days left to submit the documentation.</p>
+                    <button class="btn btn-sm btn-primary rounded-pill">View details</button>
                 </div>
-            </div>
+            </section>
 
-            <!-- Widget 4: Browser Analytics -->
-            <div class="carousel-slide">
-                <div class="card browser-card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
+            <!-- Agenda / Calendar -->
+            <section class="agenda-card glass-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Agenda</h2>
+                    <span class="panel-subtitle">This month</span>
+                </div>
+                <div class="agenda-content">
+                    <div class="mini-calendar">
+                        <div class="calendar-header">
+                            <span class="month-label">February 2026</span>
+                        </div>
+                        <div class="calendar-grid">
+                            <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+                            {% for i in 1..28 %}
+                                <button class="calendar-day {{ i == 10 ? 'is-today' : '' }}">{{ i }}</button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="agenda-list">
+                        <div class="agenda-item">
                             <div>
-                                <h5 class="card-title expanding-text">Visitors by Browser</h5>
-                                <p class="card-subtitle">15,654 Visitors</p>
+                                <p class="agenda-title">Meeting with Everis</p>
+                                <p class="agenda-meta">Zoom · 09:00</p>
                             </div>
-                            <div class="time-toggle">
-                                <button class="toggle-btn active">Week</button>
-                                <button class="toggle-btn">Day</button>
-                            </div>
+                            <span class="agenda-badge">Today</span>
                         </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="browserChart" height="200"></canvas>
-                        </div>
-                        <div class="browser-detail">
-                            <div class="browser-logo chrome"></div>
-                            <div class="browser-info">
-                                <div class="browser-name">Chrome Users</div>
-                                <div class="browser-time">Today</div>
-                                <div class="browser-change">+2,155</div>
+                        <div class="agenda-item">
+                            <div>
+                                <p class="agenda-title">Board review</p>
+                                <p class="agenda-meta">HQ · 15:30</p>
                             </div>
+                            <span class="agenda-badge badge-soft">Tomorrow</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
+            </section>
 
-    <!-- Auto-play Controls -->
-    <div class="autoplay-controls">
-        <button class="autoplay-btn" id="toggleAutoplay">
-            <i class="bx bx-pause" id="autoplayIcon"></i>
-            <span id="autoplayText">Pause</span>
-        </button>
+            <!-- Monthly Billing -->
+            <section class="billing-card glass-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Monthly billing</h2>
+                    <span class="panel-subtitle">Issued vs Received</span>
+                </div>
+                <div class="billing-content">
+                    <div class="billing-gauge">
+                        <div class="gauge-ring">
+                            <div class="gauge-fill"></div>
+                            <div class="gauge-center">
+                                <span class="gauge-label">Total</span>
+                                <span class="gauge-value">$1450</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="billing-legend">
+                        <div class="legend-row">
+                            <span class="legend-dot issued-dot"></span>
+                            <span>Issued</span>
+                            <span class="legend-amount ms-auto">$950</span>
+                        </div>
+                        <div class="legend-row">
+                            <span class="legend-dot received-dot"></span>
+                            <span>Received</span>
+                            <span class="legend-amount ms-auto">$500</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </aside>
     </div>
 </div>
 
@@ -164,90 +178,7 @@
 
 {% block javascripts %}
 <script>
-// Dashboard specific JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize charts here if needed
-    initDashboardCharts();
-    
-    // Set current date and time
-    updateCurrentDateTime();
-    
-    // Update time every second
-    setInterval(updateCurrentDateTime, 1000);
-});
-
-function updateCurrentDateTime() {
-    const dateElement = document.getElementById('currentDate');
-    const timeElement = document.getElementById('currentTime');
-    
-    if (dateElement) {
-        const now = new Date();
-        const options = { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric',
-            weekday: 'long'
-        };
-        const formattedDate = now.toLocaleDateString('en-US', options);
-        dateElement.textContent = formattedDate;
-    }
-    
-    if (timeElement) {
-        const now = new Date();
-        const hours = now.getHours().toString().padStart(2, '0');
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const seconds = now.getSeconds().toString().padStart(2, '0');
-        const formattedTime = `${hours}:${minutes}:${seconds}`;
-        timeElement.textContent = formattedTime;
-    }
-}
-
-function initDashboardCharts() {
-    // Revenue Chart
-    const revenueCtx = document.getElementById('totalRevenueChart');
-    if (revenueCtx) {
-        // Initialize ApexCharts or Chart.js here
-    }
-
-    // Order Statistics Chart
-    const orderCtx = document.getElementById('orderStatisticsChart');
-    if (orderCtx) {
-        // Initialize donut chart here
-    }
-
-    // Income Chart
-    const incomeCtx = document.getElementById('incomeChart');
-    if (incomeCtx) {
-        new Chart(incomeCtx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-                datasets: [{
-                    data: [10, 20, 15, 25, 18, 30, 25],
-                    borderColor: '#7367f0',
-                    backgroundColor: 'rgba(115, 103, 240, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    x: {
-                        display: false
-                    },
-                    y: {
-                        display: false
-                    }
-                }
-            }
-        });
-    }
-}
+// Keep the live date & time in the dashboard header.
+// Date/Time logic moved to _dashboard_header.html.twig
 </script>
 {% endblock %}

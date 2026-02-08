@@ -19,3 +19,9 @@ frontend_settings:
 frontend_services:
     resource: "routes/frontend_services.yaml"
     type: yaml
+
+# Explicit override to fix 405 Method Not Allowed (Cache issue)
+frontend_forum_override:
+    path: /forum
+    controller: App\Controller\Frontend\Forum\ForumController::index
+    methods: [GET, POST]

@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="fr" data-theme="dark">
 <head>
+    {% if app.session.get('is_logged_in') and app.session.get('user') is iterable %}
+        <script>
+            window.serverSettings = {{ app.session.get('user').settings|default({})|json_encode|raw }};
+        </script>
+    {% endif %}
     <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
     <script src="{{ asset('frontend/js/smart-translate.js') }}"></script>
     <meta charset="UTF-8">
-    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Syndicati - Gestion des Syndicats</title>
 
@@ -20,8 +24,141 @@
     <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
     <link href="{{ asset('frontend/css/main-home-split.css') }}" rel="stylesheet">
     <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+
+    <style>
+        /* Onboarding overlay inside main home */
+        .onboarding-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+        }
+        .onboarding-overlay::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+        }
+        .onboarding-overlay-inner {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 620px;
+            padding: 2rem 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+        }
+        .onboarding-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            animation: onboardingFloat 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .onboarding-orb-1 { width: 280px; height: 280px; background: linear-gradient(135deg, #6c5ce7, #8b5cf6); top: -80px; left: -80px; animation-delay: 0s; }
+        .onboarding-orb-2 { width: 200px; height: 200px; background: linear-gradient(135deg, #06b6d4, #22d3ee); bottom: 10%; right: -40px; animation-delay: -3s; }
+        .onboarding-orb-3 { width: 160px; height: 160px; background: linear-gradient(135deg, #8b5cf6, #a78bfa); bottom: 30%; left: 5%; animation-delay: -5s; }
+        @keyframes onboardingFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(20px, -15px) scale(1.05); }
+            66% { transform: translate(-10px, 10px) scale(0.98); }
+        }
+        .onboarding-logo-island { display: flex; justify-content: center; margin-bottom: 1.5rem; animation: onboardLogoIn 0.8s cubic-bezier(0.34,1.56,0.64,1) both; }
+        .onboarding-logo-island .onboarding-logo-wrapper { display: flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; background: rgba(255,255,255,0.06); backdrop-filter: blur(16px); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        [data-theme="light"] .onboarding-logo-island .onboarding-logo-wrapper { background: rgba(255,255,255,0.85); border-color: rgba(108,92,231,0.15); box-shadow: 0 8px 32px rgba(108,92,231,0.12); }
+        .onboarding-logo-island img { height: 52px; width: auto; object-fit: contain; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .onboarding-logo-island:hover img { transform: scale(1.05); }
+        .onboarding-logo-dark { display: none; }
+        .onboarding-logo-light { display: block; }
+        [data-theme="dark"] .onboarding-logo-dark { display: block; }
+        [data-theme="dark"] .onboarding-logo-light { display: none; }
+        @keyframes onboardLogoIn { from { opacity: 0; transform: translateY(-20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .onboarding-card { position: relative; z-index: 2; width: 100%; max-width: 580px; margin: 0 auto; background: rgba(0,0,0,0.6); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border-radius: 32px; border: 1px solid rgba(255,255,255,0.12); padding: 2.5rem 2.75rem; box-shadow: 0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.05) inset; animation: onboardSlide 0.7s cubic-bezier(0.34,1.56,0.64,1) both; color: #fff; }
+        [data-theme="light"] .onboarding-card { background: rgba(255,255,255,0.92); border-color: rgba(108,92,231,0.12); box-shadow: 0 32px 80px rgba(108,92,231,0.15), 0 0 0 1px rgba(255,255,255,0.8) inset; color: #1e293b; }
+        @keyframes onboardSlide { from { opacity: 0; transform: translateY(32px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .onboarding-progress { display: flex; gap: 0.5rem; margin-bottom: 2rem; justify-content: center; }
+        .onboarding-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.25); transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .onboarding-dot.active { background: linear-gradient(135deg, #6c5ce7, #06b6d4); transform: scale(1.35); box-shadow: 0 0 24px rgba(108,92,231,0.6), 0 0 48px rgba(6,182,212,0.3); }
+        .onboarding-dot.done { background: linear-gradient(135deg, rgba(108,92,231,0.8), rgba(6,182,212,0.6)); box-shadow: 0 0 12px rgba(108,92,231,0.4); }
+        .onboarding-title { font-size: 1.85rem; font-weight: 800; margin-bottom: 0.35rem; background: linear-gradient(120deg, #6c5ce7, #8b5cf6, #06b6d4); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; }
+        .onboarding-title .onboarding-user-name { background: none; -webkit-text-fill-color: inherit; color: rgba(255,255,255,0.95); }
+        [data-theme="light"] .onboarding-title .onboarding-user-name { color: #1e293b; }
+        [data-theme="light"] .onboarding-title { background: linear-gradient(120deg, #6c5ce7, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .onboarding-subtitle { color: rgba(255,255,255,0.75); font-size: 1.05rem; margin-bottom: 2rem; font-weight: 500; }
+        [data-theme="light"] .onboarding-subtitle { color: #475569; }
+        .onboarding-section { margin-bottom: 1.75rem; animation: onboardSectionIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+        .onboarding-section:nth-child(1) { animation-delay: 0.1s; }
+        .onboarding-section:nth-child(2) { animation-delay: 0.15s; }
+        .onboarding-section:nth-child(3) { animation-delay: 0.2s; }
+        @keyframes onboardSectionIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .onboarding-label { display: block; font-size: 0.95rem; font-weight: 600; color: rgba(255,255,255,0.95); margin-bottom: 0.75rem; }
+        [data-theme="light"] .onboarding-label { color: #1e293b; }
+        .onboarding-options { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        .onboarding-opt { position: relative; animation: onboardOptIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+        .onboarding-opt:nth-child(1) { animation-delay: 0.05s; }
+        .onboarding-opt:nth-child(2) { animation-delay: 0.1s; }
+        .onboarding-opt:nth-child(3) { animation-delay: 0.15s; }
+        .onboarding-opt:nth-child(4) { animation-delay: 0.2s; }
+        .onboarding-opt:nth-child(5) { animation-delay: 0.25s; }
+        @keyframes onboardOptIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .onboarding-opt input { position: absolute; opacity: 0; }
+        .onboarding-opt label { display: flex; align-items: center; gap: 0.6rem; padding: 0.9rem 1.35rem; background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.12); border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); font-size: 0.95rem; color: rgba(255,255,255,0.95); }
+        [data-theme="light"] .onboarding-opt label { background: #fff; border-color: #e2e8f0; color: #334155; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .onboarding-opt input:checked + label { background: linear-gradient(135deg, rgba(108,92,231,0.28), rgba(6,182,212,0.18)); border-color: rgba(108,92,231,0.55); box-shadow: 0 6px 24px rgba(108,92,231,0.3), 0 0 0 1px rgba(255,255,255,0.1) inset; transform: scale(1.02); }
+        [data-theme="light"] .onboarding-opt input:checked + label { background: linear-gradient(135deg, rgba(108,92,231,0.14), rgba(6,182,212,0.08)); border-color: #6c5ce7; box-shadow: 0 6px 24px rgba(108,92,231,0.2); }
+        .onboarding-opt label:hover { border-color: rgba(108,92,231,0.45); transform: translateY(-1px); }
+        .onboarding-actions { display: flex; justify-content: space-between; margin-top: 2.5rem; gap: 1rem; }
+        .onboarding-btn { padding: 0.95rem 1.85rem; border-radius: 16px; font-weight: 700; font-size: 1rem; border: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); display: inline-flex; align-items: center; gap: 0.5rem; }
+        .onboarding-btn-prev { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.95); }
+        [data-theme="light"] .onboarding-btn-prev { background: #e2e8f0; color: #334155; }
+        .onboarding-btn-prev:hover { background: rgba(255,255,255,0.16); transform: translateX(-2px); }
+        .onboarding-btn-next { background: linear-gradient(135deg, #6c5ce7, #8b5cf6); color: #fff; box-shadow: 0 8px 28px rgba(108,92,231,0.45); }
+        .onboarding-btn-next:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(108,92,231,0.5); }
+        .onboarding-theme-demo { margin-top: 1rem; padding: 1.5rem; border-radius: 18px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); }
+        [data-theme="light"] .onboarding-theme-demo { background: #f8fafc; border-color: #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .onboarding-theme-demo p { margin: 0; font-size: 0.9rem; color: rgba(255,255,255,0.75); }
+        [data-theme="light"] .onboarding-theme-demo p { color: #64748b; }
+        .onboarding-suggestions-wrap { display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 0.5rem; }
+        .onboarding-textarea { width: 100%; max-width: 420px; margin: 0 auto; padding: 1.25rem 1.5rem; border-radius: 20px; border: 1.5px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fff; font-size: 1rem; line-height: 1.5; resize: vertical; min-height: 120px; font-family: inherit; transition: border-color 0.25s, box-shadow 0.25s; display: block; box-sizing: border-box; }
+        [data-theme="light"] .onboarding-textarea { background: #fff; border-color: #e2e8f0; color: #1e293b; }
+        .onboarding-textarea:focus { outline: none; border-color: rgba(108,92,231,0.6); box-shadow: 0 0 0 3px rgba(108,92,231,0.15); }
+        .onboarding-textarea::placeholder { color: rgba(255,255,255,0.45); }
+        [data-theme="light"] .onboarding-textarea::placeholder { color: #94a3b8; }
+        .onboarding-welcome-icon { font-size: 3.5rem; text-align: center; margin-bottom: 0.75rem; animation: onboardPulse 2.5s ease-in-out infinite; }
+        @keyframes onboardPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.12); opacity: 0.9; } }
+        /* Finish animation */
+        .onboarding-overlay.onboarding-finish .onboarding-card {
+            animation: onboardingFinish 0.9s cubic-bezier(.4,0,.2,1) forwards;
+        }
+        .onboarding-overlay.onboarding-finish::before {
+            animation: onboardingOverlayFade 0.9s ease forwards;
+        }
+        @keyframes onboardingFinish {
+            0% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+            100% { opacity: 0; transform: translateY(30px) scale(1.05); filter: blur(8px); }
+        }
+        @keyframes onboardingOverlayFade {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        /* While onboarding overlay is active, prevent scroll and hide scroll pill */
+        .onboarding-active {
+            overflow: hidden;
+        }
+        .onboarding-active .scroll-down-pill-wrapper {
+            display: none !important;
+        }
+    </style>
 </head>
-<body>
+<body{% if show_onboarding_overlay|default(false) %} class="onboarding-active"{% endif %}>
 <!-- Page Loader -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -43,19 +180,357 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
+{% include 'shared/_access_denied_popup.html.twig' %}
+
 <!-- Layout Wrapper -->
 <div class="main-home-layout-wrapper">
     <!-- Layout Container -->
     <div class="main-home-page">
         {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'home'} %}
 
+        {# Onboarding overlay over main home #}
+        {% if show_onboarding_overlay|default(false) %}
+            <div class="onboarding-overlay">
+                <div class="onboarding-overlay-inner">
+                    <div class="onboarding-orb onboarding-orb-1"></div>
+                    <div class="onboarding-orb onboarding-orb-2"></div>
+                    <div class="onboarding-orb onboarding-orb-3"></div>
+
+                    <form id="onboardingOverlayForm"
+                          method="post"
+                          action="{{ path('onboarding_overlay_save') }}"
+                          data-ajax="1">
+                        <input type="hidden" name="_token" value="{{ csrf_token('onboarding') }}">
+                        <input type="hidden" name="current_step" id="onboardingCurrentStep" value="1">
+
+                        <div class="onboarding-card">
+                            <div class="onboarding-logo-island">
+                                <div class="onboarding-logo-wrapper">
+                                    <img src="{{ asset('images/logo/syndicati.png') }}" alt="Syndicati" class="onboarding-logo-light" />
+                                    <img src="{{ asset('images/logo/syndicatioffwhite.png') }}" alt="Syndicati" class="onboarding-logo-dark" />
+                                </div>
+                            </div>
+                            <input type="hidden" name="selected_locale" id="selected_locale" value="{{ (prefs.language_preference|default('FR') == 'EN') ? 'en' : (prefs.language_preference|default('FR') == 'AR' ? 'ar' : (prefs.language_preference|default('FR') == 'FR_AR' ? 'fr_ar' : 'fr')) }}">
+                            <input type="hidden" name="selected_theme" id="selected_theme" value="{{ prefs.theme_preference|default('DARK') == 'LIGHT' ? 'light' : 'dark' }}">
+                            {# STEP 1 #}
+                            <div class="onboarding-step" data-step="1">
+                                <div class="onboarding-welcome-icon">✨</div>
+                                <h1 class="onboarding-title">
+                                    <span data-i18n="Welcome to Syndicati">Welcome to Syndicati</span>
+                                    {% if user is defined and user %}
+                                        <span class="onboarding-user-name">, {{ user.firstName|default('') }} {{ user.lastName|default('') }}</span>
+                                    {% endif %}
+                                </h1>
+                                <p class="onboarding-subtitle" data-i18n="Personnalisez votre expérience en quelques étapes">Personnalisez votre expérience en quelques étapes</p>
+                                {% set _prefs = prefs|default({}) %}
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Langue">Langue</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'FR':'🇫🇷 Français','EN':'🇺🇸 English','AR':'🇸🇦 العربية','FR_AR':'🇫🇷🇸🇦 Bilingue FR/AR'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="language_preference" id="lang_{{ val }}" value="{{ val }}" {{ (_prefs.language_preference|default('FR')) == val ? 'checked' : '' }}>
+                                                <label for="lang_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Thème">Thème</label>
+                                    <div class="onboarding-options">
+                                        <div class="onboarding-opt">
+                                            <input type="radio" name="theme_preference" id="theme_light" value="LIGHT" {{ (_prefs.theme_preference|default('DARK')) == 'LIGHT' ? 'checked' : '' }}>
+                                            <label for="theme_light">☀️ <span data-i18n="Clair">Clair</span></label>
+                                        </div>
+                                        <div class="onboarding-opt">
+                                            <input type="radio" name="theme_preference" id="theme_dark" value="DARK" {{ (_prefs.theme_preference|default('DARK')) == 'DARK' ? 'checked' : '' }}>
+                                            <label for="theme_dark">🌙 <span data-i18n="Sombre">Sombre</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="onboarding-theme-demo">
+                                        <p><strong data-i18n="Aperçu :">Aperçu :</strong> <span data-i18n="Voici un aperçu de votre thème sélectionné.">Voici un aperçu de votre thème sélectionné.</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# STEP 2 #}
+                            <div class="onboarding-step" data-step="2">
+                                <h1 class="onboarding-title" data-i18n="Notifications">Notifications</h1>
+                                <p class="onboarding-subtitle" data-i18n="Comment souhaitez-vous être notifié ?">Comment souhaitez-vous être notifié ?</p>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Canal">Canal</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'EMAIL':'📧 Email','SMS':'📱 SMS','IN_APP':"🔔 Dans l'app",'ALL':'📬 Tous','NONE':'🔕 Aucune'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="notification_channel" id="nc_{{ val }}" value="{{ val }}" {{ (_prefs.notification_channel|default('EMAIL')) == val ? 'checked' : '' }}>
+                                                <label for="nc_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Fréquence">Fréquence</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'INSTANT':'Immédiatement','DAILY_DIGEST':'Résumé quotidien','WEEKLY_DIGEST':'Résumé hebdomadaire','MONTHLY':'Résumé mensuel','IMPORTANT_ONLY':'Urgences uniquement'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="notification_frequency" id="nf_{{ val }}" value="{{ val }}" {{ (_prefs.notification_frequency|default('DAILY_DIGEST')) == val ? 'checked' : '' }}>
+                                                <label for="nf_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# STEP 3 #}
+                            <div class="onboarding-step" data-step="3">
+                                <h1 class="onboarding-title" data-i18n="Votre logement">Votre logement</h1>
+                                <p class="onboarding-subtitle" data-i18n="Parlez-nous de votre bien">Parlez-nous de votre bien</p>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Type de bien">Type de bien</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'APARTMENT':'Appartement','STUDIO':'Studio','DUPLEX':'Duplex'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="property_type" id="pt_{{ val }}" value="{{ val }}" {{ (_prefs.property_type|default('APARTMENT')) == val ? 'checked' : '' }}>
+                                                <label for="pt_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Statut d'occupation">Statut d'occupation</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'OWNER_OCCUPIED':'Propriétaire occupant','OWNER_RENTING':'Propriétaire loueur','TENANT':'Locataire','TEMPORARY':'Occupant temporaire'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="occupancy_status" id="os_{{ val }}" value="{{ val }}" {{ (_prefs.occupancy_status|default('OWNER_OCCUPIED')) == val ? 'checked' : '' }}>
+                                                <label for="os_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Parking">Parking</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'NONE':'Pas de parking','OUTDOOR':'Extérieur','COVERED':'Couvert','UNDERGROUND':'Sous-sol','MULTIPLE':'Plusieurs places'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="parking_type" id="pk_{{ val }}" value="{{ val }}" {{ (_prefs.parking_type|default('NONE')) == val ? 'checked' : '' }}>
+                                                <label for="pk_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# STEP 4 #}
+                            <div class="onboarding-step" data-step="4">
+                                <h1 class="onboarding-title" data-i18n="Communication">Communication</h1>
+                                <p class="onboarding-subtitle" data-i18n="Vos préférences de communication">Vos préférences de communication</p>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Participation aux réunions">Participation aux réunions</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'IN_PERSON':'En présentiel','ONLINE':'En ligne','HYBRID':'Hybride','PROXY_ONLY':'Procuration seulement'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="meeting_participation" id="mp_{{ val }}" value="{{ val }}" {{ (_prefs.meeting_participation|default('HYBRID')) == val ? 'checked' : '' }}>
+                                                <label for="mp_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Documents">Documents</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'DIGITAL':'Numérique','PAPER':'Papier','BOTH':'Les deux','ECO_FRIENDLY':'Eco-responsable'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="document_delivery" id="dd_{{ val }}" value="{{ val }}" {{ (_prefs.document_delivery|default('DIGITAL')) == val ? 'checked' : '' }}>
+                                                <label for="dd_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Contact préféré">Contact préféré</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'EMAIL':'Email','PHONE':'Téléphone','WHATSAPP':'WhatsApp','IN_PERSON':'En personne','NO_CONTACT':'Urgence seulement'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="contact_preference" id="cp_{{ val }}" value="{{ val }}" {{ (_prefs.contact_preference|default('EMAIL')) == val ? 'checked' : '' }}>
+                                                <label for="cp_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# STEP 5 #}
+                            <div class="onboarding-step" data-step="5">
+                                <h1 class="onboarding-title" data-i18n="Communauté">Communauté</h1>
+                                <p class="onboarding-subtitle" data-i18n="Votre implication">Votre implication</p>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Maintenance">Maintenance</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'URGENT_ONLY':'Urgences','PREVENTIVE':'Préventive','SCHEDULED':'Planifié','FLEXIBLE':'Flexible'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="maintenance_priority" id="mt_{{ val }}" value="{{ val }}" {{ (_prefs.maintenance_priority|default('FLEXIBLE')) == val ? 'checked' : '' }}>
+                                                <label for="mt_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Engagement communautaire">Engagement communautaire</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'VERY_ACTIVE':'Très actif','ACTIVE':'Actif','MODERATE':'Modéré','OBSERVER':'Observateur','MINIMAL':'Minimal'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="community_engagement" id="ce_{{ val }}" value="{{ val }}" {{ (_prefs.community_engagement|default('MODERATE')) == val ? 'checked' : '' }}>
+                                                <label for="ce_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# STEP 6 #}
+                            <div class="onboarding-step" data-step="6">
+                                <h1 class="onboarding-title" data-i18n="Préférences">Préférences</h1>
+                                <p class="onboarding-subtitle" data-i18n="Dernières options">Dernières options</p>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Paiement">Paiement</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'BANK_TRANSFER':'Virement','CASH':'Espèces','CHECK':'Chèque','ONLINE':'En ligne','AUTO_DEBIT':'Prélèvement auto'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="payment_method_preference" id="pm_{{ val }}" value="{{ val }}" {{ (_prefs.payment_method_preference|default('ONLINE')) == val ? 'checked' : '' }}>
+                                                <label for="pm_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Sensibilité au bruit">Sensibilité au bruit</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'HIGH':'Sensible','MODERATE':'Modéré','LOW':'Peu sensible','NOT_CONCERNED':'Non concerné'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="noise_sensitivity" id="ns_{{ val }}" value="{{ val }}" {{ (_prefs.noise_sensitivity|default('MODERATE')) == val ? 'checked' : '' }}>
+                                                <label for="ns_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Animaux">Animaux</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'NO_PETS':'Aucun','CAT':'Chat','DOG':'Chien','MULTIPLE':'Plusieurs','OTHER':'Autre'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="pets_status" id="ps_{{ val }}" value="{{ val }}" {{ (_prefs.pets_status|default('NO_PETS')) == val ? 'checked' : '' }}>
+                                                <label for="ps_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="onboarding-section">
+                                    <label class="onboarding-label" data-i18n="Accessibilité">Accessibilité</label>
+                                    <div class="onboarding-options">
+                                        {% for val, label in {'NONE':'Aucun','ELEVATOR_REQUIRED':'Ascenseur','WHEELCHAIR':'Fauteuil roulant','VISUAL_IMPAIRMENT':'Déficience visuelle','OTHER':'Autre'} %}
+                                            <div class="onboarding-opt">
+                                                <input type="radio" name="accessibility_needs" id="an_{{ val }}" value="{{ val }}" {{ (_prefs.accessibility_needs|default('NONE')) == val ? 'checked' : '' }}>
+                                                <label for="an_{{ val }}">{{ label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# STEP 7 #}
+                            <div class="onboarding-step" data-step="7">
+                                <h1 class="onboarding-title" data-i18n="Presque terminé">Presque terminé&nbsp;!</h1>
+                                <p class="onboarding-subtitle" data-i18n="Des suggestions ou commentaires ? (optionnel)">Des suggestions ou commentaires ? (optionnel)</p>
+                                <div class="onboarding-section onboarding-suggestions-section">
+                                    <div class="onboarding-suggestions-wrap">
+                                        <textarea name="suggestions" class="onboarding-textarea" placeholder="Vos idées, remarques ou attentes...">{{ onboarding.suggestions|default('') }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="onboarding-actions">
+                                <button type="button"
+                                        class="onboarding-btn onboarding-btn-prev"
+                                        data-onboarding-action="prev">
+                                    Précédent
+                                </button>
+
+                                <div style="display:flex; gap:0.75rem;">
+                                    <button type="button"
+                                            class="onboarding-btn onboarding-btn-prev"
+                                            data-onboarding-action="cancel"
+                                            style="opacity:0.85;">
+                                        Annuler
+                                    </button>
+
+                                    <button type="button"
+                                            class="onboarding-btn onboarding-btn-next"
+                                            data-onboarding-action="next">
+                                        Suivant
+                                    </button>
+
+                                    <button type="button"
+                                            class="onboarding-btn onboarding-btn-next"
+                                            data-onboarding-action="finish"
+                                            style="display:none;">
+                                        Terminer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+
         <!-- Hero Image Background at Top of Page -->
-        <div class="main-home-hero-bg-fixed" style="position:absolute; top:0; left:0; width:100vw; height:1000px; z-index:0; overflow:hidden; pointer-events:none; background:transparent;">
-            <img src="{{ asset('images/home/home.png') }}" alt="Home" style="width:100vw; height:1000px; object-fit:cover; object-position:center top; display:block;">
-            <div style="position:absolute; left:0; bottom:0; width:100%; height:80px; pointer-events:none; background:linear-gradient(to bottom,rgba(0,0,0,0) 0%,rgba(0,0,0,0.12) 60%,rgba(0,0,0,0.22) 100%); box-shadow:0 32px 64px 0 rgba(0,0,0,0.18);"></div>
+        <div class="main-home-hero-bg-fixed">
+            <video id="heroVideo" autoplay loop muted playsinline class="main-home-hero-bg-img">
+                <source src="{{ asset('videos/syndicati.mp4') }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <script>
+            (function() {
+                const video = document.getElementById('heroVideo');
+                if (video) video.playbackRate = 0.5;
+            })();
+            </script>
+            <div class="main-home-hero-bg-gradient"></div>
             <div class="main-home-hero-fade"></div>
         </div>
         <style>
+        .main-home-hero-bg-fixed {
+            position:absolute;
+            top:0;
+            left:0;
+            width:100vw;
+            height:1000px;
+            z-index:0;
+            overflow:hidden;
+            pointer-events:none;
+            background:transparent;
+        }
+        .main-home-hero-bg-img {
+            width:100vw;
+            height:1000px;
+            object-fit:cover;
+            object-position:center top;
+            display:block;
+        }
+        .main-home-hero-bg-gradient {
+            position:absolute;
+            left:0;
+            bottom:0;
+            width:100%;
+            height:80px;
+            pointer-events:none;
+            background:linear-gradient(
+                to bottom,
+                rgba(0,0,0,0) 0%,
+                rgba(0,0,0,0.12) 60%,
+                rgba(0,0,0,0.22) 100%
+            );
+            box-shadow:0 32px 64px 0 rgba(0,0,0,0.18);
+        }
         .hero-img-fade-img {
             animation: fadeInRight 1.2s cubic-bezier(.4,0,.2,1) both;
         }
@@ -119,25 +594,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         </div>
-        <!-- Video Player Section -->
-        <h1 class="main-home-hero-title main-home-content-title" data-i18n="Watch Our Video" style="text-align: center;"></h1>
-        <div class="main-home-video-section">
-            <div class="main-home-video-player">
-                <video id="mainVideoPlayer" autoplay loop muted playsinline preload="metadata" poster="">
-                    <source src="{{ asset('videos/synthwave.mp4') }}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-                <div class="main-home-audio-pill-vertical" id="mainHomeAudioPill" style="position: absolute; top: 50%; right: 25px; transform: translateY(-50%); height: 600px !important; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; background: #F5F5F5; border-radius: 32px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 18px 10px; width: 54px;">
-                    <span style="font-size:1.2rem; margin-bottom: 20px; color: #222;">🔈</span>
-                    <input type="range" id="mainVideoAudioSlider" min="0" max="1" step="0.01" value="0.5" style="writing-mode: bt-lr; -webkit-appearance: slider-vertical; width: 36px; height: 540px; background: #111; margin-bottom: 20px;">
-                    <span id="mainVideoAudioPercent" style="font-size:1.1rem; color:#222; font-weight:600;">50%</span>
-                    <span style="font-size:1.2rem; margin-top: 20px; color: #222;">🔊</span>
-                </div>
-                </div>
-                <!-- Video placeholder removed -->
-            </div>
-        </div>
+
         
+
 
 
         <!-- Content Wrapper -->
@@ -314,163 +773,134 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="{{ asset('frontend/js/main-home.js') }}" defer></script>
 <script src="{{ asset('js/page-loader.js') }}"></script>
 <script>
-// Main Home specific JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize heart animation
-    setupHeartAnimation();
-    
-    // Initialize interactive elements
-    initInteractiveElements();
-    
-    // Initialize animations
-    initAnimations();
-    
-    // Initialize tab dropdowns
-    initTabDropdowns();
-});
+(function() {
 
-function setupHeartAnimation() {
-    // Heart animation is handled by CSS
-    console.log('Heart animation initialized');
-}
+    // Onboarding live theme + language preview (overlay) + AJAX navigation
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeLight = document.getElementById('theme_light');
+        const themeDark = document.getElementById('theme_dark');
+        const selectedTheme = document.getElementById('selected_theme');
+        const selectedLocale = document.getElementById('selected_locale');
+        const html = document.documentElement;
 
-function initInteractiveElements() {
-    // Search functionality is handled by the header search
-    console.log('Interactive elements initialized');
-}
-
-function initAnimations() {
-    // Add entrance animations to welcome cards
-    const welcomeCards = document.querySelectorAll('.main-home-welcome-card');
-    welcomeCards.forEach((card, index) => {
-        card.style.animationDelay = `${index * 0.1}s`;
-        card.classList.add('animate-in');
-    });
-}
-
-// Tab dropdown functionality
-function initTabDropdowns() {
-    const navTabs = document.querySelectorAll('.main-home-nav-tab');
-    let hoverTimeout;
-    let isHovering = false;
-    
-    function closeAllDropdowns() {
-        navTabs.forEach(tab => {
-            const dropdown = tab.querySelector('.main-home-tab-dropdown');
-            if (dropdown) {
-                dropdown.style.display = 'none';
+        // Live theme preview
+        if (themeLight && themeDark && selectedTheme) {
+            function applyTheme() {
+                const isLight = themeLight.checked;
+                html.setAttribute('data-theme', isLight ? 'light' : 'dark');
+                selectedTheme.value = isLight ? 'light' : 'dark';
             }
-        });
-    }
-    
-    navTabs.forEach(tab => {
-        const dropdown = tab.querySelector('.main-home-tab-dropdown');
-        const tabText = tab.querySelector('.main-home-tab-text');
-        const homeLink = tabText.querySelector('a');
-        
-        // Handle Home tab (has link, no dropdown)
-        if (homeLink) {
-            // Home tab should behave like other tabs but navigate on click
-            tabText.addEventListener('click', function(e) {
-                // Let the link handle navigation naturally
-                // No preventDefault needed
+            themeLight.addEventListener('change', applyTheme);
+            themeDark.addEventListener('change', applyTheme);
+        }
+
+        // Live language preview
+        const langRadios = document.querySelectorAll('input[name="language_preference"]');
+        if (langRadios.length && selectedLocale) {
+            const localeMap = { FR: 'fr', EN: 'en', AR: 'ar', FR_AR: 'fr' };
+            langRadios.forEach(r => {
+                r.addEventListener('change', function() {
+                    const lang = localeMap[this.value] || 'fr';
+                    selectedLocale.value = (this.value === 'FR_AR' ? 'fr_ar' : lang);
+                    if (window.setLanguage) window.setLanguage(lang);
+                });
             });
-            
-            // No hover dropdown functionality for Home tab
-            return;
         }
-        
-        // Only add dropdown functionality to tabs that have dropdowns
-        if (!dropdown) {
-            return;
-        }
-        
-        // Click to toggle dropdown
-        tabText.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const isOpen = dropdown.style.display === 'block';
-            closeAllDropdowns();
-            
-            if (!isOpen) {
-                dropdown.style.display = 'block';
+
+        // Front-end onboarding wizard (no per-step server calls)
+        const form = document.getElementById('onboardingOverlayForm');
+        const steps = Array.from(document.querySelectorAll('.onboarding-step'));
+        const currentStepInput = document.getElementById('onboardingCurrentStep');
+        if (form && steps.length && currentStepInput) {
+            let current = 1;
+            const total = steps.length;
+
+            const nextBtn   = form.querySelector('[data-onboarding-action="next"]');
+            const prevBtn   = form.querySelector('[data-onboarding-action="prev"]');
+            const finishBtn = form.querySelector('[data-onboarding-action="finish"]');
+            const cancelBtn = form.querySelector('[data-onboarding-action="cancel"]');
+
+            const showStep = (n) => {
+                current = n;
+                currentStepInput.value = String(n);
+                steps.forEach(step => {
+                    step.style.display = (parseInt(step.dataset.step || '0', 10) === n) ? 'block' : 'none';
+                });
+                if (prevBtn) prevBtn.style.visibility = n > 1 ? 'visible' : 'hidden';
+                if (nextBtn) nextBtn.style.display = n < total ? 'inline-flex' : 'none';
+                if (finishBtn) finishBtn.style.display = n === total ? 'inline-flex' : 'none';
+            };
+
+            showStep(current);
+
+            const closeOverlay = () => {
+                const overlay = document.querySelector('.onboarding-overlay');
+                if (!overlay) return;
+                overlay.classList.add('onboarding-finish');
+                setTimeout(() => {
+                    overlay.remove();
+                    document.body.classList.remove('onboarding-active');
+                }, 900);
+            };
+
+            const saveOnboarding = () => {
+                const formData = new FormData(form);
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                    body: formData
+                })
+                .then(resp => resp.json())
+                .then(data => {
+                    if (data && data.success) {
+                        closeOverlay();
+                    } else {
+                        console.error('Onboarding save failed', data);
+                    }
+                })
+                .catch(err => {
+                    console.error('Onboarding save error', err);
+                });
+            };
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (current < total) showStep(current + 1);
+                });
             }
-        });
-        
-        // Hover to show dropdown - more reliable
-        tab.addEventListener('mouseenter', function() {
-            clearTimeout(hoverTimeout);
-            isHovering = true;
-            closeAllDropdowns();
-            dropdown.style.display = 'block';
-        });
-        
-        // Hover to hide dropdown with delay
-        tab.addEventListener('mouseleave', function() {
-            isHovering = false;
-            hoverTimeout = setTimeout(() => {
-                if (!isHovering) {
-                    dropdown.style.display = 'none';
-                }
-            }, 300); // Increased delay for better UX
-        });
-        
-        // Keep dropdown open when hovering over it
-        dropdown.addEventListener('mouseenter', function() {
-            clearTimeout(hoverTimeout);
-            isHovering = true;
-        });
-        
-        dropdown.addEventListener('mouseleave', function() {
-            isHovering = false;
-            hoverTimeout = setTimeout(() => {
-                if (!isHovering) {
-                    dropdown.style.display = 'none';
-                }
-            }, 300);
-        });
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!tab.contains(e.target)) {
-                dropdown.style.display = 'none';
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (current > 1) showStep(current - 1);
+                });
             }
-        });
-    });
-}
 
-// Video Player Control
-const videoPlayer = document.getElementById('mainVideoPlayer');
-const videoControlBtn = document.getElementById('videoControlBtn');
-const pauseIcon = document.querySelector('.main-home-video-pause-icon');
-const playIcon = document.querySelector('.main-home-video-play-icon');
+            if (finishBtn) {
+                finishBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // Save everything then close when done
+                    saveOnboarding();
+                });
+            }
 
-if (videoPlayer && videoControlBtn) {
-    videoControlBtn.addEventListener('click', function() {
-        if (videoPlayer.paused) {
-            videoPlayer.play();
-            pauseIcon.style.display = 'inline';
-            playIcon.style.display = 'none';
-        } else {
-            videoPlayer.pause();
-            pauseIcon.style.display = 'none';
-            playIcon.style.display = 'inline';
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // Close immediately for UX, fire-and-forget save in background
+                    closeOverlay();
+                    try {
+                        saveOnboarding();
+                    } catch (err) {
+                        console.error('Onboarding cancel/save error', err);
+                    }
+                });
+            }
         }
     });
-    
-    // Sync button state with video state
-    videoPlayer.addEventListener('play', function() {
-        pauseIcon.style.display = 'inline';
-        playIcon.style.display = 'none';
-    });
-    
-    videoPlayer.addEventListener('pause', function() {
-        pauseIcon.style.display = 'none';
-        playIcon.style.display = 'inline';
-    });
-}
-
+})();
 </script>
 </body>
 </html>

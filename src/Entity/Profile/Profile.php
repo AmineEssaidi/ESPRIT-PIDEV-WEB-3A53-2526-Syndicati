@@ -33,6 +33,9 @@ class Profile
     #[ORM\Column(type: 'string', length: 255, nullable: true, name: 'description_profile')]
     private ?string $description_profile = null;
 
+    #[ORM\Column(type: 'json', nullable: true, name: 'settings')]
+    private ?array $settings = [];
+
     public function getIdProfile(): ?int
     {
         return $this->id_profile;
@@ -101,6 +104,17 @@ class Profile
     public function setDescriptionProfile(?string $description_profile): self
     {
         $this->description_profile = $description_profile;
+        return $this;
+    }
+
+    public function getSettings(): array
+    {
+        return $this->settings ?? [];
+    }
+
+    public function setSettings(?array $settings): self
+    {
+        $this->settings = $settings;
         return $this;
     }
 }

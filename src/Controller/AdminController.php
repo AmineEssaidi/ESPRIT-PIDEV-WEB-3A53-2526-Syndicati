@@ -11,6 +11,11 @@ use App\Form\User\UserType;
 use App\Repository\Onboarding\OnboardingRepository;
 use App\Repository\Profile\ProfileRepository;
 use App\Repository\User\UserRepository;
+use App\Repository\Residence\ResidenceRepository;
+use App\Entity\Residence\Residence;
+use App\Form\Residence\ResidenceType;
+use App\Repository\Syndicat\ReclamationRepository;
+use App\Entity\Syndicat\Reclamation;
 use App\Service\PageStatusService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -174,27 +179,515 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/residence', name: 'admin_residence')]
-    public function residence(PageStatusService $pageStatusService, Request $request): Response
+    public function residence(PageStatusService $pageStatusService, Request $request, ResidenceRepository $residenceRepository, \App\Repository\Residence\AppartementRepository $appartementRepository, \Symfony\Component\Form\FormFactoryInterface $formFactory, EntityManagerInterface $em, \Symfony\Component\String\Slugger\SluggerInterface $slugger): Response
     {
-        return $this->render('admin/Residence/index.html.twig');
+        $pageStatusService->setPageStatus('residence', 'online');
+
+        // --- Residence Logic ---
+        $residences = $residenceRepository->findAll();
+
+        $residenceAddForm = $this->createForm(ResidenceType::class, new Residence(), [
+            'action' => $this->generateUrl('admin_residence_add'),
+            'method' => 'POST',
+        ]);
+
+        // --- Appartement Logic ---
+        $appartements = $appartementRepository->findAll();
+        $appartementAddForm = $formFactory->createNamed('appartement_add', \App\Form\Residence\AppartementType::class, new \App\Entity\Residence\Appartement(), [
+            'action' => $this->generateUrl('app_appartement_new'),
+            'method' => 'POST',
+        ]);
+
+        $residenceEditForm = $formFactory->createNamed('residence_edit', ResidenceType::class, new Residence());
+        $appartementEditForm = $formFactory->createNamed('appartement_edit', \App\Form\Residence\AppartementType::class, new \App\Entity\Residence\Appartement());
+
+        return $this->render('admin/Residence/index.html.twig', [
+            'residences' => $residences,
+            'appartements' => $appartements,
+            'residenceAddForm' => $residenceAddForm->createView(),
+            'residenceEditForm' => $residenceEditForm->createView(),
+            'appartementAddForm' => $appartementAddForm->createView(),
+            'appartementEditForm' => $appartementEditForm->createView(),
+        ]);
+    }
+
+    #[Route('/admin/residence/add', name: 'admin_residence_add', methods: ['POST'])]
+    public function residenceAdd(Request $request, EntityManagerInterface $em, \Symfony\Component\String\Slugger\SluggerInterface $slugger, \Symfony\Component\Security\Csrf\CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
+    {
+        $residence = new Residence();
+        $form = $this->createForm(ResidenceType::class, $residence);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Convert array of blocs to comma-separated string for SET type
+            $blocsData = $form->get('nBlocs')->getData();
+            if (is_array($blocsData)) {
+                $residence->setNBlocs(implode(',', $blocsData));
+            }
+
+            $imageFile = $form->get('imageR')->getData();
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+
+                try {
+                    $imageFile->move($this->getParameter('residences_directory'), $newFilename);
+                    $residence->setImageR($newFilename);
+                } catch (\Exception $e) {
+                }
+            }
+
+            if (!$residence->getDateAjout()) {
+                $residence->setDateAjout(new \DateTime());
+            }
+
+            $em->persist($residence);
+            $em->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Residence added successfully.',
+                'residence' => [
+                    'id' => $residence->getIdResidence(),
+                    'name' => $residence->getNomR(),
+                    'address' => $residence->getAdresse(),
+                    'date' => $residence->getDateAjout()->format('Y-m-d H:i'),
+                    'apartments' => $residence->getNAppartements(),
+                    'floors' => $residence->getNEtages(),
+                    'blocs' => $residence->getNBlocs(),
+                    'image' => $residence->getImageR() ? '/uploads/images/' . $residence->getImageR() : '/frontend/images/property-placeholder.jpg',
+                    'deleteToken' => $csrfTokenManager->getToken('residence_delete')->getValue()
+                ]
+            ]);
+        }
+
+        $errors = [];
+        foreach ($form->getErrors(true) as $error) {
+            $errors[] = $error->getMessage();
+        }
+
+        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+    }
+
+    #[Route('/admin/residence/{id}/edit', name: 'admin_residence_edit', methods: ['POST'])]
+    public function residenceEdit(int $id, Request $request, ResidenceRepository $residenceRepository, EntityManagerInterface $em, \Symfony\Component\String\Slugger\SluggerInterface $slugger, \Symfony\Component\Form\FormFactoryInterface $formFactory): JsonResponse
+    {
+        $residence = $residenceRepository->find($id);
+        if (!$residence) {
+            return new JsonResponse(['success' => false, 'message' => 'Residence not found.'], 404);
+        }
+
+        // Use the same named form 'residence_edit' for handling the request
+        $form = $formFactory->createNamed('residence_edit', ResidenceType::class, $residence);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Convert array of blocs to comma-separated string for SET type
+            $blocsData = $form->get('nBlocs')->getData();
+            if (is_array($blocsData)) {
+                $residence->setNBlocs(implode(',', $blocsData));
+            }
+
+            $imageFile = $form->get('imageR')->getData();
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+
+                try {
+                    $imageFile->move($this->getParameter('residences_directory'), $newFilename);
+                    $residence->setImageR($newFilename);
+                } catch (\Exception $e) {
+                }
+            }
+
+            $em->flush();
+            return new JsonResponse(['success' => true, 'message' => 'Residence updated successfully.']);
+        }
+
+        $errors = [];
+        foreach ($form->getErrors(true) as $error) {
+            $errors[] = $error->getMessage();
+        }
+
+        return new JsonResponse(['success' => false, 'message' => implode(', ', $errors)], 400);
+    }
+
+    #[Route('/admin/residence/{id}/delete', name: 'admin_residence_delete', methods: ['POST'])]
+    public function residenceDelete(int $id, Request $request, ResidenceRepository $residenceRepository, EntityManagerInterface $em, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
+    {
+        try {
+            $token = $request->request->get('_token');
+            if (!$csrfTokenManager->isTokenValid(new CsrfToken('residence_delete', $token ?? ''))) {
+                return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+            }
+
+            $residence = $residenceRepository->find($id);
+            if (!$residence) {
+                return new JsonResponse(['success' => false, 'message' => 'Residence not found.'], 404);
+            }
+
+            $em->remove($residence);
+            $em->flush();
+
+            return new JsonResponse(['success' => true, 'message' => 'Residence deleted successfully.']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
     }
     #[Route('/admin/forum', name: 'admin_forum')]
-    public function forum(PageStatusService $pageStatusService, Request $request): Response
+    public function forum(PageStatusService $pageStatusService, Request $request, \App\Repository\Forum\PublicationRepository $publicationRepository, \App\Repository\Forum\CommentaireRepository $commentaireRepository, \Symfony\Component\Form\FormFactoryInterface $formFactory): Response
     {
-        return $this->render('admin/Forum/index.html.twig');
+        $publications = $publicationRepository->findBy([], ['date_creation_pub' => 'DESC']);
+        $commentaires = $commentaireRepository->findBy([], ['created_at' => 'DESC']);
+
+        $pubEditForm = $formFactory->createNamed('publication_edit', \App\Form\Forum\PublicationType::class, new \App\Entity\Forum\Publication());
+        $pubAddForm = $formFactory->createNamed('publication_add', \App\Form\Forum\PublicationType::class, new \App\Entity\Forum\Publication(), [
+            'action' => $this->generateUrl('admin_forum_pub_add'),
+            'method' => 'POST',
+        ]);
+        $commentEditForm = $formFactory->createNamed('comment_edit', \App\Form\Forum\CommentaireType::class, new \App\Entity\Forum\Commentaire());
+
+        return $this->render('admin/Forum/index.html.twig', [
+            'publications' => $publications,
+            'commentaires' => $commentaires,
+            'pubEditForm' => $pubEditForm->createView(),
+            'pubAddForm' => $pubAddForm->createView(),
+            'commentEditForm' => $commentEditForm->createView()
+        ]);
+    }
+
+    #[Route('/admin/forum/publication/{id}/edit', name: 'admin_forum_pub_edit', methods: ['GET', 'POST'])]
+    public function pubEdit(int $id, Request $request, \App\Repository\Forum\PublicationRepository $publicationRepository, EntityManagerInterface $em, \Symfony\Component\String\Slugger\SluggerInterface $slugger, \Symfony\Component\Form\FormFactoryInterface $formFactory): Response
+    {
+        $publication = $publicationRepository->find($id);
+        if (!$publication) {
+            $this->addFlash('danger', 'Publication not found.');
+            return $this->redirectToRoute('admin_forum');
+        }
+        $form = $formFactory->createNamed('publication_edit', \App\Form\Forum\PublicationType::class, $publication);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $imageFile */
+            $imageFile = $form->get('image_pub')->getData();
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+                try {
+                    $imageFile->move($this->getParameter('publications_directory'), $newFilename);
+                    $publication->setImagePub($newFilename);
+                } catch (\Exception $e) {
+                }
+            }
+            $em->flush();
+            $this->addFlash('success', 'Publication updated successfully.');
+            return $this->redirectToRoute('admin_forum');
+        }
+        return $this->redirectToRoute('admin_forum');
+    }
+
+    #[Route('/admin/forum/publication/add', name: 'admin_forum_pub_add', methods: ['POST'])]
+    public function pubAdd(Request $request, EntityManagerInterface $em, \Symfony\Component\String\Slugger\SluggerInterface $slugger, \Symfony\Component\Form\FormFactoryInterface $formFactory): Response
+    {
+        $publication = new \App\Entity\Forum\Publication();
+        $form = $formFactory->createNamed('publication_add', \App\Form\Forum\PublicationType::class, $publication);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Robust user retrieval (fallback to session if security context is empty)
+            $user = $this->getUser();
+            if (!$user) {
+                $sessionUser = $request->getSession()->get('user');
+                if ($sessionUser) {
+                    $userId = null;
+                    if (is_array($sessionUser)) {
+                        $userId = $sessionUser['id_user'] ?? $sessionUser['id'] ?? null;
+                    } elseif (is_object($sessionUser)) {
+                        if (method_exists($sessionUser, 'getIdUser')) {
+                            $userId = $sessionUser->getIdUser();
+                        } elseif (method_exists($sessionUser, 'getId')) {
+                            $userId = $sessionUser->getId();
+                        }
+                    }
+
+                    if ($userId) {
+                        $user = $em->getRepository(\App\Entity\User\User::class)->find($userId);
+                    }
+                }
+            }
+
+            if (!$user) {
+                $this->addFlash('danger', 'Unable to identify author. Please log in again.');
+                return $this->redirectToRoute('admin_forum');
+            }
+
+            $publication->setUser($user);
+
+            /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $imageFile */
+            $imageFile = $form->get('image_pub')->getData();
+
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+
+                try {
+                    $imageFile->move($this->getParameter('publications_directory'), $newFilename);
+                    $publication->setImagePub($newFilename);
+                } catch (\Exception $e) {
+                    // Fail silently or log error
+                }
+            }
+
+            $em->persist($publication);
+            $em->flush();
+
+            $this->addFlash('success', 'Publication created successfully.');
+        } else {
+            foreach ($form->getErrors(true) as $error) {
+                $this->addFlash('danger', $error->getMessage());
+            }
+        }
+
+        return $this->redirectToRoute('admin_forum');
+    }
+
+    #[Route('/admin/forum/comment/{id}/edit', name: 'admin_forum_comment_edit', methods: ['GET', 'POST'])]
+    public function commentEdit(int $id, Request $request, \App\Repository\Forum\CommentaireRepository $commentaireRepository, EntityManagerInterface $em, \Symfony\Component\String\Slugger\SluggerInterface $slugger, \Symfony\Component\Form\FormFactoryInterface $formFactory): Response
+    {
+        $comment = $commentaireRepository->find($id);
+        if (!$comment) {
+            $this->addFlash('danger', 'Comment not found.');
+            return $this->redirectToRoute('admin_forum');
+        }
+        $form = $formFactory->createNamed('comment_edit', \App\Form\Forum\CommentaireType::class, $comment);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $imageFile */
+            $imageFile = $form->get('image_commentaire')->getData();
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+                try {
+                    $imageFile->move($this->getParameter('commentaire_images_directory'), $newFilename);
+                    $comment->setImageCommentaire($newFilename);
+                } catch (\Exception $e) {
+                }
+            }
+            $comment->setUpdatedAt(new \DateTime());
+            $em->flush();
+            $this->addFlash('success', 'Comment updated successfully.');
+            return $this->redirectToRoute('admin_forum');
+        }
+        return $this->redirectToRoute('admin_forum');
     }
 
     #[Route('/admin/syndicat', name: 'admin_syndicat')]
-    public function syndicat(PageStatusService $pageStatusService, Request $request): Response
+    public function syndicat(PageStatusService $pageStatusService, Request $request, ReclamationRepository $reclamationRepository, \App\Repository\Syndicat\ReponseRepository $reponseRepository): Response
     {
-        return $this->render('admin/Syndicat/index.html.twig');
+        $reclamations = $reclamationRepository->findBy([], ['created_at' => 'DESC']);
+        $reponses = $reponseRepository->findAll();
+        return $this->render('admin/Syndicat/index.html.twig', [
+            'reclamations' => $reclamations,
+            'reponses' => $reponses,
+        ]);
+    }
+
+    #[Route('/admin/syndicat/reclamation/{id}/delete', name: 'admin_reclamation_delete', methods: ['POST'])]
+    public function deleteReclamation(Request $request, ReclamationRepository $reclamationRepository, EntityManagerInterface $entityManager, int $id): Response
+    {
+        $reclamation = $reclamationRepository->find($id);
+        if (!$reclamation) {
+            return $this->redirectToRoute('admin_syndicat');
+        }
+        if ($this->isCsrfTokenValid('delete_reclamation', $request->request->get('_token'))) {
+            $entityManager->remove($reclamation);
+            $entityManager->flush();
+        }
+        return $this->redirectToRoute('admin_syndicat');
+    }
+
+    #[Route('/admin/syndicat/reponse/{id}/delete', name: 'admin_reponse_delete', methods: ['POST'])]
+    public function deleteReponse(Request $request, \App\Repository\Syndicat\ReponseRepository $reponseRepository, EntityManagerInterface $entityManager, int $id): Response
+    {
+        $reponse = $reponseRepository->find($id);
+        if (!$reponse) {
+            return $this->json(['success' => false, 'message' => 'Reponse not found'], 404);
+        }
+
+        // Use a generic token check for now since there's no specific token in the twig yet
+        // but the JS is already sending a POST request to this URL.
+        $entityManager->remove($reponse);
+        $entityManager->flush();
+
+        return $this->json(['success' => true]);
     }
 
     #[Route('/admin/evenement', name: 'admin_evenement')]
-    public function evenement(PageStatusService $pageStatusService, Request $request): Response
+    public function evenement(PageStatusService $pageStatusService, Request $request, \App\Repository\Evenement\EvenementRepository $evenementRepository, \App\Repository\Evenement\ParticipationRepository $participationRepository): Response
     {
-        return $this->render('admin/Evenement/index.html.twig');
+        $evenements = $evenementRepository->findBy([], ['date_event' => 'DESC']);
+        $participations = $participationRepository->findBy([], ['date_participation' => 'DESC']);
+
+        // Create edit forms
+        $evenementEditForm = $this->createForm(\App\Form\Evenement\EvenementType::class, new \App\Entity\Evenement\Evenement());
+        $participationEditForm = $this->createForm(\App\Form\Evenement\ParticipationType::class, new \App\Entity\Evenement\Participation(), ['is_admin' => true]);
+
+        return $this->render('admin/Evenement/index.html.twig', [
+            'evenements' => $evenements,
+            'participations' => $participations,
+            'evenementEditForm' => $evenementEditForm->createView(),
+            'participationEditForm' => $participationEditForm->createView(),
+        ]);
     }
+
+    #[Route('/admin/evenement/{id}/edit', name: 'admin_evenement_edit', methods: ['POST'])]
+    public function evenementEdit(int $id, Request $request, \App\Repository\Evenement\EvenementRepository $evenementRepository, EntityManagerInterface $em): JsonResponse
+    {
+        $evenement = $evenementRepository->find($id);
+        if (!$evenement) {
+            return new JsonResponse(['success' => false, 'message' => 'Event not found.'], 404);
+        }
+
+        $form = $this->createForm(\App\Form\Evenement\EvenementType::class, $evenement);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+            return new JsonResponse(['success' => true, 'message' => 'Event updated successfully.']);
+        }
+
+        $errors = [];
+        foreach ($form->getErrors(true) as $error) {
+            $errors[] = $error->getMessage();
+        }
+
+        return new JsonResponse(['success' => false, 'message' => implode(', ', $errors)], 400);
+    }
+
+    #[Route('/admin/evenement/{id}/delete', name: 'admin_evenement_delete', methods: ['POST'])]
+    public function evenementDelete(
+        int $id,
+        Request $request,
+        \App\Repository\Evenement\EvenementRepository $evenementRepository,
+        \App\Repository\Evenement\ParticipationRepository $participationRepository,
+        EntityManagerInterface $em,
+        \Symfony\Component\Security\Csrf\CsrfTokenManagerInterface $csrfTokenManager
+    ): JsonResponse {
+        try {
+            $evenement = $evenementRepository->find($id);
+            if (!$evenement) {
+                return new JsonResponse(['success' => false, 'message' => 'Event not found.'], 404);
+            }
+
+            // CSRF check
+            $token = $request->request->get('_token');
+            if (!$token || !$csrfTokenManager->isTokenValid(new \Symfony\Component\Security\Csrf\CsrfToken('evenement_delete', $token))) {
+                return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+            }
+
+            // Manually delete associated participations to avoid foreign key constraint violations
+            $participations = $participationRepository->findBy(['evenement' => $evenement]);
+            foreach ($participations as $participation) {
+                $em->remove($participation);
+            }
+
+            $em->remove($evenement);
+            $em->flush();
+
+            return new JsonResponse(['success' => true, 'message' => 'Event and its participations deleted successfully.']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['success' => false, 'message' => 'An error occurred while deleting the event: ' . $e->getMessage()], 500);
+        }
+    }
+
+    #[Route('/admin/participation/{id}/edit', name: 'admin_participation_edit', methods: ['POST'])]
+    public function participationEdit(int $id, Request $request, \App\Repository\Evenement\ParticipationRepository $participationRepository, EntityManagerInterface $em): JsonResponse
+    {
+        $participation = $participationRepository->find($id);
+        if (!$participation) {
+            return new JsonResponse(['success' => false, 'message' => 'Participation not found.'], 404);
+        }
+
+        $oldStatus = $participation->getStatutParticipation();
+        $oldGuests = $participation->getNbAccompagnants();
+
+        $form = $this->createForm(\App\Form\Evenement\ParticipationType::class, $participation, ['is_admin' => true]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $newStatus = $participation->getStatutParticipation();
+            $newGuests = $participation->getNbAccompagnants();
+            $evenement = $participation->getEvenement();
+
+            if ($evenement) {
+                $placesToDeduct = 0;
+
+                // Handle status changes affecting seats
+                if ($oldStatus !== 'confirme' && $newStatus === 'confirme') {
+                    // Newly confirmed: deduct 1 (user) + nb_accompagnants
+                    $placesToDeduct = 1 + $newGuests;
+                } elseif ($oldStatus === 'confirme' && $newStatus !== 'confirme') {
+                    // Was confirmed, now cancelled/refused: return seats
+                    $placesToDeduct = -(1 + $oldGuests);
+                } elseif ($oldStatus === 'confirme' && $newStatus === 'confirme' && $oldGuests !== $newGuests) {
+                    // Stayed confirmed but number of guests changed
+                    $placesToDeduct = $newGuests - $oldGuests;
+                }
+
+                if ($placesToDeduct !== 0) {
+                    // Check if enough seats are available
+                    if ($placesToDeduct > $evenement->getNbRestants()) {
+                        return new JsonResponse([
+                            'success' => false,
+                            'message' => "Not enough seats available. Remaining: {$evenement->getNbRestants()}, Required additional: {$placesToDeduct}."
+                        ], 400);
+                    }
+                    $evenement->setNbRestants($evenement->getNbRestants() - $placesToDeduct);
+                }
+            }
+
+            $em->flush();
+            return new JsonResponse(['success' => true, 'message' => 'Participation updated successfully.']);
+        }
+
+        $errors = [];
+        foreach ($form->getErrors(true) as $error) {
+            $errors[] = $error->getMessage();
+        }
+
+        return new JsonResponse(['success' => false, 'message' => implode(', ', $errors)], 400);
+    }
+    #[Route('/admin/participation/{id}/delete', name: 'admin_participation_delete', methods: ['POST'])]
+    public function participationDelete(int $id, Request $request, \App\Repository\Evenement\ParticipationRepository $participationRepository, EntityManagerInterface $em, \Symfony\Component\Security\Csrf\CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
+    {
+        $participation = $participationRepository->find($id);
+        if (!$participation) {
+            return new JsonResponse(['success' => false, 'message' => 'Participation not found.'], 404);
+        }
+
+        // CSRF check
+        $token = $request->request->get('_token');
+        if ($token && !$csrfTokenManager->isTokenValid(new \Symfony\Component\Security\Csrf\CsrfToken('participation_delete', $token))) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+        }
+
+        $evenement = $participation->getEvenement();
+        if ($evenement && $participation->getStatutParticipation() === 'confirme') {
+            // Return seats: 1 (primary) + guests
+            $placesToReclaim = 1 + $participation->getNbAccompagnants();
+            $evenement->setNbRestants($evenement->getNbRestants() + $placesToReclaim);
+        }
+
+        $em->remove($participation);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Participation deleted successfully.']);
+    }
+
     #[Route('/admin', name: 'admin_dashboard')]
     public function dashboard(PageStatusService $pageStatusService, Request $request): Response
     {
@@ -202,7 +695,7 @@ class AdminController extends AbstractController
         if (!$pageStatusService->isPageOnline('dashboard')) {
             return $this->redirectToRoute('maintenance_with_page', ['pageId' => 'dashboard']);
         }
-        
+
         // Sample transaction data - in a real application, this would come from a database
         $transactions = [
             [
@@ -305,7 +798,7 @@ class AdminController extends AbstractController
 
         // Get page management data from service
         $pageStatuses = $pageStatusService->getAllPageStatuses();
-        
+
         // Frontend Pages
         $frontendPages = [
             [
@@ -325,7 +818,7 @@ class AdminController extends AbstractController
                 'description' => 'User profile page'
             ]
         ];
-        
+
         // Backend Pages
         $backendPages = [
             [
@@ -381,22 +874,22 @@ class AdminController extends AbstractController
     public function updatePageStatus(Request $request, PageStatusService $pageStatusService): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        
+
         if (!isset($data['pageId']) || !isset($data['status'])) {
             return new JsonResponse(['error' => 'Missing pageId or status'], 400);
         }
-        
+
         $pageId = $data['pageId'];
         $status = $data['status'];
-        
+
         // Validate status
         if (!in_array($status, ['online', 'offline'])) {
             return new JsonResponse(['error' => 'Invalid status'], 400);
         }
-        
+
         // Update page status
         $pageStatusService->setPageStatus($pageId, $status);
-        
+
         return new JsonResponse([
             'success' => true,
             'pageId' => $pageId,
@@ -411,7 +904,7 @@ class AdminController extends AbstractController
         if (!$pageStatusService->isPageOnline('placeholder_1')) {
             return $this->redirectToRoute('maintenance_with_page', ['pageId' => 'placeholder_1']);
         }
-        
+
         return $this->render('admin/placeholder1.html.twig');
     }
 
@@ -422,7 +915,7 @@ class AdminController extends AbstractController
         if (!$pageStatusService->isPageOnline('placeholder_2')) {
             return $this->redirectToRoute('maintenance_with_page', ['pageId' => 'placeholder_2']);
         }
-        
+
         return $this->render('admin/placeholder2.html.twig');
     }
 
@@ -433,7 +926,7 @@ class AdminController extends AbstractController
         if (!$pageStatusService->isPageOnline('super_dashboard')) {
             return $this->redirectToRoute('maintenance_with_page', ['pageId' => 'super_dashboard']);
         }
-        
+
         // Redirect to the actual super dashboard
         return $this->redirectToRoute('admin_super_dashboard');
     }
@@ -444,7 +937,7 @@ class AdminController extends AbstractController
     {
         // Get the referrer to determine which page was being accessed
         $referer = $request->headers->get('referer');
-        
+
         // If we have a pageId parameter, use that instead of referrer
         if ($pageId) {
             $previousPage = $this->getPageNameFromId($pageId);
@@ -461,13 +954,13 @@ class AdminController extends AbstractController
                 $previousPage = $this->getPageNameFromUrl($referer);
             }
         }
-        
+
         return $this->render('maintenance.html.twig', [
             'previousPage' => $previousPage,
             'referer' => $referer
         ]);
     }
-    
+
     /**
      * Get page name from URL for display purposes
      */
@@ -476,7 +969,7 @@ class AdminController extends AbstractController
         if (!$url) {
             return 'Dashboard';
         }
-        
+
         // Map URLs to page names
         if (strpos($url, '/admin/placeholder-1') !== false) {
             return 'Placeholder 1';
@@ -493,10 +986,10 @@ class AdminController extends AbstractController
         } elseif (strpos($url, '/') !== false) {
             return 'Main Home';
         }
-        
+
         return 'Dashboard';
     }
-    
+
     /**
      * Get page name from page ID for display purposes
      */
@@ -511,10 +1004,10 @@ class AdminController extends AbstractController
             'placeholder_1' => 'Placeholder 1',
             'placeholder_2' => 'Placeholder 2'
         ];
-        
+
         return $pageNames[$pageId] ?? 'Page';
     }
-    
+
     /**
      * Get default referrer URL for a page (where to go back to)
      */
@@ -529,14 +1022,17 @@ class AdminController extends AbstractController
             'placeholder_1' => '/admin/super-dashboard',
             'placeholder_2' => '/admin/super-dashboard'
         ];
-        
+
         return $defaultReferrers[$pageId] ?? '/admin/super-dashboard';
     }
 
     #[Route('/admin/logout', name: 'admin_logout')]
-    public function logout(): Response
+    public function logout(Request $request): Response
     {
-        // This method will be intercepted by the logout key on your firewall
-        throw new \Exception('This method should not be reached directly.');
+        $session = $request->getSession();
+        $session->remove('is_logged_in');
+        $session->remove('user');
+
+        return $this->redirectToRoute('main_home');
     }
 }

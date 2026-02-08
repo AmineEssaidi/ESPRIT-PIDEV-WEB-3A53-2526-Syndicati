@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
+    <script>
+        window.serverSettings = {{ settings|default({})|json_encode|raw }};
+        window.isLoggedIn = {{ is_logged_in ? 'true' : 'false' }};
+    </script>
     <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
     <script src="{{ asset('frontend/js/smart-translate.js') }}"></script>
     <meta charset="UTF-8">
@@ -17,6 +21,10 @@
 
     <!-- Ensure all main-home JS is loaded for dynamic island, theme toggle, notifications -->
     <script src="{{ asset('frontend/js/main-home.js') }}" defer></script>
+    <script>
+        window.serverSettings = {{ settings|default({})|json_encode|raw }};
+        window.isLoggedIn = {{ is_logged_in ? 'true' : 'false' }};
+    </script>
 </head>
 <body class="settings-page">
 <div class="page-loader" id="pageLoader">
@@ -561,20 +569,70 @@
 <script src="{{ asset('js/page-loader.js') }}"></script>
 <script>
                                     document.addEventListener('DOMContentLoaded', function() {
+                                        const serverSettings = window.serverSettings || {};
+                                        const isLoggedIn = window.isLoggedIn || false;
+
+                                        // Function to save settings to server
+                                        async function syncSettings(data) {
+                                            if (!isLoggedIn) return;
+                                            try {
+                                                const response = await fetch('{{ path('frontend_settings_update') }}', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify(data)
+                                                });
+                                                return await response.json();
+                                            } catch (e) {
+                                                console.error('Failed to sync settings:', e);
+                                            }
+                                        }
+
+                                        // Consolidate server settings (handle PHP [] vs {})
+                                        let sSettings = window.serverSettings || {};
+                                        if (Array.isArray(sSettings)) sSettings = {};
+                                        
+                                        const hasServerData = Object.keys(sSettings).length > 0;
+                                        
+                                        if (isLoggedIn) {
+                                            if (hasServerData) {
+                                                // Sync down to localStorage so UI reflected immediately
+                                                if (sSettings.theme) localStorage.setItem('theme', sSettings.theme);
+                                                if (sSettings['accent-gradient']) localStorage.setItem('accent-gradient', sSettings['accent-gradient']);
+                                                if (sSettings['accent-color']) localStorage.setItem('accent-color', sSettings['accent-color']);
+                                                if (sSettings.lang) localStorage.setItem('lang', sSettings.lang);
+                                            } else {
+                                                // Auto-detect local settings and push to server if they exist
+                                                const localData = {
+                                                    theme: localStorage.getItem('theme'),
+                                                    'accent-gradient': localStorage.getItem('accent-gradient'),
+                                                    'accent-color': localStorage.getItem('accent-color'),
+                                                    lang: localStorage.getItem('lang')
+                                                };
+                                                const toPush = {};
+                                                Object.keys(localData).forEach(k => { if(localData[k]) toPush[k] = localData[k]; });
+                                                
+                                                if (Object.keys(toPush).length > 0) {
+                                                    syncSettings(toPush);
+                                                }
+                                            }
+                                        }
+
                                         const themeRadios = document.querySelectorAll('input[name="themeMode"]');
                                         let theme = localStorage.getItem('theme') || 'dark';
+                                        
                                         themeRadios.forEach(r => { 
                                             if(r.value === theme) {
                                                 r.checked = true;
                                                 r.closest('.settings-theme-card')?.classList.add('selected');
                                             }
                                         });
+
                                         themeRadios.forEach(r => r.addEventListener('change', function() {
                                             document.querySelectorAll('.settings-theme-card').forEach(card => card.classList.remove('selected'));
                                             this.closest('.settings-theme-card')?.classList.add('selected');
                                             localStorage.setItem('theme', this.value);
                                             document.documentElement.setAttribute('data-theme', this.value);
-                                            // Optionally update any theme icons or UI here if needed
+                                            syncSettings({ theme: this.value });
                                         }));
 
                                         const accentChoices = document.querySelectorAll('.accent-choice');
@@ -587,34 +645,52 @@
                                             if(btn.dataset.gradient === accent) {
                                                 btn.classList.add('selected');
                                             }
-                                            btn.addEventListener('click', function() {
+                                            btn.addEventListener('click', async function() {
                                                 accentChoices.forEach(b => b.classList.remove('selected'));
                                                 this.classList.add('selected');
-                                                localStorage.setItem('accent-gradient', this.dataset.gradient);
-                                                const color = this.dataset.gradient.match(/linear-gradient\([^,]+,\s*([^,\s)]+)/)?.[1] || '#6c5ce7';
+                                                const grad = this.dataset.gradient;
+                                                const color = grad.match(/linear-gradient\([^,]+,\s*([^,\s)]+)/)?.[1] || '#6c5ce7';
+                                                
+                                                localStorage.setItem('accent-gradient', grad);
                                                 localStorage.setItem('accent-color', color);
-                                                customAccentHex.value = '';
+                                                
+                                                await syncSettings({ 
+                                                    'accent-gradient': grad,
+                                                    'accent-color': color
+                                                });
+                                                
                                                 window.location.reload();
                                             });
                                         });
                                         
                                         customAccentColor.value = accentColor;
-                                        customAccentColor.addEventListener('input', function() {
+                                        customAccentColor.addEventListener('change', async function() {
                                             const color = this.value;
                                             const grad = `linear-gradient(135deg, ${color}, #8b5cf6, #06b6d4)`;
                                             localStorage.setItem('accent-gradient', grad);
                                             localStorage.setItem('accent-color', color);
-                                            customAccentHex.value = color;
+                                            
+                                            await syncSettings({ 
+                                                'accent-gradient': grad,
+                                                'accent-color': color
+                                            });
+                                            
                                             window.location.reload();
                                         });
-                                        customAccentHex.addEventListener('input', function() {
+
+                                        customAccentHex.addEventListener('change', async function() {
                                             let val = this.value;
                                             if (!val.startsWith('#')) val = '#' + val;
                                             if (/^#[0-9a-fA-F]{3,8}$/.test(val)) {
                                                 const grad = `linear-gradient(135deg, ${val}, #8b5cf6, #06b6d4)`;
                                                 localStorage.setItem('accent-gradient', grad);
                                                 localStorage.setItem('accent-color', val);
-                                                customAccentColor.value = val;
+                                                
+                                                await syncSettings({ 
+                                                    'accent-gradient': grad,
+                                                    'accent-color': val
+                                                });
+                                                
                                                 window.location.reload();
                                             }
                                         });
@@ -623,10 +699,13 @@
                                         if (languageSelect) {
                                             let lang = localStorage.getItem('lang') || 'fr';
                                             languageSelect.value = lang;
-                                            languageSelect.addEventListener('change', function() {
+                                            languageSelect.addEventListener('change', async function() {
+                                                const newLang = this.value;
+                                                localStorage.setItem('lang', newLang);
                                                 if (window.setLanguage) {
-                                                    window.setLanguage(this.value);
+                                                    window.setLanguage(newLang);
                                                 }
+                                                await syncSettings({ lang: newLang });
                                             });
                                         }
 

@@ -1,0 +1,439 @@
+/* ==========================================================================
+   EVENEMENT FORM CUSTOM STYLING
+   Premium form elements for the Organize Event modal
+   ========================================================================== */
+
+/* Custom Select Dropdown Styling - ULTRA SPECIFIC */
+.custom-select-wrapper {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+}
+
+.custom-select-wrapper select,
+.custom-select-wrapper>select,
+select[name*="type_event"] {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    width: 100% !important;
+    padding: 0.875rem 3rem 0.875rem 1rem !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 16px !important;
+    color: #fff !important;
+    font-size: 0.95rem !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.custom-select-wrapper select:hover,
+.custom-select-wrapper>select:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(138, 43, 226, 0.3) !important;
+}
+
+.custom-select-wrapper select:focus,
+.custom-select-wrapper>select:focus {
+    outline: none !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(138, 43, 226, 0.5) !important;
+    box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1) !important;
+}
+
+.custom-select-wrapper::after {
+    content: '\ea4e' !important;
+    font-family: 'boxicons' !important;
+    position: absolute !important;
+    right: 1rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    pointer-events: none !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-size: 1.2rem !important;
+    transition: all 0.3s ease !important;
+    z-index: 10 !important;
+}
+
+.custom-select-wrapper:hover::after {
+    color: rgba(138, 43, 226, 0.8) !important;
+}
+
+/* Hide native select */
+.custom-select-wrapper select {
+    position: absolute !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Hide the old arrow */
+.custom-select-wrapper::after {
+    display: none !important;
+}
+
+/* Custom dropdown trigger */
+.custom-dropdown-trigger {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.875rem 1rem 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.custom-dropdown-trigger .selected-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    max-width: calc(100% - 2rem);
+}
+
+.custom-dropdown-trigger:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(138, 43, 226, 0.3);
+}
+
+.custom-dropdown-trigger.active {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(138, 43, 226, 0.5);
+    box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+}
+
+.custom-dropdown-trigger .arrow {
+    font-family: 'boxicons';
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.5);
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.custom-dropdown-trigger:hover .arrow {
+    color: rgba(138, 43, 226, 0.8);
+}
+
+.custom-dropdown-trigger.active .arrow {
+    transform: rotate(180deg);
+}
+
+/* Custom dropdown menu */
+.custom-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: rgba(15, 15, 25, 0.98);
+    border: 1px solid rgba(138, 43, 226, 0.2);
+    border-radius: 16px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(138, 43, 226, 0.1);
+    z-index: 1000;
+    max-height: 250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.custom-dropdown-menu.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+.custom-dropdown-option {
+    padding: 0.75rem 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+}
+
+.custom-dropdown-option:hover {
+    background: rgba(138, 43, 226, 0.15);
+    color: #fff;
+}
+
+.custom-dropdown-option.selected {
+    background: rgba(138, 43, 226, 0.2);
+    color: #fff;
+    font-weight: 600;
+}
+
+/* Scrollbar for dropdown menu */
+.custom-dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-dropdown-menu::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+
+.custom-dropdown-menu::-webkit-scrollbar-thumb {
+    background: rgba(138, 43, 226, 0.3);
+    border-radius: 10px;
+}
+
+.custom-dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(138, 43, 226, 0.5);
+}
+
+/* Custom Status Selector (Pill-based Toggle) */
+.custom-status-selector {
+    display: flex !important;
+    gap: 0.75rem !important;
+    flex-wrap: wrap !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.status-pill {
+    padding: 0.75rem 1.5rem !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 20px !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    user-select: none !important;
+}
+
+.status-pill::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease !important;
+    z-index: 0 !important;
+}
+
+.status-pill span {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.status-pill:hover {
+    transform: translateY(-2px) !important;
+    border-color: rgba(138, 43, 226, 0.3) !important;
+}
+
+.status-pill.active {
+    background: rgba(138, 43, 226, 0.15) !important;
+    border-color: rgba(138, 43, 226, 0.4) !important;
+    color: #fff !important;
+    box-shadow: 0 5px 15px rgba(138, 43, 226, 0.3) !important;
+}
+
+.status-pill.active::before {
+    opacity: 0.2 !important;
+}
+
+/* Flatpickr Custom Styling - Clean Dark Theme */
+.flatpickr-calendar {
+    background: rgba(20, 20, 30, 0.98) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+    z-index: 99999 !important;
+}
+
+.flatpickr-months {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    padding: 1rem 0 !important;
+}
+
+.flatpickr-months .flatpickr-month {
+    background: transparent !important;
+}
+
+.flatpickr-current-month {
+    color: #fff !important;
+    font-weight: 700 !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    background: transparent !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+.flatpickr-month {
+    color: #fff !important;
+    background: transparent !important;
+}
+
+.flatpickr-prev-month,
+.flatpickr-next-month {
+    color: rgba(255, 255, 255, 0.5) !important;
+    fill: rgba(255, 255, 255, 0.5) !important;
+}
+
+.flatpickr-prev-month:hover,
+.flatpickr-next-month:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+    fill: rgba(255, 255, 255, 0.8) !important;
+}
+
+.flatpickr-weekdays {
+    background: transparent !important;
+}
+
+.flatpickr-weekday {
+    color: rgba(255, 255, 255, 0.4) !important;
+    font-weight: 600 !important;
+    font-size: 0.7rem !important;
+}
+
+.flatpickr-days {
+    background: transparent !important;
+}
+
+.flatpickr-day {
+    color: rgba(255, 255, 255, 0.7) !important;
+    border-radius: 8px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+}
+
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #fff !important;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
+.flatpickr-day.today {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background: transparent !important;
+}
+
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+    color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.flatpickr-time {
+    background: transparent !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.flatpickr-time .numInputWrapper {
+    background: transparent !important;
+}
+
+.flatpickr-time input {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 8px !important;
+}
+
+.flatpickr-time input:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.flatpickr-time .flatpickr-am-pm {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.flatpickr-time .numInputWrapper {
+    background: transparent !important;
+}
+
+/* Light Theme Overrides */
+[data-theme="light"] .custom-select-wrapper select {
+    background: rgba(0, 0, 0, 0.03) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    color: #333 !important;
+}
+
+[data-theme="light"] .custom-select-wrapper::after {
+    color: rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="light"] .status-pill {
+    background: rgba(0, 0, 0, 0.03) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    color: #666 !important;
+}
+
+[data-theme="light"] .status-pill.active {
+    color: #1a1a2e !important;
+}
+
+[data-theme="light"] .flatpickr-calendar {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .flatpickr-current-month,
+[data-theme="light"] .flatpickr-day {
+    color: #333 !important;
+}
+
+/* Event Dashboard Layout (Permanent) */
+.event-dashboard-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 3rem;
+    align-items: start;
+}
+
+.event-dashboard-sidebar {
+    position: sticky;
+    top: 2rem;
+}
+
+@media (max-width: 992px) {
+    .event-dashboard-layout {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .event-dashboard-sidebar {
+        order: -1;
+        /* Show sidebar (actions) on top on mobile */
+        position: static;
+    }
+}

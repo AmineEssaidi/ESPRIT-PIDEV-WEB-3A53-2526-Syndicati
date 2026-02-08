@@ -747,11 +747,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize charts here if needed
     initDashboardCharts();
     
-    // Set current date and time
-    updateCurrentDateTime();
-    
-    // Update time every second
-    setInterval(updateCurrentDateTime, 1000);
+    // Timer is handled by _dashboard_header.html.twig
+
     
     // Initialize page management
     initPageManagement();
@@ -924,31 +921,7 @@ function initCustomDropdowns() {
 // Initialize custom dropdowns when DOM is loaded
 document.addEventListener('DOMContentLoaded', initCustomDropdowns);
 
-function updateCurrentDateTime() {
-    const dateElement = document.getElementById('currentDate');
-    const timeElement = document.getElementById('currentTime');
-    
-    if (dateElement) {
-        const now = new Date();
-        const options = { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric',
-            weekday: 'long'
-        };
-        const formattedDate = now.toLocaleDateString('en-US', options);
-        dateElement.textContent = formattedDate;
-    }
-    
-    if (timeElement) {
-        const now = new Date();
-        const hours = now.getHours().toString().padStart(2, '0');
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const seconds = now.getSeconds().toString().padStart(2, '0');
-        const formattedTime = `${hours}:${minutes}:${seconds}`;
-        timeElement.textContent = formattedTime;
-    }
-}
+
 
 function initDashboardCharts() {
     // Revenue Chart

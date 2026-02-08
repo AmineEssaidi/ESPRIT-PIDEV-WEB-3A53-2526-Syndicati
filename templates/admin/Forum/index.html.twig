@@ -1,6 +1,71 @@
+{% extends 'base.html.twig' %}
+
 {% block stylesheets %}
 	<style>
-		/* Light theme improvements (copied from Users) */
+		/* === RESIDENCE-STYLE MODAL & UI COMPONENTS === */
+		.users-edit-modal *, .users-edit-modal *::before, .users-edit-modal *::after { box-sizing: border-box !important; }
+		.users-edit-modal { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+		.users-edit-modal-backdrop { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); cursor: pointer; }
+		.users-edit-modal-card { position: relative; background: linear-gradient(165deg, rgba(32, 38, 52, 0.98) 0%, rgba(20, 24, 32, 0.98) 100%); border-radius: 24px; box-shadow: 0 25px 80px rgba(0,0,0,0.7); max-width: 800px; width: 100%; border: 1px solid rgba(255,255,255,0.12); overflow: visible; max-height: 90vh; display: flex; flex-direction: column; }
+		.users-edit-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.75rem 2.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+		.users-edit-modal-header h3 { margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
+		.users-edit-modal-subtitle { margin: 0.5rem 0 0 0; font-size: 0.9rem; color: rgba(191,201,216,0.8); font-weight: 400; }
+		.users-edit-modal-close { background: rgba(255,255,255,0.08); border: none; color: #bfc9d8; width: 2.4rem; height: 2.4rem; border-radius: 50%; font-size: 1.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.25s ease; }
+		.users-edit-modal-close:hover { background: rgba(255,255,255,0.15); color: #fff; transform: rotate(90deg); }
+		.users-edit-modal-body { padding: 2.25rem 2.5rem; display: flex; flex-direction: column; align-items: stretch; overflow-y: auto; scrollbar-width: none; overflow-x: visible; }
+		.users-edit-modal-body::-webkit-scrollbar { display: none; }
+		.users-edit-modal-actions { display: flex; gap: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 1rem; align-items: center; }
+		.users-edit-modal-actions-spacer { flex: 1; }
+		.residence-form-group { margin-bottom: 1.75rem; width: 100%; display: flex; flex-direction: column; }
+		.residence-edit-label { display: block; margin-bottom: 0.75rem; color: #bfc9d8; font-weight: 600; font-size: 0.95rem; letter-spacing: 0.02em; }
+		.residence-edit-input { width: 100%; border: 1px solid rgba(255, 255, 255, 0.12); padding: 0.95rem 1.25rem; border-radius: 16px; background: rgba(0, 0, 0, 0.3); color: #fff; font-size: 1rem; outline: none; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); border-left: 4px solid transparent; }
+		.residence-edit-input:focus { border-color: rgba(0, 198, 255, 0.5); border-left-color: #00c6ff; background: rgba(0, 0, 0, 0.45); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+		.users-edit-modal-body input[type="text"], .users-edit-modal-body input[type="email"], .users-edit-modal-body input[type="password"], .users-edit-modal-body input[type="number"], .users-edit-modal-body textarea, .users-edit-modal-body select { width: 100%; border: 1px solid rgba(255, 255, 255, 0.12); padding: 0.95rem 1.25rem; border-radius: 16px; background: rgba(0, 0, 0, 0.3); color: #fff; font-size: 1rem; outline: none; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); border-left: 4px solid transparent; }
+		.users-edit-modal-body input:focus, .users-edit-modal-body textarea:focus, .users-edit-modal-body select:focus { border-color: rgba(0, 198, 255, 0.5); border-left-color: #00c6ff; background: rgba(0, 0, 0, 0.45); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+		.users-edit-modal-body label { display: block; margin-bottom: 0.75rem; color: #bfc9d8; font-weight: 600; font-size: 0.95rem; letter-spacing: 0.02em; }
+		.custom-glass-dropdown { position: relative; width: 100%; user-select: none; }
+		.custom-glass-dropdown-trigger { width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 0 1.25rem; color: #fff; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.25s ease; font-size: 1rem; height: 56px; border-left: 4px solid transparent; }
+		.custom-glass-dropdown-trigger:hover { border-color: rgba(0, 198, 255, 0.45); background: rgba(0, 0, 0, 0.4); }
+		.custom-glass-dropdown.open .custom-glass-dropdown-trigger { border-color: #0072ff; border-left-color: #00c6ff; box-shadow: 0 10px 30px rgba(0, 114, 255, 0.15); }
+		.custom-glass-dropdown-arrow { font-size: 1.4rem; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: #00c6ff; }
+		.custom-glass-dropdown.open .custom-glass-dropdown-arrow { transform: rotate(180deg); }
+		.custom-glass-dropdown-menu { position: absolute; top: 115%; left: 0; width: 100%; background: rgba(26, 30, 40, 0.98); backdrop-filter: blur(35px) saturate(210%); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7); z-index: 1000; display: none; flex-direction: column; padding: 0.75rem; max-height: 250px; overflow-y: auto; scrollbar-width: thin; animation: dropdown-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards; }
+		@keyframes dropdown-pop { 0% { opacity: 0; transform: translateY(-10px) scale(0.95); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+		.custom-glass-dropdown-menu::-webkit-scrollbar { width: 5px; }
+		.custom-glass-dropdown-menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+		.custom-glass-dropdown-option { padding: 0.9rem 1.25rem; border-radius: 12px; color: rgba(191, 201, 216, 0.9); cursor: pointer; transition: all 0.2s ease; font-size: 1rem; margin-bottom: 4px; }
+		.custom-glass-dropdown-option:hover { background: rgba(255, 255, 255, 0.12); color: #fff; transform: scale(1.02); padding-left: 1.5rem; }
+		.custom-glass-dropdown-option.selected { background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); color: #fff; font-weight: 700; box-shadow: 0 4px 15px rgba(0, 114, 255, 0.3); }
+		.hidden-select { display: none !important; visibility: hidden !important; height: 0 !important; width: 0 !important; position: absolute !important; opacity: 0 !important; overflow: hidden !important; }
+		.modal-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; width: 100%; margin-bottom: 1.75rem; }
+		.custom-file-wrapper { position: relative; width: 100%; }
+		.custom-file-trigger { width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.3s ease; }
+		.custom-file-trigger:hover { background: rgba(0, 198, 255, 0.05); border-color: #00c6ff; }
+		.custom-file-icon { font-size: 1.8rem; color: #00c6ff; }
+		.custom-file-text { flex: 1; color: rgba(191, 216, 0.8); font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+		.custom-file-btn { background: rgba(255, 255, 255, 0.1); color: #fff; padding: 0.5rem 1rem; border-radius: 10px; font-weight: 600; font-size: 0.85rem; }
+		.forum-view-row { display: flex; gap: 1.5rem; padding: 1.25rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+		.forum-view-label { min-width: 120px; font-size: 0.9rem; font-weight: 700; color: rgba(191,201,216,0.7); text-transform: uppercase; letter-spacing: 0.08em; }
+		.forum-view-value { flex: 1; font-size: 1.05rem; color: #e3e8f7; line-height: 1.6; }
+		.users-btn-cancel, .users-btn-modify, .users-btn-delete { border: none; border-radius: 14px; padding: 0.9rem 1.75rem; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: inline-flex; align-items: center; gap: 0.75rem; }
+		.users-btn-cancel { background: rgba(255, 255, 255, 0.08); color: #bfc9d8; }
+		.users-btn-cancel:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: translateY(-2px); }
+		.users-btn-modify { background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); color: #fff; box-shadow: 0 10px 25px rgba(0, 114, 255, 0.3); }
+		.users-btn-modify:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0, 114, 255, 0.45); }
+		.users-btn-delete { background: linear-gradient(135deg, #ff3b30 0%, #ff2d92 100%); color: #fff; box-shadow: 0 10px 25px rgba(255, 45, 146, 0.25); }
+		.users-btn-delete:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(255, 45, 146, 0.4); }
+		[data-theme="light"] .custom-glass-dropdown-trigger { background: #f0f4f8; border-color: #dce2e8; color: #1c202a; }
+		[data-theme="light"] .custom-glass-dropdown-menu { background: #fff; border-color: #dce2e8; }
+		[data-theme="light"] .custom-file-trigger { background: #f0f4f8; border-color: #dce2e8; }
+		[data-theme="light"] .residence-edit-input { background: #f0f4f8; border-color: #dce2e8; color: #1c202a; }
+		[data-theme="light"] .residence-edit-input:focus { background: #fff; border-color: #0072ff; border-left-color: #00c6ff; }
+		[data-theme="light"] .residence-edit-label { color: #4a5568; }
+		[data-theme="light"] .users-edit-modal-body input, [data-theme="light"] .users-edit-modal-body textarea, [data-theme="light"] .users-edit-modal-body select { background: #f0f4f8; border-color: #dce2e8; color: #1c202a; }
+		[data-theme="light"] .users-edit-modal-body input:focus, [data-theme="light"] .users-edit-modal-body textarea:focus, [data-theme="light"] .users-edit-modal-body select:focus { background: #fff; border-color: #0072ff; border-left-color: #00c6ff; }
+		[data-theme="light"] .users-edit-modal-body label { color: #4a5568; }
+		/* === END RESIDENCE-STYLE COMPONENTS === */
+
+	/* Light theme improvements (copied from Users) */
 		[data-theme="light"] .liquid-glass-table-container {
 			background: rgba(255,255,255,0.85);
 			border: 1.5px solid #e3e8f7;
@@ -40,15 +105,17 @@
 			box-shadow: 0 2px 12px rgba(0,0,0,0.04);
 		}
 		[data-theme="light"] .pill-tab {
+			color: #5c6370;
+		}
+		[data-theme="light"] .pill-tab:hover {
 			color: #23272f;
+			background: rgba(0,0,0,0.02);
 		}
 		[data-theme="light"] .pill-tab.active, [data-theme="light"] .pill-tab:focus {
-			color: #fff;
-			text-shadow: 0 2px 8px rgba(0,123,255,0.10);
-		}
-		[data-theme="light"] .pill-slider {
 			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-			box-shadow: 0 4px 16px rgba(0,123,255,0.10);
+			color: #fff;
+			text-shadow: none;
+			box-shadow: 0 4px 16px rgba(0,123,255,0.15);
 		}
 		[data-theme="light"] .forum-sort-dir-pill {
 			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
@@ -90,30 +157,85 @@
 			color: #fff;
 			border: none;
 		}
+
+		/* === Pill Navigation Container (Page Tabs) ===  */
+		.forum-pagination-wrapper, .users-pagination-wrapper {
+			margin-top: 2rem;
+			display: flex;
+			justify-content: center;
+		}
+		.forum-pagination-pills, .users-pagination-pills, .pills-animated {
+			background: rgba(30, 34, 44, 0.65);
+			border-radius: 50px;
+			padding: 0.5rem;
+			display: inline-flex;
+			gap: 0.5rem;
+			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+			backdrop-filter: blur(20px) saturate(120%);
+			-webkit-backdrop-filter: blur(20px) saturate(120%);
+			border: 1.5px solid rgba(255, 255, 255, 0.06);
+		}
+		.pill-tab {
+			background: transparent;
+			border: none;
+			border-radius: 50px;
+			padding: 0.75rem 2rem;
+			font-weight: 700;
+			font-size: 1rem;
+			cursor: pointer;
+			transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			color: rgba(255, 255, 255, 0.7);
+			position: relative;
+		}
+		.pill-tab.active {
+			background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+			color: #fff;
+			box-shadow: 0 8px 20px rgba(0, 114, 255, 0.35);
+		}
+		.pill-tab:not(.active):hover {
+			background: rgba(255, 255, 255, 0.08);
+			color: #fff;
+		}
+		[data-theme="light"] .forum-pagination-pills,
+		[data-theme="light"] .users-pagination-pills,
+		[data-theme="light"] .pills-animated {
+			background: rgba(255, 255, 255, 0.9);
+			border-color: rgba(0, 198, 255, 0.25);
+			box-shadow: 0 8px 32px rgba(0, 114, 255, 0.12);
+		}
+		[data-theme="light"] .pill-tab {
+			color: #5c6370;
+		}
+		[data-theme="light"] .pill-tab.active {
+			color: #fff;
+		}
+		[data-theme="light"] .pill-tab:not(.active):hover {
+			background: rgba(0, 114, 255, 0.08);
+			color: #0072ff;
+		}
+
 	</style>
 {% endblock %}
-{% extends 'base.html.twig' %}
 
 {% block title %}Forum - Liquid Glass Admin{% endblock %}
 
 {% block content %}
 {% include 'admin/_dashboard_header.html.twig' with { 'title': 'Forum' } %}
-<div class="forum-pagination-wrapper" style="margin-top: 2rem;">
+<div class="forum-pagination-wrapper" style="margin-top: 2rem; display: flex; justify-content: center;">
 	<div class="forum-pagination-pills pills-animated">
-		<div class="pill-slider-bar"></div>
-		<div class="pill-slider"></div>
-		<button class="pill-tab active" data-page="1">Page 1</button>
-		<button class="pill-tab" data-page="2">Page 2</button>
+		<button class="pill-tab active" data-page="1">Publication</button>
+		<button class="pill-tab" data-page="2">Commentaire</button>
 		<button class="pill-tab" data-page="3">Page 3</button>
 		<button class="pill-tab" data-page="4">Page 4</button>
 	</div>
-	<div id="forum-content" class="forum-content" style="margin-top: 1.5rem;">
+</div>
+<div id="forum-content" class="forum-content" style="margin-top: 1.5rem;">
 		<div class="forum-page-content" data-page="1">
 			<div class="liquid-glass-table-container">
-				<h3 style="margin-bottom:1.5rem;">Demo Forum Table (Page 1)</h3>
+				<h3 style="margin-bottom:1.5rem;">Publications</h3>
 				<div class="forum-table-toolbar" style="display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; width: 100%; justify-content: space-between;">
 					<div style="display: flex; align-items: center;">
-						<button class="forum-btn-add-db" title="Add Forum"><i class="bx bx-plus"></i> Add Forum</button>
+						<button type="button" class="forum-btn-add-db" id="forum-add-pub-btn" title="Add Publication"><i class="bx bx-plus"></i> Add Publication</button>
 					</div>
 					<div style="display: flex; gap: 0.7rem; align-items: center;">
 						<button class="forum-sort-dir-pill" id="forum-sort-dir-pill" title="Toggle Sort Direction" aria-label="Toggle Sort Direction">
@@ -123,10 +245,10 @@
 							<span class="forum-sort-selected" id="forum-sort-selected">Sort by Name</span>
 							<span class="forum-sort-arrow"></span>
 							<div class="forum-sort-dropdown" id="forum-sort-dropdown" style="display:none;">
-								<div class="forum-sort-option" data-value="name">Sort by Name</div>
-								<div class="forum-sort-option" data-value="email">Sort by Email</div>
+								<div class="forum-sort-option" data-value="name">Sort by Topic</div>
+								<div class="forum-sort-option" data-value="category">Sort by Category</div>
+								<div class="forum-sort-option" data-value="author">Sort by Author</div>
 								<div class="forum-sort-option" data-value="date">Sort by Date</div>
-								<div class="forum-sort-option" data-value="status">Sort by Status</div>
 							</div>
 						</div>
 						<div class="forum-search-pill">
@@ -138,13 +260,11 @@
 				<div class="liquid-glass-table-scroll">
 					<table class="liquid-glass-table" id="forum-table">
 						<thead>
-							<tr>
-								{% for col in 1..8 %}
-									<th>Col {{ col }}</th>
-								{% endfor %}
-								<th>Modify</th>
-								<th>Delete</th>
-							</tr>
+                                <th>Topic</th>
+                                <th>Category</th>
+                                <th>Author</th>
+                                <th>Date</th>
+								<th>Actions</th>
 						</thead>
 						<tbody id="forum-table-body">
 							<!-- Table rows will be rendered by JS -->
@@ -157,134 +277,962 @@
 					<button class="forum-table-arrow" id="forum-table-next" title="Next Page"><i class="bx bx-chevron-right"></i></button>
 				</div>
 			</div>
+		</div>
+
+		<!-- Page 2 Content: Commentaires -->
+		<div class="forum-page-content" data-page="2" style="display:none;">
+			<div class="liquid-glass-table-container">
+				<h3 style="margin-bottom:1.5rem;">Commentaires</h3>
+				<div class="forum-table-toolbar" style="display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; width: 100%; justify-content: space-between;">
+					<div style="display: flex; align-items: center;">
+						<!-- Optional Add Comment button -->
+					</div>
+					<div style="display: flex; gap: 0.7rem; align-items: center;">
+						<button class="forum-sort-dir-pill" id="comments-sort-dir-pill" title="Toggle Sort Direction" aria-label="Toggle Sort Direction">
+							<span class="forum-sort-dir-icon" id="comments-sort-dir-icon-svg">
+								<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="var(--accent-color, #00c6ff)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							</span>
+						</button>
+						<div class="forum-sort-pill" id="comments-sort-pill-custom">
+							<span class="forum-sort-selected" id="comments-sort-selected">Sort by Date</span>
+							<span class="forum-sort-arrow"></span>
+							<div class="forum-sort-dropdown" id="comments-sort-dropdown" style="display:none;">
+								<div class="forum-sort-option comment-sort-option" data-value="date">Sort by Date</div>
+								<div class="forum-sort-option comment-sort-option" data-value="author">Sort by Author</div>
+								<div class="forum-sort-option comment-sort-option" data-value="publication">Sort by Publication</div>
+							</div>
+						</div>
+						<div class="forum-search-pill">
+							<i class="bx bx-search users-search-icon" style="font-size: 1.2rem; color: var(--accent-color, #00c6ff);"></i>
+							<input type="text" class="forum-search-input" id="comments-search-input" placeholder="Search comments...">
+						</div>
+					</div>
+				</div>
+				<div class="liquid-glass-table-scroll">
+					<table class="liquid-glass-table" id="comments-table">
+						<thead>
+                                <th>Comment</th>
+                                <th>Publication</th>
+                                <th>Author</th>
+                                <th>Date</th>
+								<th>Actions</th>
+						</thead>
+						<tbody id="comments-table-body">
+							<!-- Table rows will be rendered by JS -->
+						</tbody>
+					</table>
+				</div>
+				<div class="table-pagination-bar">
+                    <button class="forum-table-arrow" id="comments-table-prev" title="Previous Page"><i class="bx bx-chevron-left"></i></button>
+                    <div class="forum-table-pages" id="comments-table-pages"></div>
+                    <button class="forum-table-arrow" id="comments-table-next" title="Next Page"><i class="bx bx-chevron-right"></i></button>
+				</div>
+			</div>
+		</div>
 			<script>
-				// Demo data: 35 rows, 8 columns
-				const forumDemoTableRows = Array.from({length: 35}, (_, r) =>
-					Array.from({length: 8}, (_, c) => `R${r+1}C${c+1}`)
-				);
-				const forumRowsPerPage = 10;
-				let forumCurrentPage = 1;
-				let forumSortValue = 'name';
-				let forumSortDirection = 'asc';
-				let forumFilteredRows = [...forumDemoTableRows];
-				const forumSearchInput = document.querySelector('.forum-search-input');
-				const forumSortDirBtn = document.getElementById('forum-sort-dir-pill');
-				const forumSortDirIconSvg = document.getElementById('forum-sort-dir-icon-svg');
-				const forumSortPill = document.getElementById('forum-sort-pill-custom');
-				const forumSortDropdown = document.getElementById('forum-sort-dropdown');
-				const forumSortSelected = document.getElementById('forum-sort-selected');
-				function updateForumSortDirIcon() {
-					forumSortDirIconSvg.innerHTML = forumSortDirection === 'asc'
-						? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-						: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-				}
-				function forumFilterAndSortRows() {
-					let rows = [...forumDemoTableRows];
-					const search = forumSearchInput.value.trim().toLowerCase();
-					if (search) {
-						rows = rows.filter(row => row.some(cell => cell.toLowerCase().includes(search)));
-					}
-					if (forumSortValue === 'name') {
-						rows.sort((a, b) => forumSortDirection === 'asc' ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]));
-					} else if (forumSortValue === 'email') {
-						rows.sort((a, b) => forumSortDirection === 'asc' ? a[1].localeCompare(b[1]) : b[1].localeCompare(a[1]));
-					} else if (forumSortValue === 'date') {
-						rows.sort((a, b) => forumSortDirection === 'asc' ? a[2].localeCompare(b[2]) : b[2].localeCompare(a[2]));
-					} else if (forumSortValue === 'status') {
-						rows.sort((a, b) => forumSortDirection === 'asc' ? a[3].localeCompare(b[3]) : b[3].localeCompare(a[3]));
-					}
-					forumFilteredRows = rows;
-					forumCurrentPage = 1;
-					updateForumTablePagination();
-				}
-				function renderForumTablePage(page) {
-					const tbody = document.getElementById('forum-table-body');
-					tbody.innerHTML = '';
-					const start = (page-1)*forumRowsPerPage;
-					const end = Math.min(start+forumRowsPerPage, forumFilteredRows.length);
-					for (let r = start; r < end; r++) {
-						const row = document.createElement('tr');
-						for (let c = 0; c < 8; c++) {
-							const td = document.createElement('td');
-							td.textContent = forumFilteredRows[r][c];
-							row.appendChild(td);
-						}
-						// Modify button
-						const tdModify = document.createElement('td');
-						tdModify.innerHTML = '<button class="forum-btn-modify" title="Modify"><i class="bx bx-edit"></i> Modify</button>';
-						row.appendChild(tdModify);
-						// Delete button
-						const tdDelete = document.createElement('td');
-						tdDelete.innerHTML = '<button class="forum-btn-delete" title="Delete"><i class="bx bx-trash"></i> Delete</button>';
-						row.appendChild(tdDelete);
-						tbody.appendChild(row);
-					}
-				}
-				function renderForumTablePagination() {
-					const totalPages = Math.ceil(forumFilteredRows.length / forumRowsPerPage);
-					const pagesDiv = document.getElementById('forum-table-pages');
-					pagesDiv.innerHTML = '';
-					for (let i = 1; i <= totalPages; i++) {
-						const btn = document.createElement('button');
-						btn.className = 'forum-table-page-btn' + (i === forumCurrentPage ? ' active' : '');
-						btn.textContent = i;
-						btn.onclick = () => { forumCurrentPage = i; updateForumTablePagination(); };
-						pagesDiv.appendChild(btn);
-					}
-					document.getElementById('forum-table-prev').disabled = forumCurrentPage === 1;
-					document.getElementById('forum-table-next').disabled = forumCurrentPage === totalPages;
-				}
-				function updateForumTablePagination() {
-					renderForumTablePage(forumCurrentPage);
-					renderForumTablePagination();
-				}
-				document.addEventListener('DOMContentLoaded', function() {
-					updateForumSortDirIcon();
-					updateForumTablePagination();
-					forumSearchInput.addEventListener('input', forumFilterAndSortRows);
-					forumSortDirBtn.addEventListener('click', function() {
-						forumSortDirection = (forumSortDirection === 'asc') ? 'desc' : 'asc';
-						updateForumSortDirIcon();
-						forumFilterAndSortRows();
-					});
-					// Users-style pagination arrow logic
-					document.getElementById('forum-table-prev').onclick = function() {
-						if (forumCurrentPage > 1) { forumCurrentPage--; updateForumTablePagination(); }
-					};
-					document.getElementById('forum-table-next').onclick = function() {
-						const totalPages = Math.ceil(forumFilteredRows.length / forumRowsPerPage);
-						if (forumCurrentPage < totalPages) { forumCurrentPage++; updateForumTablePagination(); }
-					};
-					forumSortPill.addEventListener('click', function(e) {
-						e.stopPropagation();
-						if (forumSortDropdown.style.display === 'flex') {
-							forumSortDropdown.style.display = 'none';
-							forumSortPill.classList.remove('open');
-						} else {
-							forumSortDropdown.style.display = 'flex';
-							forumSortPill.classList.add('open');
-						}
-					});
-					document.querySelectorAll('.forum-sort-option').forEach(opt => {
-						opt.addEventListener('click', function(e) {
-							forumSortValue = this.getAttribute('data-value');
-							forumSortSelected.textContent = this.textContent;
-							document.querySelectorAll('.forum-sort-option').forEach(o => o.classList.remove('active'));
-							this.classList.add('active');
-							forumSortDropdown.style.display = 'none';
-							forumSortPill.classList.remove('open');
-							forumFilterAndSortRows();
-						});
-					});
-					document.addEventListener('click', function(e) {
-						if (!forumSortPill.contains(e.target)) {
-							forumSortDropdown.style.display = 'none';
-							forumSortPill.classList.remove('open');
-						}
-					});
-				});
+                // --- PUBLICATIONS TABLE LOGIC ---
+                // Publications data from controller
+                const publicationsData = [
+                {% for p in publications|default([]) %}
+                [
+                    "{{ p.titrePub|e('js') }}", 
+                    "{{ p.categoriePub|e('js') }}",
+                    "{{ p.user ? (p.user.firstName ~ ' ' ~ p.user.lastName)|e('js') : '—' }}", 
+                    "{{ p.dateCreationPub|date('Y-m-d H:i') }}",
+                    "{{ p.id }}",
+                    "{{ p.user ? p.user.emailUser|e('js') : '' }}",
+                    "{{ p.descriptionPub|e('js') }}",
+                    "{{ csrf_token('delete' ~ p.id)|e('js') }}",
+                    "{{ p.imagePub|e('js') }}"
+                ]{% if not loop.last %},{% endif %}
+                {% endfor %}
+                ];
+
+                const editPubUrlTemplate = "{{ path('admin_forum_pub_edit', {id: 'ID_PLACEHOLDER'}) }}";
+                const deletePubUrlTemplate = "{{ path('app_publication_delete', {id: 'ID_PLACEHOLDER'}) }}";
+
+
+                const forumRowsPerPage = 10;
+                let forumCurrentPage = 1;
+                let forumSortValue = 'date';
+                let forumSortDirection = 'desc'; // Default to newest first
+                let forumFilteredRows = [...publicationsData];
+
+                function getCategoryPill(category) {
+                    const cat = category.trim();
+                    let pillClass = 'badge-neon';
+                    let icon = 'bx-tag';
+                    
+                    if (cat === 'Announcement') { pillClass += ' badge-neon-announcement'; icon = 'bx-megaphone'; }
+                    else if (cat === 'Suggestion') { pillClass += ' badge-neon-suggestion'; icon = 'bx-bulb'; }
+                    else if (cat === 'Jeux Video') { pillClass += ' badge-neon-jeux'; icon = 'bx-game'; }
+                    else if (cat === 'Informatique') { pillClass += ' badge-neon-info'; icon = 'bx-terminal'; }
+                    else if (cat === 'Nouveauté') { pillClass += ' badge-neon-new'; icon = 'bx-bolt-circle'; }
+                    else if (cat === 'Discussion General') { pillClass += ' badge-neon-discussion'; icon = 'bx-message-square-detail'; }
+                    else if (cat === 'Culture') { pillClass += ' badge-neon-culture'; icon = 'bx-globe'; }
+                    else if (cat === 'Sport') { pillClass += ' badge-neon-sport'; icon = 'bx-run'; }
+
+                    return `<span class="${pillClass}"><i class="bx ${icon}"></i> ${cat}</span>`;
+                }
+
+                // Initial render on page load
+                updateForumTablePagination();
+
+                const forumSearchInput = document.querySelector('.forum-search-input');
+                const forumSortDirBtn = document.getElementById('forum-sort-dir-pill');
+                const forumSortDirIconSvg = document.getElementById('forum-sort-dir-icon-svg');
+                const forumSortPill = document.getElementById('forum-sort-pill-custom');
+                const forumSortDropdown = document.getElementById('forum-sort-dropdown');
+                const forumSortSelected = document.getElementById('forum-sort-selected');
+
+                function updateForumSortDirIcon() {
+                    forumSortDirIconSvg.innerHTML = forumSortDirection === 'asc'
+                        ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="var(--accent-color, #00c6ff)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+                        : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="var(--accent-color, #00c6ff)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+                }
+
+                function forumFilterAndSortRows() {
+                    let rows = [...publicationsData];
+                    const search = forumSearchInput.value.trim().toLowerCase();
+                    
+                    if (search) {
+                        rows = rows.filter(row => 
+                            row[0].toLowerCase().includes(search) || // Title
+                            row[1].toLowerCase().includes(search) || // Category
+                            row[2].toLowerCase().includes(search) || // Author
+                            row[6].toLowerCase().includes(search)    // Description
+                        );
+                    }
+
+                    // Sort indices: 0=Title, 1=Category, 2=Author, 3=Date
+                    let sortIdx = 3; // Default Date
+                    if (forumSortValue === 'name') sortIdx = 0; // Title
+                    else if (forumSortValue === 'category') sortIdx = 1;
+                    else if (forumSortValue === 'author') sortIdx = 2;
+                    else if (forumSortValue === 'date') sortIdx = 3;
+
+                    rows.sort((a, b) => {
+                        let valA = a[sortIdx].toLowerCase();
+                        let valB = b[sortIdx].toLowerCase();
+                        if (forumSortDirection === 'asc') return valA.localeCompare(valB);
+                        else return valB.localeCompare(valA);
+                    });
+
+                    forumFilteredRows = rows;
+                    forumCurrentPage = 1;
+                    updateForumTablePagination();
+                }
+
+                function renderForumTablePage(page) {
+                    const tbody = document.getElementById('forum-table-body');
+                    tbody.innerHTML = '';
+                    
+                    if (forumFilteredRows.length === 0) {
+                         const row = document.createElement('tr');
+                         row.innerHTML = '<td colspan="6" style="padding: 2rem; opacity: 0.7;">No publications found.</td>';
+                         tbody.appendChild(row);
+                         return;
+                    }
+
+                    const start = (page-1)*forumRowsPerPage;
+                    const end = Math.min(start+forumRowsPerPage, forumFilteredRows.length);
+                    
+                    for (let r = start; r < end; r++) {
+                        const row = document.createElement('tr');
+                        const data = forumFilteredRows[r];
+                        
+                        // Topic (Title)
+                        const tdTopic = document.createElement('td');
+                        tdTopic.style.fontWeight = "600";
+                        tdTopic.textContent = data[0];
+                        row.appendChild(tdTopic);
+                        
+                        // Category
+                        const tdCat = document.createElement('td');
+                        tdCat.innerHTML = getCategoryPill(data[1]);
+                        row.appendChild(tdCat);
+
+                        // Author
+                        const tdAuthor = document.createElement('td');
+                        tdAuthor.innerHTML = `${data[2]}<br><small style="opacity:0.7">${data[5]}</small>`;
+                        row.appendChild(tdAuthor);
+                        
+                        // Date
+                        const tdDate = document.createElement('td');
+                        tdDate.textContent = data[3];
+                        row.appendChild(tdDate);
+
+                        // Actions - View Details
+                        const tdActions = document.createElement('td');
+                        // Using forum-btn-add-db class to match the Add Publication button style
+                        tdActions.innerHTML = `
+                            <button class="forum-btn-add-db" 
+                                    type="button"
+                                    title="View Details" 
+                                    data-id="${data[4]}"
+                                    style="padding: 0.35rem 1.25rem; font-size: 0.9rem;">
+                                <i class="bx bx-show"></i> View Details
+                            </button>
+                        `;
+                        row.appendChild(tdActions);
+                        
+                        tbody.appendChild(row);
+                    }
+                }
+
+                function renderForumTablePagination() {
+                    const totalPages = Math.ceil(forumFilteredRows.length / forumRowsPerPage);
+                    const pagesDiv = document.getElementById('forum-table-pages');
+                    pagesDiv.innerHTML = '';
+
+                    for (let i = 1; i <= totalPages; i++) {
+                        const btn = document.createElement('button');
+                        btn.className = 'forum-table-page-btn' + (i === forumCurrentPage ? ' active' : '');
+                        btn.textContent = i;
+                        btn.onclick = () => { forumCurrentPage = i; updateForumTablePagination(); };
+                        pagesDiv.appendChild(btn);
+                    }
+                    document.getElementById('forum-table-prev').disabled = forumCurrentPage === 1;
+                    document.getElementById('forum-table-next').disabled = forumCurrentPage === totalPages || totalPages === 0;
+                }
+
+                function updateForumTablePagination() {
+                    renderForumTablePage(forumCurrentPage);
+                    renderForumTablePagination();
+                }
+
+                // --- COMMENTS TABLE LOGIC ---
+                const commentsData = [
+                {% for c in commentaires|default([]) %}
+                [
+                    "{{ c.descriptionCommentaire|e('js')|slice(0,50) }}...", 
+                    "{{ c.publication ? c.publication.titrePub|e('js') : 'Deleted Publication' }}",
+                    "{{ c.user ? (c.user.firstName ~ ' ' ~ c.user.lastName)|e('js') : '—' }}", 
+                    "{{ c.createdAt|date('Y-m-d H:i') }}",
+                    "{{ c.idCommentaire }}",
+                    "{{ c.descriptionCommentaire|e('js') }}",
+                    "{{ c.user ? c.user.emailUser|e('js') : '' }}",
+                    "{{ c.imageCommentaire|e('js') }}",
+                    {{ c.visibility ? 'true' : 'false' }}
+                ]{% if not loop.last %},{% endif %}
+                {% endfor %}
+                ];
+
+                const editCommentUrlTemplate = "{{ path('admin_forum_comment_edit', {id: 'ID_PLACEHOLDER'}) }}";
+                const deleteCommentUrlTemplate = "{{ path('forum_comment_delete', {id: 'ID_PLACEHOLDER'}) }}";
+
+
+                const commentsRowsPerPage = 10;
+                let commentsCurrentPage = 1;
+                let commentsSortValue = 'date';
+                let commentsSortDirection = 'desc'; 
+                let commentsFilteredRows = [...commentsData];
+
+                // Initial render on page load
+                updateCommentsTablePagination();
+
+                const commentsSearchInput = document.getElementById('comments-search-input');
+                const commentsSortDirBtn = document.getElementById('comments-sort-dir-pill');
+                const commentsSortDirIconSvg = document.getElementById('comments-sort-dir-icon-svg');
+                const commentsSortPill = document.getElementById('comments-sort-pill-custom');
+                const commentsSortDropdown = document.getElementById('comments-sort-dropdown');
+                const commentsSortSelected = document.getElementById('comments-sort-selected');
+
+                function updateCommentsSortDirIcon() {
+                    commentsSortDirIconSvg.innerHTML = commentsSortDirection === 'asc'
+                        ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="var(--accent-color, #00c6ff)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+                        : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="var(--accent-color, #00c6ff)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+                }
+
+                function commentsFilterAndSortRows() {
+                    let rows = [...commentsData];
+                    const search = commentsSearchInput.value.trim().toLowerCase();
+                    
+                    if (search) {
+                        rows = rows.filter(row => 
+                            row[0].toLowerCase().includes(search) || // Desc snippet
+                            row[1].toLowerCase().includes(search) || // Publication
+                            row[2].toLowerCase().includes(search) || // Author name
+                            row[5].toLowerCase().includes(search)    // Full desc
+                        );
+                    }
+
+                    // Sort indices: 0=Desc, 1=Pub, 2=Author, 3=Date
+                    let sortIdx = 3; // Default Date
+                    if (commentsSortValue === 'date') sortIdx = 3;
+                    else if (commentsSortValue === 'author') sortIdx = 2;
+                    else if (commentsSortValue === 'publication') sortIdx = 1;
+
+                    rows.sort((a, b) => {
+                        let valA = a[sortIdx].toLowerCase();
+                        let valB = b[sortIdx].toLowerCase();
+                        if (commentsSortDirection === 'asc') return valA.localeCompare(valB);
+                        else return valB.localeCompare(valA);
+                    });
+
+                    commentsFilteredRows = rows;
+                    commentsCurrentPage = 1;
+                    updateCommentsTablePagination();
+                }
+
+                function renderCommentsTablePage(page) {
+                    const tbody = document.getElementById('comments-table-body');
+                    tbody.innerHTML = '';
+                    
+                    if (commentsFilteredRows.length === 0) {
+                         const row = document.createElement('tr');
+                         row.innerHTML = '<td colspan="5" style="padding: 2rem; opacity: 0.7;">No comments found.</td>';
+                         tbody.appendChild(row);
+                         return;
+                    }
+
+                    const start = (page-1)*commentsRowsPerPage;
+                    const end = Math.min(start+commentsRowsPerPage, commentsFilteredRows.length);
+                    
+                    for (let r = start; r < end; r++) {
+                        const row = document.createElement('tr');
+                        const data = commentsFilteredRows[r];
+                        
+                        // Comment (Description)
+                        const tdDesc = document.createElement('td');
+                        tdDesc.textContent = data[0];
+                        row.appendChild(tdDesc);
+                        
+                        // Publication
+                        const tdPub = document.createElement('td');
+                        tdPub.style.fontWeight = "600";
+                        tdPub.textContent = data[1];
+                        row.appendChild(tdPub);
+
+                        // Author
+                        const tdAuthor = document.createElement('td');
+                        tdAuthor.innerHTML = `${data[2]}<br><small style="opacity:0.7">${data[6]}</small>`;
+                        row.appendChild(tdAuthor);
+                        
+                        // Date
+                        const tdDate = document.createElement('td');
+                        tdDate.textContent = data[3];
+                        row.appendChild(tdDate);
+
+                        // Actions - View Details
+                        const tdActions = document.createElement('td');
+                        tdActions.innerHTML = `
+                            <button class="forum-btn-add-db" 
+                                    type="button"
+                                    title="View Details" 
+                                    data-id="${data[4]}"
+                                    style="padding: 0.35rem 1.25rem; font-size: 0.9rem;">
+                                <i class="bx bx-show"></i> View Details
+                            </button>
+                        `;
+                        row.appendChild(tdActions);
+                        
+                        tbody.appendChild(row);
+                    }
+                }
+
+                function renderCommentsTablePagination() {
+                    const totalPages = Math.ceil(commentsFilteredRows.length / commentsRowsPerPage);
+                    const pagesDiv = document.getElementById('comments-table-pages');
+                    pagesDiv.innerHTML = '';
+
+                    for (let i = 1; i <= totalPages; i++) {
+                        const btn = document.createElement('button');
+                        btn.className = 'forum-table-page-btn' + (i === commentsCurrentPage ? ' active' : '');
+                        btn.textContent = i;
+                        btn.onclick = () => { commentsCurrentPage = i; updateCommentsTablePagination(); };
+                        pagesDiv.appendChild(btn);
+                    }
+                    document.getElementById('comments-table-prev').disabled = commentsCurrentPage === 1;
+                    document.getElementById('comments-table-next').disabled = commentsCurrentPage === totalPages || totalPages === 0;
+                }
+
+                function updateCommentsTablePagination() {
+                    renderCommentsTablePage(commentsCurrentPage);
+                    renderCommentsTablePagination();
+                }
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    function closeForumSortDropdown() {
+                        if (forumSortDropdown) {
+                            forumSortDropdown.style.display = 'none';
+                            forumSortPill.classList.remove('open');
+                        }
+                    }
+
+                    // Init Publications Table
+                    updateForumSortDirIcon();
+                    forumFilterAndSortRows();
+
+                    forumSearchInput.addEventListener('input', forumFilterAndSortRows);
+                    
+                    forumSortDirBtn.addEventListener('click', function() {
+                        forumSortDirection = (forumSortDirection === 'asc') ? 'desc' : 'asc';
+                        updateForumSortDirIcon();
+                        forumFilterAndSortRows();
+                    });
+
+                    document.getElementById('forum-table-prev').onclick = function() {
+                        if (forumCurrentPage > 1) { forumCurrentPage--; updateForumTablePagination(); }
+                    };
+                    document.getElementById('forum-table-next').onclick = function() {
+                        const totalPages = Math.ceil(forumFilteredRows.length / forumRowsPerPage);
+                        if (forumCurrentPage < totalPages) { forumCurrentPage++; updateForumTablePagination(); }
+                    };
+
+                    // Forum Sort Dropdown
+                    forumSortPill.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (forumSortDropdown.style.display === 'flex') {
+                            closeForumSortDropdown();
+                        } else {
+                            forumSortDropdown.style.display = 'flex';
+                            forumSortPill.classList.add('open');
+                        }
+                    });
+
+                    document.querySelectorAll('.forum-sort-option:not(.comment-sort-option)').forEach(opt => {
+                        opt.addEventListener('click', function(e) {
+                            e.stopPropagation(); // Prevent bubbling
+                            forumSortValue = this.getAttribute('data-value');
+                            forumSortSelected.textContent = this.textContent;
+                            // Only remove active from THIS dropdown's options
+                            opt.parentNode.querySelectorAll('.forum-sort-option').forEach(o => o.classList.remove('active'));
+                            this.classList.add('active');
+                            closeForumSortDropdown();
+                            forumFilterAndSortRows();
+                        });
+                    });
+
+                    document.addEventListener('click', function(e) {
+                        if (!forumSortPill.contains(e.target)) {
+                            closeForumSortDropdown();
+                        }
+                    });
+
+                    // Init Comments Table
+                    updateCommentsSortDirIcon();
+                    commentsFilterAndSortRows();
+
+                    commentsSearchInput.addEventListener('input', commentsFilterAndSortRows);
+
+                    commentsSortDirBtn.addEventListener('click', function() {
+                        commentsSortDirection = (commentsSortDirection === 'asc') ? 'desc' : 'asc';
+                        updateCommentsSortDirIcon();
+                        commentsFilterAndSortRows();
+                    });
+
+                    document.getElementById('comments-table-prev').onclick = function() {
+                        if (commentsCurrentPage > 1) { commentsCurrentPage--; updateCommentsTablePagination(); }
+                    };
+                    document.getElementById('comments-table-next').onclick = function() {
+                        const totalPages = Math.ceil(commentsFilteredRows.length / commentsRowsPerPage);
+                        if (commentsCurrentPage < totalPages) { commentsCurrentPage++; updateCommentsTablePagination(); }
+                    };
+
+                    function closeCommentsSortDropdown() {
+                        if (commentsSortDropdown) {
+                            commentsSortDropdown.style.display = 'none';
+                            commentsSortPill.classList.remove('open');
+                        }
+                    }
+
+                    // Comments Sort Dropdown
+                    commentsSortPill.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (commentsSortDropdown.style.display === 'flex') {
+                            closeCommentsSortDropdown();
+                        } else {
+                            commentsSortDropdown.style.display = 'flex';
+                            commentsSortPill.classList.add('open');
+                        }
+                    });
+
+                    document.querySelectorAll('.comment-sort-option').forEach(opt => {
+                        opt.addEventListener('click', function(e) {
+                            e.stopPropagation(); // Prevent bubbling
+                            commentsSortValue = this.getAttribute('data-value');
+                            commentsSortSelected.textContent = this.textContent;
+                            opt.parentNode.querySelectorAll('.forum-sort-option').forEach(o => o.classList.remove('active'));
+                            this.classList.add('active');
+                            closeCommentsSortDropdown();
+                            commentsFilterAndSortRows();
+                        });
+                    });
+
+                     document.addEventListener('click', function(e) {
+                        if (commentsSortPill && !commentsSortPill.contains(e.target)) {
+                            closeCommentsSortDropdown();
+                        }
+                    });
+
+                    // Pills / Tabs logic
+                    function showForumPage(page) {
+                        document.querySelectorAll('.forum-page-content').forEach(div => {
+                            div.style.display = (div.dataset.page == page) ? '' : 'none';
+                        });
+                    }
+                    document.querySelectorAll('.pill-tab').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            document.querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+                            this.classList.add('active');
+                            showForumPage(this.dataset.page);
+                        });
+                    });
+                    showForumPage(1);
+
+                    // --- CUSTOM SELECT LOGIC ---
+                    // --- CUSTOM DROPDOWN LOGIC (Residence Style) ---
+                    function initCustomDropdowns() {
+                        document.querySelectorAll('.custom-glass-dropdown').forEach(dropdown => {
+                            const trigger = dropdown.querySelector('.custom-glass-dropdown-trigger');
+                            const menu = dropdown.querySelector('.custom-glass-dropdown-menu');
+                            const targetId = dropdown.dataset.target;
+                            const hiddenSelect = document.getElementById(targetId);
+
+                            // Lazy load options on click to ensure specific timing doesn't break it
+                            trigger.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                
+                                // Fallback: try previous sibling if ID lookup failed
+                                let select = hiddenSelect;
+                                if (!select) {
+                                    const prev = dropdown.previousElementSibling;
+                                    if (prev && prev.tagName === 'SELECT') {
+                                        select = prev;
+                                    }
+                                }
+
+                                // POPULATE OPTIONS IF EMPTY
+                                if (select && menu.children.length === 0 && select.options.length > 0) {
+                                    Array.from(select.options).forEach(opt => {
+                                        // Skip empty placeholders if you want, or include them
+                                        // if (opt.value === '') return; 
+                                        
+                                        const customOpt = document.createElement('div');
+                                        customOpt.className = 'custom-glass-dropdown-option';
+                                        customOpt.dataset.value = opt.value;
+                                        customOpt.textContent = opt.text;
+                                        
+                                        if(select.value === opt.value) {
+                                            customOpt.classList.add('selected');
+                                            dropdown.querySelector('.selected-text').textContent = opt.text;
+                                        }
+
+                                        customOpt.addEventListener('click', (e) => {
+                                            e.stopPropagation();
+                                            const val = customOpt.dataset.value;
+                                            const text = customOpt.textContent;
+                                            
+                                            // Update trigger text
+                                            dropdown.querySelector('.selected-text').textContent = text;
+                                            
+                                            // Update hidden select
+                                            select.value = val;
+                                            select.dispatchEvent(new Event('change'));
+
+                                            // Handle selection UI
+                                            menu.querySelectorAll('.custom-glass-dropdown-option').forEach(o => o.classList.remove('selected'));
+                                            customOpt.classList.add('selected');
+
+                                            // Close menu
+                                            dropdown.classList.remove('open');
+                                            menu.style.display = 'none';
+                                        });
+                                        
+                                        menu.appendChild(customOpt);
+                                    });
+                                }
+
+                                const isOpen = dropdown.classList.contains('open');
+                                
+                                // Close others
+                                document.querySelectorAll('.custom-glass-dropdown.open').forEach(d => {
+                                    if(d !== dropdown) {
+                                        d.classList.remove('open');
+                                        d.querySelector('.custom-glass-dropdown-menu').style.display = 'none';
+                                    }
+                                });
+
+                                dropdown.classList.toggle('open');
+                                menu.style.display = isOpen ? 'none' : 'flex';
+                            });
+                             // Remove old static option listeners as they are now dynamic
+                        });
+
+                        // Global click handler to close dropdowns
+                        document.addEventListener('click', () => {
+                            document.querySelectorAll('.custom-glass-dropdown.open').forEach(d => {
+                                d.classList.remove('open');
+                                d.querySelector('.custom-glass-dropdown-menu').style.display = 'none';
+                            });
+                        });
+                    }
+                    
+                    initCustomDropdowns();
+
+                    // --- FILE INPUT LOGIC (Residence Style) ---
+                    function initFileInputs() {
+                        document.querySelectorAll('.hidden-select[type="file"]').forEach(input => {
+                            input.addEventListener('change', function() {
+                                const wrapper = this.closest('.residence-form-group') || this.closest('.custom-file-wrapper');
+                                const textElem = wrapper ? wrapper.querySelector('.custom-file-text') : null;
+                                if (textElem) {
+                                    if (this.files && this.files.length > 0) {
+                                        textElem.textContent = this.files[0].name;
+                                        textElem.style.color = "#00c6ff";
+                                        textElem.style.fontWeight = "700";
+                                        
+                                        // Update preview if exists
+                                        const previewId = this.getAttribute('id') === 'pub_edit_form_image_pub' ? 'edit-pub-image-preview' : 
+                                                          (this.getAttribute('id') === 'comment_edit_form_image_commentaire' ? 'edit-comment-image-preview' : null);
+                                        
+                                        if (previewId) {
+                                            const preview = document.getElementById(previewId);
+                                            if (preview) {
+                                                const reader = new FileReader();
+                                                reader.onload = function(e) {
+                                                    preview.src = e.target.result;
+                                                    preview.parentElement.style.display = 'flex';
+                                                }
+                                                reader.readAsDataURL(this.files[0]);
+                                            }
+                                        }
+
+                                    } else {
+                                        textElem.textContent = "Click to upload image...";
+                                        textElem.style.color = "";
+                                        textElem.style.fontWeight = "";
+                                    }
+                                }
+                            });
+                        });
+                    }
+
+
+                    initFileInputs();
+
+                    // --- CONFIRMATION MODAL LOGIC ---
+                    const customConfirmModal = document.getElementById('custom-confirm-modal');
+                    const confirmTitle = document.getElementById('confirm-title');
+                    const confirmText = document.getElementById('confirm-text');
+                    const confirmBtnCancel = document.getElementById('confirm-btn-cancel');
+                    const confirmBtnConfirm = document.getElementById('confirm-btn-confirm');
+                    let confirmCallback = null;
+
+                    function showCustomConfirm(title, message, callback) {
+                        confirmTitle.textContent = title;
+                        confirmText.textContent = message;
+                        confirmCallback = callback;
+                        if (customConfirmModal) customConfirmModal.style.display = 'flex';
+                    }
+
+                    function closeCustomConfirm() {
+                        if (customConfirmModal) customConfirmModal.style.display = 'none';
+                        confirmCallback = null;
+                    }
+
+                    if (confirmBtnCancel) confirmBtnCancel.addEventListener('click', closeCustomConfirm);
+                    if (confirmBtnConfirm) {
+                        confirmBtnConfirm.addEventListener('click', function() {
+                            if (confirmCallback) confirmCallback();
+                            closeCustomConfirm();
+                        });
+                    }
+                    if (customConfirmModal) {
+                        customConfirmModal.querySelector('.users-edit-modal-backdrop').addEventListener('click', closeCustomConfirm);
+                    }
+
+                    // --- VIEW MODAL LOGIC ---
+                    
+                    // Publications View Modal
+                    const pubViewModal = document.getElementById('publication-view-modal');
+                    const pubViewCloseBtn = document.getElementById('publication-view-modal-close');
+                    const pubViewModifyBtn = document.getElementById('view-pub-modify-btn');
+                    const pubViewDeleteForm = document.getElementById('view-pub-delete-form');
+                    const pubViewDeleteToken = document.getElementById('view-pub-delete-token');
+
+                    function openPubViewModal(id) {
+                        const data = publicationsData.find(p => p[4] == id);
+                        if (!data) return;
+
+                        document.getElementById('view-pub-topic').textContent = data[0];
+                        document.getElementById('view-pub-category').innerHTML = getCategoryPill(data[1]);
+                        document.getElementById('view-pub-author').textContent = data[2] + ' (' + data[5] + ')';
+                        document.getElementById('view-pub-date').textContent = data[3];
+                        document.getElementById('view-pub-description').textContent = data[6];
+
+                        // Image handling
+                        const imageRow = document.getElementById('view-pub-image-row');
+                        const imgTag = document.getElementById('view-pub-image');
+                        const imageName = data[8];
+                        if (imageName && imageName !== '') {
+                            imgTag.src = '/forum_images/' + imageName;
+                            imageRow.style.display = 'flex';
+                        } else {
+                            imageRow.style.display = 'none';
+                        }
+
+                        // Set ID for modify button
+                        pubViewModifyBtn.setAttribute('data-id', id);
+                        
+                        // Delete form setup
+                        pubViewDeleteForm.action = deletePubUrlTemplate.replace('ID_PLACEHOLDER', id);
+                        if (pubViewDeleteToken) pubViewDeleteToken.value = data[7];
+                        pubViewDeleteForm.onsubmit = function(e) { 
+                            e.preventDefault();
+                            showCustomConfirm(
+                                'Delete Publication?',
+                                'Are you sure you want to delete this publication? This action cannot be undone.',
+                                function() {
+                                    if (typeof showLoader === 'function') showLoader();
+                                    pubViewDeleteForm.submit();
+                                }
+                            );
+                            return false;
+                        };
+                    }
+
+                    function closePubViewModal() {
+                        if (pubViewModal) pubViewModal.style.display = 'none';
+                    }
+
+                    if (pubViewCloseBtn) pubViewCloseBtn.addEventListener('click', closePubViewModal);
+                    if (pubViewModal) {
+                        pubViewModal.querySelector('.users-edit-modal-backdrop').addEventListener('click', closePubViewModal);
+                    }
+
+                    // Publication Edit Modal
+                    const pubEditModal = document.getElementById('pub-edit-modal');
+                    const pubEditCloseBtn = document.getElementById('pub-edit-modal-close');
+                    const pubEditCancelBtn = document.getElementById('pub-edit-modal-cancel');
+                    const pubEditForm = document.getElementById('pub-edit-form');
+
+                    function openPubEditModal(id) {
+                        const data = publicationsData.find(p => p[4] == id);
+                        if (!data) return;
+
+                        // Prefill data
+                        const titleField = document.getElementById('publication_edit_titre_pub');
+                        const descField = document.getElementById('publication_edit_description_pub');
+                        const catField = document.getElementById('publication_edit_categorie_pub');
+
+                        if (titleField) titleField.value = data[0];
+                        if (catField) {
+                            catField.value = data[1];
+                            catField.dispatchEvent(new Event('sync-custom-select'));
+                        }
+                        if (descField) descField.value = data[6];
+
+                        // Image preview in edit modal
+                        const imagePreviewRow = document.getElementById('edit-pub-image-preview-row');
+                        const imgTag = document.getElementById('edit-pub-image-preview');
+                        const imageName = data[8];
+                        if (imageName && imageName !== '') {
+                            imgTag.src = '/forum_images/' + imageName;
+                            imagePreviewRow.style.display = 'flex';
+                        } else {
+                            imagePreviewRow.style.display = 'none';
+                        }
+
+                        // Set action URL
+                        if (pubEditForm) {
+                            pubEditForm.action = editPubUrlTemplate.replace('ID_PLACEHOLDER', id);
+                        }
+
+                        if (pubEditModal) pubEditModal.style.display = 'flex';
+                    }
+
+                    function closePubEditModal() {
+                        if (pubEditModal) pubEditModal.style.display = 'none';
+                    }
+
+                    if (pubEditCloseBtn) pubEditCloseBtn.addEventListener('click', closePubEditModal);
+                    if (pubEditCancelBtn) pubEditCancelBtn.addEventListener('click', closePubEditModal);
+                    if (pubEditModal) {
+                        const backdrop = pubEditModal.querySelector('.users-edit-modal-backdrop');
+                        if (backdrop) backdrop.addEventListener('click', closePubEditModal);
+                    }
+
+                    // Publication Add Modal
+                    const pubAddModal = document.getElementById('pub-add-modal');
+                    const pubAddBtn = document.getElementById('forum-add-pub-btn');
+                    const pubAddCloseBtn = document.getElementById('pub-add-modal-close');
+                    const pubAddCancelBtn = document.getElementById('pub-add-modal-cancel');
+
+                    function openPubAddModal() {
+                        if (pubAddModal) pubAddModal.style.display = 'flex';
+                    }
+
+                    function closePubAddModal() {
+                        if (pubAddModal) pubAddModal.style.display = 'none';
+                    }
+
+                    if (pubAddBtn) pubAddBtn.addEventListener('click', openPubAddModal);
+                    if (pubAddCloseBtn) pubAddCloseBtn.addEventListener('click', closePubAddModal);
+                    if (pubAddCancelBtn) pubAddCancelBtn.addEventListener('click', closePubAddModal);
+                    if (pubAddModal) {
+                        const backdrop = pubAddModal.querySelector('.users-edit-modal-backdrop');
+                        if (backdrop) backdrop.addEventListener('click', closePubAddModal);
+                    }
+
+                    // Wire up Modify buttons using delegation for better reliability
+                    document.addEventListener('click', function(e) {
+                        // Publication Modify
+                        const pubModBtn = e.target.closest('#view-pub-modify-btn');
+                        if (pubModBtn) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const id = pubModBtn.getAttribute('data-id');
+                            if (id) {
+                                closePubViewModal();
+                                openPubEditModal(id);
+                            }
+                            return false;
+                        }
+
+                        // Commentaire Modify
+                        const commModBtn = e.target.closest('#view-comment-modify-btn');
+                        if (commModBtn) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const id = commModBtn.getAttribute('data-id');
+                            if (id) {
+                                closeCommentViewModal();
+                                openCommentEditModal(id);
+                            }
+                            return false;
+                        }
+                    });
+
+                    // Comments View Modal
+                    const commentViewModal = document.getElementById('comment-view-modal');
+                    const commentViewCloseBtn = document.getElementById('comment-view-modal-close');
+                    const commentViewModifyBtn = document.getElementById('view-comment-modify-btn');
+                    const commentViewDeleteForm = document.getElementById('view-comment-delete-form');
+
+                    function openCommentViewModal(id) {
+                        const data = commentsData.find(c => c[4] == id);
+                        if (!data) return;
+
+                        document.getElementById('view-comment-text').textContent = data[5]; // Full description
+                        document.getElementById('view-comment-pub').textContent = data[1];
+                        document.getElementById('view-comment-author').textContent = data[2] + ' (' + data[6] + ')';
+                        document.getElementById('view-comment-date').textContent = data[3];
+
+                        // Image handling
+                        const imageRow = document.getElementById('view-comment-image-row');
+                        const imgTag = document.getElementById('view-comment-image');
+                        const imageName = data[7];
+                        if (imageName && imageName !== '') {
+                            imgTag.src = '/commentaire_images/' + imageName;
+                            imageRow.style.display = 'flex';
+                        } else {
+                            imageRow.style.display = 'none';
+                        }
+
+                        // Set ID for modify button
+                        commentViewModifyBtn.setAttribute('data-id', id);
+                        
+                        // Delete form
+                        commentViewDeleteForm.action = deleteCommentUrlTemplate.replace('ID_PLACEHOLDER', id);
+                        commentViewDeleteForm.onsubmit = function(e) { 
+                            e.preventDefault();
+                            showCustomConfirm(
+                                'Delete Comment?',
+                                'Are you sure you want to delete this comment? This action cannot be undone.',
+                                function() {
+                                    if (typeof showLoader === 'function') showLoader();
+                                    commentViewDeleteForm.submit();
+                                }
+                            );
+                            return false;
+                        };
+                    }
+
+                    function closeCommentViewModal() {
+                        if (commentViewModal) commentViewModal.style.display = 'none';
+                    }
+
+                    if (commentViewCloseBtn) commentViewCloseBtn.addEventListener('click', closeCommentViewModal);
+                    if (commentViewModal) {
+                        commentViewModal.querySelector('.users-edit-modal-backdrop').addEventListener('click', closeCommentViewModal);
+                    }
+
+                    // Commentaire Edit Modal
+                    const commentEditModal = document.getElementById('comment-edit-modal');
+                    const commentEditCloseBtn = document.getElementById('comment-edit-modal-close');
+                    const commentEditCancelBtn = document.getElementById('comment-edit-modal-cancel');
+                    const commentEditForm = document.getElementById('comment-edit-form');
+
+                    function openCommentEditModal(id) {
+                        const data = commentsData.find(c => c[4] == id);
+                        if (!data) return;
+
+                        // Prefill data
+                        const descField = document.getElementById('comment_edit_description_commentaire');
+                        const visField = document.getElementById('comment_edit_visibility');
+
+                        if (descField) descField.value = data[5];
+                        if (visField) {
+                            visField.checked = data[8];
+                        }
+
+                        // Image preview in edit modal
+                        const imagePreviewRow = document.getElementById('edit-comment-image-preview-row');
+                        const imgTag = document.getElementById('edit-comment-image-preview');
+                        const imageName = data[7];
+                        if (imageName && imageName !== '') {
+                            imgTag.src = '/commentaire_images/' + imageName;
+                            imagePreviewRow.style.display = 'flex';
+                        } else {
+                            imagePreviewRow.style.display = 'none';
+                        }
+
+                        // Set action URL
+                        if (commentEditForm) {
+                            commentEditForm.action = editCommentUrlTemplate.replace('ID_PLACEHOLDER', id);
+                        }
+
+
+                        if (commentEditModal) commentEditModal.style.display = 'flex';
+                    }
+
+                    function closeCommentEditModal() {
+                        if (commentEditModal) commentEditModal.style.display = 'none';
+                    }
+
+                    if (commentEditCloseBtn) commentEditCloseBtn.addEventListener('click', closeCommentEditModal);
+                    if (commentEditCancelBtn) commentEditCancelBtn.addEventListener('click', closeCommentEditModal);
+                    if (commentEditModal) {
+                        const backdrop = commentEditModal.querySelector('.users-edit-modal-backdrop');
+                        if (backdrop) backdrop.addEventListener('click', closeCommentEditModal);
+                    }
+
+                    // Delegation for "View Details" buttons
+                    document.getElementById('forum-table-body').addEventListener('click', function(e) {
+                        const btn = e.target.closest('.forum-btn-add-db');
+                        if (btn && btn.title === 'View Details') {
+                            const id = btn.getAttribute('data-id');
+                            if (id) {
+                                openPubViewModal(id);
+                                if (pubViewModal) pubViewModal.style.display = 'flex';
+                            }
+                        }
+                    });
+
+                    document.getElementById('comments-table-body').addEventListener('click', function(e) {
+                        const btn = e.target.closest('.forum-btn-add-db');
+                        if (btn && btn.title === 'View Details') {
+                            const id = btn.getAttribute('data-id');
+                            if (id) {
+                                openCommentViewModal(id);
+                                if (commentViewModal) commentViewModal.style.display = 'flex';
+                            }
+                        }
+                    });
+                });
 			</script>
-			</style>
 			<style>
 				/* --- Users-style pill, search, sort, dropdown, and toolbar styles, namespaced for forum --- */
 				.forum-table-toolbar { width: 100%; }
@@ -423,179 +1371,129 @@
 				}
 				/* --- End Users-style pill, search, sort, dropdown, and toolbar styles --- */
 				/* --- Original Forum table and pill CSS restored below --- */
-				.table-pagination-bar {
-					display: flex;
-					justify-content: center;
-					align-items: center;
-					gap: 1.2rem;
-					margin: 1.5rem 0 0.5rem 0;
-				}
-				.forum-table-arrow {
-					background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
-					color: #fff;
-					border: none;
-					border-radius: 50%;
-					width: 2.5rem;
-					height: 2.5rem;
-					font-size: 1.5rem;
-					display: flex;
-					align-items: center;
-					justify-content: center;
-					box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-					cursor: pointer;
-					transition: background 0.18s, color 0.18s, box-shadow 0.18s;
-					outline: none;
-				}
-				.forum-table-arrow:disabled {
-					opacity: 0.4;
-					cursor: not-allowed;
-				}
-				.forum-table-pages {
-					display: flex;
-					gap: 0.5rem;
-				}
-				.forum-table-page-btn {
-					background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
-					color: #fff;
-					border: none;
-					border-radius: 999px;
-					padding: 0.5rem 1.1rem;
-					font-size: 1rem;
-					font-weight: 600;
-					cursor: pointer;
-					transition: background 0.18s, color 0.18s, box-shadow 0.18s;
-					outline: none;
-					box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-				}
-				.forum-table-page-btn.active, .forum-table-page-btn:hover {
-					background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-					color: #fff;
-					box-shadow: 0 4px 16px rgba(0,123,255,0.10);
-				}
-				.forum-btn-add-db {
-					border: none;
-					border-radius: 999px;
-					padding: 0.5rem 1.5rem;
-					font-size: 1.1rem;
-					font-weight: 700;
-					cursor: pointer;
-					transition: background 0.18s, color 0.18s, box-shadow 0.18s;
-					outline: none;
-					margin: 0 auto;
-					display: inline-flex;
-					align-items: center;
-					gap: 0.6rem;
-					justify-content: center;
-					background: linear-gradient(90deg, #00e676 0%, #00bfae 100%);
-					color: #fff;
-					box-shadow: 0 2px 8px rgba(0,230,118,0.10);
-				}
-				.forum-btn-add-db:hover {
-					background: linear-gradient(90deg, #00bfae 0%, #00e676 100%);
-					color: #fff;
-				}
-				.liquid-glass-table-container {
-					background: rgba(30, 34, 44, 0.7);
-					border-radius: 24px;
-					box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-					backdrop-filter: blur(18px) saturate(180%);
-					padding: 2.5rem 3rem 2rem 3rem;
-					margin: 0 auto 2rem auto;
-					max-width: 1600px;
-					border: 1.5px solid rgba(255,255,255,0.08);
-					position: relative;
-				}
-				.liquid-glass-table-scroll {
-					overflow-x: auto;
-				}
-				.liquid-glass-table {
-					min-width: 1400px;
-					width: 100%;
-					border-collapse: separate;
-					border-spacing: 0;
-					background: rgba(255,255,255,0.04);
-					border-radius: 18px;
-					overflow: hidden;
-					box-shadow: 0 2px 12px rgba(0,0,0,0.10);
-					font-size: 1rem;
-					color: #e3e8f7;
-				}
-				.liquid-glass-table th, .liquid-glass-table td {
-					padding: 0.75rem 1.1rem;
-					text-align: center;
-					border-bottom: 1px solid rgba(255,255,255,0.08);
-					backdrop-filter: blur(8px);
-					vertical-align: middle;
-					word-break: break-word;
-					white-space: normal;
-					max-width: 180px;
-				}
-				.liquid-glass-table td {
-					display: table-cell;
-					text-align: center;
-					vertical-align: middle;
-				}
-				.liquid-glass-table th {
-					background: rgba(255,255,255,0.10);
-					font-weight: 700;
-					letter-spacing: 0.03em;
-					color: #fff;
-					border-top: none;
-					text-align: center;
-					vertical-align: middle;
-				}
-				.liquid-glass-table tr:last-child td {
-					border-bottom: none;
-				}
-				.forum-btn-modify, .forum-btn-delete {
-					border: none;
-					border-radius: 999px;
-					padding: 0.4rem 1.1rem;
-					font-size: 1rem;
-					font-weight: 600;
-					cursor: pointer;
-					transition: background 0.18s, color 0.18s, box-shadow 0.18s;
-					outline: none;
-					margin: 0 auto;
-					display: inline-flex;
-					align-items: center;
-					gap: 0.5rem;
-					justify-content: center;
-				}
-				.forum-btn-modify {
-					background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-					color: #fff;
-					box-shadow: 0 2px 8px rgba(0,123,255,0.10);
-				}
-				.forum-btn-modify:hover {
-					background: linear-gradient(90deg, #0072ff 0%, #00c6ff 100%);
-					color: #fff;
-				}
-				.forum-btn-delete {
-					background: linear-gradient(90deg, #ff3b30 0%, #ff2d92 100%);
-					color: #fff;
-					box-shadow: 0 2px 8px rgba(255,59,48,0.10);
-				}
-				.forum-btn-delete:hover {
-					background: linear-gradient(90deg, #ff2d92 0%, #ff3b30 100%);
-					color: #fff;
-				}
-				.liquid-glass-table i.bx {
-					font-size: 1.1em;
-					vertical-align: middle;
-				}
-			</style>
-			</style>
-		</div>
-		<div class="forum-page-content" data-page="2" style="display:none;">
-			<div class="forum-list-demo">
-				<h3 style="margin-bottom:1rem;">Demo Forums (Page 2)</h3>
-				<ul style="list-style:none;padding:0;">
-					<li style="padding:0.5rem 0;border-bottom:1px solid #eee;">Forum Topic 1</li>
-					<li style="padding:0.5rem 0;border-bottom:1px solid #eee;">Forum Topic 2</li>
-					<li style="padding:0.5rem 0;">Forum Topic 3</li>
-				</ul>
-			</div>
+	/* Table & Pagination CSS (Residence Unified for Forum) */
+	.liquid-glass-table-container { background: rgba(30, 34, 44, 0.7); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); backdrop-filter: blur(18px); padding: 2.5rem 3rem 2rem 3rem; border: 1.5px solid rgba(255,255,255,0.08); position: relative; }
+	.liquid-glass-table-scroll { overflow-x: auto; margin-top: 1.75rem; }
+	.liquid-glass-table { width: 100%; min-width: 1000px; border-collapse: separate; border-spacing: 0; background: rgba(255,255,255,0.04); border-radius: 20px; overflow: hidden; color:#e3e8f7; border: 1px solid rgba(255,255,255,0.06); }
+	.liquid-glass-table th { background: rgba(255,255,255,0.12); padding: 1.4rem; font-weight: 800; color:#fff; text-align: center; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; border-top: none; }
+	.liquid-glass-table td { padding: 1.4rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: middle; }
+	.liquid-glass-table tr:last-child td { border-bottom: none; }
+	
+	.forum-btn-add-db { background: linear-gradient(135deg, #00e676 0%, #00bfae 100%); color:#fff; border:none; border-radius:999px; padding:0.85rem 2rem; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:0.75rem; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 8px 20px rgba(0, 230, 118, 0.25); height: fit-content; text-decoration: none; }
+	.forum-btn-add-db:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 30px rgba(0, 230, 118, 0.35); color: #fff; }
+	
+	
+	.table-pagination-bar { display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-top: 3rem; }
+	.forum-table-arrow { 
+		width: 48px; 
+		height: 48px; 
+		border-radius: 50%; 
+		border: none; 
+		background: rgba(255,255,255,0.07); 
+		color: #fff; 
+		display: flex; 
+		align-items: center; 
+		justify-content: center; 
+		cursor: pointer; 
+		transition: all 0.3s; 
+		font-size: 1.8rem; 
+		border: 1px solid rgba(255,255,255,0.1); 
+		backdrop-filter: blur(8px);
+	}
+	.forum-table-arrow:hover:not(:disabled) { 
+		background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); 
+		transform: scale(1.1); 
+		box-shadow: 0 8px 25px rgba(0, 114, 255, 0.4);
+		border-color: transparent;
+	}
+	.forum-table-arrow:disabled { opacity: 0.2; cursor: not-allowed; }
+	.forum-table-pages { display: flex; gap: 0.5rem; align-items: center; }
+	.forum-table-page-btn { 
+		padding: 0.6rem 1.4rem; 
+		border-radius: 999px; 
+		border: none; 
+		background: rgba(255,255,255,0.05); 
+		color: #bfc9d8; 
+		cursor: pointer; 
+		transition: all 0.25s; 
+		font-weight: 700; 
+		font-size: 1rem; 
+		border: 1px solid rgba(255,255,255,0.08);
+		backdrop-filter: blur(8px);
+	}
+	.forum-table-page-btn:hover { 
+		background: rgba(255,255,255,0.12); 
+		color: #fff;
+		transform: translateY(-2px);
+	}
+	.forum-table-page-btn.active { 
+		background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); 
+		color: #fff; 
+		box-shadow: 0 6px 20px rgba(0, 114, 255, 0.4);
+		border-color: transparent;
+	}
+
+	/* Action Buttons */
+	.forum-btn-modify, .forum-btn-delete { border: none; border-radius: 12px; padding: 0.6rem 1.2rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; }
+	.forum-btn-modify { background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); color: #fff; box-shadow: 0 4px 12px rgba(0,123,255,0.2); }
+	.forum-btn-modify:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,123,255,0.3); color: #fff; }
+	.forum-btn-delete { background: linear-gradient(90deg, #ff3b30 0%, #ff2d92 100%); color: #fff; box-shadow: 0 4px 12px rgba(255,59,48,0.2); }
+	.forum-btn-delete:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255,59,48,0.3); color: #fff; }
+	
+	.liquid-glass-table i.bx { font-size: 1.1em; vertical-align: middle; }
+
+	/* Light Mode Overrides for Forum Table & Pagination */
+	[data-theme="light"] .liquid-glass-table-container {
+		background: rgba(255,255,255,0.85);
+		border: 1.5px solid #e3e8f7;
+		box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+	}
+	[data-theme="light"] .liquid-glass-table {
+		background: rgba(255,255,255,0.98);
+		color: #23272f;
+		border: 1px solid #e3e8f7;
+	}
+	[data-theme="light"] .liquid-glass-table th {
+		background: #f5f7fa;
+		color: #23272f;
+		border-bottom: 2px solid #e3e8f7;
+	}
+	[data-theme="light"] .liquid-glass-table td {
+		border-bottom: 1px solid #e3e8f7;
+		color: #23272f;
+	}
+	[data-theme="light"] .forum-table-arrow {
+		background: #fff;
+		color: #0072ff;
+		border: 1px solid #e3e8f7;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+	}
+	[data-theme="light"] .forum-table-arrow:hover:not(:disabled) {
+		background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+		color: #fff;
+		box-shadow: 0 4px 12px rgba(0,114,255,0.3);
+		border-color: transparent;
+	}
+	[data-theme="light"] .forum-table-page-btn {
+		color: #5c6370;
+		background: #fff;
+		border: 1px solid #e3e8f7;
+		box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+	}
+	[data-theme="light"] .forum-table-page-btn:hover {
+		background: rgba(0,114,255,0.08);
+		color: #0072ff;
+		transform: translateY(-2px);
+		box-shadow: 0 2px 8px rgba(0,114,255,0.15);
+	}
+	[data-theme="light"] .forum-table-page-btn.active {
+		background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+		color: #fff;
+		box-shadow: 0 4px 12px rgba(0,114,255,0.3);
+		border-color: transparent;
+	}
+
+
 		</div>
 		<div class="forum-page-content" data-page="3" style="display:none;">
 			<div class="forum-list-demo">
@@ -630,258 +1528,365 @@
 		box-shadow: 0 2px 12px rgba(0,0,0,0.08);
 		width: fit-content;
 	}
-	.pill-slider-bar {
-		position: absolute;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		border-radius: 999px;
-		background: transparent;
-		z-index: 0;
-		pointer-events: none;
-	}
-	.pill-slider {
-		position: absolute;
-		left: 0;
-		top: 50%;
-		transform: translateY(-50%);
-		height: 40px;
-		width: 0;
-		background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-		border-radius: 999px;
-		z-index: 2;
-		transition: left 0.35s cubic-bezier(0.4,0,0.2,1), width 0.35s cubic-bezier(0.4,0,0.2,1);
-		box-shadow: 0 4px 16px rgba(0,123,255,0.15);
-		pointer-events: none;
-		opacity: 1;
-	}
 	.pill-tab {
 		background: transparent;
-		color: #bfc9d8;
+		color: rgba(191,201,216,0.8);
 		border: none;
 		border-radius: 999px;
-		padding: 0.5rem 1.5rem;
+		padding: 0.75rem 2rem;
 		font-size: 1rem;
-		font-weight: 600;
+		font-weight: 700;
 		cursor: pointer;
-		transition: color 0.2s, box-shadow 0.2s;
-		box-shadow: none;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 		outline: none;
 		position: relative;
-		z-index: 3;
+		z-index: 2;
+		white-space: nowrap;
+	}
+	.pill-tab:hover {
+		color: #fff;
+		background: rgba(255,255,255,0.05);
 	}
 	.pill-tab.active, .pill-tab:focus {
+		background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
 		color: #fff;
-		text-shadow: 0 2px 8px rgba(0,123,255,0.10);
-		z-index: 3;
+		text-shadow: none;
+		box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
 	}
 </style>
-<script>
-	// --- Users-style sort direction, dropdown, search, and pill slider logic, namespaced for forum ---
-	document.addEventListener('DOMContentLoaded', function() {
-	// --- Users-style dropdown and sort pill logic for Forum ---
-	const sortPill = document.getElementById('forum-sort-pill-custom');
-	const sortDropdown = document.getElementById('forum-sort-dropdown');
-	const sortSelected = document.getElementById('forum-sort-selected');
-	let sortValue = 'name';
-	function closeSortDropdown() {
-		if (sortDropdown) {
-			sortDropdown.style.display = 'none';
-			sortPill && sortPill.classList.remove('open');
-		}
-	}
-	function openSortDropdown() {
-		if (sortDropdown) {
-			sortDropdown.style.display = 'flex';
-			sortPill && sortPill.classList.add('open');
-		}
-	}
-	if (sortPill && sortDropdown) {
-		sortPill.addEventListener('click', function(e) {
-			e.stopPropagation();
-			if (sortDropdown.style.display === 'flex') {
-				closeSortDropdown();
-			} else {
-				openSortDropdown();
-			}
-		});
-		document.querySelectorAll('.forum-sort-option').forEach(opt => {
-			opt.addEventListener('click', function(e) {
-				sortValue = this.getAttribute('data-value');
-				sortSelected.textContent = this.textContent;
-				document.querySelectorAll('.forum-sort-option').forEach(o => o.classList.remove('active'));
-				this.classList.add('active');
-				closeSortDropdown();
-				forumSortValue = sortValue;
-				forumFilterAndSortRows();
-			});
-		});
-		document.addEventListener('click', function(e) {
-			if (!sortPill.contains(e.target)) closeSortDropdown();
-		});
-		sortPill.addEventListener('keydown', function(e) {
-			if (e.key === 'Escape') closeSortDropdown();
-			if (e.key === 'ArrowDown') {
-				openSortDropdown();
-				const first = sortDropdown.querySelector('.forum-sort-option');
-				if (first) first.focus();
-			}
-		});
-	}
-		// Pills logic
-		function showForumPage(page) {
-			document.querySelectorAll('.forum-page-content').forEach(div => {
-				div.style.display = (div.dataset.page == page) ? '' : 'none';
-			});
-		}
-		function updatePillSlider() {
-			const pills = document.querySelectorAll('.pill-tab');
-			const slider = document.querySelector('.pill-slider');
-			const active = document.querySelector('.pill-tab.active');
-			if (!active || !slider) return;
-			slider.style.left = (active.offsetLeft) + 'px';
-			slider.style.width = active.offsetWidth + 'px';
-		}
-		document.querySelectorAll('.pill-tab').forEach(btn => {
-			btn.addEventListener('click', function() {
-				document.querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
-				this.classList.add('active');
-				updatePillSlider();
-				showForumPage(this.dataset.page);
-			});
-		});
-		showForumPage(1);
-		setTimeout(updatePillSlider, 100);
-		window.addEventListener('resize', updatePillSlider);
 
-		// Sort direction toggle logic
-		let forumSortDirection = 'asc';
-		const forumSortDirBtn = document.getElementById('forum-sort-dir-pill');
-		const forumSortDirIconSvg = document.getElementById('forum-sort-dir-icon-svg');
-		function updateForumSortDirIcon() {
-			forumSortDirIconSvg.innerHTML = forumSortDirection === 'asc'
-				? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-				: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-		}
-		updateForumSortDirIcon();
-		forumSortDirBtn.addEventListener('click', function() {
-			forumSortDirection = (forumSortDirection === 'asc') ? 'desc' : 'asc';
-			updateForumSortDirIcon();
-			forumFilterAndSortRows();
-		});
+<!-- Publication View Details modal -->
+<div id="publication-view-modal" class="users-edit-modal" style="display: none;">
+    <div class="users-edit-modal-backdrop"></div>
+    <div class="users-edit-modal-card">
+        <div class="users-edit-modal-header">
+            <div>
+                <h3>Publication Details</h3>
+                <p class="users-edit-modal-subtitle">View complete publication information</p>
+            </div>
+            <button type="button" class="users-edit-modal-close" id="publication-view-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="users-edit-modal-body">
+            <div class="forum-view-row">
+                <div class="forum-view-label">Topic</div>
+                <div class="forum-view-value" id="view-pub-topic">-</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Author</div>
+                <div class="forum-view-value" id="view-pub-author">-</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Category</div>
+                <div class="forum-view-value" id="view-pub-category">-</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Date</div>
+                <div class="forum-view-value" id="view-pub-date">-</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Description</div>
+                <div class="forum-view-value" id="view-pub-description">-</div>
+            </div>
+            <div class="forum-view-row" id="view-pub-image-row" style="display: none; flex-direction: column; align-items: center; text-align: center;">
+                <div class="forum-view-label" style="margin-bottom: 0.5rem; text-align: center;">Image</div>
+                <img id="view-pub-image" src="" alt="Publication Image" style="max-width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);">
+            </div>
+            
+            <div class="users-edit-modal-actions" style="margin-top: 2rem;">
+                <button type="button" class="users-btn-cancel" id="publication-view-close-btn">Close</button>
+                <span class="users-edit-modal-actions-spacer"></span>
+                <button type="button" class="users-btn-modify forum-btn-modify" id="view-pub-modify-btn">
+                    <i class="bx bx-edit"></i> Modify
+                </button>
+                <form id="view-pub-delete-form" method="post" data-ajax="true" style="display: inline-block; margin-left: 0.75rem;">
+                    <input type="hidden" name="_token" id="view-pub-delete-token" value="">
+                    <button type="submit" class="users-btn-delete forum-btn-delete">
+                        <i class="bx bx-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-		// Custom dropdown logic for sorting pill
-		const forumSortPill = document.getElementById('forum-sort-pill-custom');
-		const forumSortDropdown = document.getElementById('forum-sort-dropdown');
-		const forumSortSelected = document.getElementById('forum-sort-selected');
-		let forumSortValue = 'name';
-		function closeForumSortDropdown() {
-			forumSortDropdown.style.display = 'none';
-			forumSortPill.classList.remove('open');
-		}
-		function openForumSortDropdown() {
-			forumSortDropdown.style.display = 'flex';
-			forumSortPill.classList.add('open');
-		}
-		forumSortPill.addEventListener('click', function(e) {
-			e.stopPropagation();
-			if (forumSortDropdown.style.display === 'flex') {
-				closeForumSortDropdown();
-			} else {
-				openForumSortDropdown();
-			}
-		});
-		document.querySelectorAll('.forum-sort-option').forEach(opt => {
-			opt.addEventListener('click', function(e) {
-				forumSortValue = this.getAttribute('data-value');
-				forumSortSelected.textContent = this.textContent;
-				document.querySelectorAll('.forum-sort-option').forEach(o => o.classList.remove('active'));
-				this.classList.add('active');
-				closeForumSortDropdown();
-				forumFilterAndSortRows();
-			});
-		});
-		document.addEventListener('click', function(e) {
-			if (!forumSortPill.contains(e.target)) closeForumSortDropdown();
-		});
-		forumSortPill.addEventListener('keydown', function(e) {
-			if (e.key === 'Escape') closeForumSortDropdown();
-			if (e.key === 'ArrowDown') {
-				openForumSortDropdown();
-				const first = forumSortDropdown.querySelector('.forum-sort-option');
-				if (first) first.focus();
-			}
-		});
+<!-- Commentaire View Details modal -->
+<div id="comment-view-modal" class="users-edit-modal" style="display: none;">
+    <div class="users-edit-modal-backdrop"></div>
+    <div class="users-edit-modal-card">
+        <div class="users-edit-modal-header">
+            <div>
+                <h3>Comment Details</h3>
+                <p class="users-edit-modal-subtitle">View complete comment information</p>
+            </div>
+            <button type="button" class="users-edit-modal-close" id="comment-view-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="users-edit-modal-body">
+            <div class="forum-view-row">
+                <div class="forum-view-label">Comment</div>
+                <div class="forum-view-value" id="view-comment-text">-</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Publication</div>
+                <div class="forum-view-value" id="view-comment-pub">-</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Author</div>
+                <div class="forum-view-value" id="view-comment-author">-</div>
+            </div>
+            <div class="forum-view-row">
+                <div class="forum-view-label">Date</div>
+                <div class="forum-view-value" id="view-comment-date">-</div>
+            </div>
+            <div class="forum-view-row" id="view-comment-image-row" style="display: none; flex-direction: column; align-items: center; text-align: center;">
+                <div class="forum-view-label" style="margin-bottom: 0.5rem; text-align: center;">Image</div>
+                <img id="view-comment-image" src="" alt="Comment Image" style="max-width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);">
+            </div>
+            
+            <div class="users-edit-modal-actions" style="margin-top: 2rem;">
+                <button type="button" class="users-btn-cancel" id="comment-view-close-btn">Close</button>
+                <span class="users-edit-modal-actions-spacer"></span>
+                <button type="button" class="users-btn-modify forum-btn-modify" id="view-comment-modify-btn">
+                    <i class="bx bx-edit"></i> Modify
+                </button>
+                <form id="view-comment-delete-form" method="post" data-ajax="true" style="display: inline-block; margin-left: 0.75rem;">
+                    <input type="hidden" name="_token" id="view-comment-delete-token" value="">
+                    <button type="submit" class="users-btn-delete forum-btn-delete">
+                        <i class="bx bx-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-		// Search and sort logic
-		const forumSearchInput = document.querySelector('.forum-search-input');
-		let forumFilteredRows = [...forumDemoTableRows];
-		function forumFilterAndSortRows() {
-			let rows = [...forumDemoTableRows];
-			const search = forumSearchInput.value.trim().toLowerCase();
-			if (search) {
-				rows = rows.filter(row => row.some(cell => cell.toLowerCase().includes(search)));
-			}
-			if (forumSortValue === 'name') {
-				rows.sort((a, b) => forumSortDirection === 'asc' ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]));
-			} else if (forumSortValue === 'email') {
-				rows.sort((a, b) => forumSortDirection === 'asc' ? a[1].localeCompare(b[1]) : b[1].localeCompare(a[1]));
-			} else if (forumSortValue === 'date') {
-				rows.sort((a, b) => forumSortDirection === 'asc' ? a[2].localeCompare(b[2]) : b[2].localeCompare(a[2]));
-			} else if (forumSortValue === 'status') {
-				rows.sort((a, b) => forumSortDirection === 'asc' ? a[3].localeCompare(b[3]) : b[3].localeCompare(a[3]));
-			}
-			forumFilteredRows = rows;
-			forumCurrentPage = 1;
-			updateForumTablePagination();
-		}
-		forumSearchInput.addEventListener('input', forumFilterAndSortRows);
-		// Patch renderForumTablePage to use forumFilteredRows
-		const origRenderForumTablePage = renderForumTablePage;
-		renderForumTablePage = function(page) {
-			const tbody = document.getElementById('forum-table-body');
-			tbody.innerHTML = '';
-			const start = (page-1)*forumRowsPerPage;
-			const end = Math.min(start+forumRowsPerPage, forumFilteredRows.length);
-			for (let r = start; r < end; r++) {
-				const row = document.createElement('tr');
-				for (let c = 0; c < 8; c++) {
-					const td = document.createElement('td');
-					td.textContent = forumFilteredRows[r][c];
-					row.appendChild(td);
-				}
-				// Modify button
-				const tdModify = document.createElement('td');
-				tdModify.innerHTML = '<button class="forum-btn-modify" title="Modify"><i class="bx bx-edit"></i> Modify</button>';
-				row.appendChild(tdModify);
-				// Delete button
-				const tdDelete = document.createElement('td');
-				tdDelete.innerHTML = '<button class="forum-btn-delete" title="Delete"><i class="bx bx-trash"></i> Delete</button>';
-				row.appendChild(tdDelete);
-				tbody.appendChild(row);
-			}
-		};
-		// Patch renderForumTablePagination to use forumFilteredRows
-		const origRenderForumTablePagination = renderForumTablePagination;
-		renderForumTablePagination = function() {
-			const totalPages = Math.ceil(forumFilteredRows.length / forumRowsPerPage);
-			const pagesDiv = document.getElementById('forum-table-pages');
-			pagesDiv.innerHTML = '';
-			for (let i = 1; i <= totalPages; i++) {
-				const btn = document.createElement('button');
-				btn.className = 'forum-table-page-btn' + (i === forumCurrentPage ? ' active' : '');
-				btn.textContent = i;
-				btn.onclick = () => { forumCurrentPage = i; updateForumTablePagination(); };
-				pagesDiv.appendChild(btn);
-			}
-			document.getElementById('forum-table-prev').disabled = forumCurrentPage === 1;
-			document.getElementById('forum-table-next').disabled = forumCurrentPage === totalPages;
-		};
-		// Initial filter and sort
-		forumFilterAndSortRows();
-	});
-</script>
+<!-- Publication Add modal -->
+<div id="pub-add-modal" class="users-edit-modal" style="display: none;">
+    <div class="users-edit-modal-backdrop"></div>
+    <div class="users-edit-modal-card">
+        <div class="users-edit-modal-header">
+            <div>
+                <h3>Add Publication</h3>
+                <p class="users-edit-modal-subtitle">Create a new publication for the forum.</p>
+            </div>
+            <button type="button" class="users-edit-modal-close" id="pub-add-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="users-edit-modal-body">
+            {% if pubAddForm is defined %}
+            {{ form_start(pubAddForm, { 'attr': {
+                'id': 'pub-add-form',
+                'method': 'post',
+                'action': path('admin_forum_pub_add'),
+                'enctype': 'multipart/form-data',
+                'class': 'users-edit-form'
+            } }) }}
+            
+            <div class="residence-form-group">
+                <label class="residence-edit-label">Title</label>
+                {{ form_widget(pubAddForm.titre_pub, { 'attr': { 'class': 'residence-edit-input', 'placeholder': 'Enter publication title' } }) }}
+            </div>
+            
+            <div class="residence-form-group">
+                <label class="residence-edit-label">Description</label>
+                {{ form_widget(pubAddForm.description_pub, { 'attr': { 'class': 'residence-edit-input', 'style': 'min-height: 100px;', 'placeholder': 'Enter publication description' } }) }}
+            </div>
+
+            <div class="residence-form-group">
+                <label class="residence-edit-label">Category</label>
+                {{ form_widget(pubAddForm.categorie_pub, { 'attr': { 'class': 'hidden-select', 'id': 'add-pub-category' } }) }}
+                <div class="custom-glass-dropdown" data-target="add-pub-category">
+                    <div class="custom-glass-dropdown-trigger">
+                        <span class="selected-text">Select Category</span>
+                        <i class="bx bx-chevron-down custom-glass-dropdown-arrow"></i>
+                    </div>
+                    <div class="custom-glass-dropdown-menu">
+                        <!-- Options will be populated by JS from the hidden select -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="residence-form-group">
+                <label class="residence-edit-label">Image (optional)</label>
+                <div class="custom-file-wrapper">
+                    {{ form_widget(pubAddForm.image_pub, { 'attr': { 'class': 'hidden-select residence-image-input' } }) }}
+                    <div class="custom-file-trigger" onclick="document.querySelector('#pub-add-modal .residence-image-input').click()">
+                        <div class="custom-file-icon"><i class="bx bx-image-add"></i></div>
+                        <div class="custom-file-text">Click to upload image...</div>
+                        <div class="custom-file-btn">Browse</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="users-edit-modal-actions">
+                <button type="button" class="users-btn-cancel" id="pub-add-modal-cancel">Cancel</button>
+                <span class="users-edit-modal-actions-spacer"></span>
+                <button type="submit" class="users-btn-modify forum-btn-modify">
+                    <i class="bx bx-plus"></i> Add Publication
+                </button>
+            </div>
+            {{ form_end(pubAddForm) }}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Publication Edit modal (Inline Editing) -->
+<div id="pub-edit-modal" class="users-edit-modal" style="display: none;">
+    <div class="users-edit-modal-backdrop"></div>
+    <div class="users-edit-modal-card">
+        <div class="users-edit-modal-header">
+            <div>
+                <h3>Edit Publication</h3>
+                <p class="users-edit-modal-subtitle">Modify the publication details below.</p>
+            </div>
+            <button type="button" class="users-edit-modal-close" id="pub-edit-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="users-edit-modal-body">
+            {% if pubEditForm is defined %}
+            {{ form_start(pubEditForm, { 'attr': {
+                'id': 'pub-edit-form',
+                'method': 'post',
+                'action': '',
+                'enctype': 'multipart/form-data',
+                'class': 'users-edit-form'
+            } }) }}
+
+            <div class="residence-form-group">
+                <label class="residence-edit-label">Title</label>
+                {{ form_widget(pubEditForm.titre_pub, { 'attr': { 'class': 'residence-edit-input' } }) }}
+            </div>
+            
+            <div class="residence-form-group">
+                <label class="residence-edit-label">Description</label>
+                {{ form_widget(pubEditForm.description_pub, { 'attr': { 'class': 'residence-edit-input', 'style': 'min-height: 100px;' } }) }}
+            </div>
+
+            <div class="residence-form-group">
+                <label class="residence-edit-label">Category</label>
+                 {{ form_widget(pubEditForm.categorie_pub, { 'attr': { 'class': 'hidden-select', 'id': 'edit-pub-category' } }) }}
+                <div class="custom-glass-dropdown" data-target="edit-pub-category">
+                    <div class="custom-glass-dropdown-trigger">
+                        <span class="selected-text">Select Category</span>
+                        <i class="bx bx-chevron-down custom-glass-dropdown-arrow"></i>
+                    </div>
+                    <div class="custom-glass-dropdown-menu">
+                        <!-- Options will be populated by JS from the hidden select -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="forum-view-row" id="edit-pub-image-preview-row" style="display: none;">
+                <div class="forum-view-label">Current Image</div>
+                <img id="edit-pub-image-preview" src="" alt="Current Image" style="max-width: 120px; border-radius: 8px;">
+            </div>
+
+            <div class="residence-form-group">
+                <label class="residence-edit-label">Image (optional)</label>
+                <div class="custom-file-wrapper">
+                    {{ form_widget(pubEditForm.image_pub, { 'attr': { 'class': 'hidden-select edit-pub-image-input' } }) }}
+                    <div class="custom-file-trigger" onclick="document.querySelector('#pub-edit-modal .edit-pub-image-input').click()">
+                        <div class="custom-file-icon"><i class="bx bx-cloud-upload"></i></div>
+                        <div class="custom-file-text">Click to replace image...</div>
+                        <div class="custom-file-btn">Browse</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="users-edit-modal-actions">
+                <button type="button" class="users-btn-cancel" id="pub-edit-modal-cancel">Cancel</button>
+                <span class="users-edit-modal-actions-spacer"></span>
+                <button type="submit" class="users-btn-modify forum-btn-modify">
+                    <i class="bx bx-save"></i> Save changes
+                </button>
+            </div>
+            {{ form_end(pubEditForm) }}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Commentaire Edit modal (Inline Editing) -->
+<div id="comment-edit-modal" class="users-edit-modal" style="display: none;">
+    <div class="users-edit-modal-backdrop"></div>
+    <div class="users-edit-modal-card">
+        <div class="users-edit-modal-header">
+            <div>
+                <h3>Edit Comment</h3>
+                <p class="users-edit-modal-subtitle">Modify your comment below.</p>
+            </div>
+            <button type="button" class="users-edit-modal-close" id="comment-edit-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="users-edit-modal-body">
+            {% if commentEditForm is defined %}
+            {{ form_start(commentEditForm, { 'attr': {
+                'id': 'comment-edit-form',
+                'method': 'post',
+                'action': '',
+                'enctype': 'multipart/form-data',
+                'class': 'users-edit-form'
+            } }) }}
+
+            <div class="residence-form-group">
+                <label class="residence-edit-label">Comment</label>
+                {{ form_widget(commentEditForm.description_commentaire, { 'attr': { 'class': 'residence-edit-input', 'style': 'min-height: 100px;' } }) }}
+            </div>
+
+            <div class="mb-3 users-edit-modal-verified-wrap">
+                {{ form_row(commentEditForm.visibility, { 'attr': { 'class': 'users-edit-verified-cb' }, 'label_attr': { 'class': 'users-edit-verified-label' } }) }}
+            </div>
+
+            <div class="forum-view-row" id="edit-comment-image-preview-row" style="display: none;">
+                <div class="forum-view-label">Current Image</div>
+                <img id="edit-comment-image-preview" src="" alt="Current Image" style="max-width: 120px; border-radius: 8px;">
+            </div>
+
+            <div class="residence-form-group">
+                <label class="residence-edit-label">Image (optional)</label>
+                <div class="custom-file-wrapper">
+                    {{ form_widget(commentEditForm.image_commentaire, { 'attr': { 'class': 'hidden-select edit-comment-image-input' } }) }}
+                    <div class="custom-file-trigger" onclick="document.querySelector('#comment-edit-modal .edit-comment-image-input').click()">
+                        <div class="custom-file-icon"><i class="bx bx-cloud-upload"></i></div>
+                        <div class="custom-file-text">Click to replace image...</div>
+                        <div class="custom-file-btn">Browse</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="users-edit-modal-actions">
+                <button type="button" class="users-btn-cancel" id="comment-edit-modal-cancel">Cancel</button>
+                <span class="users-edit-modal-actions-spacer"></span>
+                <button type="submit" class="users-btn-modify forum-btn-modify">
+                    <i class="bx bx-save"></i> Save changes
+                </button>
+            </div>
+            {{ form_end(commentEditForm) }}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div id="custom-confirm-modal" class="users-edit-modal" style="display: none;">
+    <div class="users-edit-modal-backdrop"></div>
+    <div class="users-edit-modal-card">
+        <div class="users-edit-modal-body" style="text-align: center;">
+            <div class="confirm-modal-icon">
+                <i class="bx bx-error-circle"></i>
+            </div>
+            <div class="confirm-modal-content">
+                <div class="confirm-modal-title" id="confirm-title">Are you sure?</div>
+                <div class="confirm-modal-text" id="confirm-text">This action cannot be undone. Do you really want to delete this?</div>
+            </div>
+            <div class="confirm-modal-actions">
+                <button type="button" class="confirm-btn-cancel" id="confirm-btn-cancel">
+                    Cancel
+                </button>
+                <button type="button" class="confirm-btn-confirm" id="confirm-btn-confirm">
+                    <i class="bx bx-trash"></i> Confirm Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block javascripts %}

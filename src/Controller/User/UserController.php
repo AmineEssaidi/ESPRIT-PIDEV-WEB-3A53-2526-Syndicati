@@ -19,24 +19,28 @@ class UserController extends AbstractController
     public function signup(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $user = new User();
-        $form = $this->createForm(UserType::class, $user, ['signup' => true]);
+        $form = $this->createForm(UserType::class, $user, [
+            'signup' => true,
+            'validation_groups' => ['Default', 'registration']
+        ]);
         $form->handleRequest($request);
 
 
         if ($form->isSubmitted()) {
-            error_log('Form IS submitted');
+            $isAjax = $request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
+
             if ($form->isValid()) {
-                error_log('Form IS valid');
                 // Check if email already exists
                 $existingUser = $em->getRepository(User::class)->findOneBy(['email_user' => $user->getEmailUser()]);
                 if ($existingUser) {
-                    error_log('User already exists: ' . $user->getEmailUser());
+                    if ($isAjax) {
+                        return $this->json(['success' => false, 'message' => 'This email is already registered.'], 400);
+                    }
                     $form->get('email_user')->addError(new \Symfony\Component\Form\FormError('This email is already registered.'));
                     $this->addFlash('danger', 'This email is already registered.');
                 } else {
-                    error_log('Creating new user: ' . $user->getEmailUser());
                     // Hash password
-                    $plainPassword = $form->get('password_user')->getData();
+                    $plainPassword = $user->getPlainPassword();
                     $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
                     $user->setPasswordUser($hashedPassword);
                     $user->setRoleUser('RESIDENT');
@@ -54,6 +58,10 @@ class UserController extends AbstractController
                     $em->persist($profile);
                     $em->flush();
 
+                    if ($isAjax) {
+                        return $this->json(['success' => true, 'message' => 'Account created successfully!']);
+                    }
+
                     $this->addFlash('success', 'Account created successfully!');
                     return $this->redirectToRoute('auth_sign_in');
                 }
@@ -64,12 +72,15 @@ class UserController extends AbstractController
                 foreach ($formErrors as $error) {
                     $errorMessages[] = $error->getMessage();
                 }
+
+                if ($isAjax) {
+                    return $this->json(['success' => false, 'errors' => $errorMessages], 400);
+                }
+
                 $joinedErrors = implode('|', $errorMessages);
                 $this->addFlash('error_popup', $joinedErrors);
                 $this->addFlash('danger', 'Please correct the errors in the form.');
             }
-        } else {
-            error_log('Form is NOT submitted');
         }
 
         return $this->render('frontend/signup.html.twig', [

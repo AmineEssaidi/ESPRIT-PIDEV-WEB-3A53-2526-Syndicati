@@ -3,12 +3,14 @@ namespace App\Entity\User;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: \App\Repository\User\UserRepository::class)]
 #[ORM\Table(name: 'user')]
 #[ORM\HasLifecycleCallbacks]
+#[UniqueEntity(fields: ['email_user'], message: 'This email is already registered.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     /**
@@ -23,10 +25,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'string', length: 150)]
     #[Assert\NotBlank]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-ZÀ-ÿ\s\-]+$/',
+        message: 'The first name cannot contain numbers or special characters.'
+    )]
     private $first_name;
 
     #[ORM\Column(type: 'string', length: 150)]
     #[Assert\NotBlank]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-ZÀ-ÿ\s\-]+$/',
+        message: 'The last name cannot contain numbers or special characters.'
+    )]
     private $last_name;
 
     #[ORM\Column(type: 'string', length: 180, unique: true)]
@@ -36,6 +46,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'string', length: 255)]
     private $password_user;
+
+    /**
+     * @Assert\NotBlank(groups={"registration"})
+     * @Assert\Length(min=8, groups={"registration"})
+     * @Assert\Regex(
+     *     pattern="/[A-Z]/",
+     *     message="Password must contain at least one uppercase letter.",
+     *     groups={"registration"}
+     * )
+     * @Assert\Regex(
+     *     pattern="/[!@#$%^&*(),.?\"\":{}|<>]/",
+     *     message="Password must contain at least one special character.",
+     *     groups={"registration"}
+     * )
+     */
+    private $plainPassword;
 
     #[ORM\Column(type: 'string', length: 20, options: ['default' => 'RESIDENT'], columnDefinition: "ENUM('RESIDENT', 'SYNDIC', 'OWNER', 'ADMIN', 'SUPERADMIN') DEFAULT 'RESIDENT'")]
     private $role_user = 'RESIDENT';
@@ -88,6 +114,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPasswordUser(string $password_user): self
     {
         $this->password_user = $password_user;
+        return $this;
+    }
+
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
         return $this;
     }
     public function getRoleUser(): ?string
