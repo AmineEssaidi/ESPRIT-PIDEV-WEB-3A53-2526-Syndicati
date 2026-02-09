@@ -8,7 +8,11 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ProfileType extends AbstractType
@@ -47,6 +51,27 @@ class ProfileType extends AbstractType
             ->add('description_profile', TextareaType::class, [
                 'label' => 'Description / Bio',
                 'required' => false,
+            ])
+            ->add('currentPassword', PasswordType::class, [
+                'label' => 'Current Password',
+                'mapped' => false,
+                'required' => false,
+            ])
+            ->add('newPassword', RepeatedType::class, [
+                'type' => PasswordType::class,
+                'invalid_message' => 'The password fields must match.',
+                'options' => ['attr' => ['class' => 'password-field']],
+                'required' => false,
+                'mapped' => false,
+                'first_options' => ['label' => 'New Password'],
+                'second_options' => ['label' => 'Repeat Password'],
+                'constraints' => [
+                    new Length([
+                        'min' => 6,
+                        'minMessage' => 'Your password should be at least {{ limit }} characters',
+                        'max' => 4096,
+                    ]),
+                ],
             ]);
     }
 

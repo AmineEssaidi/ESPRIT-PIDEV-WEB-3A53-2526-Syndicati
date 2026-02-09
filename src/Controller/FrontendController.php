@@ -99,6 +99,8 @@ class FrontendController extends AbstractController
         ReclamationRepository $reclamationRepository,
         \App\Repository\Forum\PublicationRepository $publicationRepository,
         \App\Repository\Evenement\EvenementRepository $evenementRepository,
+        \App\Repository\Residence\AppartementRepository $appartementRepository,
+        UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $em,
         CacheInterface $cache
     ): Response {
@@ -148,6 +150,28 @@ class FrontendController extends AbstractController
         $profileForm = $this->createForm(ProfileType::class, $profile);
         $profileForm->handleRequest($request);
         if ($profileForm->isSubmitted() && $profileForm->isValid()) {
+
+            // Password Change Logic
+            $currentPassword = $profileForm->get('currentPassword')->getData();
+            $newPassword = $profileForm->get('newPassword')->getData();
+
+            if ($newPassword) {
+                if (!$currentPassword) {
+                    $this->addFlash('danger', 'You must provide your current password to change it.');
+                } else {
+                    if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
+                        $this->addFlash('danger', 'Current password is invalid.');
+                    } else {
+                        $hashedPassword = $passwordHasher->hashPassword(
+                            $user,
+                            $newPassword
+                        );
+                        $user->setPasswordUser($hashedPassword);
+                        $this->addFlash('success', 'Password updated successfully.');
+                    }
+                }
+            }
+
             $em->flush();
             $this->addFlash('success', 'Profile updated.');
             return $this->redirectToRoute('frontend_profile');
@@ -258,9 +282,11 @@ class FrontendController extends AbstractController
         if ($isAdmin) {
             $publications = $publicationRepository->findAllLatest();
             $events = $evenementRepository->findAllWithUser();
+            $appartements = $appartementRepository->findAll();
         } else {
             $publications = $publicationRepository->findBy(['user' => $user], ['date_creation_pub' => 'DESC']);
             $events = $evenementRepository->findBy(['user' => $user], ['date_event' => 'DESC']);
+            $appartements = $appartementRepository->findBy(['user' => $user]);
         }
 
         $response = $this->render('frontend/profile/profile.html.twig', [
@@ -272,6 +298,7 @@ class FrontendController extends AbstractController
             'reclamations' => $reclamations,
             'publications' => $publications,
             'events' => $events,
+            'appartements' => $appartements,
             'isAdmin' => $isAdmin,
         ]);
         $response->setPrivate();

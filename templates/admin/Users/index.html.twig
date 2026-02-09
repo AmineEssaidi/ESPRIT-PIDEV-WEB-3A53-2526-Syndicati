@@ -558,100 +558,6 @@
                                 }
                                 /* Remove all legacy .users-sort-select styles for custom dropdown */
                             </style>
-                            <script>
-                                // Search and sort logic
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    const searchInput = document.querySelector('.users-search-input');
-                                    let filteredRows = [...demoTableRows];
-
-                                    function filterAndSortRows() {
-                                        let rows = [...demoTableRows];
-                                        const search = searchInput.value.trim().toLowerCase();
-                                        if (search) {
-                                            rows = rows.filter(row => row.some(cell => cell.toLowerCase().includes(search)));
-                                        }
-                                        // Use global sortValue and sortDirection
-                                        if (typeof sortValue === 'undefined') sortValue = 'name';
-                                        if (sortValue === 'name') {
-                                            rows.sort((a, b) => sortDirection === 'asc' ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]));
-                                        } else if (sortValue === 'email') {
-                                            rows.sort((a, b) => sortDirection === 'asc' ? a[1].localeCompare(b[1]) : b[1].localeCompare(a[1]));
-                                        } else if (sortValue === 'date') {
-                                            rows.sort((a, b) => sortDirection === 'asc' ? a[2].localeCompare(b[2]) : b[2].localeCompare(a[2]));
-                                        } else if (sortValue === 'status') {
-                                            rows.sort((a, b) => sortDirection === 'asc' ? a[3].localeCompare(b[3]) : b[3].localeCompare(a[3]));
-                                        }
-                                        filteredRows = rows;
-                                        currentPage = 1;
-                                        updateTablePagination();
-                                    }
-                                    searchInput.addEventListener('input', filterAndSortRows);
-                                    // Patch renderTablePage to use filteredRows (same Modify/Delete as base)
-                                    renderTablePage = function(page) {
-                                        const tbody = document.getElementById('users-table-body');
-                                        tbody.innerHTML = '';
-                                        const start = (page-1)*rowsPerPage;
-                                        const end = Math.min(start+rowsPerPage, filteredRows.length);
-                                        for (let r = start; r < end; r++) {
-                                            const row = document.createElement('tr');
-                                            
-                                            // Column 1: Name
-                                            const tdName = document.createElement('td');
-                                            tdName.textContent = filteredRows[r][0];
-                                            row.appendChild(tdName);
-                                            
-                                            // Column 2: Email
-                                            const tdEmail = document.createElement('td');
-                                            tdEmail.textContent = filteredRows[r][1];
-                                            row.appendChild(tdEmail);
-                                            
-                                            // Column 3: Role
-                                            const tdRole = document.createElement('td');
-                                            tdRole.textContent = filteredRows[r][4];
-                                            row.appendChild(tdRole);
-                                            
-                                            // Column 4: Status
-                                            const tdStatus = document.createElement('td');
-                                            tdStatus.textContent = filteredRows[r][3];
-                                            row.appendChild(tdStatus);
-                                            
-                                            // Column 5: Actions - View Details pill
-                                            const userId = filteredRows[r][5];
-                                            const tdActions = document.createElement('td');
-                                            const viewBtn = document.createElement('button');
-                                            viewBtn.className = 'users-btn-view-details users-btn-add-db'; // Restyled as pill
-                                            viewBtn.title = 'View Details';
-                                            viewBtn.type = 'button';
-                                            viewBtn.dataset.userId = userId;
-                                            viewBtn.style.padding = '0.35rem 1.25rem'; // Compact pill style
-                                            viewBtn.style.fontSize = '0.9rem';
-                                            viewBtn.innerHTML = '<i class="bx bx-show"></i> View Details';
-                                            tdActions.appendChild(viewBtn);
-                                            row.appendChild(tdActions);
-                                            
-                                            tbody.appendChild(row);
-                                        }
-                                    };
-                                    // Patch renderTablePagination to use filteredRows
-                                    const origRenderTablePagination = renderTablePagination;
-                                    renderTablePagination = function() {
-                                        const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-                                        const pagesDiv = document.getElementById('table-pages');
-                                        pagesDiv.innerHTML = '';
-                                        for (let i = 1; i <= totalPages; i++) {
-                                            const btn = document.createElement('button');
-                                            btn.className = 'table-page-btn' + (i === currentPage ? ' active' : '');
-                                            btn.textContent = i;
-                                            btn.onclick = () => { currentPage = i; updateTablePagination(); };
-                                            pagesDiv.appendChild(btn);
-                                        }
-                                        document.getElementById('table-prev').disabled = currentPage === 1;
-                                        document.getElementById('table-next').disabled = currentPage === totalPages;
-                                    };
-                                    // Initial filter and sort
-                                    filterAndSortRows();
-                                });
-                            </script>
                 <div class="liquid-glass-table-scroll">
                     <table class="liquid-glass-table" id="users-table">
                         <thead>
@@ -703,6 +609,41 @@
                         {{ form_row(editForm.last_name, { 'row_attr': { 'class': 'mb-3' } }) }}
                         {{ form_row(editForm.email_user, { 'row_attr': { 'class': 'mb-3' } }) }}
                         {{ form_row(editForm.role_user, { 'row_attr': { 'class': 'mb-3' } }) }}
+                        
+                        {% if editForm.plainPassword is defined %}
+                        {# Add mode: plainPassword #}
+                        <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+                        <h5 class="mb-3" style="color: rgba(255,255,255,0.95); font-size: 1.1rem; font-weight: 600;"><i class="bx bx-shield-quarter"></i> Password</h5>
+                        <div class="mb-3">
+                            {{ form_label(editForm.plainPassword.first) }}
+                            {{ form_widget(editForm.plainPassword.first, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'Enter password' } }) }}
+                            {{ form_errors(editForm.plainPassword.first) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(editForm.plainPassword.second) }}
+                            {{ form_widget(editForm.plainPassword.second, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'Confirm password' } }) }}
+                            {{ form_errors(editForm.plainPassword.second) }}
+                        </div>
+                        {% elseif editForm.currentPassword is defined and editForm.newPassword is defined %}
+                        {# Edit mode: currentPassword + newPassword #}
+                        <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+                        <h5 class="mb-3" style="color: rgba(255,255,255,0.95); font-size: 1.1rem; font-weight: 600;"><i class="bx bx-shield-quarter"></i> Security</h5>
+                        <div class="mb-3">
+                            {{ form_label(editForm.currentPassword) }}
+                            {{ form_widget(editForm.currentPassword, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'Enter current password to change' } }) }}
+                            {{ form_errors(editForm.currentPassword) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(editForm.newPassword.first) }}
+                            {{ form_widget(editForm.newPassword.first, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'New password (min 6 chars)' } }) }}
+                            {{ form_errors(editForm.newPassword.first) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(editForm.newPassword.second) }}
+                            {{ form_widget(editForm.newPassword.second, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'Repeat new password' } }) }}
+                            {{ form_errors(editForm.newPassword.second) }}
+                        </div>
+                        {% endif %}
                         <div class="mb-3 users-edit-modal-verified-wrap">
                             {{ form_row(editForm.is_verified, { 'attr': { 'class': 'users-edit-verified-cb' }, 'label_attr': { 'class': 'users-edit-verified-label' } }) }}
                         </div>
@@ -923,22 +864,58 @@
                     cursor: pointer;
                 }
                 .users-view-modal-actions .users-btn-modify {
-                    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+                    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 50%, #0052cc 100%);
                     color: #fff;
-                    box-shadow: 0 4px 16px rgba(0,198,255,0.25);
+                    box-shadow: 0 4px 20px rgba(0,198,255,0.3), 0 0 40px rgba(0,114,255,0.15);
+                    position: relative;
+                    overflow: hidden;
+                }
+                .users-view-modal-actions .users-btn-modify::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                    transition: left 0.5s ease;
+                }
+                .users-view-modal-actions .users-btn-modify:hover::before {
+                    left: 100%;
                 }
                 .users-view-modal-actions .users-btn-modify:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 20px rgba(0,198,255,0.35);
+                    transform: translateY(-3px) scale(1.02);
+                    box-shadow: 0 8px 28px rgba(0,198,255,0.45), 0 0 60px rgba(0,114,255,0.25);
+                }
+                .users-view-modal-actions .users-btn-modify:active {
+                    transform: translateY(-1px) scale(0.98);
                 }
                 .users-view-modal-actions .users-btn-delete {
-                    background: linear-gradient(90deg, #ff2d92 0%, #ff3b30 100%);
+                    background: linear-gradient(135deg, #ff2d92 0%, #ff3b30 50%, #d32f2f 100%);
                     color: #fff;
-                    box-shadow: 0 4px 16px rgba(255,59,48,0.25);
+                    box-shadow: 0 4px 20px rgba(255,59,48,0.3), 0 0 40px rgba(255,45,146,0.15);
+                    position: relative;
+                    overflow: hidden;
+                }
+                .users-view-modal-actions .users-btn-delete::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                    transition: left 0.5s ease;
+                }
+                .users-view-modal-actions .users-btn-delete:hover::before {
+                    left: 100%;
                 }
                 .users-view-modal-actions .users-btn-delete:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 20px rgba(255,59,48,0.35);
+                    transform: translateY(-3px) scale(1.02);
+                    box-shadow: 0 8px 28px rgba(255,59,48,0.45), 0 0 60px rgba(255,45,146,0.25);
+                }
+                .users-view-modal-actions .users-btn-delete:active {
+                    transform: translateY(-1px) scale(0.98);
                 }
 
                 /* Light theme for View Details */
@@ -1000,10 +977,18 @@
                 };
                 const editProfileUrlTemplate = "{{ path('admin_profile_edit', {id: 0}) }}".replace('0', '__ID__');
                 
-                // Onboarding data for edit modal (id_onboarding -> { step, completed, selectedLocale, selectedTheme, suggestions, selectedPreferences })
                 const onboardingData = {
                 {% for o in onboardings|default([]) %}
-                "{{ o.idOnboarding }}": { "step": {{ o.step }}, "completed": {{ o.completed ? 'true' : 'false' }}, "selectedLocale": {{ (o.selectedLocale ?? '')|json_encode|raw }}, "selectedTheme": {{ (o.selectedTheme ?? '')|json_encode|raw }}, "suggestions": {{ (o.suggestions ?? '')|json_encode|raw }}, "selectedPreferences": {{ (o.selectedPreferences is not null and o.selectedPreferences is not empty ? o.selectedPreferences|json_encode(constant('JSON_UNESCAPED_UNICODE')) : '""')|json_encode|raw }} }{% if not loop.last %},{% endif %}
+                "{{ o.idOnboarding }}": { 
+                    "step": {{ o.step }}, 
+                    "completed": {{ o.completed ? 'true' : 'false' }}, 
+                    "selectedLocale": {{ (o.selectedLocale ?? '')|json_encode|raw }}, 
+                    "selectedTheme": {{ (o.selectedTheme ?? '')|json_encode|raw }}, 
+                    "suggestions": {{ (o.suggestions ?? '')|json_encode|raw }}, 
+                    "selectedPreferences": {{ o.selectedPreferences ? o.selectedPreferences|json_encode(constant('JSON_UNESCAPED_UNICODE'))|raw : '{}' }},
+                    "userName": "{{ o.user ? (o.user.firstName ~ ' ' ~ o.user.lastName)|e('js') : '—' }}",
+                    "userEmail": "{{ o.user ? o.user.emailUser|e('js') : '—' }}"
+                }{% if not loop.last %},{% endif %}
                 {% endfor %}
                 };
                 const editOnboardingUrlTemplate = "{{ path('admin_onboarding_edit', {id: 0}) }}".replace('0', '__ID__');
@@ -1482,6 +1467,81 @@
                     if (document.getElementById('onboarding-edit-modal-close')) document.getElementById('onboarding-edit-modal-close').onclick = closeOnboardingEditModal;
                     if (document.getElementById('onboarding-edit-modal-cancel')) document.getElementById('onboarding-edit-modal-cancel').onclick = closeOnboardingEditModal;
                     if (onboardingEditModal && onboardingEditModal.querySelector('.users-edit-modal-backdrop')) onboardingEditModal.querySelector('.users-edit-modal-backdrop').onclick = closeOnboardingEditModal;
+
+                    // Onboarding View Modal logic
+                    const obViewModal = document.getElementById('onboarding-view-modal');
+                    const viewObModifyBtn = document.getElementById('view-ob-modify-btn');
+                    let currentActiveObId = null;
+
+                    function openObViewModal(obId) {
+                        const idKey = String(obId);
+                        const data = onboardingData[idKey];
+                        
+                        if (!data) {
+                            console.error('No onboarding data found for ID:', idKey);
+                            return;
+                        }
+                        
+                        currentActiveObId = idKey;
+
+                        const setContent = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+                        
+                        setContent('view-ob-user-name', data.userName || '—');
+                        setContent('view-ob-user-email', data.userEmail || '—');
+                        setContent('view-ob-locale', data.selectedLocale || '—');
+                        setContent('view-ob-theme', data.selectedTheme || '—');
+                        setContent('view-ob-suggestions', data.suggestions || '—');
+
+                        const statusEl = document.getElementById('view-ob-status');
+                        if (statusEl) {
+                            statusEl.textContent = data.completed ? 'Completed' : 'Step ' + data.step + '/7';
+                            statusEl.className = 'users-view-status-badge ' + (data.completed ? 'verified' : 'pending');
+                        }
+                        
+                        // Format prefs
+                        let prefsText = '—';
+                        try {
+                            let prefs = data.selectedPreferences;
+                            if (typeof prefs === 'string') { try { prefs = JSON.parse(prefs); } catch(e) {} }
+                            
+                            if (prefs && typeof prefs === 'object' && Object.keys(prefs).length > 0) {
+                                prefsText = Object.entries(prefs).map(([k, v]) => `${k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${v}`).join('\n');
+                            }
+                        } catch(e) { console.error('Error formatting prefs:', e); }
+                        setContent('view-ob-prefs', prefsText);
+
+                        if (obViewModal) obViewModal.style.display = 'flex';
+                    }
+
+                    function closeObViewModal() {
+                        if (obViewModal) obViewModal.style.display = 'none';
+                    }
+
+                    // Direct event listener on the table container for better delegation
+                    const onboardingTableBody = document.getElementById('onboarding-table-body');
+                    if (onboardingTableBody) {
+                        onboardingTableBody.addEventListener('click', function(e) {
+                            const btn = e.target.closest('.onboarding-view-btn');
+                            if (btn && btn.dataset.onboardingId) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                openObViewModal(btn.dataset.onboardingId);
+                            }
+                        });
+                    }
+
+                    if (viewObModifyBtn) {
+                        viewObModifyBtn.onclick = function() {
+                            if (currentActiveObId) {
+                                closeObViewModal();
+                                openOnboardingEditModal(currentActiveObId);
+                            }
+                        };
+                    }
+
+                    if (document.getElementById('onboarding-view-modal-close')) document.getElementById('onboarding-view-modal-close').onclick = closeObViewModal;
+                    if (obViewModal && obViewModal.querySelector('.users-edit-modal-backdrop')) obViewModal.querySelector('.users-edit-modal-backdrop').onclick = closeObViewModal;
+
                 });
             </script>
             <style>
@@ -1536,34 +1596,37 @@
                     <table class="liquid-glass-table" id="onboarding-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
                                 <th>User</th>
-                                <th>Step</th>
-                                <th>Completed</th>
-                                <th>Locale</th>
-                                <th>Theme</th>
-                                <th>Suggestions</th>
+                                <th>Status</th>
+                                <th>Locale / Theme</th>
                                 <th>Started</th>
-                                <th>Completed at</th>
-                                <th>Updated</th>
-                                <th>Modify</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="onboarding-table-body">
                             {% for o in onboardings|default([]) %}
                             <tr>
-                                <td>{{ o.idOnboarding }}</td>
-                                <td>{{ o.user ? (o.user.firstName ~ ' ' ~ o.user.lastName) : '—' }}{% if o.user %} <small>({{ o.user.emailUser }})</small>{% endif %}</td>
-                                <td>{{ o.step }}</td>
-                                <td>{{ o.completed ? 'Yes' : 'No' }}</td>
-                                <td>{{ o.selectedLocale ?? '—' }}</td>
-                                <td>{{ o.selectedTheme ?? '—' }}</td>
-                                <td>{{ o.suggestions ? (o.suggestions|length > 30 ? o.suggestions|slice(0, 30) ~ '…' : o.suggestions) : '—' }}</td>
-                                <td>{{ o.startedAt ? o.startedAt|date('Y-m-d H:i') : '—' }}</td>
-                                <td>{{ o.completedAt ? o.completedAt|date('Y-m-d H:i') : '—' }}</td>
-                                <td>{{ o.updatedAt ? o.updatedAt|date('Y-m-d H:i') : '—' }}</td>
+                                <td>{{ o.user ? (o.user.firstName ~ ' ' ~ o.user.lastName) : '—' }}{% if o.user %} <small style="display: block; opacity: 0.7;">{{ o.user.emailUser }}</small>{% endif %}</td>
                                 <td>
-                                    <button type="button" class="users-btn-modify onboarding-modify-btn" data-onboarding-id="{{ o.idOnboarding }}" title="Edit onboarding"><i class="bx bx-edit"></i> Modify</button>
+                                    {% if o.completed %}
+                                        <span class="users-view-status-badge verified">Completed</span>
+                                    {% else %}
+                                        <span class="users-view-status-badge pending">Step {{ o.step }}/7</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div style="display: flex; flex-direction: column; gap: 0.2rem; align-items: center;">
+                                        <span style="font-size: 0.85rem; opacity: 0.9;">{{ o.selectedLocale|upper }}</span>
+                                        <span style="font-size: 0.8rem; opacity: 0.7;">{{ o.selectedTheme|capitalize }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ o.startedAt ? o.startedAt|date('Y-m-d H:i') : '—' }}</td>
+                                <td>
+                                    <button type="button" class="users-btn-view-details onboarding-view-btn users-btn-add-db" 
+                                            data-onboarding-id="{{ o.idOnboarding }}"
+                                            style="padding: 0.35rem 1.25rem; font-size: 0.9rem;" title="View onboarding details">
+                                        <i class="bx bx-show"></i> View Details
+                                    </button>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -1619,6 +1682,57 @@
                     </div>
                     <div class="users-view-modal-actions" style="margin-top: 2rem;">
                         <button type="button" class="users-btn-modify" id="view-profile-modify-btn">
+                            <i class="bx bx-edit"></i> Modify
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Onboarding View Modal -->
+        <div id="onboarding-view-modal" class="users-edit-modal" style="display: none;">
+            <div class="users-edit-modal-backdrop"></div>
+            <div class="users-edit-modal-card">
+                <div class="users-edit-modal-header">
+                    <div>
+                        <h3>Onboarding Details</h3>
+                        <p class="users-edit-modal-subtitle">Comprehensive onboarding information</p>
+                    </div>
+                    <button type="button" class="users-edit-modal-close" id="onboarding-view-modal-close" aria-label="Close">&times;</button>
+                </div>
+                <div class="users-edit-modal-body">
+                    <div class="users-view-details">
+                        <div class="users-view-row">
+                            <div class="users-view-label">User</div>
+                            <div class="users-view-value" id="view-ob-user-name">—</div>
+                        </div>
+                        <div class="users-view-row">
+                            <div class="users-view-label">Email</div>
+                            <div class="users-view-value" id="view-ob-user-email">—</div>
+                        </div>
+                        <div class="users-view-row">
+                            <div class="users-view-label">Progress</div>
+                            <div class="users-view-value"><span id="view-ob-status" class="users-view-status-badge pending">—</span></div>
+                        </div>
+                        <div class="users-view-row">
+                            <div class="users-view-label">Locale</div>
+                            <div class="users-view-value" id="view-ob-locale">—</div>
+                        </div>
+                        <div class="users-view-row">
+                            <div class="users-view-label">Theme</div>
+                            <div class="users-view-value" id="view-ob-theme">—</div>
+                        </div>
+                        <div class="users-view-row">
+                            <div class="users-view-label">Suggestions</div>
+                            <div class="users-view-value" id="view-ob-suggestions">—</div>
+                        </div>
+                        <div class="users-view-row" style="flex-direction: column; align-items: flex-start;">
+                            <div class="users-view-label" style="margin-bottom: 0.5rem;">Preferences</div>
+                            <div class="users-view-value" id="view-ob-prefs" style="line-height: 1.5; color: rgba(255,255,255,0.7); white-space: pre-line;">—</div>
+                        </div>
+                    </div>
+                    <div class="users-view-modal-actions" style="margin-top: 2rem;">
+                        <button type="button" class="users-btn-modify" id="view-ob-modify-btn">
                             <i class="bx bx-edit"></i> Modify
                         </button>
                     </div>

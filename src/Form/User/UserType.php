@@ -42,6 +42,24 @@ class UserType extends AbstractType
             ]);
         }
 
+        // Optional password change for edit mode (like ProfileType)
+        if ($options['edit'] ?? false) {
+            $builder
+                ->add('currentPassword', PasswordType::class, [
+                    'label' => 'Current Password',
+                    'mapped' => false,
+                    'required' => false,
+                ])
+                ->add('newPassword', RepeatedType::class, [
+                    'type' => PasswordType::class,
+                    'invalid_message' => 'The password fields must match.',
+                    'required' => false,
+                    'mapped' => false,
+                    'first_options' => ['label' => 'New Password'],
+                    'second_options' => ['label' => 'Repeat Password'],
+                ]);
+        }
+
         // Role only for admin (not signup)
         if (!($options['signup'] ?? false)) {
             $builder->add('role_user', ChoiceType::class, [

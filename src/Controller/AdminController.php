@@ -99,7 +99,7 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/users/{id}/edit', name: 'admin_users_edit', methods: ['GET', 'POST'])]
-    public function userEdit(int $id, Request $request, UserRepository $userRepository, EntityManagerInterface $em): Response
+    public function userEdit(int $id, Request $request, UserRepository $userRepository, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $user = $userRepository->find($id);
         if (!$user instanceof User) {
@@ -109,6 +109,28 @@ class AdminController extends AbstractController
         $form = $this->createForm(UserType::class, $user, ['signup' => false, 'edit' => true]);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+
+            // Password Change Logic (same as FrontendController)
+            $currentPassword = $form->get('currentPassword')->getData();
+            $newPassword = $form->get('newPassword')->getData();
+
+            if ($newPassword) {
+                if (!$currentPassword) {
+                    $this->addFlash('danger', 'You must provide the current password to change it.');
+                } else {
+                    if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
+                        $this->addFlash('danger', 'Current password is invalid.');
+                    } else {
+                        $hashedPassword = $passwordHasher->hashPassword(
+                            $user,
+                            $newPassword
+                        );
+                        $user->setPasswordUser($hashedPassword);
+                        $this->addFlash('success', 'Password updated successfully.');
+                    }
+                }
+            }
+
             $user->setUpdatedAt(new \DateTime());
             $em->flush();
             $this->addFlash('success', 'User updated successfully.');

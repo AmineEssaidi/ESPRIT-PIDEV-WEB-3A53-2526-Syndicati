@@ -398,6 +398,9 @@
                             <div class="profile-nav-pill" data-tab="reclamation">
                                 <i class="bx bx-error-alt"></i> Reclamation
                             </div>
+                            <div class="profile-nav-pill" data-tab="residence">
+                                <i class="bx bx-building-house"></i> Residence
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -542,6 +545,92 @@
                     </div>
                 </div>
                 {% endif %}
+                </div>
+
+                <!-- Tab Content: Page 4 (Residence) -->
+                <div id="tab-residence" class="profile-tab-content">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="main-home-profile-card">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <h3 class="main-home-card-title"><i class="bx bx-building-house"></i> Your Residences</h3>
+                                    {% if isAdmin %}
+                                        <div class="admin-toggle-wrapper d-flex align-items-center gap-2 p-1 rounded-pill" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-residence-filter-btn btn-outline-light" data-filter="my" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">My Own</button>
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-residence-filter-btn active btn-primary" data-filter="all" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">Everyone</button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="main-home-card-content">
+                                    {% if appartements|length > 0 %}
+                                        <div id="residence-items-container">
+                                            <div class="residence-list">
+                                                {% for appt in appartements %}
+                                                    <div class="residence-item mb-3" data-user-id="{{ appt.user ? appt.user.idUser : '0' }}">
+                                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <div style="width: 50px; height: 50px; background: rgba(var(--syndicat-accent-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                                    <i class="bx bx-home" style="font-size: 1.5rem; color: var(--syndicat-accent);"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h5 class="mb-1" style="font-weight: 700;">{{ appt.residence ? appt.residence.nomR : 'Unknown Residence' }}</h5>
+                                                                    <p class="reclamation-status-text mb-0"><i class="bx bx-map"></i> {{ appt.residence ? appt.residence.adresse : 'Unknown Address' }}</p>
+                                                                    {% if appt.appartementInfo is defined and appt.appartementInfo is not null %}
+                                                                        <div class="d-flex gap-2 mt-2 flex-wrap">
+                                                                            {% if appt.appartementInfo.bloc is defined and appt.appartementInfo.bloc %}
+                                                                                <span class="badge bg-dark border border-secondary border-opacity-25 text-white-50 fw-normal d-flex align-items-center gap-1" title="Bloc">
+                                                                                    <i class="bx bx-building"></i> {{ appt.appartementInfo.bloc }}
+                                                                                </span>
+                                                                            {% endif %}
+                                                                            {% if appt.appartementInfo.floor is defined and appt.appartementInfo.floor %}
+                                                                                <span class="badge bg-dark border border-secondary border-opacity-25 text-white-50 fw-normal d-flex align-items-center gap-1" title="Floor">
+                                                                                    <i class="bx bx-layer"></i> {{ appt.appartementInfo.floor }}
+                                                                                </span>
+                                                                            {% endif %}
+                                                                            {% if appt.appartementInfo.number is defined and appt.appartementInfo.number %}
+                                                                                <span class="badge bg-dark border border-secondary border-opacity-25 text-white-50 fw-normal d-flex align-items-center gap-1" title="Apartment Number">
+                                                                                    <i class="bx bx-hash"></i> {{ appt.appartementInfo.number }}
+                                                                                </span>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    {% endif %}
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <span class="status-badge" style="background: rgba(var(--syndicat-accent-rgb), 0.1); color: var(--syndicat-accent); padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border: 1px solid rgba(var(--syndicat-accent-rgb), 0.2);">
+                                                                    {{ appt.typeA }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mt-3">
+                                                            <div class="row g-2">
+                                                                <div class="col-sm-6">
+                                                                    <p class="mb-1 text-white-50" style="font-size: 0.9rem;"><i class="bx bx-check-circle"></i> Availability: <span class="text-white fw-bold">{{ appt.disponible ? 'Available' : 'Occupied' }}</span></p>
+                                                                </div>
+                                                                <div class="col-sm-6">
+                                                                    <p class="mb-1 text-white-50" style="font-size: 0.9rem;"><i class="bx bx-car"></i> Parking: <span class="text-white fw-bold">{{ appt.parking ? 'Yes' : 'No' }}</span></p>
+                                                                </div>
+                                                            </div>
+                                                            {% if appt.imageA %}
+                                                                <div class="mt-3" style="width: 100px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+                                                                    <img src="{{ asset('uploads/residence/' ~ appt.imageA) }}" alt="Apartment Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="openLightbox(this.src)">
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    <hr class="my-3" style="border-color: rgba(255,255,255,0.1);">
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-5">
+                                            <p class="text-muted">No apartments found.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Tab Content: Page 2 (Forum Placeholder) -->
@@ -1152,6 +1241,24 @@
             {{ form_row(profileForm.theme, { 'row_attr': { 'class': 'mb-3' } }) }}
             {{ form_row(profileForm.locale, { 'row_attr': { 'class': 'mb-3' } }) }}
             {{ form_row(profileForm.timezone, { 'row_attr': { 'class': 'mb-3' } }) }}
+            
+            <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+            <h5 class="mb-3"><i class="bx bx-shield-quarter"></i> Security</h5>
+            <div class="mb-3">
+                {{ form_label(profileForm.currentPassword) }}
+                {{ form_widget(profileForm.currentPassword, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'Enter current password to change' } }) }}
+                {{ form_errors(profileForm.currentPassword) }}
+            </div>
+            <div class="mb-3">
+                {{ form_label(profileForm.newPassword.first) }}
+                {{ form_widget(profileForm.newPassword.first, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'New password (min 6 chars)' } }) }}
+                {{ form_errors(profileForm.newPassword.first) }}
+            </div>
+            <div class="mb-3">
+                {{ form_label(profileForm.newPassword.second) }}
+                {{ form_widget(profileForm.newPassword.second, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'Repeat new password' } }) }}
+                {{ form_errors(profileForm.newPassword.second) }}
+            </div>
             <div class="profile-settings-modal-actions">
                 <button type="button" class="profile-settings-btn-cancel" id="profile-settings-modal-cancel">Cancel</button>
                 <span class="profile-settings-modal-actions-spacer"></span>
@@ -1770,6 +1877,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentUserId = {{ user.idUser|default('0') }};
     const isAdmin = {{ isAdmin ? 'true' : 'false' }};
     let currentAdminFilter = isAdmin ? 'all' : 'my';
+    let currentResidenceFilter = isAdmin ? 'all' : 'my';
 
 
     // Pagination & Filtering Variables
@@ -2524,6 +2632,41 @@ document.addEventListener('DOMContentLoaded', function() {
         handleAdminFilter('admin-reclamation-filter-btn', (val) => { currentAdminFilter = val; }, window.initializeReclamationPagination);
         handleAdminFilter('admin-forum-filter-btn', (val) => { currentForumAdminFilter = val; }, window.initializeForumPagination);
         handleAdminFilter('admin-events-filter-btn', (val) => { currentEventAdminFilter = val; }, window.initializeEventsPagination);
+
+        // Residence Filter Logic
+        const residenceItems = document.querySelectorAll('.residence-item');
+        document.querySelectorAll('.admin-residence-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.classList.contains('active')) return;
+
+                document.querySelectorAll('.admin-residence-filter-btn').forEach(b => {
+                    b.classList.remove('active', 'btn-primary');
+                    b.classList.add('btn-outline-light');
+                });
+                this.classList.remove('btn-outline-light');
+                this.classList.add('active', 'btn-primary');
+
+                currentResidenceFilter = this.dataset.filter;
+                
+                // Apply filter
+                residenceItems.forEach(item => {
+                    if (currentResidenceFilter === 'all') {
+                        item.style.display = 'block';
+                        item.nextElementSibling && (item.nextElementSibling.style.display = 'block'); // Show HR
+                    } else {
+                        const itemUserId = String(item.dataset.userId);
+                        const currentId = String(currentUserId);
+                        if (itemUserId === currentId) {
+                            item.style.display = 'block';
+                            item.nextElementSibling && (item.nextElementSibling.style.display = 'block');
+                        } else {
+                            item.style.display = 'none';
+                            item.nextElementSibling && (item.nextElementSibling.style.display = 'none');
+                        }
+                    }
+                });
+            });
+        });
     }
 
     // Safety: Hide page loader if it's still spinning
