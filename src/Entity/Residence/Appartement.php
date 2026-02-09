@@ -15,8 +15,8 @@ class Appartement
     #[ORM\Column(type: 'integer', name: 'id_app')]
     private ?int $idApp = null;
 
-    #[ORM\ManyToOne(targetEntity: Residence::class)]
-    #[ORM\JoinColumn(name: 'residence_id', referencedColumnName: 'id_residence', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Residence::class, inversedBy: 'appartements')]
+    #[ORM\JoinColumn(name: 'residence_id', referencedColumnName: 'id_residence', nullable: false, onDelete: 'CASCADE')]
     private ?Residence $residence = null;
 
     #[ORM\Column(type: 'boolean')]
@@ -32,7 +32,7 @@ class Appartement
     private ?string $typeA = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id_user', nullable: false)]
+    #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id_user', nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
 
     #[ORM\Column(type: 'json', nullable: true)]

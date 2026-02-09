@@ -87,6 +87,10 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -2px;
+    /* Wrap long unbroken text */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
 }
 
 .event-hero-subtitle {
@@ -95,6 +99,9 @@
     max-width: 600px;
     line-height: 1.6;
     margin-bottom: 3rem;
+    /* Wrap long unbroken text */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .btn-create-outline {
@@ -224,6 +231,7 @@
     margin-bottom: 1rem;
     line-height: 1.2;
     transition: color 0.3s ease;
+    overflow-wrap: break-word;
 }
 
 .event-card:hover .event-card-title {
@@ -241,6 +249,7 @@
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    overflow-wrap: break-word;
 }
 
 .event-card-footer {
@@ -413,7 +422,7 @@
 
 .event-details-grid {
     display: grid;
-    grid-template-columns: 1.5fr 1fr;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
     gap: 3rem;
 }
 

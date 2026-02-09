@@ -66,6 +66,9 @@ class EvenementType extends AbstractType
                 'mapped' => false,
                 'required' => false,
                 'constraints' => [
+                    new NotBlank([
+                        'message' => 'Please upload an event banner.',
+                    ]),
                     new File([
                         'maxSize' => '5M',
                         'mimeTypes' => [

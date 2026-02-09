@@ -82,7 +82,7 @@ class AppartementController extends AbstractController
                     'bloc' => $form->get('bloc')->getData(),
                     'floor' => $form->get('floor')->getData(),
                     'number' => $form->get('number')->getData(),
-                    'deleteToken' => $this->container->get('security.csrf.token_manager')->getToken('delete' . $appartement->getIdApp())->getValue()
+                    'deleteToken' => $this->container->get('security.csrf.token_manager')->getToken('appartement_delete')->getValue()
                 ]
             ]);
         }
@@ -213,7 +213,7 @@ class AppartementController extends AbstractController
                     'bloc' => $form->get('bloc')->getData(),
                     'floor' => $form->get('floor')->getData(),
                     'number' => $form->get('number')->getData(),
-                    'deleteToken' => $this->container->get('security.csrf.token_manager')->getToken('delete' . $appartement->getIdApp())->getValue()
+                    'deleteToken' => $this->container->get('security.csrf.token_manager')->getToken('appartement_delete')->getValue()
                 ]
             ]);
         }
@@ -233,7 +233,7 @@ class AppartementController extends AbstractController
     #[Route('/{idApp}', name: 'app_appartement_delete', methods: ['POST'])]
     public function delete(Request $request, Appartement $appartement, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $appartement->getIdApp(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('appartement_delete', $request->request->get('_token'))) {
             $entityManager->remove($appartement);
             $entityManager->flush();
             return new \Symfony\Component\HttpFoundation\JsonResponse(['success' => true, 'message' => 'Apartment deleted successfully.']);

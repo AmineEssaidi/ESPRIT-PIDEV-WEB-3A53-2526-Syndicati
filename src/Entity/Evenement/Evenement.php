@@ -59,7 +59,6 @@ class Evenement
     private $statut_event = 'planifie';
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank(message: "Please upload an event banner.")]
     private $image_event;
 
     #[ORM\Column(type: 'string', length: 50, columnDefinition: "ENUM('reunion', 'social', 'formation', 'maintenance', 'culturel', 'sportif')")]

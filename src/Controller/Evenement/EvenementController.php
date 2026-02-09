@@ -112,7 +112,7 @@ class EvenementController extends AbstractController
         }
 
         /** @var \App\Entity\User\User|null $user */
-        $user = $this->getUser();
+        $user = $userForCheck;
         $currentUserId = ($user instanceof \App\Entity\User\User) ? $user->getIdUser() : null;
         $currentUserRole = ($user instanceof \App\Entity\User\User) ? $user->getRoleUser() : null;
 

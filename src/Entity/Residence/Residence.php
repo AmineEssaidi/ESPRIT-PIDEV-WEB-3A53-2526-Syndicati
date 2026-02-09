@@ -3,6 +3,8 @@
 namespace App\Entity\Residence;
 
 use App\Repository\Residence\ResidenceRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -44,6 +46,15 @@ class Residence
     #[ORM\Column(type: 'string', length: 255, name: 'n_blocs', columnDefinition: "SET('A', 'B', 'C', 'D', 'E')")]
     #[Assert\NotBlank]
     private ?string $nBlocs = null;
+
+    #[ORM\OneToMany(mappedBy: 'residence', targetEntity: Appartement::class, cascade: ['remove'], orphanRemoval: true)]
+    private Collection $appartements;
+
+    public function __construct()
+    {
+        $this->appartements = new ArrayCollection();
+        $this->dateAjout = new \DateTime();
+    }
 
     public function getIdResidence(): ?int
     {
@@ -157,5 +168,35 @@ class Residence
         $blocsCount = $blocsCount > 0 ? $blocsCount : 1;
 
         return $perFloor * $floors * $blocsCount;
+    }
+
+    /**
+     * @return Collection<int, Appartement>
+     */
+    public function getAppartements(): Collection
+    {
+        return $this->appartements;
+    }
+
+    public function addAppartement(Appartement $appartement): self
+    {
+        if (!$this->appartements->contains($appartement)) {
+            $this->appartements[] = $appartement;
+            $appartement->setResidence($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAppartement(Appartement $appartement): self
+    {
+        if ($this->appartements->removeElement($appartement)) {
+            // set the owning side to null (unless already changed)
+            if ($appartement->getResidence() === $this) {
+                $appartement->setResidence(null);
+            }
+        }
+
+        return $this;
     }
 }

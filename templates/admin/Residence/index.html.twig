@@ -1653,7 +1653,7 @@
             number: "{{ attribute(a.appartementInfo, 'number')|default('')|e('js') }}",
             image: "{{ a.imageA ? asset('appartement_images/' ~ a.imageA) : asset('frontend/images/property-placeholder.jpg') }}",
             {# Deletion token must include the specific apartment ID #}
-            deleteToken: "{{ csrf_token('delete' ~ a.idApp) }}" 
+            deleteToken: "{{ csrf_token('appartement_delete') }}" 
         }{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
