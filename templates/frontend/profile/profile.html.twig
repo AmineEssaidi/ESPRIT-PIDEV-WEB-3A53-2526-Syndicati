@@ -3,7 +3,6 @@
 <head>
     <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
     <meta charset="UTF-8">
-    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil - PiDev</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -11,9 +10,312 @@
     <link href="{{ asset('frontend/css/scroll-pill.css') }}" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+    <style>
+        /* Clickable avatar upload */
+        .profile-avatar-form { display: block; margin: 0; padding: 0; }
+        .profile-avatar-file-input { position: absolute; width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; z-index: -1; }
+        .main-home-profile-avatar-clickable { display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; }
+        .main-home-profile-avatar-clickable:hover .profile-avatar-upload-hint { opacity: 1; }
+        .profile-avatar-upload-hint { position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: #fff; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem; opacity: 0; transition: opacity 0.2s; border-radius: 50%; }
+        .profile-onboarding-pill { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
+        .profile-onboarding-pill-label { font-size: 0.8rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.05em; }
+        .profile-onboarding-pill-value { font-size: 1rem; font-weight: 600; color: rgba(255,255,255,0.95); }
+        .profile-onboarding-preferences-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.5rem; }
+        .profile-onboarding-pref-item { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.04); border-radius: 8px; font-size: 0.9rem; }
+        .profile-onboarding-pref-key { color: rgba(255,255,255,0.6); text-transform: capitalize; }
+        .profile-onboarding-pref-value { color: rgba(255,255,255,0.9); font-weight: 500; }
+        .profile-onboarding-suggestions-text { margin: 0; padding: 0.75rem 1rem; background: rgba(255,255,255,0.04); border-radius: 8px; color: rgba(255,255,255,0.85); font-size: 0.95rem; line-height: 1.5; }
+        [data-theme="light"] .profile-onboarding-pill { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); }
+        [data-theme="light"] .profile-onboarding-pill-label { color: #64748b; }
+        [data-theme="light"] .profile-onboarding-pill-value { color: #1e293b; }
+        [data-theme="light"] .profile-onboarding-pref-item { background: rgba(0,0,0,0.03); }
+        [data-theme="light"] .profile-onboarding-pref-key { color: #64748b; }
+        [data-theme="light"] .profile-onboarding-pref-value { color: #1e293b; }
+        [data-theme="light"] .profile-onboarding-suggestions-text { background: rgba(0,0,0,0.04); color: #334155; }
+        [data-theme="light"] #profile-onboarding-modal .ob-textarea { background: #fff; border-color: #e2e8f0; color: #1e293b; }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* Sick Pagination Styles */
+        .profile-nav-container {
+            margin: 2rem 0;
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.6rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .profile-nav-pill {
+            padding: 0.8rem 1.8rem;
+            border-radius: 100px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.75rem;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+
+        .profile-nav-pill i {
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-nav-pill:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .profile-nav-pill:hover i {
+            transform: translateY(-2px);
+        }
+
+        .profile-nav-pill.active {
+            background: var(--syndicat-accent-gradient);
+            color: #fff;
+            box-shadow: 0 0 25px var(--syndicat-accent);
+            transform: scale(1.05);
+        }
+
+        .profile-tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.4s ease-out;
+        }
+
+        .profile-tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        [data-theme="light"] .profile-nav-container {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0, 0, 0, 0.08);
+        }
+        [data-theme="light"] .profile-nav-pill {
+            color: #64748b;
+        }
+        [data-theme="light"] .profile-nav-pill:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: #1e293b;
+        }
+
+        /* Reclamation List Styles */
+        .reclamation-image-preview:hover {
+            transform: scale(1.05);
+            border-color: var(--syndicat-accent) !important;
+        }
+
+        .reclamation-item, .publication-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 1.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .reclamation-item.active, .publication-item.active {
+            display: block !important;
+            opacity: 1 !important;
+            transform: translateY(0);
+        }
+
+        .reclamation-item:hover, .publication-item:hover {
+            border-color: rgba(var(--syndicat-accent-rgb), 0.3);
+            background: rgba(var(--syndicat-accent-rgb), 0.02);
+            transform: translateY(-5px) !important;
+        }
+
+        .reclamation-status-text {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+        }
+
+        .reclamation-desc-text, .publication-desc-text, .event-desc-text,
+        .reclamation-item h5, .publication-item h5, .event-item h5 {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .reclamation-item h5, .publication-item h5 {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        [data-theme="light"] .reclamation-item {
+            background: #fff;
+            border-color: #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        [data-theme="light"] .reclamation-status-text {
+            color: #64748b;
+        }
+        [data-theme="light"] .reclamation-desc-text, [data-theme="light"] .publication-desc-text,
+        [data-theme="light"] .reclamation-item h5, [data-theme="light"] .publication-item h5 {
+            color: #475569;
+        }
+
+        /* Pagination Controls Styles */
+        .reclamation-pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 100px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .pagination-pill {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .pagination-pill:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .pagination-pill.active {
+            background: var(--syndicat-accent-gradient);
+            color: #fff;
+            box-shadow: 0 0 15px var(--syndicat-accent);
+        }
+
+        .reclamation-page {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+        }
+
+        .reclamation-page.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        [data-theme="light"] .reclamation-pagination {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0, 0, 0, 0.05);
+        }
+        [data-theme="light"] .pagination-pill {
+            color: #64748b;
+        }
+
+        /* Image Lightbox Styles */
+        .reclamation-lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: zoom-out;
+        }
+
+        .reclamation-lightbox.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: default;
+        }
+
+        .reclamation-lightbox.active .lightbox-content {
+            transform: scale(1);
+        }
+
+        .lightbox-image {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+    </style>
 </head>
 <body>
-<!-- Page Loader -->
 <div class="page-loader" id="pageLoader">
     <div class="loader-content">
         <div class="loader-dots">
@@ -24,290 +326,1440 @@
     </div>
 </div>
 
-<!-- Layout Wrapper -->
 <div class="main-home-layout-wrapper">
     <div class="main-home-page">
-        <!-- Include Shared Navbar -->
-        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'profile'} %}
+        {% set _navbar_avatar_url = profile.avatar ? (profile.avatar starts with 'http' ? profile.avatar : asset(profile.avatar)) : null %}
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'profile', 'profile_avatar_url': _navbar_avatar_url} %}
 
-    <!-- Main Content -->
-    <div class="main-home-content-wrapper">
-        <div class="container-xxl">
-            <!-- Profile Header -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="main-home-profile-header">
-                        <div class="main-home-profile-banner">
-                            <div class="main-home-profile-banner-overlay"></div>
+        <div class="main-home-content-wrapper">
+            <div class="container-xxl">
+                <!-- Profile Header: user data from user table -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="main-home-profile-header">
+                            <div class="main-home-profile-banner">
+                                <div class="main-home-profile-banner-overlay"></div>
+                            </div>
+                            <div class="main-home-profile-info">
+                                <div class="main-home-profile-avatar-container">
+                                    <form id="profile-avatar-upload-form" action="{{ path('frontend_profile_avatar_upload') }}" method="post" enctype="multipart/form-data" class="profile-avatar-form">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('profile_avatar_upload') }}">
+                                        <input type="file" name="avatar_file" id="profile-avatar-file-input" accept="image/jpeg,image/png,image/gif,image/webp" class="profile-avatar-file-input">
+                                        <label for="profile-avatar-file-input" class="main-home-profile-avatar main-home-profile-avatar-clickable" title="Click to upload a new photo">
+                                            {% if profile.avatar %}
+                                                <img src="{{ profile.avatar starts with 'http' ? profile.avatar : asset(profile.avatar) }}" alt="Avatar" class="main-home-profile-avatar-img" id="profile-avatar-img">
+                                            {% else %}
+                                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face" alt="Profile Picture" class="main-home-profile-avatar-img" id="profile-avatar-img">
+                                            {% endif %}
+                                            <span class="profile-avatar-upload-hint"><i class="bx bx-camera"></i> Upload</span>
+                                        </label>
+                                    </form>
+                                </div>
+                                <div class="main-home-profile-details">
+                                    <h1 class="main-home-profile-name">{{ user.firstName }} {{ user.lastName }}</h1>
+                                    <p class="main-home-profile-title">{{ user.roleUser }}</p>
+                                    <p class="main-home-profile-location">
+                                        <i class="bx bx-envelope"></i> {{ user.emailUser }}
+                                    </p>
+                                    <div class="main-home-profile-stats">
+                                        <div class="main-home-stat-item">
+                                            <span class="main-home-stat-label">Account created</span>
+                                            <span class="main-home-stat-number">{{ user.createdAt|date('d/m/Y') }}</span>
+                                        </div>
+                                        <div class="main-home-stat-item">
+                                            <span class="main-home-stat-label">Status</span>
+                                            <span class="main-home-stat-number">{{ user.isVerified ? 'Verified' : 'Pending verification' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="main-home-profile-actions" style="margin-top: 1rem;">
+                                        <button type="button" class="main-home-btn main-home-btn-primary" id="profile-settings-open" title="Profile settings">
+                                            <i class="bx bx-cog"></i> Profile settings
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="main-home-profile-info">
-                            <div class="main-home-profile-avatar-container">
-                                <div class="main-home-profile-avatar">
-                                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face" alt="Profile Picture" class="main-home-profile-avatar-img">
-                                    <button class="main-home-profile-avatar-edit">
-                                        <i class="bx bx-camera"></i>
-                                    </button>
+                    </div>
+                </div>
+
+                <!-- Sick Pagination Navigation -->
+                <div class="row mb-5">
+                    <div class="col-12">
+                        <div class="profile-nav-container">
+                            <div class="profile-nav-pill active" data-tab="account">
+                                <i class="bx bx-user"></i> Account
+                            </div>
+                            <div class="profile-nav-pill" data-tab="forum">
+                                <i class="bx bx-message-square-detail"></i> Forum
+                            </div>
+                            <div class="profile-nav-pill" data-tab="events">
+                                <i class="bx bx-calendar-event"></i> Events
+                            </div>
+                            <div class="profile-nav-pill" data-tab="reclamation">
+                                <i class="bx bx-error-alt"></i> Reclamation
+                            </div>
+                            <div class="profile-nav-pill" data-tab="residence">
+                                <i class="bx bx-building-house"></i> Residence
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Page 1 (Account & Onboarding) -->
+                <div id="tab-account" class="profile-tab-content active">
+                    <!-- Account info (from user + profile: Bio, Timezone) -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="main-home-profile-card mb-4">
+                            <div class="main-home-card-header">
+                                <h3 class="main-home-card-title"><i class="bx bx-user"></i> Account</h3>
+                            </div>
+                            <div class="main-home-card-content">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-3">First name</dt>
+                                    <dd class="col-sm-9">{{ user.firstName }}</dd>
+                                    <dt class="col-sm-3">Last name</dt>
+                                    <dd class="col-sm-9">{{ user.lastName }}</dd>
+                                    <dt class="col-sm-3">Email</dt>
+                                    <dd class="col-sm-9">{{ user.emailUser }}</dd>
+                                    <dt class="col-sm-3">Role</dt>
+                                    <dd class="col-sm-9">{{ user.roleUser }}</dd>
+                                    <dt class="col-sm-3">Verified</dt>
+                                    <dd class="col-sm-9">{{ user.isVerified ? 'Yes' : 'No (pending admin)' }}</dd>
+                                    <dt class="col-sm-3">Account created</dt>
+                                    <dd class="col-sm-9">{{ user.createdAt|date('d/m/Y H:i') }}</dd>
+                                    <dt class="col-sm-3">Bio</dt>
+                                    <dd class="col-sm-9 main-home-profile-bio">
+                                        {% if profile.descriptionProfile %}
+                                            {{ profile.descriptionProfile }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </dd>
+                                    <dt class="col-sm-3">Timezone</dt>
+                                    <dd class="col-sm-9">
+                                        {% if profile.timezone is not null %}
+                                            {{ profile.timezone }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Your onboarding choices (read-only display, same style as onboarding steps pills) -->
+                {% if onboarding is not null %}
+                {% set _ob_pref_labels = {
+                    'notification_channel': 'Notification Channel',
+                    'notification_frequency': 'Notification Frequency',
+                    'property_type': 'Property Type',
+                    'occupancy_status': 'Occupancy Status',
+                    'parking_type': 'Parking Type',
+                    'meeting_participation': 'Meeting Participation',
+                    'document_delivery': 'Document Delivery',
+                    'contact_preference': 'Contact Preference',
+                    'maintenance_priority': 'Maintenance Priority',
+                    'community_engagement': 'Community Engagement',
+                    'payment_method_preference': 'Payment Method',
+                    'noise_sensitivity': 'Noise Sensitivity',
+                    'pets_status': 'Pets Status',
+                    'accessibility_needs': 'Accessibility Needs',
+                    'language_preference': 'Language Preference',
+                    'theme_preference': 'Theme Preference'
+                } %}
+                {% set _ob_pref_order = ['notification_channel','notification_frequency','property_type','occupancy_status','parking_type','meeting_participation','document_delivery','contact_preference','maintenance_priority','community_engagement','payment_method_preference','noise_sensitivity','pets_status','accessibility_needs','language_preference','theme_preference'] %}
+                {% set _ob_value_labels = {
+                    'EMAIL':'Email','SMS':'SMS','IN_APP':'In app','ALL':'All','NONE':'None',
+                    'INSTANT':'Instant','DAILY_DIGEST':'Daily digest','WEEKLY_DIGEST':'Weekly','MONTHLY':'Monthly','IMPORTANT_ONLY':'Important only',
+                    'APARTMENT':'Apartment','STUDIO':'Studio','DUPLEX':'Duplex',
+                    'OWNER_OCCUPIED':'Owner occupied','OWNER_RENTING':'Owner renting','TENANT':'Tenant','TEMPORARY':'Temporary',
+                    'OUTDOOR':'Outdoor','COVERED':'Covered','UNDERGROUND':'Underground','MULTIPLE':'Multiple',
+                    'IN_PERSON':'In person','ONLINE':'Online','HYBRID':'Hybrid','PROXY_ONLY':'Proxy only',
+                    'DIGITAL':'Digital','PAPER':'Paper','BOTH':'Both','ECO_FRIENDLY':'Eco-friendly',
+                    'PHONE':'Phone','WHATSAPP':'WhatsApp','NO_CONTACT':'Urgency only',
+                    'URGENT_ONLY':'Urgent only','PREVENTIVE':'Preventive','SCHEDULED':'Scheduled','FLEXIBLE':'Flexible',
+                    'VERY_ACTIVE':'Very active','ACTIVE':'Active','MODERATE':'Moderate','OBSERVER':'Observer','MINIMAL':'Minimal',
+                    'BANK_TRANSFER':'Bank transfer','CASH':'Cash','CHECK':'Check','AUTO_DEBIT':'Auto debit',
+                    'HIGH':'High','LOW':'Low','NOT_CONCERNED':'Not concerned',
+                    'NO_PETS':'None','CAT':'Cat','DOG':'Dog','MULTIPLE':'Multiple','OTHER':'Other',
+                    'ELEVATOR_REQUIRED':'Elevator required','WHEELCHAIR':'Wheelchair','VISUAL_IMPAIRMENT':'Visual',
+                    'FR':'Français','EN':'English','AR':'Arabic','FR_AR':'Bilingue FR/AR',
+                    'LIGHT':'Light','DARK':'Dark'
+                } %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="main-home-profile-card mb-4">
+                            <div class="main-home-card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+                                <h3 class="main-home-card-title" style="margin: 0;"><i class="bx bx-check-double"></i> Your onboarding choices</h3>
+                                <button type="button" class="main-home-btn main-home-btn-primary" id="profile-onboarding-modify-open" title="Modify onboarding choices" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                    <i class="bx bx-edit"></i> Modify onboarding choices
+                                </button>
+                            </div>
+                            <div class="main-home-card-content">
+                                <div class="row g-3">
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="profile-onboarding-pill">
+                                            <span class="profile-onboarding-pill-label">Language</span>
+                                            <span class="profile-onboarding-pill-value">{{ _ob_value_labels[onboarding.selectedLocale|upper] is defined ? _ob_value_labels[onboarding.selectedLocale|upper] : onboarding.selectedLocale|upper }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="profile-onboarding-pill">
+                                            <span class="profile-onboarding-pill-label">Theme</span>
+                                            <span class="profile-onboarding-pill-value">{{ _ob_value_labels[onboarding.selectedTheme|upper] is defined ? _ob_value_labels[onboarding.selectedTheme|upper] : onboarding.selectedTheme|capitalize }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="profile-onboarding-pill">
+                                            <span class="profile-onboarding-pill-label">Status</span>
+                                            <span class="profile-onboarding-pill-value">{{ onboarding.completed ? 'Completed' : 'In progress' }}</span>
+                                        </div>
+                                    </div>
+                                    {% if onboarding.selectedPreferences is not null and onboarding.selectedPreferences is not empty %}
+                                    <div class="col-12 mt-2">
+                                        <span class="profile-onboarding-pill-label" style="display: block; margin-bottom: 0.75rem;">Preferences</span>
+                                        <div class="profile-onboarding-preferences-grid">
+                                            {% for key in _ob_pref_order %}
+                                            {% if onboarding.selectedPreferences[key] is defined and onboarding.selectedPreferences[key] is not null and onboarding.selectedPreferences[key] != '' %}
+                                            <div class="profile-onboarding-pref-item">
+                                                <span class="profile-onboarding-pref-key">{{ _ob_pref_labels[key] is defined ? _ob_pref_labels[key] : key|replace({'_': ' '})|title }}</span>
+                                                <span class="profile-onboarding-pref-value">{{ _ob_value_labels[onboarding.selectedPreferences[key]] is defined ? _ob_value_labels[onboarding.selectedPreferences[key]] : onboarding.selectedPreferences[key] }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% if onboarding.suggestions %}
+                                    <div class="col-12 mt-2">
+                                        <span class="profile-onboarding-pill-label" style="display: block; margin-bottom: 0.5rem;">Suggestions</span>
+                                        <p class="profile-onboarding-suggestions-text">{{ onboarding.suggestions }}</p>
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
-                            <div class="main-home-profile-details">
-                                <h1 class="main-home-profile-name">Amine Saidi</h1>
-                                <p class="main-home-profile-title">Développeur Full Stack</p>
-                                <p class="main-home-profile-location">
-                                    <i class="bx bx-map"></i> San Francisco, CA
-                                </p>
-                                <div class="main-home-profile-stats">
-                                    <div class="main-home-stat-item">
-                                        <span class="main-home-stat-number">1.2K</span>
-                                        <span class="main-home-stat-label">Abonnés</span>
-                                    </div>
-                                    <div class="main-home-stat-item">
-                                        <span class="main-home-stat-number">856</span>
-                                        <span class="main-home-stat-label">Following</span>
-                                    </div>
-                                    <div class="main-home-stat-item">
-                                        <span class="main-home-stat-number">24</span>
-                                        <span class="main-home-stat-label">Projects</span>
-                                    </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                </div>
+
+                <!-- Tab Content: Page 4 (Residence) -->
+                <div id="tab-residence" class="profile-tab-content">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="main-home-profile-card">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <h3 class="main-home-card-title"><i class="bx bx-building-house"></i> Your Residences</h3>
+                                    {% if isAdmin %}
+                                        <div class="admin-toggle-wrapper d-flex align-items-center gap-2 p-1 rounded-pill" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-residence-filter-btn btn-outline-light" data-filter="my" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">My Own</button>
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-residence-filter-btn active btn-primary" data-filter="all" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">Everyone</button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="main-home-card-content">
+                                    {% if appartements|length > 0 %}
+                                        <div id="residence-items-container">
+                                            <div class="residence-list">
+                                                {% for appt in appartements %}
+                                                    <div class="residence-item mb-3" data-user-id="{{ appt.user ? appt.user.idUser : '0' }}">
+                                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <div style="width: 50px; height: 50px; background: rgba(var(--syndicat-accent-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                                    <i class="bx bx-home" style="font-size: 1.5rem; color: var(--syndicat-accent);"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h5 class="mb-1" style="font-weight: 700;">{{ appt.residence ? appt.residence.nomR : 'Unknown Residence' }}</h5>
+                                                                    <p class="reclamation-status-text mb-0"><i class="bx bx-map"></i> {{ appt.residence ? appt.residence.adresse : 'Unknown Address' }}</p>
+                                                                    {% if appt.appartementInfo is defined and appt.appartementInfo is not null %}
+                                                                        <div class="d-flex gap-2 mt-2 flex-wrap">
+                                                                            {% if appt.appartementInfo.bloc is defined and appt.appartementInfo.bloc %}
+                                                                                <span class="badge bg-dark border border-secondary border-opacity-25 text-white-50 fw-normal d-flex align-items-center gap-1" title="Bloc">
+                                                                                    <i class="bx bx-building"></i> {{ appt.appartementInfo.bloc }}
+                                                                                </span>
+                                                                            {% endif %}
+                                                                            {% if appt.appartementInfo.floor is defined and appt.appartementInfo.floor %}
+                                                                                <span class="badge bg-dark border border-secondary border-opacity-25 text-white-50 fw-normal d-flex align-items-center gap-1" title="Floor">
+                                                                                    <i class="bx bx-layer"></i> {{ appt.appartementInfo.floor }}
+                                                                                </span>
+                                                                            {% endif %}
+                                                                            {% if appt.appartementInfo.number is defined and appt.appartementInfo.number %}
+                                                                                <span class="badge bg-dark border border-secondary border-opacity-25 text-white-50 fw-normal d-flex align-items-center gap-1" title="Apartment Number">
+                                                                                    <i class="bx bx-hash"></i> {{ appt.appartementInfo.number }}
+                                                                                </span>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    {% endif %}
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <span class="status-badge" style="background: rgba(var(--syndicat-accent-rgb), 0.1); color: var(--syndicat-accent); padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border: 1px solid rgba(var(--syndicat-accent-rgb), 0.2);">
+                                                                    {{ appt.typeA }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mt-3">
+                                                            <div class="row g-2">
+                                                                <div class="col-sm-6">
+                                                                    <p class="mb-1 text-white-50" style="font-size: 0.9rem;"><i class="bx bx-check-circle"></i> Availability: <span class="text-white fw-bold">{{ appt.disponible ? 'Available' : 'Occupied' }}</span></p>
+                                                                </div>
+                                                                <div class="col-sm-6">
+                                                                    <p class="mb-1 text-white-50" style="font-size: 0.9rem;"><i class="bx bx-car"></i> Parking: <span class="text-white fw-bold">{{ appt.parking ? 'Yes' : 'No' }}</span></p>
+                                                                </div>
+                                                            </div>
+                                                            {% if appt.imageA %}
+                                                                <div class="mt-3" style="width: 100px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+                                                                    <img src="{{ asset('uploads/residence/' ~ appt.imageA) }}" alt="Apartment Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="openLightbox(this.src)">
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    <hr class="my-3" style="border-color: rgba(255,255,255,0.1);">
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-5">
+                                            <p class="text-muted">No apartments found.</p>
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
-                            <div class="main-home-profile-actions">
-                                <button class="main-home-btn main-home-btn-primary">
-                                    <i class="bx bx-edit"></i> Edit Profile
-                                </button>
-                                <button class="main-home-btn main-home-btn-secondary">
-                                    <i class="bx bx-share"></i> Share
-                                </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Page 2 (Forum Placeholder) -->
+                <div id="tab-forum" class="profile-tab-content">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="main-home-profile-card">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <h3 class="main-home-card-title"><i class="bx bx-message-square-detail"></i> Your Forum Activity</h3>
+                                    {% if isAdmin %}
+                                        <div class="admin-toggle-wrapper d-flex align-items-center gap-2 p-1 rounded-pill" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-forum-filter-btn btn-outline-light" data-filter="my" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">My Own</button>
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-forum-filter-btn active btn-primary" data-filter="all" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">Everyone</button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="main-home-card-content">
+                                    {% if publications|length > 0 %}
+                                        <div id="forum-publications-container">
+                                            <div class="forum-publication-list">
+                                                {% for pub in publications %}
+                                                    <div class="publication-item mb-3" data-publication-id="{{ pub.id }}" data-user-id="{{ pub.user ? pub.user.idUser : '0' }}" data-bs-toggle="modal" data-bs-target="#publicationModal-{{ pub.id }}" style="cursor: pointer;">
+                                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <div style="width: 50px; height: 50px; background: rgba(var(--syndicat-accent-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                                    <i class="bx bx-message-square-dots" style="font-size: 1.5rem; color: var(--syndicat-accent);"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h5 class="mb-1" style="font-weight: 700;">{{ pub.titrePub }}</h5>
+                                                                    <p class="reclamation-status-text mb-0"><i class="bx bx-calendar"></i> Posted on {{ pub.dateCreationPub|date('d M Y') }}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <span class="status-badge" style="background: rgba(var(--syndicat-accent-rgb), 0.1); color: var(--syndicat-accent); padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border: 1px solid rgba(var(--syndicat-accent-rgb), 0.2);">
+                                                                    {{ pub.categoriePub }}
+                                                                </span>
+                                                                <i class="bx bx-chevron-right text-muted" style="font-size: 1.5rem;"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mt-3">
+                                                            <p class="publication-desc-text mb-3">{{ pub.descriptionPub|slice(0, 150) }}{{ pub.descriptionPub|length > 150 ? '...' : '' }}</p>
+                                                            
+                                                            {% if pub.imagePub %}
+                                                                <div class="reclamation-image-preview" style="width: 80px; height: 80px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="event.stopPropagation();">
+                                                                    <img src="{{ asset('forum_images/' ~ pub.imagePub) }}" alt="Publication Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="event.stopPropagation(); openLightbox(this.src)">
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            <div id="forum-pagination" class="reclamation-pagination"></div>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-5">
+                                            <p class="text-muted">No publications found.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Page 3 (Events) -->
+                <div id="tab-events" class="profile-tab-content">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="main-home-profile-card">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <h3 class="main-home-card-title"><i class="bx bx-calendar-event"></i> Your Events</h3>
+                                    {% if isAdmin %}
+                                        <div class="admin-toggle-wrapper d-flex align-items-center gap-2 p-1 rounded-pill" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-events-filter-btn btn-outline-light" data-filter="my" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">My Own</button>
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-events-filter-btn active btn-primary" data-filter="all" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">Everyone</button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="main-home-card-content">
+                                    {% if events|length > 0 %}
+                                        <div id="events-container">
+                                            <div class="events-list">
+                                                {% for event in events %}
+                                                    <div class="event-item mb-3" 
+                                                         data-event-id="{{ event.id }}" 
+                                                         data-user-id="{{ event.user ? event.user.idUser : '0' }}"
+                                                         data-title="{{ event.titreEvent }}"
+                                                         data-description="{{ event.descriptionEvent }}"
+                                                         data-date="{{ event.dateEvent|date('Y-m-d\\TH:i') }}"
+                                                         data-date-formatted="{{ event.dateEvent|date('d M Y, H:i') }}"
+                                                         data-location="{{ event.lieuEvent }}"
+                                                         data-places="{{ event.nbPlaces }}"
+                                                         data-remaining="{{ event.nbRestants }}"
+                                                         data-status="{{ event.statutEvent }}"
+                                                         data-type="{{ event.typeEvent }}"
+                                                         data-image="{{ event.imageEvent ? asset('event_images/' ~ event.imageEvent) : '' }}"
+                                                         style="cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 1.25rem; background: rgba(255,255,255,0.02);">
+                                                        <div class="d-flex flex-column flex-md-row gap-4">
+                                                            {% if event.imageEvent %}
+                                                                <div class="event-list-image-wrap" style="width: 140px; height: 100px; border-radius: 14px; overflow: hidden; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1);">
+                                                                    <img src="{{ asset('event_images/' ~ event.imageEvent) }}" alt="{{ event.titreEvent }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                                                </div>
+                                                            {% else %}
+                                                                <div class="event-list-image-wrap d-flex align-items-center justify-content-center" style="width: 140px; height: 100px; border-radius: 14px; background: rgba(var(--syndicat-accent-rgb), 0.05); flex-shrink: 0; border: 1px dashed rgba(255,255,255,0.1);">
+                                                                    <i class="bx bx-calendar-event text-muted fs-2"></i>
+                                                                </div>
+                                                            {% endif %}
+                                                            
+                                                            <div class="flex-grow-1">
+                                                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                                                    <div>
+                                                                        <h5 class="mb-1" style="font-weight: 700; color: #fff; overflow-wrap: break-word;">{{ event.titreEvent }}</h5>
+                                                                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                                                                            <p class="reclamation-status-text mb-0"><i class="bx bx-calendar"></i> {{ event.dateEvent|date('d M Y, H:i') }}</p>
+                                                                            <p class="reclamation-status-text mb-0"><i class="bx bx-map"></i> {{ event.lieuEvent }}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    {% set status_colors = {
+                                                                        'planifie': '#4fc3f7',
+                                                                        'en_cours': '#00e676',
+                                                                        'termine': '#9e9e9e',
+                                                                        'annule': '#ff3b30'
+                                                                    } %}
+                                                                    <span class="status-badge" style="background: {{ status_colors[event.statutEvent|default('planifie')] }}20; color: {{ status_colors[event.statutEvent|default('planifie')] }}; padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border: 1px solid {{ status_colors[event.statutEvent|default('planifie')] }}40;">
+                                                                        {{ event.statutEvent|replace({'_': ' '})|title }}
+                                                                    </span>
+                                                                </div>
+                                                                <div class="mt-2">
+                                                                    <p class="reclamation-desc-text mb-1" style="overflow-wrap: break-word;">{{ event.descriptionEvent|slice(0, 100) }}{{ event.descriptionEvent|length > 100 ? '...' : '' }}</p>
+                                                                    <div class="d-flex align-items-center gap-3 text-muted" style="font-size: 0.8rem; opacity: 0.7;">
+                                                                        <span><i class="bx bx-purchase-tag-alt"></i> {{ event.typeEvent|title }}</span>
+                                                                        <span><i class="bx bx-user"></i> {{ event.nbRestants }}/{{ event.nbPlaces }} enrolled</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            <div id="events-pagination" class="reclamation-pagination"></div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-5">
+                                            <p class="text-muted">No events found.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Page 4 (Reclamation) -->
+                <div id="tab-reclamation" class="profile-tab-content">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="main-home-profile-card">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                        <h3 class="main-home-card-title"><i class="bx bx-error-alt"></i> Your Reclamations</h3>
+                                        {% if isAdmin %}
+                                            <div class="admin-toggle-wrapper d-flex align-items-center gap-2 p-1 rounded-pill" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                                <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-reclamation-filter-btn btn-outline-light" data-filter="my" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">My Own</button>
+                                                <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-reclamation-filter-btn active btn-primary" data-filter="all" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">Everyone</button>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                <div class="main-home-card-content">
+                                    {% if reclamations|length > 0 %}
+                                        <div class="reclamation-container">
+                                            <div class="reclamation-list">
+                                                {% for rec in reclamations %}
+                                                    <div class="reclamation-item mb-3" data-reclamation-id="{{ rec.id }}" data-user-id="{{ rec.user ? rec.user.idUser : '0' }}" data-bs-toggle="modal" data-bs-target="#reclamationModal-{{ rec.id }}" style="cursor: pointer;">
+                                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <div style="width: 50px; height: 50px; background: rgba(var(--syndicat-accent-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                                    <i class="bx bx-file" style="font-size: 1.5rem; color: var(--syndicat-accent);"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h5 class="mb-1" style="font-weight: 700;">{{ rec.titrereclamations }}</h5>
+                                                                    <p class="reclamation-status-text mb-0" data-reclamation-id="{{ rec.id }}"><i class="bx bx-calendar"></i> Submitted on {{ rec.createdAt is not null ? rec.createdAt|date('d M Y') : 'N/A' }}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                {% set status_colors = {
+                                                                    'confirme': '#00e676',
+                                                                    'active': '#00e676',
+                                                                    'en_attente': '#ffeb3b',
+                                                                    'refuse': '#ff3b30',
+                                                                    'annule': '#9e9e9e',
+                                                                    'termine': '#4fc3f7'
+                                                                } %}
+                                                                {% set status_labels = {
+                                                                    'confirme': 'Confirmed',
+                                                                    'active': 'Active',
+                                                                    'en_attente': 'In Progress',
+                                                                    'refuse': 'Rejected',
+                                                                    'annule': 'Cancelled',
+                                                                    'termine': 'Completed'
+                                                                } %}
+                                                                <span class="status-badge" style="background: {{ status_colors[rec.statutreclamation|default('en_attente')] }}20; color: {{ status_colors[rec.statutreclamation|default('en_attente')] }}; padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border: 1px solid {{ status_colors[rec.statutreclamation|default('en_attente')] }}40;">
+                                                                    {{ status_labels[rec.statutreclamation|default('en_attente')] }}
+                                                                </span>
+                                                                <i class="bx bx-chevron-right text-muted" style="font-size: 1.5rem;"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mt-3">
+                                                            <p class="reclamation-desc-text mb-3">{{ rec.descreclamation|slice(0, 150) }}{{ rec.descreclamation|length > 150 ? '...' : '' }}</p>
+                                                            
+                                                            {% if rec.decodedImages is defined and rec.decodedImages|length > 0 %}
+                                                                <div class="d-flex flex-wrap gap-2">
+                                                                    {% for img in rec.decodedImages %}
+                                                                        <div class="reclamation-image-preview" style="width: 80px; height: 80px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="event.stopPropagation();">
+                                                                            <img src="{{ asset('reclamation_images/' ~ img) }}" alt="Reclamation Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="event.stopPropagation(); openLightbox(this.src)">
+                                                                        </div>
+                                                                    {% endfor %}
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+
+                                                {% endfor %}
+                                            </div>
+
+                                            {# Pagination Controls #}
+                                            {% if reclamations|length > 3 %}
+                                                <div class="reclamation-pagination" id="reclamation-pagination">
+                                                    {# Will be populated by JS #}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-5">
+                                            <div style="background: rgba(255,255,255,0.03); border-radius: 50%; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                                                <i class="bx bx-error-alt" style="font-size: 3.5rem; color: var(--syndicat-accent);"></i>
+                                            </div>
+                                            <h3 class="mb-2" style="font-weight: 700;">No Reclamations Yet</h3>
+                                            <p class="text-muted mx-auto" style="max-width: 400px;">You haven't submitted any reclamations yet. When you do, they'll appear here with their current status.</p>
+                                            <a href="{{ path('frontend_syndicat') }}" class="main-home-btn main-home-btn-primary mt-3" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem;">
+                                                <i class="bx bx-plus"></i> Submit a Reclamation
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Profile Content -->
-            <div class="row">
-                <!-- Left Column -->
-                <div class="col-lg-8">
-                    <!-- Theme & Customization Section -->
-                    <!-- Theme & Customization Section removed -->
-                    <!-- About Section -->
-                    <div class="main-home-profile-card mb-4">
-                        <div class="main-home-card-header">
-                            <h3 class="main-home-card-title">
-                                <i class="bx bx-info-circle"></i> About
-                            </h3>
-                            <button class="main-home-card-action">
-                                <i class="bx bx-edit"></i>
-                            </button>
+        {% include 'frontend/shared/_main_footer.html.twig' %}
+    </div>
+</div>
+
+<!-- Image Lightbox -->
+<div class="reclamation-lightbox" id="reclamation-lightbox">
+    <div class="lightbox-content">
+        <button class="lightbox-close" id="lightbox-close"><i class="bx bx-x"></i></button>
+        <img src="" alt="View Enlarged" class="lightbox-image" id="lightbox-image">
+    </div>
+</div>
+
+<!-- Profile settings modal (same style as admin edit/add user modals) -->
+<style>
+    .profile-settings-modal-wrap { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+    .profile-settings-modal-backdrop { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px); }
+    .profile-settings-modal-card { position: relative; background: linear-gradient(160deg, rgba(28, 32, 42, 0.98) 0%, rgba(22, 26, 34, 0.98) 100%); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); max-width: 440px; width: 100%; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; max-height: 90vh; overflow-y: auto; }
+    .profile-settings-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.35rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .profile-settings-modal-header h3 { margin: 0; font-size: 1.3rem; font-weight: 700; color: #fff; letter-spacing: 0.02em; }
+    .profile-settings-modal-subtitle { margin: 0.35rem 0 0 0; font-size: 0.8rem; color: rgba(191,201,216,0.85); font-weight: 400; }
+    .profile-settings-modal-close { background: rgba(255,255,255,0.06); border: none; color: #bfc9d8; width: 2rem; height: 2rem; border-radius: 50%; font-size: 1.4rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: background 0.2s, color 0.2s; }
+    .profile-settings-modal-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .profile-settings-modal-body { padding: 1.5rem 1.75rem; display: flex; flex-direction: column; align-items: stretch; }
+    .profile-settings-modal-body form { display: flex; flex-direction: column; align-items: stretch; width: 100%; max-width: 100%; margin: 0 auto; }
+    .profile-settings-modal-body .mb-3 { margin-bottom: 1.1rem; width: 100%; }
+    .profile-settings-modal-body label { display: block; margin-bottom: 0.4rem; color: #bfc9d8; font-size: 0.9rem; font-weight: 500; }
+    .profile-settings-modal-body input[type="text"],
+    .profile-settings-modal-body input[type="number"],
+    .profile-settings-modal-body textarea { width: 100%; max-width: 100%; box-sizing: border-box; padding: 0.6rem 0.9rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fff; font-size: 1rem; transition: border-color 0.2s, background 0.2s; font-family: inherit; }
+    .profile-settings-modal-body textarea { min-height: 90px; resize: vertical; }
+    .profile-settings-modal-body input[type="text"]:focus,
+    .profile-settings-modal-body input[type="number"]:focus,
+    .profile-settings-modal-body textarea:focus { outline: none; border-color: rgba(0,198,255,0.5); background: rgba(255,255,255,0.08); }
+    .profile-settings-modal-body input[type="text"]::placeholder,
+    .profile-settings-modal-body textarea::placeholder { color: rgba(255,255,255,0.35); }
+    .profile-settings-modal-actions { display: flex; align-items: center; margin-top: 1.5rem; padding-top: 0.5rem; width: 100%; gap: 0.75rem; }
+    .profile-settings-modal-actions-spacer { flex: 1; min-width: 0; }
+    .profile-settings-modal-actions .profile-settings-btn-cancel { background: rgba(255,255,255,0.08); color: #bfc9d8; border: 1px solid rgba(255,255,255,0.12); padding: 0.6rem 1.4rem; border-radius: 999px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: background 0.2s, color 0.2s; }
+    .profile-settings-modal-actions .profile-settings-btn-cancel:hover { background: rgba(255,255,255,0.14); color: #fff; }
+    .profile-settings-modal-actions .profile-settings-btn-save { background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); color: #fff; border: none; padding: 0.6rem 1.4rem; border-radius: 999px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,123,255,0.2); transition: opacity 0.2s; }
+    .profile-settings-modal-actions .profile-settings-btn-save:hover { opacity: 0.95; }
+
+    [data-theme="light"] .profile-settings-modal-backdrop { background: rgba(0,0,0,0.35); }
+    [data-theme="light"] .profile-settings-modal-card { background: linear-gradient(160deg, rgba(255,255,255,0.98) 0%, #f5f7fa 100%); border: 1.5px solid #e3e8f7; box-shadow: 0 20px 60px rgba(0,0,0,0.12); }
+    [data-theme="light"] .profile-settings-modal-header { border-bottom-color: #e3e8f7; }
+    [data-theme="light"] .profile-settings-modal-header h3 { color: #23272f; }
+    [data-theme="light"] .profile-settings-modal-subtitle { color: #5c6370; }
+    [data-theme="light"] .profile-settings-modal-close { background: #e3e8f7; color: #23272f; }
+    [data-theme="light"] .profile-settings-modal-close:hover { background: #d0d5e0; color: #23272f; }
+    [data-theme="light"] .profile-settings-modal-body label { color: #23272f; }
+    [data-theme="light"] .profile-settings-modal-body input[type="text"],
+    [data-theme="light"] .profile-settings-modal-body input[type="number"],
+    [data-theme="light"] .profile-settings-modal-body textarea { background: #fff; border: 1px solid #e3e8f7; color: #23272f; }
+    [data-theme="light"] .profile-settings-modal-body input[type="text"]:focus,
+    [data-theme="light"] .profile-settings-modal-body input[type="number"]:focus,
+    [data-theme="light"] .profile-settings-modal-body textarea:focus { border-color: #0072ff; background: #fff; }
+    [data-theme="light"] .profile-settings-modal-body input[type="text"]::placeholder,
+    [data-theme="light"] .profile-settings-modal-body textarea::placeholder { color: #8b92a0; }
+    [data-theme="light"] .profile-settings-modal-actions .profile-settings-btn-cancel { background: #e3e8f7; color: #23272f; border-color: #d0d5e0; }
+    [data-theme="light"] .profile-settings-modal-actions .profile-settings-btn-cancel:hover { background: #d0d5e0; color: #23272f; }
+    [data-theme="light"] .profile-settings-modal-actions .profile-settings-btn-save { background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); color: #fff; box-shadow: 0 2px 8px rgba(0,123,255,0.15); }
+    [data-theme="light"] .profile-settings-modal-actions .profile-settings-btn-save:hover { background: linear-gradient(90deg, #0072ff 0%, #00c6ff 100%); color: #fff; }
+
+    /* Onboarding edit modal: same pill/step UI as onboarding page */
+    #profile-onboarding-modal .profile-onboarding-modal-card { max-width: 580px; }
+    #profile-onboarding-modal .ob-progress { display: flex; gap: 0.4rem; margin-bottom: 1.25rem; justify-content: center; flex-wrap: wrap; }
+    #profile-onboarding-modal .ob-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.25); transition: all 0.3s ease; }
+    #profile-onboarding-modal .ob-dot.ob-active { background: linear-gradient(135deg, #6c5ce7, #06b6d4); transform: scale(1.3); box-shadow: 0 0 16px rgba(108,92,231,0.5); }
+    #profile-onboarding-modal .ob-dot.ob-done { background: rgba(108,92,231,0.6); }
+    #profile-onboarding-modal .ob-step { display: none; }
+    #profile-onboarding-modal .ob-step.ob-step-visible { display: block; }
+    #profile-onboarding-modal .ob-label { display: block; font-size: 0.9rem; font-weight: 600; color: rgba(255,255,255,0.95); margin-bottom: 0.5rem; }
+    #profile-onboarding-modal .ob-options { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    #profile-onboarding-modal .ob-opt { position: relative; }
+    #profile-onboarding-modal .ob-opt input { position: absolute; opacity: 0; }
+    #profile-onboarding-modal .ob-opt label { display: flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1rem; background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.12); border-radius: 12px; cursor: pointer; transition: all 0.25s ease; font-size: 0.9rem; color: rgba(255,255,255,0.95); }
+    #profile-onboarding-modal .ob-opt input:checked + label { background: linear-gradient(135deg, rgba(108,92,231,0.28), rgba(6,182,212,0.18)); border-color: rgba(108,92,231,0.55); box-shadow: 0 4px 16px rgba(108,92,231,0.25); }
+    #profile-onboarding-modal .ob-opt label:hover { border-color: rgba(108,92,231,0.4); }
+    #profile-onboarding-modal .ob-section { margin-bottom: 1.25rem; }
+    #profile-onboarding-modal .ob-actions { display: flex; justify-content: space-between; margin-top: 1.5rem; gap: 0.75rem; }
+    #profile-onboarding-modal .ob-btn { padding: 0.6rem 1.25rem; border-radius: 12px; font-weight: 600; font-size: 0.95rem; border: none; cursor: pointer; transition: all 0.25s ease; display: inline-flex; align-items: center; gap: 0.4rem; }
+    #profile-onboarding-modal .ob-btn-prev { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.95); }
+    #profile-onboarding-modal .ob-btn-prev:hover { background: rgba(255,255,255,0.16); }
+    #profile-onboarding-modal .ob-btn-next { background: linear-gradient(135deg, #6c5ce7, #8b5cf6); color: #fff; box-shadow: 0 4px 16px rgba(108,92,231,0.4); }
+    #profile-onboarding-modal .ob-btn-next:hover { box-shadow: 0 6px 20px rgba(108,92,231,0.5); }
+    #profile-onboarding-modal .ob-select-hidden { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+    #profile-onboarding-modal .ob-textarea { width: 100%; padding: 0.9rem 1rem; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fff; font-size: 0.95rem; line-height: 1.5; resize: vertical; min-height: 100px; font-family: inherit; box-sizing: border-box; }
+    #profile-onboarding-modal .ob-textarea:focus { outline: none; border-color: rgba(108,92,231,0.6); }
+    [data-theme="light"] #profile-onboarding-modal .ob-label { color: #1e293b; }
+    [data-theme="light"] #profile-onboarding-modal .ob-opt label { background: #fff; border-color: #e2e8f0; color: #334155; }
+    [data-theme="light"] #profile-onboarding-modal .ob-opt input:checked + label { background: linear-gradient(135deg, rgba(108,92,231,0.12), rgba(6,182,212,0.08)); border-color: #6c5ce7; }
+    [data-theme="light"] #profile-onboarding-modal .ob-btn-prev { background: #e2e8f0; color: #334155; }
+    [data-theme="light"] #profile-onboarding-modal .ob-textarea { background: #fff; border-color: #e2e8f0; color: #1e293b; }
+</style>
+<!-- Onboarding edit modal: 7-step wizard with custom Locale/Theme pills and preference radios -->
+{% if onboardingForm is defined and onboardingForm is not null %}
+{% set _ob_prefs = onboarding.selectedPreferences|default({}) %}
+<div id="profile-onboarding-modal" class="profile-settings-modal-wrap" style="display: none;">
+    <div class="profile-settings-modal-backdrop" id="profile-onboarding-modal-backdrop"></div>
+    <div class="profile-settings-modal-card profile-onboarding-modal-card">
+        <div class="profile-settings-modal-header">
+            <div>
+                <h3>Modify onboarding choices</h3>
+                <p class="profile-settings-modal-subtitle">Update language, theme, preferences and suggestions.</p>
+            </div>
+            <button type="button" class="profile-settings-modal-close" id="profile-onboarding-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="profile-settings-modal-body">
+            {{ form_start(onboardingForm, { 'attr': {
+                'id': 'profile-onboarding-form',
+                'method': 'post',
+                'action': path('frontend_profile_onboarding_update'),
+                'class': 'profile-settings-form'
+            } }) }}
+            <div class="ob-progress" id="ob-progress">
+                {% for i in 1..7 %}<div class="ob-dot" data-step="{{ i }}"></div>{% endfor %}
+            </div>
+
+            <div id="ob-step-1" class="ob-step ob-step-visible">
+                <div class="ob-section">
+                    <span class="ob-label">Language</span>
+                    <div class="ob-options ob-locale-pills">
+                        {% for val, label in {'fr':'🇫🇷 Français','en':'🇺🇸 English','ar':'🇸🇦 العربية','fr_ar':'🇫🇷🇸🇦 Bilingue FR/AR'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="ob_locale_radio" id="ob_locale_{{ val }}" value="{{ val }}" {{ onboarding.selectedLocale == val ? 'checked' : '' }}>
+                            <label for="ob_locale_{{ val }}">{{ label }}</label>
                         </div>
-                        <div class="main-home-card-content">
-                            <p class="main-home-profile-bio">
-                                Passionate full-stack developer with 5+ years of experience building modern web applications. 
-                                I love creating beautiful, functional interfaces and solving complex problems with clean code. 
-                                Always learning new technologies and sharing knowledge with the community.
-                            </p>
-                            <div class="main-home-profile-tags">
-                                <span class="main-home-tag">JavaScript</span>
-                                <span class="main-home-tag">React</span>
-                                <span class="main-home-tag">Node.js</span>
-                                <span class="main-home-tag">Python</span>
-                                <span class="main-home-tag">PHP</span>
-                                <span class="main-home-tag">Symfony</span>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
-
-                    <!-- Experience Section -->
-                    <div class="main-home-profile-card mb-4">
-                        <div class="main-home-card-header">
-                            <h3 class="main-home-card-title">
-                                <i class="bx bx-briefcase"></i> Experience
-                            </h3>
-                            <button class="main-home-card-action">
-                                <i class="bx bx-plus"></i>
-                            </button>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Theme</span>
+                    <div class="ob-options ob-theme-pills">
+                        <div class="ob-opt">
+                            <input type="radio" name="ob_theme_radio" id="ob_theme_light" value="light" {{ onboarding.selectedTheme == 'light' ? 'checked' : '' }}>
+                            <label for="ob_theme_light">☀️ Light</label>
                         </div>
-                        <div class="main-home-card-content">
-                            <div class="main-home-timeline">
-                                <div class="main-home-timeline-item">
-                                    <div class="main-home-timeline-marker"></div>
-                                    <div class="main-home-timeline-content">
-                                        <h4 class="main-home-timeline-title">Senior Full Stack Developer</h4>
-                                        <p class="main-home-timeline-company">TechCorp Inc.</p>
-                                        <p class="main-home-timeline-period">2022 - Present</p>
-                                        <p class="main-home-timeline-description">
-                                            Leading development of enterprise web applications using modern technologies. 
-                                            Mentoring junior developers and implementing best practices.
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="main-home-timeline-item">
-                                    <div class="main-home-timeline-marker"></div>
-                                    <div class="main-home-timeline-content">
-                                        <h4 class="main-home-timeline-title">Full Stack Developer</h4>
-                                        <p class="main-home-timeline-company">StartupXYZ</p>
-                                        <p class="main-home-timeline-period">2020 - 2022</p>
-                                        <p class="main-home-timeline-description">
-                                            Built scalable web applications from scratch. Worked with React, Node.js, and cloud technologies.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Projects Section -->
-                    <div class="main-home-profile-card mb-4">
-                        <div class="main-home-card-header">
-                            <h3 class="main-home-card-title">
-                                <i class="bx bx-code-alt"></i> Recent Projects
-                            </h3>
-                            <button class="main-home-card-action">
-                                <i class="bx bx-plus"></i>
-                            </button>
-                        </div>
-                        <div class="main-home-card-content">
-                            <div class="main-home-projects-grid">
-                                <div class="main-home-project-card">
-                                    <div class="main-home-project-image">
-                                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=300&h=200&fit=crop" alt="Project 1">
-                                    </div>
-                                    <div class="main-home-project-content">
-                                        <h4 class="main-home-project-title">E-Commerce Platform</h4>
-                                        <p class="main-home-project-description">Modern e-commerce solution with React and Node.js</p>
-                                        <div class="main-home-project-tech">
-                                            <span class="main-home-tech-tag">React</span>
-                                            <span class="main-home-tech-tag">Node.js</span>
-                                            <span class="main-home-tech-tag">MongoDB</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="main-home-project-card">
-                                    <div class="main-home-project-image">
-                                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=300&h=200&fit=crop" alt="Project 2">
-                                    </div>
-                                    <div class="main-home-project-content">
-                                        <h4 class="main-home-project-title">Analytics Dashboard</h4>
-                                        <p class="main-home-project-description">Real-time analytics dashboard with data visualization</p>
-                                        <div class="main-home-project-tech">
-                                            <span class="main-home-tech-tag">Vue.js</span>
-                                            <span class="main-home-tech-tag">Python</span>
-                                            <span class="main-home-tech-tag">D3.js</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="ob-opt">
+                            <input type="radio" name="ob_theme_radio" id="ob_theme_dark" value="dark" {{ onboarding.selectedTheme == 'dark' ? 'checked' : '' }}>
+                            <label for="ob_theme_dark">🌙 Dark</label>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Right Column -->
-                <div class="col-lg-4">
-                    <!-- Contact Info -->
-                    <div class="main-home-profile-card mb-4">
-                        <div class="main-home-card-header">
-                            <h3 class="main-home-card-title">
-                                <i class="bx bx-envelope"></i> Contact
-                            </h3>
+            <div id="ob-step-2" class="ob-step">
+                <div class="ob-section">
+                    <span class="ob-label">Notification channel</span>
+                    <div class="ob-options">
+                        {% for val, label in {'EMAIL':'📧 Email','SMS':'📱 SMS','IN_APP':'🔔 In app','ALL':'📬 All','NONE':'🔕 None'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[notification_channel]" id="ob_nc_{{ val }}" value="{{ val }}" {{ (_ob_prefs.notification_channel|default('EMAIL')) == val ? 'checked' : '' }}>
+                            <label for="ob_nc_{{ val }}">{{ label }}</label>
                         </div>
-                        <div class="main-home-card-content">
-                            <div class="main-home-contact-item">
-                                <i class="bx bx-envelope"></i>
-                                <span>amine.saidi@example.com</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Frequency</span>
+                    <div class="ob-options">
+                        {% for val, label in {'INSTANT':'Instant','DAILY_DIGEST':'Daily','WEEKLY_DIGEST':'Weekly','MONTHLY':'Monthly','IMPORTANT_ONLY':'Important only'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[notification_frequency]" id="ob_nf_{{ val }}" value="{{ val }}" {{ (_ob_prefs.notification_frequency|default('DAILY_DIGEST')) == val ? 'checked' : '' }}>
+                            <label for="ob_nf_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div id="ob-step-3" class="ob-step">
+                <div class="ob-section">
+                    <span class="ob-label">Property type</span>
+                    <div class="ob-options">
+                        {% for val, label in {'APARTMENT':'Apartment','STUDIO':'Studio','DUPLEX':'Duplex'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[property_type]" id="ob_pt_{{ val }}" value="{{ val }}" {{ (_ob_prefs.property_type|default('APARTMENT')) == val ? 'checked' : '' }}>
+                            <label for="ob_pt_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Occupancy</span>
+                    <div class="ob-options">
+                        {% for val, label in {'OWNER_OCCUPIED':'Owner','OWNER_RENTING':'Landlord','TENANT':'Tenant','TEMPORARY':'Temporary'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[occupancy_status]" id="ob_os_{{ val }}" value="{{ val }}" {{ (_ob_prefs.occupancy_status|default('OWNER_OCCUPIED')) == val ? 'checked' : '' }}>
+                            <label for="ob_os_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Parking</span>
+                    <div class="ob-options">
+                        {% for val, label in {'NONE':'None','OUTDOOR':'Outdoor','COVERED':'Covered','UNDERGROUND':'Underground','MULTIPLE':'Multiple'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[parking_type]" id="ob_pk_{{ val }}" value="{{ val }}" {{ (_ob_prefs.parking_type|default('NONE')) == val ? 'checked' : '' }}>
+                            <label for="ob_pk_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div id="ob-step-4" class="ob-step">
+                <div class="ob-section">
+                    <span class="ob-label">Meeting participation</span>
+                    <div class="ob-options">
+                        {% for val, label in {'IN_PERSON':'In person','ONLINE':'Online','HYBRID':'Hybrid','PROXY_ONLY':'Proxy only'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[meeting_participation]" id="ob_mp_{{ val }}" value="{{ val }}" {{ (_ob_prefs.meeting_participation|default('HYBRID')) == val ? 'checked' : '' }}>
+                            <label for="ob_mp_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Documents</span>
+                    <div class="ob-options">
+                        {% for val, label in {'DIGITAL':'Digital','PAPER':'Paper','BOTH':'Both','ECO_FRIENDLY':'Eco-friendly'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[document_delivery]" id="ob_dd_{{ val }}" value="{{ val }}" {{ (_ob_prefs.document_delivery|default('DIGITAL')) == val ? 'checked' : '' }}>
+                            <label for="ob_dd_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Contact preference</span>
+                    <div class="ob-options">
+                        {% for val, label in {'EMAIL':'Email','PHONE':'Phone','WHATSAPP':'WhatsApp','IN_PERSON':'In person','NO_CONTACT':'Urgency only'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[contact_preference]" id="ob_cp_{{ val }}" value="{{ val }}" {{ (_ob_prefs.contact_preference|default('EMAIL')) == val ? 'checked' : '' }}>
+                            <label for="ob_cp_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div id="ob-step-5" class="ob-step">
+                <div class="ob-section">
+                    <span class="ob-label">Maintenance</span>
+                    <div class="ob-options">
+                        {% for val, label in {'URGENT_ONLY':'Urgent only','PREVENTIVE':'Preventive','SCHEDULED':'Scheduled','FLEXIBLE':'Flexible'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[maintenance_priority]" id="ob_mt_{{ val }}" value="{{ val }}" {{ (_ob_prefs.maintenance_priority|default('FLEXIBLE')) == val ? 'checked' : '' }}>
+                            <label for="ob_mt_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Community engagement</span>
+                    <div class="ob-options">
+                        {% for val, label in {'VERY_ACTIVE':'Very active','ACTIVE':'Active','MODERATE':'Moderate','OBSERVER':'Observer','MINIMAL':'Minimal'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[community_engagement]" id="ob_ce_{{ val }}" value="{{ val }}" {{ (_ob_prefs.community_engagement|default('MODERATE')) == val ? 'checked' : '' }}>
+                            <label for="ob_ce_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div id="ob-step-6" class="ob-step">
+                <div class="ob-section">
+                    <span class="ob-label">Payment</span>
+                    <div class="ob-options">
+                        {% for val, label in {'BANK_TRANSFER':'Transfer','CASH':'Cash','CHECK':'Check','ONLINE':'Online','AUTO_DEBIT':'Auto debit'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[payment_method_preference]" id="ob_pm_{{ val }}" value="{{ val }}" {{ (_ob_prefs.payment_method_preference|default('ONLINE')) == val ? 'checked' : '' }}>
+                            <label for="ob_pm_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Noise sensitivity</span>
+                    <div class="ob-options">
+                        {% for val, label in {'HIGH':'High','MODERATE':'Moderate','LOW':'Low','NOT_CONCERNED':'Not concerned'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[noise_sensitivity]" id="ob_ns_{{ val }}" value="{{ val }}" {{ (_ob_prefs.noise_sensitivity|default('MODERATE')) == val ? 'checked' : '' }}>
+                            <label for="ob_ns_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Pets</span>
+                    <div class="ob-options">
+                        {% for val, label in {'NO_PETS':'None','CAT':'Cat','DOG':'Dog','MULTIPLE':'Multiple','OTHER':'Other'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[pets_status]" id="ob_ps_{{ val }}" value="{{ val }}" {{ (_ob_prefs.pets_status|default('NO_PETS')) == val ? 'checked' : '' }}>
+                            <label for="ob_ps_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ob-section">
+                    <span class="ob-label">Accessibility</span>
+                    <div class="ob-options">
+                        {% for val, label in {'NONE':'None','ELEVATOR_REQUIRED':'Elevator','WHEELCHAIR':'Wheelchair','VISUAL_IMPAIRMENT':'Visual','OTHER':'Other'} %}
+                        <div class="ob-opt">
+                            <input type="radio" name="prefs[accessibility_needs]" id="ob_an_{{ val }}" value="{{ val }}" {{ (_ob_prefs.accessibility_needs|default('NONE')) == val ? 'checked' : '' }}>
+                            <label for="ob_an_{{ val }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div id="ob-step-7" class="ob-step">
+                <div class="ob-section">
+                    <span class="ob-label">Suggestions (optional)</span>
+                    {{ form_widget(onboardingForm.suggestions, { 'attr': { 'class': 'ob-textarea', 'placeholder': 'Your ideas or feedback...' } }) }}
+                </div>
+            </div>
+
+            <div class="ob-select-hidden" aria-hidden="true">
+                {{ form_widget(onboardingForm.selectedLocale) }}
+                {{ form_widget(onboardingForm.selectedTheme) }}
+            </div>
+
+            <div class="ob-actions">
+                <button type="button" class="ob-btn ob-btn-prev" id="ob-prev" style="visibility: hidden;"><i class="bx bx-chevron-left"></i> Previous</button>
+                <div style="flex: 1;"></div>
+                <button type="button" class="ob-btn ob-btn-next" id="ob-next">Next <i class="bx bx-chevron-right"></i></button>
+                <button type="submit" class="ob-btn ob-btn-next" id="ob-submit" style="display: none;">Save changes <i class="bx bx-check"></i></button>
+            </div>
+            {{ form_end(onboardingForm) }}
+        </div>
+    </div>
+</div>
+{% endif %}
+<div id="profile-settings-modal" class="profile-settings-modal-wrap" style="display: none;">
+    <div class="profile-settings-modal-backdrop" id="profile-settings-modal-backdrop"></div>
+    <div class="profile-settings-modal-card">
+        <div class="profile-settings-modal-header">
+            <div>
+                <h3>Profile settings</h3>
+                <p class="profile-settings-modal-subtitle">Avatar, theme, locale, timezone, bio.</p>
+            </div>
+            <button type="button" class="profile-settings-modal-close" id="profile-settings-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="profile-settings-modal-body">
+            {% if profileForm is defined %}
+            {{ form_start(profileForm, { 'attr': {
+                'id': 'profile-settings-form',
+                'method': 'post',
+                'action': path('frontend_profile'),
+                'class': 'profile-settings-form'
+            } }) }}
+            {{ form_row(profileForm.avatar, { 'row_attr': { 'class': 'mb-3' } }) }}
+            {{ form_row(profileForm.description_profile, { 'row_attr': { 'class': 'mb-3' } }) }}
+            {{ form_row(profileForm.theme, { 'row_attr': { 'class': 'mb-3' } }) }}
+            {{ form_row(profileForm.locale, { 'row_attr': { 'class': 'mb-3' } }) }}
+            {{ form_row(profileForm.timezone, { 'row_attr': { 'class': 'mb-3' } }) }}
+            
+            <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+            <h5 class="mb-3"><i class="bx bx-shield-quarter"></i> Security</h5>
+            <div class="mb-3">
+                {{ form_label(profileForm.currentPassword) }}
+                {{ form_widget(profileForm.currentPassword, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'Enter current password to change' } }) }}
+                {{ form_errors(profileForm.currentPassword) }}
+            </div>
+            <div class="mb-3">
+                {{ form_label(profileForm.newPassword.first) }}
+                {{ form_widget(profileForm.newPassword.first, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'New password (min 6 chars)' } }) }}
+                {{ form_errors(profileForm.newPassword.first) }}
+            </div>
+            <div class="mb-3">
+                {{ form_label(profileForm.newPassword.second) }}
+                {{ form_widget(profileForm.newPassword.second, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'Repeat new password' } }) }}
+                {{ form_errors(profileForm.newPassword.second) }}
+            </div>
+            <div class="profile-settings-modal-actions">
+                <button type="button" class="profile-settings-btn-cancel" id="profile-settings-modal-cancel">Cancel</button>
+                <span class="profile-settings-modal-actions-spacer"></span>
+                <button type="submit" class="profile-settings-btn-save">Save changes</button>
+            </div>
+            {{ form_end(profileForm) }}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var modal = document.getElementById('profile-settings-modal');
+    var openBtn = document.getElementById('profile-settings-open');
+    var closeBtn = document.getElementById('profile-settings-modal-close');
+    var cancelBtn = document.getElementById('profile-settings-modal-cancel');
+    var backdrop = document.getElementById('profile-settings-modal-backdrop');
+    if (!modal || !openBtn) return;
+    function openModal() { if (modal) modal.style.display = 'flex'; }
+    function closeModal() { if (modal) modal.style.display = 'none'; }
+    openBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    if (backdrop) backdrop.addEventListener('click', closeModal);
+})();
+
+(function() {
+    var onboardingModal = document.getElementById('profile-onboarding-modal');
+    var onboardingOpenBtn = document.getElementById('profile-onboarding-modify-open');
+    var onboardingCloseBtn = document.getElementById('profile-onboarding-modal-close');
+    var onboardingCancelBtn = document.getElementById('profile-onboarding-modal-cancel');
+    var onboardingBackdrop = document.getElementById('profile-onboarding-modal-backdrop');
+    if (!onboardingModal || !onboardingOpenBtn) return;
+    function openOnboardingModal() { if (onboardingModal) onboardingModal.style.display = 'flex'; }
+    function closeOnboardingModal() { if (onboardingModal) onboardingModal.style.display = 'none'; }
+    onboardingOpenBtn.addEventListener('click', openOnboardingModal);
+    if (onboardingCloseBtn) onboardingCloseBtn.addEventListener('click', closeOnboardingModal);
+    if (onboardingCancelBtn) onboardingCancelBtn.addEventListener('click', closeOnboardingModal);
+    if (onboardingBackdrop) onboardingBackdrop.addEventListener('click', closeOnboardingModal);
+})();
+
+(function() {
+    var modal = document.getElementById('profile-onboarding-modal');
+    if (!modal) return;
+    var form = document.getElementById('profile-onboarding-form');
+    var steps = [1,2,3,4,5,6,7];
+    var currentStep = 1;
+    var dots = modal.querySelectorAll('.ob-dot');
+    var prevBtn = document.getElementById('ob-prev');
+    var nextBtn = document.getElementById('ob-next');
+    var submitBtn = document.getElementById('ob-submit');
+
+    function getLocaleSelect() { return form ? form.querySelector('[name*="[selectedLocale]"]') : null; }
+    function getThemeSelect() { return form ? form.querySelector('[name*="[selectedTheme]"]') : null; }
+
+    function syncLocaleTheme() {
+        var localeRadio = modal.querySelector('input[name="ob_locale_radio"]:checked');
+        var themeRadio = modal.querySelector('input[name="ob_theme_radio"]:checked');
+        var localeSelect = getLocaleSelect();
+        var themeSelect = getThemeSelect();
+        if (localeRadio && localeSelect) localeSelect.value = localeRadio.value;
+        if (themeRadio && themeSelect) themeSelect.value = themeRadio.value;
+        /* Real-time theme: same as actual onboarding */
+        if (themeRadio) {
+            var themeVal = themeRadio.value;
+            document.documentElement.setAttribute('data-theme', themeVal);
+            try { localStorage.setItem('theme', themeVal); } catch (e) {}
+        }
+        /* Real-time language: same as actual onboarding */
+        if (localeRadio && typeof window.setLanguage === 'function') {
+            window.setLanguage(localeRadio.value);
+        }
+    }
+
+    modal.querySelectorAll('input[name="ob_locale_radio"], input[name="ob_theme_radio"]').forEach(function(r) {
+        r.addEventListener('change', syncLocaleTheme);
+    });
+
+    function showStep(step) {
+        currentStep = step;
+        steps.forEach(function(s) {
+            var el = document.getElementById('ob-step-' + s);
+            if (el) el.classList.toggle('ob-step-visible', s === step);
+        });
+        dots.forEach(function(d, i) {
+            d.classList.remove('ob-active', 'ob-done');
+            if (i + 1 < step) d.classList.add('ob-done');
+            else if (i + 1 === step) d.classList.add('ob-active');
+        });
+        if (prevBtn) prevBtn.style.visibility = step === 1 ? 'hidden' : 'visible';
+        if (nextBtn) nextBtn.style.display = step === 7 ? 'none' : 'inline-flex';
+        if (submitBtn) submitBtn.style.display = step === 7 ? 'inline-flex' : 'none';
+        syncLocaleTheme();
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', function() { if (currentStep > 1) showStep(currentStep - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function() { if (currentStep < 7) showStep(currentStep + 1); });
+
+    var openBtn = document.getElementById('profile-onboarding-modify-open');
+    if (openBtn) openBtn.addEventListener('click', function() { showStep(1); });
+})();
+
+(function() {
+    var form = document.getElementById('profile-avatar-upload-form');
+    var fileInput = document.getElementById('profile-avatar-file-input');
+    if (form && fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files && fileInput.files.length) form.submit();
+        });
+    }
+})();
+
+/* Tab Switching Logic */
+(function() {
+    const pills = document.querySelectorAll('.profile-nav-pill');
+    const contents = document.querySelectorAll('.profile-tab-content');
+
+    pills.forEach(pill => {
+        pill.addEventListener('click', () => {
+            const tabName = pill.dataset.tab;
+            
+            // Update Active Pill
+            pills.forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            
+            // Update Active Content
+            contents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            const activeContent = document.getElementById('tab-' + tabName);
+            if (activeContent) {
+                activeContent.classList.add('active');
+            }
+        });
+    });
+
+    // List initialization logic moved to the main DOMContentLoaded block below to avoid scope issues
+
+    // Lightbox Functionality (Global)
+    const lightbox = document.getElementById('reclamation-lightbox');
+    const lightboxImg = document.getElementById('lightbox-image');
+    const lightboxClose = document.getElementById('lightbox-close');
+
+    window.openLightbox = function(src) {
+        if (!lightbox || !lightboxImg) return;
+        lightboxImg.src = src;
+        lightbox.style.display = 'flex';
+        // Force reflow for transition
+        lightbox.offsetHeight;
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+    };
+
+    window.closeLightbox = function() {
+        if (!lightbox) return;
+        lightbox.classList.remove('active');
+        setTimeout(() => {
+            lightbox.style.display = 'none';
+            if (lightboxImg) lightboxImg.src = '';
+            document.body.style.overflow = '';
+        }, 300);
+    };
+
+    if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
+    if (lightbox) {
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) closeLightbox();
+        });
+    }
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightbox && lightbox.classList.contains('active')) {
+            closeLightbox();
+        }
+    });
+})();
+</script>
+
+{% include 'frontend/shared/_scroll_pill.html.twig' %}
+<script src="{{ asset('frontend/js/scroll-pill.js') }}" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ asset('frontend/js/main-home.js') }}"></script>
+<script src="{{ asset('js/page-loader.js') }}"></script>
+
+
+
+<!-- Modals Container at End of Body -->
+{% for rec in reclamations %}
+    <!-- Individual Modal for Reclamation -->
+    <!-- Added data-bs-theme="dark" for explicit bootstrap dark mode style on modal -->
+    <div class="modal fade" id="reclamationModal-{{ rec.id }}" tabindex="-1" aria-hidden="true" style="backdrop-filter: blur(2px);">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="background: #000000; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px;">
+                <div class="modal-header border-bottom border-light border-opacity-10 py-4 px-4">
+                    <div class="d-flex flex-column gap-1">
+                        {% set status_colors = {
+                            'confirme': '#00e676',
+                            'active': '#00e676',
+                            'en_attente': '#ffeb3b',
+                            'refuse': '#ff3b30',
+                            'annule': '#9e9e9e',
+                            'termine': '#4fc3f7'
+                        } %}
+                        {% set status_labels = {
+                            'confirme': 'Confirmed',
+                            'active': 'Active',
+                            'en_attente': 'In Progress',
+                            'refuse': 'Rejected',
+                            'annule': 'Cancelled',
+                            'termine': 'Completed'
+                        } %}
+                        <div class="d-flex align-items-center gap-2">
+                             <span class="badge" style="background: {{ status_colors[rec.statutreclamation|default('en_attente')] }}15; color: {{ status_colors[rec.statutreclamation|default('en_attente')] }}; border: 1px solid {{ status_colors[rec.statutreclamation|default('en_attente')] }}30; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                {{ status_labels[rec.statutreclamation|default('en_attente')] }}
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 class="modal-title text-white fw-bold mb-0">{{ rec.titrereclamations }}</h4>
+                            {% if isAdmin %}
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 edit-reclamation-trigger" data-reclamation-id="{{ rec.id }}" style="font-size: 0.75rem; font-weight: 600; border-width: 1px; transition: all 0.2s;">
+                                    <i class="bx bx-edit-alt"></i> Edit
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white bg-white bg-opacity-10 p-2 rounded-circle w-auto h-auto" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.8; transition: all 0.2s;"></button>
+                </div>
+                <div class="modal-body p-0 scrollbar-hide">
+                    <div class="p-4 border-bottom border-light border-opacity-10" style="background: rgba(255,255,255,0.01);">
+                        <p class="mb-3 text-light opacity-90" style="font-size: 1.05rem; line-height: 1.6;">{{ rec.descreclamation }}</p>
+                        
+                        <!-- Images -->
+                        {% if rec.decodedImages is defined and rec.decodedImages is not empty %}
+                            <div class="d-flex gap-2 overflow-auto pb-2 scrollbar-hide">
+                                {% for img in rec.decodedImages %}
+                                    <a href="javascript:void(0)" onclick="openLightbox('{{ asset('reclamation_images/' ~ img) }}')" class="flex-shrink-0">
+                                        <div class="position-relative group">
+                                            <img src="{{ asset('reclamation_images/' ~ img) }}" class="rounded-3 border border-secondary border-opacity-25" style="height: 100px; width: 100px; object-fit: cover; transition: transform 0.2s;" loading="lazy">
+                                            <div class="position-absolute inset-0 d-flex align-items-center justify-content-center bg-black bg-opacity-25 opacity-0 hover-opacity-100 rounded-3 transition-all">
+                                                <i class='bx bx-zoom-in text-white fs-4'></i>
+                                            </div>
+                                        </div>
+                                    </a>
+                                {% endfor %}
                             </div>
-                            <div class="main-home-contact-item">
-                                <i class="bx bx-phone"></i>
-                                <span>+1 (555) 123-4567</span>
-                            </div>
-                            <div class="main-home-contact-item">
-                                <i class="bx bx-globe"></i>
-                                <span>www.aminesaidi.dev</span>
-                            </div>
-                            <div class="main-home-contact-item">
-                                <i class="bx bxl-github"></i>
-                                <span>github.com/aminesaidi</span>
-                            </div>
-                            <div class="main-home-contact-item">
-                                <i class="bx bxl-linkedin"></i>
-                                <span>linkedin.com/in/aminesaidi</span>
-                            </div>
+                        {% endif %}
+                        
+                        <div class="d-flex align-items-center gap-3 mt-2 text-secondary small">
+                             <span><i class="bx bx-calendar"></i> {{ rec.createdAt is not null ? rec.createdAt|date('d M Y, H:i') : 'N/A' }}</span>
+                             {% if rec.user %}
+                                <span><i class="bx bx-user"></i> {{ rec.user.firstName }} {{ rec.user.lastName }}</span>
+                             {% endif %}
                         </div>
                     </div>
 
-                    <!-- Skills -->
-                    <div class="main-home-profile-card mb-4">
-                        <div class="main-home-card-header">
-                            <h3 class="main-home-card-title">
-                                <i class="bx bx-code"></i> Skills
-                            </h3>
+                    <!-- Discussion Area -->
+                    <div class="d-flex flex-column h-100" style="min-height: 300px; background: #000000;">
+                        <div class="px-4 py-3 border-bottom border-light border-opacity-10" style="background: #000000;">
+                            <h6 class="text-white mb-0 d-flex align-items-center gap-2">
+                                <i class='bx bx-message-rounded-dots text-primary'></i> Discussion History
+                            </h6>
                         </div>
-                        <div class="main-home-card-content">
-                            <div class="main-home-skill-item">
-                                <span class="main-home-skill-name">JavaScript</span>
-                                <div class="main-home-skill-bar">
-                                    <div class="main-home-skill-progress" style="width: 95%"></div>
-                                </div>
+                        
+                        <div class="flex-grow-1 p-4 d-flex flex-column gap-3 scrollbar-hide" id="responses-list-{{ rec.id }}" style="max-height: 400px; overflow-y: auto;">
+                            <!-- Responses injected via JS -->
+                            <div class="text-center text-white-50 py-5">
+                                <i class="bx bx-loader-alt bx-spin fs-3 mb-2"></i>
+                                <p>Loading discussion...</p>
                             </div>
-                            <div class="main-home-skill-item">
-                                <span class="main-home-skill-name">React</span>
-                                <div class="main-home-skill-bar">
-                                    <div class="main-home-skill-progress" style="width: 90%"></div>
+                        </div>
+
+                        <!-- Reply Input Area -->
+                        <div class="p-3 border-top border-light border-opacity-10" style="background: #000000;">
+                            <form action="{{ path('api_reponse_add', {'id': rec.id}) }}" method="post" enctype="multipart/form-data" class="reponse-api-form" data-reclamation-id="{{ rec.id }}">
+                                <div class="rounded-3 border border-secondary border-opacity-25 p-2" style="background: #000000;">
+                                    <div class="d-flex align-items-start gap-2">
+                                         <button type="button" class="btn btn-link text-secondary text-decoration-none p-0 mt-2" onclick="this.nextElementSibling.click()" title="Attach Image">
+                                            <i class='bx bx-image-add fs-4'></i>
+                                        </button>
+                                        <input type="file" name="image" class="d-none" onchange="const preview = this.parentElement.nextElementSibling; const file = this.files[0]; if(file){ const reader = new FileReader(); reader.onload = function(e){ preview.innerHTML = `<img src='${e.target.result}' class='rounded-3 border border-secondary border-opacity-25' style='height: 60px; object-fit: cover;'> <button type='button' class='btn-close btn-close-white position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger p-1' onclick='this.parentElement.innerHTML=\'\'; this.parentElement.previousElementSibling.querySelector(\'input[type=file]\').value=\'\';'></button>`; preview.classList.remove('d-none'); }; reader.readAsDataURL(file); }">
+                                        
+                                        <div class="flex-grow-1 d-flex flex-column gap-1">
+                                            <input type="text" name="title" class="form-control bg-transparent border-0 shadow-none p-0 px-2" placeholder="Title (optional)" style="font-size: 0.85rem; height: auto; color: white !important;">
+                                            <textarea name="message" class="form-control bg-transparent border-0 shadow-none p-0 px-2" placeholder="Type a message..." rows="1" style="resize: none; min-height: 40px; color: white !important;" required></textarea>
+                                        </div>
+ 
+                                        <button type="submit" class="btn btn-primary rounded-3 px-3 py-2 fw-bold align-self-end"><i class='bx bx-send'></i></button>
+                                    </div>
+                                    <div class="position-relative d-none mt-2 px-2" id="image-preview-container-{{ rec.id }}"></div>
                                 </div>
-                            </div>
-                            <div class="main-home-skill-item">
-                                <span class="main-home-skill-name">Node.js</span>
-                                <div class="main-home-skill-bar">
-                                    <div class="main-home-skill-progress" style="width: 85%"></div>
-                                </div>
-                            </div>
-                            <div class="main-home-skill-item">
-                                <span class="main-home-skill-name">Python</span>
-                                <div class="main-home-skill-bar">
-                                    <div class="main-home-skill-progress" style="width: 80%"></div>
-                                </div>
-                            </div>
-                            <div class="main-home-skill-item">
-                                <span class="main-home-skill-name">PHP</span>
-                                <div class="main-home-skill-bar">
-                                    <div class="main-home-skill-progress" style="width: 75%"></div>
-                                </div>
-                            </div>
+                            </form>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    <!-- Achievements -->
-                    <div class="main-home-profile-card mb-4">
-                        <div class="main-home-card-header">
-                            <h3 class="main-home-card-title">
-                                <i class="bx bx-trophy"></i> Achievements
-                            </h3>
+    {% if isAdmin %}
+    <!-- Admin Edit Modal for Reclamation -->
+    <div class="modal fade" id="adminEditReclamationModal-{{ rec.id }}" tabindex="-1" aria-hidden="true" style="backdrop-filter: blur(2px); z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="background: #0a0a0a; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px;">
+                <div class="modal-header border-bottom border-light border-opacity-10 py-3 px-4">
+                    <h5 class="modal-title text-white fw-bold m-0"><i class="bx bx-edit-alt text-primary"></i> Edit Reclamation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form action="{{ path('api_reclamation_update', {'id': rec.id}) }}" method="post" class="admin-reclamation-edit-form" data-reclamation-id="{{ rec.id }}">
+                        <div class="mb-4">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Title</label>
+                            <input type="text" name="title" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" value="{{ rec.titrereclamations }}" required>
                         </div>
-                        <div class="main-home-card-content">
-                            <div class="main-home-achievement-item">
-                                <div class="main-home-achievement-icon">
-                                    <i class="bx bx-code-alt"></i>
+                        <div class="mb-4">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Description</label>
+                            <textarea name="description" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" rows="4" required>{{ rec.descreclamation }}</textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Status</label>
+                            <select name="status" class="form-select bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3">
+                                <option value="active" {{ rec.statutreclamation == 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="en_attente" {{ rec.statutreclamation == 'en_attente' ? 'selected' : '' }}>In Progress</option>
+                                <option value="refuse" {{ rec.statutreclamation == 'refuse' ? 'selected' : '' }}>Rejected</option>
+                                <option value="termine" {{ rec.statutreclamation == 'termine' ? 'selected' : '' }}>Completed</option>
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary px-4 py-2 rounded-pill fw-bold" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+
+{# --- Forum Publication Modals --- #}
+{% for pub in publications %}
+    <!-- View Publication Modal -->
+    <div class="modal fade" id="publicationModal-{{ pub.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 overflow-hidden" style="background: #000; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 24px;">
+                <div class="modal-header border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width: 45px; height: 45px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <i class="bx bx-message-square-dots" style="font-size: 1.4rem; color: #fff;"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold text-white mb-0" style="font-size: 1.25rem;">{{ pub.titrePub }}</h5>
+                            <span class="badge" style="background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 0.7rem; text-transform: uppercase; border: 1px solid rgba(255, 255, 255, 0.1);">{{ pub.categoriePub }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        {% if isAdmin %}
+                            <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#adminEditPublicationModal-{{ pub.id }}">
+                                <i class="bx bx-edit-alt"></i> Edit
+                            </button>
+                        {% endif %}
+                        <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="text-secondary small text-uppercase fw-bold mb-2 d-block">Publication Details</label>
+                        <p class="text-white-50 leading-relaxed">{{ pub.descriptionPub }}</p>
+                        
+                        {% if pub.imagePub %}
+                            <div class="mt-3">
+                                <img src="{{ asset('forum_images/' ~ pub.imagePub) }}" alt="Publication Image" 
+                                     style="max-width: 100%; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;"
+                                     onclick="openLightbox(this.src)">
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="discussion-section">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <label class="text-secondary small text-uppercase fw-bold m-0"><i class="bx bx-comment-detail"></i> Discussion</label>
+                            <span class="text-white-50 small" id="comments-count-{{ pub.id }}">...</span>
+                        </div>
+                        <div id="comments-list-{{ pub.id }}" class="scrollbar-hide" style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; padding-right: 5px;">
+                            <div class="text-center py-4">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                <p class="text-muted small mt-2">Loading discussion...</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Add Comment form -->
+                        <div class="mt-4 pt-4 border-top border-white border-opacity-10">
+                            <form class="comment-submission-form" data-publication-id="{{ pub.id }}" action="{{ path('forum_comment_add', {'id': pub.id}) }}" method="post" enctype="multipart/form-data">
+                                <div class="d-flex gap-3 align-items-start w-100">
+                                    <div style="flex: 1;">
+                                        <div class="d-flex align-items-start gap-2 mb-2">
+                                            <button type="button" class="btn btn-link text-secondary text-decoration-none p-0 mt-2" onclick="this.nextElementSibling.click()" title="Attach Image">
+                                                <i class='bx bx-image-add fs-4'></i>
+                                            </button>
+                                            <input type="file" name="image_commentaire" class="d-none" onchange="window.handleForumImagePreview(this, {{ pub.id }})">
+                                            
+                                            <textarea name="description" class="form-control bg-dark border border-white border-opacity-10 text-white p-3 rounded-4 shadow-none flex-grow-1" 
+                                                      placeholder="Add a comment..." rows="2" style="resize: none;"></textarea>
+                                        </div>
+                                        <div class="position-relative d-none mb-3 px-2" id="forum-image-preview-{{ pub.id }}" style="width: fit-content;"></div>
+                                        <div class="d-flex align-items-center justify-content-between mt-2">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" name="visibility" id="anon-{{ pub.id }}" checked>
+                                                <label class="form-check-label text-secondary small" for="anon-{{ pub.id }}">Public</label>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-sm px-4 py-2 rounded-pill fw-bold">Send message</button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="main-home-achievement-content">
-                                    <h4>Code Master</h4>
-                                    <p>1000+ commits this year</p>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Edit Publication Modal -->
+    {% if isAdmin %}
+    <div class="modal fade" id="adminEditPublicationModal-{{ pub.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="background: #000; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 20px;">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="modal-title fw-bold text-white"><i class="bx bx-edit"></i> Edit Publication #{{ pub.id }}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form class="admin-publication-edit-form" data-publication-id="{{ pub.id }}" action="{{ path('api_forum_publication_update', {'id': pub.id}) }}">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Title</label>
+                            <input type="text" name="title" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" value="{{ pub.titrePub }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Description</label>
+                            <textarea name="description" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" rows="4" required>{{ pub.descriptionPub }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Category</label>
+                            <select name="category" class="form-select bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3">
+                                {% for cat in ['Announcement', 'Suggestion', 'Jeux Video', 'Informatique', 'Nouveauté', 'Discussion General', 'Culture', 'Sport'] %}
+                                    <option value="{{ cat }}" {{ pub.categoriePub == cat ? 'selected' : '' }}>{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary px-4 py-2 rounded-pill fw-bold" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}    <!-- Event View Modal -->
+    <div class="modal fade" id="eventViewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-dark border-secondary border-opacity-25 text-white shadow-lg" style="border-radius: 24px; overflow: hidden;">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="modal-title fw-bold fs-4">Event Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-5">
+                            <div id="event-modal-image-container" class="rounded-4 overflow-hidden shadow-sm" style="height: 250px; background: rgba(255,255,255,0.05);">
+                                <img id="event-modal-image" src="" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h2 id="event-modal-title" class="fw-bold mb-0"></h2>
+                                <span id="event-modal-status" class="status-badge" style="padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700;"></span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-3 mb-4 text-secondary">
+                                <span class="d-flex align-items-center gap-1"><i class="bx bx-calendar"></i> <span id="event-modal-date"></span></span>
+                                <span class="d-flex align-items-center gap-1"><i class="bx bx-map"></i> <span id="event-modal-location"></span></span>
+                                <span class="d-flex align-items-center gap-1"><i class="bx bx-purchase-tag"></i> <span id="event-modal-type"></span></span>
+                            </div>
+                            <p id="event-modal-description" class="text-light opacity-75 mb-4" style="line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem;"></p>
+                            <div class="d-flex align-items-center gap-4 py-3 border-top border-white border-opacity-10">
+                                <div>
+                                    <small class="text-secondary d-block">Places</small>
+                                    <span id="event-modal-places" class="fw-bold"></span>
+                                </div>
+                                <div>
+                                    <small class="text-secondary d-block">Remaining</small>
+                                    <span id="event-modal-remaining" class="fw-bold"></span>
                                 </div>
                             </div>
-                            <div class="main-home-achievement-item">
-                                <div class="main-home-achievement-icon">
-                                    <i class="bx bx-star"></i>
-                                </div>
-                                <div class="main-home-achievement-content">
-                                    <h4>Top Contributor</h4>
-                                    <p>Most active developer</p>
-                                </div>
-                            </div>
-                            <div class="main-home-achievement-item">
-                                <div class="main-home-achievement-icon">
-                                    <i class="bx bx-rocket"></i>
-                                </div>
-                                <div class="main-home-achievement-content">
-                                    <h4>Innovation Award</h4>
-                                    <p>Best project of 2023</p>
-                                </div>
+                            <div id="event-modal-admin-actions" class="mt-4 pt-3 d-none">
+                                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-bold w-100" id="btn-edit-event">
+                                    <i class="bx bx-edit-alt me-2"></i>Edit Event
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -316,27 +1768,913 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="main-home-footer-island">
-        <div class="main-home-footer-content">
-            <div class="main-home-footer-left">
-                <p>&copy; 2024 PiDev. Made with ❤️ by Amine</p>
-            </div>
-            <div class="main-home-footer-right">
-                <a href="#" class="main-home-footer-link">Privacy</a>
-                <a href="#" class="main-home-footer-link">Terms</a>
-                <a href="#" class="main-home-footer-link">Support</a>
+    <!-- Event Edit Modal -->
+    <div class="modal fade" id="eventEditModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark border-secondary border-opacity-25 text-white shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title fw-bold">Edit Event</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <form id="event-edit-form" enctype="multipart/form-data">
+                        <input type="hidden" name="id" id="edit-event-id">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Title</label>
+                            <input type="text" name="titre_event" id="edit-event-title" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Description</label>
+                            <textarea name="description_event" id="edit-event-description" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" rows="3" required></textarea>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Date</label>
+                                <input type="datetime-local" name="date_event" id="edit-event-date" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Location</label>
+                                <input type="text" name="lieu_event" id="edit-event-location" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" required>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Total</label>
+                                <input type="number" name="nb_places" id="edit-event-places" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" min="0">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Remaining</label>
+                                <input type="number" name="nb_restants" id="edit-event-remaining" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" min="0">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Type</label>
+                                <select name="type_event" id="edit-event-type" class="form-select bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3">
+                                    {% for type in ['reunion', 'social', 'formation', 'maintenance', 'culturel', 'sportif'] %}
+                                        <option value="{{ type }}">{{ type|title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Status</label>
+                            <select name="statut_event" id="edit-event-status" class="form-select bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3">
+                                {% for status in ['planifie', 'en_cours', 'termine', 'annule'] %}
+                                    <option value="{{ status }}">{{ status|replace({'_': ' '})|title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small text-uppercase fw-bold mb-2">Image</label>
+                            <input type="file" name="image_event" id="edit-event-image" class="form-control bg-dark border-secondary border-opacity-25 text-white p-3 rounded-3" accept="image/*">
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary px-4 py-2 rounded-pill fw-bold" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold" id="save-event-btn">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </footer>
+    </div>
 
-    {% include 'frontend/shared/_scroll_pill.html.twig' %}
-    <script src="{{ asset('frontend/js/scroll-pill.js') }}" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ asset('frontend/js/main-home.js') }}"></script>
-    <script>
-    // Theme, accent, and language settings logic removed from My Profile page
-    </script>
-    <script src="{{ asset('js/page-loader.js') }}"></script>
+<script>
+window.handleForumImagePreview = function(input, publicationId) {
+    const preview = document.getElementById(`forum-image-preview-${publicationId}`);
+    const file = input.files[0];
+    if (file && preview) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `
+                <div class="position-relative d-inline-block">
+                    <img src="${e.target.result}" class="rounded-3 border border-white border-opacity-10" style="height: 60px; width: 60px; object-fit: cover;">
+                    <button type="button" class="btn btn-danger btn-sm p-0 d-flex align-items-center justify-content-center position-absolute" 
+                            style="top: -8px; right: -8px; width: 22px; height: 22px; border-radius: 50%; z-index: 999; border: 2px solid #000;"
+                            onclick="window.removeForumImage(${publicationId})" title="Remove Image">
+                        <i class='bx bx-x' style='font-size: 16px;'></i>
+                    </button>
+                </div>
+            `;
+            preview.classList.remove('d-none');
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+window.removeForumImage = function(publicationId) {
+    const preview = document.getElementById(`forum-image-preview-${publicationId}`);
+    if (preview) {
+        preview.innerHTML = '';
+        preview.classList.add('d-none');
+        const form = preview.closest('form');
+        if (form) {
+            const fileInput = form.querySelector('input[type="file"]');
+            if (fileInput) fileInput.value = '';
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const currentUserId = {{ user.idUser|default('0') }};
+    const isAdmin = {{ isAdmin ? 'true' : 'false' }};
+    let currentAdminFilter = isAdmin ? 'all' : 'my';
+    let currentResidenceFilter = isAdmin ? 'all' : 'my';
+
+
+    // Pagination & Filtering Variables
+    const itemsPerPage = 3;
+    const allReclamationItems = Array.from(document.querySelectorAll('.reclamation-item'));
+    const paginationContainer = document.getElementById('reclamation-pagination');
+
+
+    window.initializeReclamationPagination = function() {
+        try {
+            // console.log("Initializing Reclamation Pagination. Filter:", currentAdminFilter);
+            
+            // 1. Filter items
+            const filteredItems = allReclamationItems.filter(item => {
+                if (currentAdminFilter === 'all') return true;
+                const itemUserId = String(item.dataset.userId);
+                const currentId = String(currentUserId);
+                return itemUserId === currentId;
+            });
+
+
+            // 2. Hide all items initially
+            allReclamationItems.forEach(item => {
+                item.style.display = 'none';
+                item.classList.remove('active');
+            });
+
+            if (filteredItems.length === 0) {
+                if (paginationContainer) paginationContainer.innerHTML = '';
+                return;
+            }
+
+            // 3. Simple Display if no pagination needed
+            if (!paginationContainer || filteredItems.length <= itemsPerPage) {
+                if (paginationContainer) paginationContainer.innerHTML = '';
+                filteredItems.forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+                return;
+            }
+
+            // 4. Advanced Pagination
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+            paginationContainer.innerHTML = '';
+            
+            function showPage(page) {
+                const start = (page - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                
+                filteredItems.forEach((item, idx) => {
+                    if (idx >= start && idx < end) {
+                        item.style.display = 'block';
+                        setTimeout(() => item.classList.add('active'), 10);
+                    } else {
+                        item.style.display = 'none';
+                        item.classList.remove('active');
+                    }
+                });
+
+                paginationContainer.querySelectorAll('.pagination-pill').forEach(pill => {
+                    pill.classList.toggle('active', parseInt(pill.dataset.page) === page);
+                });
+            }
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pill = document.createElement('div');
+                pill.className = 'pagination-pill';
+                pill.textContent = i;
+                pill.dataset.page = i;
+                if (i === 1) pill.classList.add('active');
+                
+                pill.addEventListener('click', () => {
+                    showPage(i);
+                    document.getElementById('tab-reclamation').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                
+                paginationContainer.appendChild(pill);
+            }
+
+            showPage(1);
+        } catch (e) { console.error("Reclamation Pagination Error:", e); }
+    };
+
+    // Initial load
+    if (typeof window.initializeReclamationPagination === 'function') {
+        window.initializeReclamationPagination();
+    }
+
+    // --- Forum Pagination & Filtering ---
+    const allForumItems = Array.from(document.querySelectorAll('.publication-item'));
+    const forumPaginationContainer = document.getElementById('forum-pagination');
+    let currentForumAdminFilter = isAdmin ? 'all' : 'my';
+
+    window.initializeForumPagination = function() {
+        try {
+            const filteredItems = allForumItems.filter(item => {
+                if (currentForumAdminFilter === 'all') return true;
+                return item.dataset.userId == currentUserId;
+            });
+
+            allForumItems.forEach(item => {
+                item.style.display = 'none';
+                item.classList.remove('active');
+            });
+
+            if (!forumPaginationContainer) {
+                filteredItems.forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+                return;
+            }
+
+            forumPaginationContainer.innerHTML = '';
+            if (filteredItems.length === 0) return;
+
+            if (filteredItems.length <= itemsPerPage) {
+                filteredItems.forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+                return;
+            }
+
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+            
+            function showForumPage(page) {
+                const start = (page - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                
+                filteredItems.forEach(item => {
+                    item.style.display = 'none';
+                    item.classList.remove('active');
+                });
+
+                filteredItems.slice(start, end).forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+
+                forumPaginationContainer.querySelectorAll('.pagination-pill').forEach(pill => {
+                    pill.classList.toggle('active', parseInt(pill.dataset.page) === page);
+                });
+            }
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pill = document.createElement('div');
+                pill.className = 'pagination-pill';
+                pill.textContent = i;
+                pill.dataset.page = i;
+                if (i === 1) pill.classList.add('active');
+                
+                pill.addEventListener('click', () => {
+                    showForumPage(i);
+                    document.getElementById('tab-forum').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                
+                forumPaginationContainer.appendChild(pill);
+            }
+            showForumPage(1);
+        } catch (e) { console.error("Forum Pagination Error:", e); }
+    };
+
+    window.initializeForumPagination();
+
+    // --- Events Pagination & Filtering ---
+    const allEventItems = Array.from(document.querySelectorAll('.event-item'));
+    const eventPaginationContainer = document.getElementById('events-pagination');
+    let currentEventAdminFilter = isAdmin ? 'all' : 'my';
+
+    window.initializeEventsPagination = function() {
+        try {
+            const filteredItems = allEventItems.filter(item => {
+                if (currentEventAdminFilter === 'all') return true;
+                return item.dataset.userId == currentUserId;
+            });
+
+            allEventItems.forEach(item => {
+                item.style.display = 'none';
+                item.classList.remove('active');
+            });
+
+            if (!eventPaginationContainer) {
+                filteredItems.forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+                return;
+            }
+
+            eventPaginationContainer.innerHTML = '';
+            if (filteredItems.length === 0) return;
+
+            if (filteredItems.length <= itemsPerPage) {
+                filteredItems.forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+                return;
+            }
+
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+            
+            function showEventPage(page) {
+                const start = (page - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                
+                filteredItems.forEach(item => {
+                    item.style.display = 'none';
+                    item.classList.remove('active');
+                });
+
+                filteredItems.slice(start, end).forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+
+                eventPaginationContainer.querySelectorAll('.pagination-pill').forEach(pill => {
+                    pill.classList.toggle('active', parseInt(pill.dataset.page) === page);
+                });
+            }
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pill = document.createElement('div');
+                pill.className = 'pagination-pill';
+                pill.textContent = i;
+                pill.dataset.page = i;
+                if (i === 1) pill.classList.add('active');
+                
+                pill.addEventListener('click', () => {
+                    showEventPage(i);
+                    document.getElementById('tab-events').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                
+                eventPaginationContainer.appendChild(pill);
+            }
+            showEventPage(1);
+        } catch (e) { console.error("Event Pagination Error:", e); }
+    };
+
+    window.initializeEventsPagination();
+
+
+    window.loadComments = function(publicationId, isSilent = false) {
+        const list = document.getElementById(`comments-list-${publicationId}`);
+        if (!list) return;
+
+        const hasContent = list.children.length > 0 && !list.innerHTML.includes('spinner-border');
+        const lastFetch = list.dataset.lastFetch || 0;
+        const now = Date.now();
+        
+        if (!isSilent && hasContent && (now - lastFetch < 30000)) return; 
+
+        if (!isSilent && !hasContent) {
+            list.innerHTML = `
+                <div class="text-center text-white-50 py-5">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <p class="small mt-2">Loading discussion...</p>
+                </div>`;
+        }
+
+        fetch(`/forum/comment/list/${publicationId}`)
+            .then(res => res.json())
+            .then(comments => {
+                try {
+                    document.getElementById(`comments-count-${publicationId}`).textContent = `${comments.length} comments`;
+                    if (comments.length === 0) {
+                        list.innerHTML = `
+                            <div class="text-center text-secondary py-5 opacity-50">
+                                <i class='bx bx-message-square-dots fs-3 mb-2'></i>
+                                <p>No comments yet. Be the first!</p>
+                            </div>`;
+                        return;
+                    }
+
+                    const newContent = comments.map(c => {
+                        const isMe = c.isOwner;
+                        const avatar = c.author.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face';
+                        return `
+                            <div class="d-flex w-100 ${isMe ? 'justify-content-end' : 'justify-content-start'}">
+                                <div class="d-flex flex-column ${isMe ? 'align-items-end' : 'align-items-start'}" style="max-width: 80%;">
+                                    <div class="d-flex align-items-center gap-2 mb-1 px-1">
+                                        <div class="details-author-avatar" style="width: 24px; height: 24px;">
+                                            <img src="${avatar}" alt="${c.author.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;" loading="lazy">
+                                        </div>
+                                        <small class="text-secondary" style="font-size: 0.75rem;">${c.author.name}</small>
+                                        <small class="text-secondary opacity-50" style="font-size: 0.7rem;">${c.createdAt}</small>
+                                    </div>
+                                    <div class="card border-0 shadow-sm p-3 ${isMe ? 'bg-primary text-white' : 'border border-secondary border-opacity-25 text-light'}" 
+                                         style="border-radius: 18px; ${isMe ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px; background-color: #111;'}">
+                                        <p class="mb-0" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5;">${c.description}</p>
+                                        ${c.image ? `
+                                            <div class="mt-2 pt-2 border-top border-white border-opacity-10">
+                                                <img src="${c.image}" class="rounded-3" style="max-height: 150px; cursor: pointer;" onclick="openLightbox('${c.image}')" loading="lazy">
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>`;
+                    }).join('');
+
+                    list.innerHTML = newContent;
+                    list.dataset.lastFetch = now;
+                    list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
+                } catch (e) { console.error("Render Error:", e); }
+            });
+    };
+
+    window.loadResponses = function(reclamationId, isSilent = false) {
+        const list = document.getElementById(`responses-list-${reclamationId}`);
+        if (!list) return;
+
+        // SMART LOADING: Avoid refetching if we have content and it's recent (or just exists)
+        const hasContent = list.children.length > 0 && !list.innerHTML.includes('bx-loader-alt');
+        const lastFetch = list.dataset.lastFetch || 0;
+        const now = Date.now();
+        
+        // If not silent and we have content fetched less than 30s ago, don't show loader or refetch
+        if (!isSilent && hasContent && (now - lastFetch < 30000)) {
+            list.scrollTo({ top: list.scrollHeight, behavior: 'auto' });
+            return; 
+        }
+
+        if (!isSilent && !hasContent) {
+            list.innerHTML = `
+                <div class="text-center text-white-50 py-5 disc-loader">
+                    <i class="bx bx-loader-alt bx-spin fs-3 mb-2"></i>
+                    <p>Loading discussion...</p>
+                </div>`;
+        }
+
+        fetch(`/api/syndicat/reponse/list/${reclamationId}`)
+            .then(res => res.json())
+            .then(responses => {
+                try {
+                    if (responses.length === 0) {
+                        list.innerHTML = `
+                            <div class="text-center text-secondary py-5 opacity-50">
+                                <i class='bx bx-message-square-dots fs-3 mb-2'></i>
+                                <p>Start the conversation</p>
+                            </div>`;
+                        return;
+                    }
+
+                    const newContent = responses.map(r => {
+                        const isMe = r.isMe;
+                        return `
+                            <div class="d-flex w-100 ${isMe ? 'justify-content-end' : 'justify-content-start'}">
+                                <div class="d-flex flex-column ${isMe ? 'align-items-end' : 'align-items-start'}" style="max-width: 80%;">
+                                    <div class="d-flex align-items-center gap-2 mb-1 px-1">
+                                        <div class="details-author-avatar" style="width: 24px; height: 24px;">
+                                            <img src="${r.author.avatar}" alt="${r.author.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;" loading="lazy">
+                                        </div>
+                                        <small class="text-secondary" style="font-size: 0.75rem;">${r.author.name}</small>
+                                        <small class="text-secondary opacity-50" style="font-size: 0.7rem;">${r.createdAt}</small>
+                                    </div>
+                                    <div class="card border-0 shadow-sm p-3 ${isMe ? 'bg-primary text-white' : 'border border-secondary border-opacity-25 text-light'}" 
+                                         style="border-radius: 18px; ${isMe ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px; background-color: #111;'} overflow-wrap: break-word; word-wrap: break-word; word-break: break-word;">
+                                        ${r.title ? `<div class="fw-bold mb-1 border-bottom border-white border-opacity-10 pb-1" style="font-size: 0.85rem; overflow-wrap: break-word;">${r.title}</div>` : ''}
+                                        <p class="mb-0" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; overflow-wrap: break-word;">${r.message}</p>
+                                        ${r.images && r.images.length > 0 ? `
+                                            <div class="mt-2 pt-2 border-top border-white border-opacity-10 row g-2">
+                                                ${r.images.map(img => `
+                                                    <div class="col-auto">
+                                                        <a href="javascript:void(0)" onclick="openLightbox('${img}')">
+                                                                <img src="${img}" class="rounded-3" style="max-height: 40px; width: 40px; object-fit: cover;" loading="lazy">
+                                                        </a>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    list.innerHTML = newContent;
+                    list.dataset.lastFetch = Date.now();
+                    list.scrollTo({ top: list.scrollHeight, behavior: isSilent ? 'smooth' : 'auto' });
+                } catch (renderError) { console.error("History Render Error:", renderError); }
+            })
+            .catch(err => {
+                console.error(err);
+                if (!isSilent) list.innerHTML = '<div class="text-center text-danger py-4">Failed to load discussion.</div>';
+            });
+    };
+
+    // Global Submission Handler
+    document.body.addEventListener('submit', function(e) {
+        if (e.target.classList.contains('reponse-api-form')) {
+            e.preventDefault();
+            const form = e.target;
+            const recId = form.dataset.reclamationId;
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn.disabled) return;
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            
+            fetch(form.action, { method: 'POST', body: new FormData(form) })
+            .then(res => res.json())
+            .then(data => {
+                    if(data.success) {
+                        form.reset();
+                        const preview = form.querySelector('[id^="image-preview-container-"]');
+                        if(preview) { preview.innerHTML = ''; preview.classList.add('d-none'); }
+                        
+                        // Incremental Update: Just reload the list silently to avoid flicker, 
+                        // but force a fetch to show the new message
+                        list.dataset.lastFetch = 0; 
+                        window.loadResponses(recId, true);
+                    } else { alert(data.message || 'Error'); }
+                btn.disabled = false; btn.innerHTML = original;
+            })
+            .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = original; });
+        }
+        
+        if (e.target.classList.contains('admin-reclamation-edit-form')) {
+            e.preventDefault();
+            const form = e.target;
+            const recId = form.dataset.reclamationId;
+            const btn = form.querySelector('button[type="submit"]');
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+            fetch(form.action, { method: 'POST', body: new FormData(form) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const editModalEl = document.getElementById(`adminEditReclamationModal-${recId}`);
+                    const editModalBootstrap = bootstrap.Modal.getInstance(editModalEl);
+                    if (editModalBootstrap) editModalBootstrap.hide();
+                    
+                    const formData = new FormData(form);
+                    const newTitle = formData.get('title');
+                    const newDesc = formData.get('description');
+                    const newStatus = formData.get('status');
+                    
+                    // 1. Update List Item UI
+                    const listItem = document.querySelector(`.reclamation-item[data-reclamation-id="${recId}"]`);
+                    if (listItem) {
+                        const titleEl = listItem.querySelector('h5');
+                        if (titleEl) titleEl.textContent = newTitle;
+                        const descEl = listItem.querySelector('.reclamation-desc-text');
+                        if (descEl) descEl.textContent = newDesc.substring(0, 150) + (newDesc.length > 150 ? '...' : '');
+                        
+                        // Status Badge in List
+                        const listBadge = listItem.querySelector('.status-badge');
+                        if (listBadge) {
+                            const colors = { 'confirme': '#00e676', 'active': '#00e676', 'en_attente': '#ffeb3b', 'refuse': '#ff3b30', 'annule': '#9e9e9e', 'termine': '#4fc3f7' };
+                            const labels = { 'confirme': 'Confirmed', 'active': 'Active', 'en_attente': 'In Progress', 'refuse': 'Rejected', 'annule': 'Cancelled', 'termine': 'Completed' };
+                            listBadge.style.background = (colors[newStatus] || '#9e9e9e') + '15';
+                            listBadge.style.color = colors[newStatus] || '#9e9e9e';
+                            listBadge.style.borderColor = (colors[newStatus] || '#9e9e9e') + '30';
+                            listBadge.textContent = labels[newStatus] || newStatus;
+                        }
+                    }
+                    
+                    // 2. Update Details Modal UI
+                    const detailsModalEl = document.getElementById(`reclamationModal-${recId}`);
+                    if (detailsModalEl) {
+                        const dTitle = detailsModalEl.querySelector('.modal-title');
+                        if (dTitle) dTitle.textContent = newTitle;
+                        const dDesc = detailsModalEl.querySelector('.modal-body p');
+                        if (dDesc) dDesc.textContent = newDesc;
+                        
+                        const dBadge = detailsModalEl.querySelector('.badge');
+                        if (dBadge) {
+                            const colors = { 'confirme': '#00e676', 'active': '#00e676', 'en_attente': '#ffeb3b', 'refuse': '#ff3b30', 'annule': '#9e9e9e', 'termine': '#4fc3f7' };
+                            const labels = { 'confirme': 'Confirmed', 'active': 'Active', 'en_attente': 'In Progress', 'refuse': 'Rejected', 'annule': 'Cancelled', 'termine': 'Completed' };
+                            dBadge.style.background = (colors[newStatus] || '#9e9e9e') + '15';
+                            dBadge.style.color = colors[newStatus] || '#9e9e9e';
+                            dBadge.style.borderColor = (colors[newStatus] || '#9e9e9e') + '30';
+                            dBadge.textContent = labels[newStatus] || newStatus;
+                        }
+                        
+                        // Show View Modal back
+                        setTimeout(() => {
+                            const viewModal = new bootstrap.Modal(detailsModalEl);
+                            viewModal.show();
+                        }, 400);
+                    }
+                } else { alert(data.message || 'Error'); }
+                btn.disabled = false; btn.innerHTML = original;
+            })
+            .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = original; });
+        }
+    });
+
+    // Modal Trigger for Admin
+    document.querySelectorAll('.edit-reclamation-trigger').forEach(trigger => {
+        trigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            new bootstrap.Modal(document.getElementById(`adminEditReclamationModal-${this.dataset.reclamationId}`)).show();
+        });
+    });
+
+    // Auto-load on show
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('show.bs.modal', function() {
+            // Reclamations
+            const recList = this.querySelector('[id^="responses-list-"]');
+            if (recList) window.loadResponses(recList.id.replace('responses-list-', ''));
+            
+            // Forum
+            const forumList = this.querySelector('[id^="comments-list-"]');
+            if (forumList) window.loadComments(forumList.id.replace('comments-list-', ''));
+        });
+    });
+
+    // Forum Comment Submission
+    document.body.addEventListener('submit', function(e) {
+        if (e.target.classList.contains('comment-submission-form')) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = form.querySelector('button[type="submit"]');
+            const original = btn.innerHTML;
+            const publicationId = form.dataset.publicationId;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>';
+
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    form.reset();
+                    const preview = document.getElementById(`forum-image-preview-${publicationId}`);
+                    if (preview) { preview.innerHTML = ''; preview.classList.add('d-none'); }
+                    window.loadComments(publicationId, true); // Silent refresh
+                } else { alert(data.message || 'Error'); }
+                btn.disabled = false; btn.innerHTML = original;
+            })
+            .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = original; });
+        }
+
+        // Admin Publication Edit
+        if (e.target.classList.contains('admin-publication-edit-form')) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = form.querySelector('button[type="submit"]');
+            const original = btn.innerHTML;
+            const pubId = form.dataset.publicationId;
+            const pubModalEl = document.getElementById(`publicationModal-${pubId}`);
+            const editModalEl = document.getElementById(`adminEditPublicationModal-${pubId}`);
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Saving...';
+
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI in list
+                    const pubItem = document.querySelector(`.publication-item[data-publication-id="${pubId}"]`);
+                    if (pubItem) {
+                        pubItem.querySelector('h5').textContent = formData.get('title');
+                        pubItem.querySelector('.status-badge').textContent = formData.get('category');
+                        const desc = formData.get('description');
+                        pubItem.querySelector('.publication-desc-text').textContent = desc.length > 150 ? desc.substring(0, 150) + '...' : desc;
+                    }
+
+                    // Update UI in View Modal
+                    if (pubModalEl) {
+                        pubModalEl.querySelector('.modal-title').textContent = formData.get('title');
+                        pubModalEl.querySelector('.badge').textContent = formData.get('category');
+                        pubModalEl.querySelector('.leading-relaxed').textContent = formData.get('description');
+                    }
+
+                    // Smooth Transition
+                    const editModal = bootstrap.Modal.getInstance(editModalEl);
+                    if (editModal) {
+                        editModal.hide();
+                        setTimeout(() => {
+                            const viewModal = new bootstrap.Modal(pubModalEl);
+                            viewModal.show();
+                        }, 400);
+                    }
+                } else { alert(data.message || 'Error'); }
+                btn.disabled = false; btn.innerHTML = original;
+            })
+            .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = original; });
+        }
+    });
+
+    // --- Event Modal Handling ---
+    let currentActiveEventData = null;
+
+    document.querySelectorAll('.event-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const data = this.dataset;
+            currentActiveEventData = data;
+            
+            // Populate View Modal
+            document.getElementById('event-modal-title').textContent = data.title;
+            document.getElementById('event-modal-description').textContent = data.description;
+            document.getElementById('event-modal-date').textContent = data.dateFormatted;
+            document.getElementById('event-modal-location').textContent = data.location;
+            document.getElementById('event-modal-type').textContent = data.type.charAt(0).toUpperCase() + data.type.slice(1);
+            document.getElementById('event-modal-places').textContent = data.places;
+            document.getElementById('event-modal-remaining').textContent = data.remaining;
+            
+            const img = document.getElementById('event-modal-image');
+            if (data.image) {
+                img.src = data.image;
+                img.style.display = 'block';
+            } else {
+                img.style.display = 'none';
+            }
+
+            const statusBadge = document.getElementById('event-modal-status');
+            const statusColors = { 'planifie': '#4fc3f7', 'en_cours': '#00e676', 'termine': '#9e9e9e', 'annule': '#ff3b30' };
+            statusBadge.style.background = (statusColors[data.status] || '#4fc3f7') + '15';
+            statusBadge.style.color = statusColors[data.status] || '#4fc3f7';
+            statusBadge.style.borderColor = (statusColors[data.status] || '#4fc3f7') + '30';
+            statusBadge.textContent = data.status.replace('_', ' ').charAt(0).toUpperCase() + data.status.replace('_', ' ').slice(1);
+
+            // Admin Logic
+            const moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'];
+            const userRole = '{{ user.roleUser|default('') }}';
+            const isModerator = moderatorRoles.includes(userRole);
+            const isOwner = data.userId == currentUserId;
+
+            if (isModerator || isOwner) {
+                document.getElementById('event-modal-admin-actions').classList.remove('d-none');
+            } else {
+                document.getElementById('event-modal-admin-actions').classList.add('d-none');
+            }
+
+            new bootstrap.Modal(document.getElementById('eventViewModal')).show();
+        });
+    });
+
+    document.getElementById('btn-edit-event').addEventListener('click', function() {
+        if (!currentActiveEventData) return;
+        const data = currentActiveEventData;
+
+        document.getElementById('edit-event-id').value = data.eventId;
+        document.getElementById('edit-event-title').value = data.title;
+        document.getElementById('edit-event-description').value = data.description;
+        document.getElementById('edit-event-date').value = data.date;
+        document.getElementById('edit-event-location').value = data.location;
+        document.getElementById('edit-event-places').value = data.places;
+        document.getElementById('edit-event-remaining').value = data.remaining;
+        document.getElementById('edit-event-type').value = data.type;
+        document.getElementById('edit-event-status').value = data.status;
+
+        bootstrap.Modal.getInstance(document.getElementById('eventViewModal')).hide();
+        setTimeout(() => {
+            new bootstrap.Modal(document.getElementById('eventEditModal')).show();
+        }, 400);
+    });
+
+    document.getElementById('event-edit-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = this;
+        const btn = document.getElementById('save-event-btn');
+        const original = btn.innerHTML;
+        const eventId = document.getElementById('edit-event-id').value;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Saving...';
+
+        const formData = new FormData(form);
+        fetch(`/api/evenement/update/${eventId}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Update specific event item in list
+                const item = document.querySelector(`.event-item[data-event-id="${eventId}"]`);
+                if (item) {
+                    item.dataset.title = formData.get('titre_event');
+                    item.dataset.description = formData.get('description_event');
+                    item.dataset.location = formData.get('lieu_event');
+                    item.dataset.date = formData.get('date_event');
+                    item.dataset.status = formData.get('statut_event');
+                    item.dataset.type = formData.get('type_event');
+                    item.dataset.places = formData.get('nb_places');
+                    item.dataset.remaining = formData.get('nb_restants');
+                    
+                    if (data.data.image) {
+                        item.dataset.image = data.data.image;
+                        const img = item.querySelector('.event-list-image-wrap img');
+                        if (img) img.src = data.data.image;
+                        else {
+                            const wrap = item.querySelector('.event-list-image-wrap');
+                            wrap.innerHTML = `<img src="${data.data.image}" alt="${data.data.title}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                            wrap.classList.remove('d-flex', 'align-items-center', 'justify-content-center');
+                            wrap.style.borderStyle = 'solid';
+                        }
+                    }
+
+                    item.querySelector('h5').textContent = data.data.title;
+                    item.querySelector('.reclamation-status-text i.bx-calendar').nextSibling.textContent = ' ' + data.data.date;
+                    item.querySelector('.reclamation-status-text i.bx-map').nextSibling.textContent = ' ' + formData.get('lieu_event');
+                    item.querySelector('.reclamation-desc-text').textContent = data.data.description.substring(0, 100) + (data.data.description.length > 100 ? '...' : '');
+                    
+                    const listBadge = item.querySelector('.status-badge');
+                    const statusColors = { 'planifie': '#4fc3f7', 'en_cours': '#00e676', 'termine': '#9e9e9e', 'annule': '#ff3b30' };
+                    listBadge.style.background = (statusColors[data.data.status] || '#4fc3f7') + '15';
+                    listBadge.style.color = statusColors[data.data.status] || '#4fc3f7';
+                    listBadge.style.borderColor = (statusColors[data.data.status] || '#4fc3f7') + '30';
+                    listBadge.textContent = data.data.status.replace('_', ' ').charAt(0).toUpperCase() + data.data.status.replace('_', ' ').slice(1);
+                    
+                    item.querySelector('.bx-purchase-tag-alt').nextSibling.textContent = ' ' + formData.get('type_event').charAt(0).toUpperCase() + formData.get('type_event').slice(1);
+                    item.querySelector('.bx-user').nextSibling.textContent = ` ${item.dataset.remaining}/${formData.get('nb_places')} enrolled`;
+                }
+
+                bootstrap.Modal.getInstance(document.getElementById('eventEditModal')).hide();
+                // Optionally re-open view modal with updated data
+                setTimeout(() => {
+                    const item = document.querySelector(`.event-item[data-event-id="${eventId}"]`);
+                    if (item) item.click();
+                }, 400);
+            } else { alert(data.message || 'Error updating event'); }
+            btn.disabled = false; btn.innerHTML = original;
+        })
+        .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = original; });
+    });
+
+    // Admin Filter logic for all tabs
+    function handleAdminFilter(btnClass, filterVarSetter, initFunc) {
+        document.querySelectorAll('.' + btnClass).forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.' + btnClass).forEach(b => {
+                    b.classList.remove('active', 'btn-primary');
+                    b.classList.add('btn-outline-light');
+                });
+                this.classList.remove('btn-outline-light');
+                this.classList.add('active', 'btn-primary');
+                filterVarSetter(this.dataset.filter);
+                initFunc();
+            });
+        });
+    }
+
+    if (isAdmin) {
+        handleAdminFilter('admin-reclamation-filter-btn', (val) => { currentAdminFilter = val; }, window.initializeReclamationPagination);
+        handleAdminFilter('admin-forum-filter-btn', (val) => { currentForumAdminFilter = val; }, window.initializeForumPagination);
+        handleAdminFilter('admin-events-filter-btn', (val) => { currentEventAdminFilter = val; }, window.initializeEventsPagination);
+
+        // Residence Filter Logic
+        const residenceItems = document.querySelectorAll('.residence-item');
+        document.querySelectorAll('.admin-residence-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.classList.contains('active')) return;
+
+                document.querySelectorAll('.admin-residence-filter-btn').forEach(b => {
+                    b.classList.remove('active', 'btn-primary');
+                    b.classList.add('btn-outline-light');
+                });
+                this.classList.remove('btn-outline-light');
+                this.classList.add('active', 'btn-primary');
+
+                currentResidenceFilter = this.dataset.filter;
+                
+                // Apply filter
+                residenceItems.forEach(item => {
+                    if (currentResidenceFilter === 'all') {
+                        item.style.display = 'block';
+                        item.nextElementSibling && (item.nextElementSibling.style.display = 'block'); // Show HR
+                    } else {
+                        const itemUserId = String(item.dataset.userId);
+                        const currentId = String(currentUserId);
+                        if (itemUserId === currentId) {
+                            item.style.display = 'block';
+                            item.nextElementSibling && (item.nextElementSibling.style.display = 'block');
+                        } else {
+                            item.style.display = 'none';
+                            item.nextElementSibling && (item.nextElementSibling.style.display = 'none');
+                        }
+                    }
+                });
+            });
+        });
+    }
+
+    // Safety: Hide page loader if it's still spinning
+    setTimeout(() => {
+        const pageLoader = document.getElementById('pageLoader');
+        if (pageLoader) pageLoader.style.display = 'none';
+    }, 100);
+});
+</script>
 </body>
 </html>

@@ -1,0 +1,43 @@
+{% extends 'base_symfony.html.twig' %}
+
+{% block title %}Reponse index{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Reponse index</h1>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Titre</th>
+                    <th>Message</th>
+                    <th>Reclamation</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for reponse in reponses %}
+                <tr>
+                    <td>{{ reponse.id }}</td>
+                    <td>{{ reponse.titrereponse }}</td>
+                    <td>{{ reponse.messagereponse|slice(0, 50) }}...</td>
+                    <td>#{{ reponse.reclamation.id }}</td>
+                    <td>
+                        <a href="{{ path('app_reponse_show', {'id': reponse.id}) }}" class="btn btn-sm btn-info">Show</a>
+                        <a href="{{ path('app_reponse_edit', {'id': reponse.id}) }}" class="btn btn-sm btn-warning">Edit</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5">No responses found</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

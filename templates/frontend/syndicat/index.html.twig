@@ -1,7 +1,481 @@
 {% extends 'base_symfony.html.twig' %}
-{% block title %}Syndicat{% endblock %}
+
+{% block title %}Syndicat - Reclamations{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset('frontend/css/syndicat.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+{% endblock %}
+
 {% block body %}
 <div class="main-home-layout-wrapper">
-     <h1>Syndicat Reclamation works ✅</h1>
+    <div class="main-home-page">
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'services'} %}
+        
+        <div class="main-home-page-content" style="padding: 0; padding-bottom: 5rem;">
+            <!-- Hero Section -->
+            <div class="syndicat-hero-section">
+                <div class="syndicat-hero-bg-glow"></div>
+                <div class="syndicat-bg-glow-secondary"></div>
+                
+                <div class="container position-relative" style="z-index: 2;">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <span class="syndicat-hero-badge">
+                                <i class='bx bx-shield-quarter'></i> Syndicat Services
+                            </span>
+                            <h1 class="syndicat-hero-title">Voice Your<br>Concerns.</h1>
+                            <p class="syndicat-hero-subtitle">We are here to listen and resolve. Submit your reclamation directly to the syndicat and track its progress in real-time.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+    <!-- Reclamation Form Container -->
+    <div class="syndicat-form-container">
+        <div class="text-center">
+            <h2 class="syndicat-form-title">Submit a Reclamation</h2>
+            <p class="syndicat-form-subtitle">Fill in the details below. We'll get back to you shortly.</p>
+        </div>
+
+        {{ form_start(form, {'attr': {'class': 'syndicat-form', 'id': 'reclamationForm', 'data-ajax': 'true'}}) }}
+            <div class="syndicat-form-group">
+                <label class="syndicat-form-label">Subject</label>
+                {{ form_widget(form.titrereclamations, {'attr': {'class': 'syndicat-form-input', 'placeholder': 'What is this regarding?'}}) }}
+                <div class="text-danger small mt-1">{{ form_errors(form.titrereclamations) }}</div>
+            </div>
+
+            {% do form.statutreclamation.setRendered() %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="syndicat-form-group">
+                        <label class="syndicat-form-label">Date of Incident</label>
+                        {{ form_widget(form.datereclamation, {'attr': {'class': 'syndicat-form-input flatpickr-input'}}) }}
+                        <div class="text-danger small mt-1">{{ form_errors(form.datereclamation) }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="syndicat-form-group">
+                <label class="syndicat-form-label">Description</label>
+                {{ form_widget(form.descreclamation, {'attr': {'class': 'syndicat-form-input', 'rows': '5', 'placeholder': 'Please provide detailed information...'}}) }}
+                <div class="text-danger small mt-1">{{ form_errors(form.descreclamation) }}</div>
+            </div>
+
+            <div class="syndicat-form-group">
+                <label class="syndicat-form-label">Attachments (Optional)</label>
+                {{ form_widget(form.imagereclamation, {'attr': {'class': 'syndicat-form-input', 'style': 'padding-top: 0.7rem;', 'accept': 'image/*', 'multiple': 'multiple', 'onchange': 'previewImages(this)'}}) }}
+                <div class="text-danger small mt-1">{{ form_errors(form.imagereclamation) }}</div>
+                
+                <!-- Image Preview Container -->
+                <div id="imagePreviewContainer" class="d-flex gap-3 mt-3 flex-wrap" style="display: flex !important; flex-direction: row !important; align-items: flex-start !important;"></div>
+            </div>
+
+            <button type="submit" class="syndicat-btn-submit">
+                Submit Reclamation <i class='bx bx-send' style="margin-left: 0.5rem;"></i>
+            </button>
+        {{ form_end(form) }}
+    </div>
+
 </div>
+
+{% include 'frontend/shared/_main_footer.html.twig' %}
+</div>
+</div>
+    <!-- COOL POPUP SYSTEM INTEGRATION -->
+    <div id="coolPopup" class="cool-popup-overlay">
+        <div class="cool-popup-content">
+            <div id="coolPopupIcon" class="cool-popup-icon"></div>
+            <h2 id="coolPopupTitle" class="cool-popup-title"></h2>
+            <p id="coolPopupMessage" class="cool-popup-message"></p>
+            <button class="cool-popup-btn" onclick="closeCoolPopup()">Got it</button>
+        </div>
+    </div>
+
+    <style>
+        .cool-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cool-popup-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .cool-popup-content {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .cool-popup-overlay.show .cool-popup-content {
+            transform: scale(1);
+        }
+
+        .cool-popup-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .cool-popup-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: var(--syndicat-accent-gradient, linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .cool-popup-message {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .cool-popup-btn {
+            background: var(--syndicat-accent-gradient, linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%));
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 15px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px -5px rgba(0, 210, 255, 0.5);
+        }
+
+        .cool-popup-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px -5px rgba(0, 210, 255, 0.6);
+        }
+    </style>
+
+    <script>
+        function showCoolPopup(title, message, type = 'success') {
+            const popup = document.getElementById('coolPopup');
+            const icon = document.getElementById('coolPopupIcon');
+            const titleEl = document.getElementById('coolPopupTitle');
+            const msgEl = document.getElementById('coolPopupMessage');
+
+            titleEl.textContent = title;
+            msgEl.innerHTML = message;
+
+            if (type === 'success') {
+                icon.innerHTML = "<i class='bx bxs-check-circle' style='color: #00d2ff;'></i>";
+            } else {
+                icon.innerHTML = "<i class='bx bxs-error-circle' style='color: #ff4d4d;'></i>";
+            }
+
+            popup.style.display = 'flex';
+            setTimeout(() => popup.classList.add('show'), 10);
+        }
+
+        function closeCoolPopup() {
+            const popup = document.getElementById('coolPopup');
+            popup.classList.remove('show');
+            setTimeout(() => popup.style.display = 'none', 300);
+        }
+    </script>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Flatpickr
+    flatpickr(".flatpickr-input", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        time_24hr: true,
+        defaultDate: new Date(),
+        theme: "dark"
+    });
+
+    // Initialize custom dropdowns
+    const selectElements = document.querySelectorAll('.custom-select-wrapper select');
+    selectElements.forEach(select => {
+        createCustomDropdown(select);
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.custom-dropdown-trigger.active').forEach(trigger => {
+            trigger.classList.remove('active');
+            trigger.nextElementSibling?.classList.remove('active');
+        });
+    });
+});
+
+function createCustomDropdown(selectElement) {
+    // Check if already converted
+    if (selectElement.parentElement.querySelector('.custom-dropdown-trigger')) {
+        return;
+    }
+
+    const wrapper = selectElement.closest('.custom-select-wrapper');
+    if (!wrapper) return;
+
+    // Get options from select
+    const options = Array.from(selectElement.options);
+    
+    // Create custom dropdown elements
+    const trigger = document.createElement('div');
+    trigger.className = 'custom-dropdown-trigger';
+    trigger.innerHTML = `
+        <span class="selected-text">${selectElement.value || selectElement.options[0]?.text || 'Select...'}</span>
+        <span class="arrow">&#xea4e;</span>
+    `;
+
+    const menu = document.createElement('div');
+    menu.className = 'custom-dropdown-menu';
+
+    options.forEach(option => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'custom-dropdown-option';
+        optionDiv.textContent = option.text;
+        optionDiv.dataset.value = option.value;
+        
+        if (option.value === selectElement.value) {
+            optionDiv.classList.add('selected');
+        }
+
+        optionDiv.addEventListener('click', () => {
+            // Update select
+            selectElement.value = option.value;
+            
+            // Update UI
+            trigger.querySelector('.selected-text').textContent = option.text;
+            menu.querySelectorAll('.custom-dropdown-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            optionDiv.classList.add('selected');
+            
+            // Close menu
+            trigger.classList.remove('active');
+            menu.classList.remove('active');
+        });
+
+        menu.appendChild(optionDiv);
+    });
+
+    // Toggle dropdown
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isActive = trigger.classList.contains('active');
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.custom-dropdown-trigger.active').forEach(t => {
+            t.classList.remove('active');
+            t.nextElementSibling?.classList.remove('active');
+        });
+
+        if (!isActive) {
+            trigger.classList.add('active');
+            menu.classList.add('active');
+        }
+    });
+
+    // Add elements to DOM
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(menu);
+    wrapper.appendChild(menu);
+}
+</script>
+
+<script>
+    let dt = new DataTransfer();
+
+    function triggerFileUpload() {
+        document.getElementById('reclamation_imagereclamation').click();
+    }
+
+    function previewImages(input) {
+        const container = document.getElementById('imagePreviewContainer');
+        
+        // Add new files to DataTransfer
+        if (input.files) {
+            Array.from(input.files).forEach(file => {
+                // Check if file already exists in dt to avoid duplicates
+                let exists = false;
+                for (let i = 0; i < dt.files.length; i++) {
+                    if (dt.files[i].name === file.name && dt.files[i].size === file.size) {
+                        exists = true;
+                        break;
+                    }
+                }
+                if (!exists) {
+                    dt.items.add(file);
+                }
+            });
+        }
+        
+        // Update input files
+        input.files = dt.files;
+        
+        // Clear and rebuild preview
+        container.innerHTML = '';
+        
+        Array.from(dt.files).forEach((file, index) => {
+            if (file.type.match('image.*')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgWrapper = document.createElement('div');
+                    imgWrapper.style.position = 'relative';
+                    imgWrapper.style.width = '100px';
+                    imgWrapper.style.height = '100px';
+                    imgWrapper.style.borderRadius = '10px';
+                    imgWrapper.style.overflow = 'hidden';
+                    imgWrapper.style.border = '1px solid rgba(255,255,255,0.2)';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    
+                    // Remove Button
+                    const removeBtn = document.createElement('button');
+                    removeBtn.innerHTML = "<i class='bx bx-x'></i>";
+                    removeBtn.style.position = 'absolute';
+                    removeBtn.style.top = '5px';
+                    removeBtn.style.right = '5px';
+                    removeBtn.style.background = 'rgba(220, 38, 38, 0.9)'; // Red
+                    removeBtn.style.color = 'white';
+                    removeBtn.style.border = 'none';
+                    removeBtn.style.borderRadius = '50%';
+                    removeBtn.style.width = '24px';
+                    removeBtn.style.height = '24px';
+                    removeBtn.style.cursor = 'pointer';
+                    removeBtn.style.display = 'flex';
+                    removeBtn.style.alignItems = 'center';
+                    removeBtn.style.justifyContent = 'center';
+                    removeBtn.style.fontSize = '18px';
+                    removeBtn.style.zIndex = '10';
+                    removeBtn.style.transition = 'background 0.2s';
+                    
+                    removeBtn.onmouseenter = function() {
+                        this.style.background = 'rgba(239, 68, 68, 1)';
+                    };
+                    removeBtn.onmouseleave = function() {
+                         this.style.background = 'rgba(220, 38, 38, 0.9)';
+                    };
+
+                    removeBtn.onclick = function(e) {
+                        e.preventDefault(); 
+                        e.stopPropagation();
+                        removeFile(index);
+                    };
+                    
+                    imgWrapper.appendChild(img);
+                    imgWrapper.appendChild(removeBtn);
+                    container.appendChild(imgWrapper);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    function removeFile(index) {
+        const input = document.getElementById('reclamation_imagereclamation');
+        const newDt = new DataTransfer();
+        
+        Array.from(dt.files).forEach((file, i) => {
+            if (i !== index) {
+                newDt.items.add(file);
+            }
+        });
+        
+        dt = newDt;
+        input.files = dt.files;
+        previewImages(input); // Re-render
+    }
+
+    // Reset DataTransfer on form reset
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('reclamationForm');
+        if(form) {
+            form.addEventListener('reset', function() {
+                dt = new DataTransfer();
+                const container = document.getElementById('imagePreviewContainer');
+                if(container) container.innerHTML = '';
+            });
+        }
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('reclamationForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(form);
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+
+                // Loading State
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Transmitting...';
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        showCoolPopup('Reclamation Sent', data.message || 'Your concern has been successfully transmitted.', 'success');
+                        form.reset();
+                        const previewContainer = document.getElementById('imagePreviewContainer');
+                        if (previewContainer) previewContainer.innerHTML = '';
+                    } else {
+                        const errorMsg = data.message || (data.errors ? data.errors.join('<br>') : 'Something went wrong. Please check your inputs.');
+                        showCoolPopup('Review your details', errorMsg, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showCoolPopup('Network Error', 'There was a problem reaching the server. Please try again later.', 'error');
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                });
+            });
+        }
+    });
+
+    function closePopup() {
+        closeCoolPopup();
+    }
+</script>
 {% endblock %}

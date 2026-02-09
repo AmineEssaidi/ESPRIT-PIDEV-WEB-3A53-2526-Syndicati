@@ -1,5 +1,8 @@
 frontend_settings:
     path: /settings
-    controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController::templateAction
-    defaults:
-        template: 'frontend/settings/settings.html.twig'
+    controller: App\Controller\Frontend\SettingsController::index
+
+frontend_settings_update:
+    path: /settings/update
+    controller: App\Controller\Frontend\SettingsController::update
+    methods: [POST]

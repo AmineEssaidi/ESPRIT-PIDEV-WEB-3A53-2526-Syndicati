@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Elements Test</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="css/evenement-form-custom.css" rel="stylesheet">
+    <style>
+        body {
+            background: #0a0a0f;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+        }
+
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(15, 15, 25, 0.7);
+            padding: 2rem;
+            border-radius: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 0.875rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+        }
+
+        :root {
+            --main-home-accent-rgb: 138, 43, 226;
+            --event-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test-container">
+        <h1>Form Elements Test</h1>
+
+        <div class="form-group">
+            <label>Date & Time (Flatpickr)</label>
+            <input type="text" id="testDatePicker" placeholder="Select date and time">
+        </div>
+
+        <div class="form-group">
+            <label>Event Type (Custom Dropdown)</label>
+            <div class="custom-select-wrapper">
+                <select id="testEventType" name="test_event_type">
+                    <option value="">Select type...</option>
+                    <option value="Workshop">Workshop</option>
+                    <option value="Meetup">Meetup</option>
+                    <option value="Conference">Conference</option>
+                    <option value="Social">Social</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Event Status (Custom Pills)</label>
+            <div class="custom-status-selector">
+                <div class="status-pill" data-value="Upcoming"><span>Upcoming</span></div>
+                <div class="status-pill" data-value="Ongoing"><span>Ongoing</span></div>
+                <div class="status-pill" data-value="Completed"><span>Completed</span></div>
+                <div class="status-pill" data-value="Cancelled"><span>Cancelled</span></div>
+            </div>
+            <select id="testStatusSelect" class="status-hidden-select" name="test_status">
+                <option value="Upcoming">Upcoming</option>
+                <option value="Ongoing">Ongoing</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+        </div>
+
+        <div id="output" style="margin-top: 2rem; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 12px;">
+            <h3>Debug Output:</h3>
+            <div id="debugLog"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        const log = (msg) => {
+            const debugLog = document.getElementById('debugLog');
+            debugLog.innerHTML += `<div>${msg}</div>`;
+            console.log(msg);
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            log('DOM Loaded');
+
+            // Test Flatpickr
+            const dateInput = document.getElementById('testDatePicker');
+            if (dateInput) {
+                log('✓ Date input found');
+                flatpickr(dateInput, {
+                    enableTime: true,
+                    dateFormat: "Y-m-d H:i",
+                    time_24hr: true,
+                    theme: "dark",
+                    minDate: "today",
+                    onChange: function (selectedDates, dateStr) {
+                        log(`Date selected: ${dateStr}`);
+                    }
+                });
+                log('✓ Flatpickr initialized');
+            } else {
+                log('✗ Date input NOT found');
+            }
+
+            // Test Status Pills
+            const statusPills = document.querySelectorAll('.status-pill');
+            const statusSelect = document.getElementById('testStatusSelect');
+
+            log(`Found ${statusPills.length} status pills`);
+            log(`Status select found: ${!!statusSelect}`);
+
+            if (statusPills.length > 0 && statusSelect) {
+                statusPills.forEach(pill => {
+                    pill.addEventListener('click', function () {
+                        log(`Pill clicked: ${this.dataset.value}`);
+                        statusPills.forEach(p => p.classList.remove('active'));
+                        this.classList.add('active');
+                        statusSelect.value = this.dataset.value;
+                        log(`Select value updated to: ${statusSelect.value}`);
+                    });
+                });
+                log('✓ Status pills initialized');
+            }
+
+            // Test Custom Select
+            const customSelect = document.querySelector('.custom-select-wrapper select');
+            if (customSelect) {
+                log('✓ Custom select found');
+                customSelect.addEventListener('change', function () {
+                    log(`Select changed to: ${this.value}`);
+                });
+            } else {
+                log('✗ Custom select NOT found');
+            }
+        });
+    </script>
+</body>
+
+</html>

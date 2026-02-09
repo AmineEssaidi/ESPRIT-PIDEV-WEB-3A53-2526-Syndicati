@@ -1,0 +1,70 @@
+<div class="forum-card">
+    {% if publication.imagePub %}
+        <img src="{{ asset('forum_images/' ~ publication.imagePub) }}" alt="{{ publication.titrePub }}" class="forum-card-image">
+    {% endif %}
+    
+    <div class="forum-card-body">
+        <div class="forum-card-meta">
+            {% set catClass = '' %}
+            {% if publication.categoriePub == 'Suggestion' %}
+                {% set catClass = 'cat-suggestion' %}
+            {% elseif publication.categoriePub == 'Jeux Video' %}
+                {% set catClass = 'cat-jeux-video' %}
+            {% elseif publication.categoriePub == 'Informatique' %}
+                {% set catClass = 'cat-informatique' %}
+            {% elseif publication.categoriePub == 'Nouveauté' %}
+                {% set catClass = 'cat-nouveaute' %}
+            {% elseif publication.categoriePub == 'Discussion General' %}
+                {% set catClass = 'cat-discussion-general' %}
+            {% elseif publication.categoriePub == 'Culture' %}
+                {% set catClass = 'cat-culture' %}
+            {% elseif publication.categoriePub == 'Sport' %}
+                {% set catClass = 'cat-sport' %}
+            {% endif %}
+            <span class="forum-category-badge {{ catClass }}">{{ publication.categoriePub }}</span>
+            <span class="forum-post-date">{{ publication.dateCreationPub|date('M d, Y H:i') }}</span>
+        </div>
+        
+        <h3 class="forum-card-title">{{ publication.titrePub }}</h3>
+        <p class="forum-card-excerpt">{{ publication.descriptionPub }}</p>
+        
+        <div class="forum-card-footer">
+            <div class="forum-user-avatar">
+                {% if author_profile and author_profile.avatar %}
+                    <img src="{{ author_profile.avatar starts with 'http' ? author_profile.avatar : asset(author_profile.avatar) }}" 
+                         alt="{{ publication.user.firstName }}" 
+                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                {% else %}
+                    {{ publication.user.firstName|first|upper }}
+                {% endif %}
+            </div>
+            <div class="forum-user-info">
+                <span class="forum-user-name">{{ publication.user.firstName }} {{ publication.user.lastName }}</span>
+            </div>
+            <div class="btn-read-more ms-auto" 
+                 data-id="{{ publication.id }}"
+                 data-author-id="{{ publication.user.idUser }}"
+                 data-title="{{ publication.titrePub }}"
+                 data-description="{{ publication.descriptionPub }}"
+                 data-categorie-pub="{{ publication.categoriePub }}"
+                 data-cat-class="{{ catClass }}"
+                 data-date="{{ publication.dateCreationPub|date('M d, Y H:i') }}"
+                 data-user="{{ publication.user.firstName }} {{ publication.user.lastName }}"
+                 data-user-initial="{{ publication.user.firstName|first|upper }}"
+                 data-avatar="{% if author_profile and author_profile.avatar %}{{ author_profile.avatar starts with 'http' ? author_profile.avatar : asset(author_profile.avatar) }}{% endif %}"
+                 data-image="{% if publication.imagePub %}{{ asset('forum_images/' ~ publication.imagePub) }}{% endif %}"
+                 style="cursor: pointer; padding: 8px 20px; border-radius: 99px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; transition: all 0.3s ease; font-weight: 600; font-size: 0.85rem; margin-left: auto; flex-shrink: 0;">
+                Read More
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-read-more:hover {
+        background: var(--primary-color, #6a11cb) !important;
+        border-color: transparent !important;
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+</style>

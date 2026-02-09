@@ -1,12 +1,12 @@
 // Enhanced mobile menu toggle, theme toggle, and interactive animations
-(function() {
+(function () {
   const menu = document.getElementById('layout-menu');
   const toggles = document.querySelectorAll('.layout-menu-toggle');
   const themeToggle = document.getElementById('theme-toggle');
 
   // Mobile menu toggle
-  toggles.forEach(function(btn) {
-    btn.addEventListener('click', function() {
+  toggles.forEach(function (btn) {
+    btn.addEventListener('click', function () {
       if (!menu) return;
       menu.classList.toggle('show');
     });
@@ -18,7 +18,7 @@
     // Remove any previous click handlers by cloning
     const newToggle = themeToggle.cloneNode(true);
     themeToggle.parentNode.replaceChild(newToggle, themeToggle);
-    newToggle.addEventListener('click', function() {
+    newToggle.addEventListener('click', function () {
       const currentTheme = document.documentElement.getAttribute('data-theme');
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', newTheme);
@@ -26,7 +26,7 @@
       // Add smooth animation to the toggle
       this.style.transform = 'scale(0.95)';
       setTimeout(() => {
-        this.style.transform = 'scale(1)';
+        this.style.transform = '';
       }, 150);
     });
   }
@@ -37,13 +37,13 @@
 
   // Add expanding text animation to interactive elements
   const expandingElements = document.querySelectorAll('.menu-link, .btn, .card-title, .search-input, .theme-btn, .notification-btn');
-  
+
   expandingElements.forEach(element => {
-    element.addEventListener('mouseenter', function() {
+    element.addEventListener('mouseenter', function () {
       this.classList.add('expanding-text');
     });
-    
-    element.addEventListener('mouseleave', function() {
+
+    element.addEventListener('mouseleave', function () {
       this.classList.remove('expanding-text');
     });
   });
@@ -51,11 +51,11 @@
   // Search functionality with animations
   const searchInput = document.querySelector('.search-input');
   if (searchInput) {
-    searchInput.addEventListener('focus', function() {
+    searchInput.addEventListener('focus', function () {
       this.parentElement.classList.add('expanding-text');
     });
-    
-    searchInput.addEventListener('blur', function() {
+
+    searchInput.addEventListener('blur', function () {
       this.parentElement.classList.remove('expanding-text');
     });
   }
@@ -83,7 +83,7 @@
     const totalSlides = slides.length;
     let autoplayInterval;
     let isAutoplayActive = true;
-    
+
     console.log('Total slides found:', totalSlides);
 
     // Auto-play functionality
@@ -101,7 +101,7 @@
       const translateX = -currentSlide * 100; // 100% per slide
       carouselTrack.style.transform = `translateX(${translateX}%)`;
       console.log('Updating slide:', currentSlide, 'translateX:', translateX);
-      
+
       // Update indicators
       indicators.forEach((indicator, index) => {
         indicator.classList.toggle('active', index === currentSlide);
@@ -160,7 +160,7 @@
     if (toggleAutoplay) {
       toggleAutoplay.addEventListener('click', () => {
         isAutoplayActive = !isAutoplayActive;
-        
+
         if (isAutoplayActive) {
           startAutoplay();
           autoplayIcon.className = 'bx bx-pause';
@@ -196,7 +196,7 @@
 
   // Status Badge Management
   const statusBadges = document.querySelectorAll('.status-badge');
-  
+
   if (statusBadges.length > 0) {
     // Simulate realistic online/offline status changes
     function updateStatusBadges() {
@@ -206,7 +206,7 @@
           const isOnline = badge.classList.contains('online');
           const statusDot = badge.querySelector('.status-dot');
           const statusText = badge.querySelector('.status-text');
-          
+
           if (isOnline) {
             // Switch to offline
             badge.classList.remove('online');
@@ -220,7 +220,7 @@
             statusText.textContent = 'Online';
             statusDot.style.animation = 'pulse 2s infinite';
           }
-          
+
           // Add a subtle animation when status changes
           badge.style.transform = 'scale(1.1)';
           setTimeout(() => {
@@ -229,19 +229,19 @@
         }
       });
     }
-    
+
     // Update status every 30 seconds
     setInterval(updateStatusBadges, 30000);
-    
+
     // Add click functionality to manually toggle status
     statusBadges.forEach(badge => {
       badge.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const statusDot = badge.querySelector('.status-dot');
         const statusText = badge.querySelector('.status-text');
-        
+
         if (badge.classList.contains('online')) {
           badge.classList.remove('online');
           badge.classList.add('offline');
@@ -253,7 +253,7 @@
           statusText.textContent = 'Online';
           statusDot.style.animation = 'pulse 2s infinite';
         }
-        
+
         // Add click animation
         badge.style.transform = 'scale(0.95)';
         setTimeout(() => {
