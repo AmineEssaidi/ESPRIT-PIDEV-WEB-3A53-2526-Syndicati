@@ -971,9 +971,6 @@ class AdminController extends AbstractController
         return 'Dashboard';
     }
 
-    /**
-     * Get page name from page ID for display purposes
-     */
     private function getPageNameFromId(string $pageId): string
     {
         $pageNames = [
