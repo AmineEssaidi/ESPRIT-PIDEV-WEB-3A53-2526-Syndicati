@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - PiDev</title>
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="{{ asset('frontend/css/main-home.css') }}" as="style">
+    <link rel="preload" href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" as="style">
+
+    <!-- CSS Dependencies -->
+    <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/scroll-pill.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+</head>
+<body>
+<!-- Page Loader -->
+<div class="page-loader" id="pageLoader">
+    <div class="loader-content">
+        <div class="loader-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Layout Wrapper -->
+<div class="main-home-layout-wrapper">
+    <div class="main-home-page">
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'sign_up'} %}
+
+        <div class="main-home-content-wrapper">
+            <div class="main-home-auth-container">
+                <div class="main-home-auth-card">
+                    <div class="main-home-auth-header">
+                        <h1 class="main-home-auth-title">Create Account</h1>
+                        <p class="main-home-auth-subtitle">Join us and start your journey today</p>
+                    </div>
+
+                    {% for message in app.flashes('error_popup') %}
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                if (window.showCoolPopup) {
+                                    showCoolPopup('Attention', "{{ message|e('js') }}", 'error');
+                                }
+                            });
+                        </script>
+                    {% endfor %}
+
+                    {% if form.vars.errors|length > 0 %}
+                        <div class="main-home-auth-error">
+                            {% for error in form.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {{ form_start(form, {'method': 'POST', 'attr': {'class': 'main-home-auth-form', 'novalidate': 'novalidate', 'data-ajax': 'true'}}) }}
+                        <div class="main-home-form-row">
+                            <div class="main-home-form-group main-home-form-half">
+                                {{ form_label(form.first_name, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
+                                {{ form_widget(form.first_name, {'attr': {'class': 'main-home-form-input', 'placeholder': 'John'}}) }}
+                                <div class="main-home-validation-message" id="first-name-validation"></div>
+                                {{ form_errors(form.first_name) }}
+                            </div>
+                            <div class="main-home-form-group main-home-form-half">
+                                {{ form_label(form.last_name, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
+                                {{ form_widget(form.last_name, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Doe'}}) }}
+                                <div class="main-home-validation-message" id="last-name-validation"></div>
+                                {{ form_errors(form.last_name) }}
+                            </div>
+                        </div>
+
+                        <div class="main-home-form-group">
+                            {{ form_label(form.email_user, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
+                            {{ form_widget(form.email_user, {'attr': {'class': 'main-home-form-input', 'placeholder': 'john.doe@example.com'}}) }}
+                            <div class="main-home-validation-message" id="email-validation"></div>
+                            {{ form_errors(form.email_user) }}
+                        </div>
+
+                        <div class="main-home-form-group">
+                            {{ form_label(form.plainPassword.first, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
+                            <div class="main-home-password-wrapper">
+                                {{ form_widget(form.plainPassword.first, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Create a strong password'}}) }}
+                                <button type="button" class="main-home-password-toggle" onclick="togglePassword('{{ form.plainPassword.first.vars.id }}')">
+                                    <span class="main-home-eye-icon">👁️</span>
+                                </button>
+                            </div>
+                            <div class="password-requirements" id="password-requirements">
+                                <div class="password-req-item invalid" id="req-length">
+                                    <span class="req-icon"></span>
+                                    <span class="req-text">At least 8 characters</span>
+                                </div>
+                                <div class="password-req-item invalid" id="req-uppercase">
+                                    <span class="req-icon"></span>
+                                    <span class="req-text">One uppercase letter</span>
+                                </div>
+                                <div class="password-req-item invalid" id="req-special">
+                                    <span class="req-icon"></span>
+                                    <span class="req-text">One special character (@, #, $, etc.)</span>
+                                </div>
+                            </div>
+                            <div class="main-home-validation-message" id="password-validation"></div>
+                            {{ form_errors(form.plainPassword.first) }}
+                        </div>
+
+                        <div class="main-home-form-group">
+                            {{ form_label(form.plainPassword.second, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
+                            <div class="main-home-password-wrapper">
+                                {{ form_widget(form.plainPassword.second, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Confirm your password'}}) }}
+                                <button type="button" class="main-home-password-toggle" onclick="togglePassword('{{ form.plainPassword.second.vars.id }}')">
+                                    <span class="main-home-eye-icon">👁️</span>
+                                </button>
+                            </div>
+                            <div class="main-home-validation-message" id="confirm-password-validation"></div>
+                            {{ form_errors(form.plainPassword.second) }}
+                        </div>
+
+                        <button type="submit" class="main-home-btn main-home-btn-auth-submit">
+                            Create Account
+                        </button>
+                    {{ form_end(form) }}
+
+                    <div class="main-home-auth-divider">
+                        <span>or sign up with</span>
+                    </div>
+
+                    <div class="main-home-social-auth">
+                        <button type="button" class="main-home-social-btn main-home-social-google">
+                            <span class="main-home-social-icon">G</span>
+                            <span>Google</span>
+                        </button>
+                        <button type="button" class="main-home-social-btn main-home-social-github">
+                            <span class="main-home-social-icon">⚡</span>
+                            <span>GitHub</span>
+                        </button>
+                    </div>
+
+                    <p class="main-home-auth-footer">
+                        Already have an account?
+                        <a href="{{ path('auth_sign_in') }}" class="main-home-auth-link">Sign In</a>
+                    </p>
+                </div>
+            </div>
+
+            {% include 'frontend/shared/_main_footer.html.twig' %}
+        </div>
+    </div>
+</div>
+
+{% include 'frontend/shared/_scroll_pill.html.twig' %}
+<script src="{{ asset('frontend/js/scroll-pill.js') }}" defer></script>
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}" defer></script>
+<script src="{{ asset('frontend/js/main-home.js') }}" defer></script>
+<script src="{{ asset('js/page-loader.js') }}"></script>
+<style>
+.main-home-validation-message {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0;
+    min-height: 0;
+    display: block;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    line-height: 1.4;
+}
+.main-home-validation-message.error {
+    color: #ff4757 !important;
+    display: block !important;
+}
+.main-home-validation-message.success {
+    color: #2ed573 !important;
+    display: block !important;
+}
+.main-home-validation-message.warning {
+    color: #ffa502 !important;
+    display: block !important;
+}
+.main-home-form-input.input-error {
+    border-color: #ff4757 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 71, 87, 0.25) !important;
+}
+.main-home-form-input.input-success {
+    border-color: #2ed573 !important;
+    box-shadow: 0 0 0 0.2rem rgba(46, 213, 115, 0.25) !important;
+}
+.password-requirements {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.password-req-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+.password-req-item .req-icon {
+    font-weight: bold;
+    font-size: 1rem;
+    min-width: 20px;
+}
+.password-req-item.invalid {
+    color: #ff4757;
+}
+.password-req-item.invalid .req-icon::before {
+    content: '✗';
+    color: #ff4757;
+}
+.password-req-item.valid {
+    color: #2ed573;
+}
+.password-req-item.valid .req-icon::before {
+    content: '✓';
+    color: #2ed573;
+}
+</style>
+<script>
+    function togglePassword(inputId) {
+        var input = document.getElementById(inputId);
+        if (input) input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Visual feedback ONLY - no validation logic
+        function updateVisual(elementId, message, isSuccess, inputId) {
+            const validationDiv = document.getElementById(elementId);
+            const inputElement = document.getElementById(inputId);
+            
+            if (!validationDiv || !inputElement) return;
+            
+            validationDiv.textContent = message;
+            validationDiv.className = 'main-home-validation-message ' + (isSuccess ? 'success' : 'error');
+            inputElement.classList.remove('input-error', 'input-success');
+            inputElement.classList.add(isSuccess ? 'input-success' : 'input-error');
+        }
+
+        // Email availability check (visual only, PHP validates on submit)
+        const emailInput = document.getElementById('{{ form.email_user.vars.id }}');
+        let emailCheckTimeout;
+        
+        if (emailInput) {
+            emailInput.addEventListener('input', function() {
+                clearTimeout(emailCheckTimeout);
+                const email = this.value.trim();
+                
+                if (!email) {
+                    updateVisual('email-validation', '', false, this.id);
+                    return;
+                }
+                
+                // Show "checking..." while waiting
+                const validationDiv = document.getElementById('email-validation');
+                if (validationDiv) {
+                    validationDiv.textContent = '🔍 Checking availability...';
+                    validationDiv.className = 'main-home-validation-message warning';
+                }
+                
+                emailCheckTimeout = setTimeout(async () => {
+                    try {
+                        const response = await fetch(`/check-email?email=${encodeURIComponent(email)}`);
+                        const data = await response.json();
+                        
+                        if (data.exists) {
+                            updateVisual('email-validation', '❌ This email is already registered', false, emailInput.id);
+                        } else {
+                            updateVisual('email-validation', '✅ Email is available', true, emailInput.id);
+                        }
+                    } catch (error) {
+                        console.error('Email check failed:', error);
+                    }
+                }, 500);
+            });
+        }
+
+        // Visual feedback for name fields (not validation, just UX)
+        const firstNameInput = document.getElementById('{{ form.first_name.vars.id }}');
+        if (firstNameInput) {
+            firstNameInput.addEventListener('input', function() {
+                const value = this.value.trim();
+                // Visual check: only letters, spaces, hyphens, apostrophes
+                const namePattern = /^[a-zA-ZÀ-ÿ\s'-]+$/;
+                
+                if (!value) {
+                    updateVisual('first-name-validation', '', false, this.id);
+                } else if (value.length < 2) {
+                    updateVisual('first-name-validation', '⚠️ Too short', false, this.id);
+                } else if (!namePattern.test(value)) {
+                    updateVisual('first-name-validation', '❌ Invalid characters', false, this.id);
+                } else {
+                    updateVisual('first-name-validation', '✅ Looks good!', true, this.id);
+                }
+            });
+        }
+
+        const lastNameInput = document.getElementById('{{ form.last_name.vars.id }}');
+        if (lastNameInput) {
+            lastNameInput.addEventListener('input', function() {
+                const value = this.value.trim();
+                // Visual check: only letters, spaces, hyphens, apostrophes
+                const namePattern = /^[a-zA-ZÀ-ÿ\s'-]+$/;
+                
+                if (!value) {
+                    updateVisual('last-name-validation', '', false, this.id);
+                } else if (value.length < 2) {
+                    updateVisual('last-name-validation', '⚠️ Too short', false, this.id);
+                } else if (!namePattern.test(value)) {
+                    updateVisual('last-name-validation', '❌ Invalid characters', false, this.id);
+                } else {
+                    updateVisual('last-name-validation', '✅ Looks good!', true, this.id);
+                }
+            });
+        }
+
+        const passwordInput = document.getElementById('{{ form.plainPassword.first.vars.id }}');
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function() {
+                const value = this.value;
+                
+                // Visual feedback only
+                if (value.length > 0) {
+                    updateVisual('password-validation', '✅ Password entered', true, this.id);
+                } else {
+                    updateVisual('password-validation', '', false, this.id);
+                }
+                
+                // Update password requirements checklist (visual only)
+                const requirements = {
+                    length: value.length >= 8,
+                    uppercase: /[A-Z]/.test(value),
+                    special: /[!@#$%^&*(),.?\":{}|<>]/.test(value)
+                };
+                
+                const reqLength = document.getElementById('req-length');
+                const reqUppercase = document.getElementById('req-uppercase');
+                const reqSpecial = document.getElementById('req-special');
+                
+                if (reqLength) reqLength.className = 'password-req-item ' + (requirements.length ? 'valid' : 'invalid');
+                if (reqUppercase) reqUppercase.className = 'password-req-item ' + (requirements.uppercase ? 'valid' : 'invalid');
+                if (reqSpecial) reqSpecial.className = 'password-req-item ' + (requirements.special ? 'valid' : 'invalid');
+            });
+        }
+
+        const confirmPasswordInput = document.getElementById('{{ form.plainPassword.second.vars.id }}');
+        if (confirmPasswordInput && passwordInput) {
+            confirmPasswordInput.addEventListener('input', function() {
+                const password = passwordInput.value;
+                const confirmPassword = this.value;
+                
+                // Visual feedback only
+                if (confirmPassword && confirmPassword === password) {
+                    updateVisual('confirm-password-validation', '✅ Passwords match!', true, this.id);
+                } else if (confirmPassword) {
+                    updateVisual('confirm-password-validation', '❌ Passwords do not match', false, this.id);
+                } else {
+                    updateVisual('confirm-password-validation', '', false, this.id);
+                }
+            });
+        }
+    });
+
+    // --- COOL CUSTOM POPUP SYSTEM ---
+    const popupHTML = `
+    <div id="cool-popup-wrapper" class="cool-popup-wrapper">
+        <div class="cool-popup-card">
+            <div class="cool-popup-icon-container">
+                <div class="cool-popup-icon" id="cool-popup-icon"></div>
+            </div>
+            <h3 class="cool-popup-title" id="cool-popup-title"></h3>
+            <p class="cool-popup-message" id="cool-popup-message"></p>
+            <button class="cool-popup-btn" onclick="closeCoolPopup()">Got it</button>
+        </div>
+    </div>
+    <style>
+    .cool-popup-wrapper {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85);
+        backdrop-filter: blur(12px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+    .cool-popup-wrapper.active {
+        display: flex;
+        opacity: 1;
+    }
+    .cool-popup-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 32px;
+        padding: 3rem 2rem;
+        max-width: 420px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(var(--main-home-accent-rgb), 0.2);
+        transform: scale(0.8) translateY(20px);
+        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .cool-popup-wrapper.active .cool-popup-card {
+        transform: scale(1) translateY(0);
+    }
+    .cool-popup-icon-container {
+        width: 80px; height: 80px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.5rem;
+    }
+    .cool-popup-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 0.75rem;
+        color: #fff;
+    }
+    .cool-popup-message {
+        color: rgba(255,255,255,0.7);
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+    .cool-popup-btn {
+        background: var(--main-home-accent-gradient);
+        border: none;
+        padding: 0.8rem 2.5rem;
+        border-radius: 12px;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .cool-popup-btn:hover { transform: scale(1.05); }
+    
+    /* Success State */
+    .popup-success .cool-popup-icon-container { background: rgba(46, 213, 115, 0.15); border: 2px solid #2ed573; color: #2ed573; }
+    .popup-success .cool-popup-icon::before { content: '✓'; }
+    
+    /* Error State */
+    .popup-error .cool-popup-icon-container { background: rgba(255, 71, 87, 0.15); border: 2px solid #ff4757; color: #ff4757; }
+    .popup-error .cool-popup-icon::before { content: '×'; }
+    </style>
+    `;
+    document.body.insertAdjacentHTML('beforeend', popupHTML);
+
+    window.showCoolPopup = function(title, message, type = 'error') {
+        const wrapper = document.getElementById('cool-popup-wrapper');
+        const card = wrapper.querySelector('.cool-popup-card');
+        document.getElementById('cool-popup-title').textContent = title;
+        document.getElementById('cool-popup-message').innerHTML = message;
+        
+        card.className = 'cool-popup-card popup-' + type;
+        wrapper.classList.add('active');
+    };
+
+    window.closeCoolPopup = function() {
+        document.getElementById('cool-popup-wrapper').classList.remove('active');
+    };
+
+    // --- AJAX SIGN UP ---
+    const signupForm = document.querySelector('.main-home-auth-form');
+    if (signupForm) {
+        signupForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('.main-home-btn-auth-submit');
+            const originalHTML = btn.innerHTML;
+            
+            // Set Loading State
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Processing...';
+            btn.disabled = true;
+            btn.style.opacity = '0.8';
+            
+            // Hide standard loader if it was somehow shown
+            if (window.hideLoader) window.hideLoader();
+            else if (document.getElementById('pageLoader')) {
+                document.getElementById('pageLoader').classList.add('fade-out');
+                setTimeout(() => {
+                    document.getElementById('pageLoader').classList.remove('active', 'fade-out');
+                }, 300);
+            }
+
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch(this.action || window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showCoolPopup('Welcome!', 'Your account has been created successfully. Redirecting you to sign in...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '{{ path("auth_sign_in") }}';
+                    }, 2500);
+                } else {
+                    const errorMsg = data.message || (data.errors ? data.errors.join('<br>') : 'An unknown error occurred.');
+                    showCoolPopup('Oops!', errorMsg, 'error');
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
+            } catch (error) {
+                console.error('Signup Error:', error);
+                showCoolPopup('Network Error', 'Please check your internet connection and try again.', 'error');
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+        };
+    }
+</script>
+</body>
+</html>

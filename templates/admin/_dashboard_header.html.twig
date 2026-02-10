@@ -1,17 +1,101 @@
 {# Shared dashboard header partial for admin section pages #}
-<div class="dashboard-header mb-4">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="dashboard-title expanding-text">{{ title }}</h1>
-        </div>
-        <div class="header-controls">
-            <div class="date-range-picker">
-                <span class="date-text" id="currentDate"></span>
-                <span class="time-text" id="currentTime"></span>
+{% set _user = app.session.get('user')|default([]) %}
+{% set _session_avatar_url = (_user.avatar is defined and _user.avatar) ? (_user.avatar starts with 'http' ? _user.avatar : asset(_user.avatar)) : null %}
+{% set _avatar_url = profile_avatar_url|default(_session_avatar_url)|default('https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/1.png') %}
+{% set _user_name = _user.name|default('User') %}
+{% set _user_email = _user.email|default('user@example.com') %}
+{% set _user_role = _user.role|default('Administrator') %}
+
+<header class="dashboard-header">
+    <div class="dashboard-header-inner">
+        <div class="dashboard-header-left">
+            <h1 class="dashboard-title">{{ title }}</h1>
+            <div class="dashboard-subtitle">
+                <span id="currentDate"></span>
+                <span class="dot-separator">•</span>
+                <span id="currentTime"></span>
             </div>
-            <button class="btn action-btn">
-                Action <i class="bx bx-chevron-down"></i>
-            </button>
+        </div>
+
+        <div class="dashboard-header-right">
+            <div class="header-profile">
+                <div class="header-profile-text">
+                    <span class="header-profile-name">{{ _user_name }}</span>
+                    <span class="header-profile-role">{{ _user_role }}</span>
+                </div>
+                <div class="header-profile-avatar">
+                    <img src="{{ _avatar_url }}"
+                         alt="Profile">
+                </div>
+                
+                <!-- Profile Dropdown Menu -->
+                <div class="header-profile-dropdown">
+                    <div class="header-dropdown-header">
+                        <div class="header-dropdown-user-profile">
+                            <img src="{{ _avatar_url }}" 
+                                 alt="Profile" 
+                                 class="header-dropdown-profile-img"/>
+                            <div class="header-dropdown-profile-info">
+                                <div class="header-dropdown-profile-name">{{ _user_name }}</div>
+                                <div class="header-dropdown-profile-email">{{ _user_email }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="header-dropdown-divider"></div>
+                    <a href="{{ path('frontend_profile') }}" class="header-dropdown-item">
+                        <i class="bx bx-user"></i>
+                        <span>My Profile</span>
+                    </a>
+                    <a href="{{ path('main_home') }}" class="header-dropdown-item" data-page-loader>
+                        <i class="bx bx-home"></i>
+                        <span>Main Home</span>
+                    </a>
+                    <a href="{{ path('frontend_settings') }}" class="header-dropdown-item">
+                        <i class="bx bx-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="header-dropdown-item">
+                        <i class="bx bx-help-circle"></i>
+                        <span>Help & Support</span>
+                    </a>
+                    <div class="header-dropdown-divider"></div>
+                    <a href="{{ path('admin_logout') }}" class="header-dropdown-item logout">
+                        <i class="bx bx-power-off"></i>
+                        <span>Log Out</span>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+</header>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCurrentDateTime();
+        setInterval(updateCurrentDateTime, 1000);
+    });
+
+    function updateCurrentDateTime() {
+        const dateElement = document.getElementById('currentDate');
+        const timeElement = document.getElementById('currentTime');
+
+        if (dateElement) {
+            const now = new Date();
+            const options = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            };
+            dateElement.textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        if (timeElement) {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            timeElement.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+    }
+</script>

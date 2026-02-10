@@ -1,18 +1,53 @@
 // Global settings loader for theme, accent, and language
-(function() {
+(function () {
     try {
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('logout') === 'success') {
+            localStorage.removeItem('theme');
+            localStorage.removeItem('accent-gradient');
+            localStorage.removeItem('accent-color');
+            localStorage.removeItem('lang');
+            // Remove the param to avoid repeated clearing
+            var url = new URL(window.location);
+            url.searchParams.delete('logout');
+            window.history.replaceState({}, '', url);
+        }
+
+        // Sync from server settings if available
+        var serverSettings = window.serverSettings || {};
+        if (Array.isArray(serverSettings)) serverSettings = {};
+
+        if (Object.keys(serverSettings).length > 0) {
+            if (serverSettings.theme) localStorage.setItem('theme', serverSettings.theme);
+            if (serverSettings['accent-gradient']) localStorage.setItem('accent-gradient', serverSettings['accent-gradient']);
+            if (serverSettings['accent-color']) localStorage.setItem('accent-color', serverSettings['accent-color']);
+            if (serverSettings.lang) localStorage.setItem('lang', serverSettings.lang);
+        }
+
         var html = document.documentElement;
         var theme = localStorage.getItem('theme') || 'dark';
         var accentGradient = localStorage.getItem('accent-gradient') || 'linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)';
         var accentColor = localStorage.getItem('accent-color') || '#6c5ce7';
         var lang = localStorage.getItem('lang') || 'fr';
+        function hexToRgb(hex) {
+            var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            if (!m) return '108, 92, 231';
+            return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)].join(', ');
+        }
         html.setAttribute('data-theme', theme);
         html.style.setProperty('--main-home-accent-gradient', accentGradient);
         html.style.setProperty('--accent-gradient', accentGradient);
         html.style.setProperty('--main-home-accent-color', accentColor);
         html.style.setProperty('--accent', accentColor);
+        html.style.setProperty('--primary', accentColor);
+        html.style.setProperty('--main-home-accent-rgb', hexToRgb(accentColor));
+        html.style.setProperty('--accent-glow', 'rgba(' + hexToRgb(accentColor) + ', 0.5)');
+        var firstColor = accentGradient.match(/#[0-9a-fA-F]{3,8}/)?.[0] || '#6c5ce7';
+        var gradientBorder = accentGradient.replace(/\)\s*$/, ', ' + firstColor + ')');
+        html.style.setProperty('--main-home-accent-gradient-border', gradientBorder);
+        html.style.setProperty('--primary-gradient', accentGradient);
         html.setAttribute('lang', lang);
-        
+
         var translations = {
             fr: {
                 "Settings": "Paramètres",
@@ -126,7 +161,43 @@
                 "Need Assistance": "Besoin d'Assistance?",
                 "Assistance Desc": "Notre équipe de gestion est là pour vous aider. Contactez le syndic ou signalez un problème.",
                 "Contact Syndic": "Contacter le Syndic",
-                "Report Problem": "Signaler un Problème"
+                "Report Problem": "Signaler un Problème",
+                "Welcome to Syndicati": "Bienvenue sur Syndicati",
+                "Bienvenue sur SyndiGest": "Bienvenue sur Syndicati",
+                "Personnalisez votre expérience en quelques étapes": "Personnalisez votre expérience en quelques étapes",
+                "Langue": "Langue",
+                "Thème": "Thème",
+                "Aperçu :": "Aperçu :",
+                "Voici un aperçu de votre thème sélectionné.": "Voici un aperçu de votre thème sélectionné.",
+                "Notifications": "Notifications",
+                "Comment souhaitez-vous être notifié ?": "Comment souhaitez-vous être notifié ?",
+                "Canal": "Canal",
+                "Fréquence": "Fréquence",
+                "Votre logement": "Votre logement",
+                "Parlez-nous de votre bien": "Parlez-nous de votre bien",
+                "Type de bien": "Type de bien",
+                "Statut d'occupation": "Statut d'occupation",
+                "Parking": "Parking",
+                "Communication": "Communication",
+                "Vos préférences de communication": "Vos préférences de communication",
+                "Participation aux réunions": "Participation aux réunions",
+                "Documents": "Documents",
+                "Contact préféré": "Contact préféré",
+                "Communauté": "Communauté",
+                "Votre implication": "Votre implication",
+                "Maintenance": "Maintenance",
+                "Engagement communautaire": "Engagement communautaire",
+                "Préférences": "Préférences",
+                "Dernières options": "Dernières options",
+                "Paiement": "Paiement",
+                "Sensibilité au bruit": "Sensibilité au bruit",
+                "Animaux": "Animaux",
+                "Accessibilité": "Accessibilité",
+                "Presque terminé !": "Presque terminé !",
+                "Des suggestions ou commentaires ? (optionnel)": "Des suggestions ou commentaires ? (optionnel)",
+                "Précédent": "Précédent",
+                "Suivant": "Suivant",
+                "Terminer": "Terminer"
             },
             en: {
                 "Settings": "Settings",
@@ -240,7 +311,36 @@
                 "Need Assistance": "Need Assistance?",
                 "Assistance Desc": "Our management team is here to help. Contact the syndic or report a problem.",
                 "Contact Syndic": "Contact Syndic",
-                "Report Problem": "Report Problem"
+                "Report Problem": "Report Problem",
+                "Welcome to Syndicati": "Welcome to Syndicati",
+                "Bienvenue sur SyndiGest": "Welcome to Syndicati",
+                "Personnalisez votre expérience en quelques étapes": "Customize your experience in a few steps",
+                "Langue": "Language",
+                "Thème": "Theme",
+                "Aperçu :": "Preview:",
+                "Voici un aperçu de votre thème sélectionné.": "Here is a preview of your selected theme.",
+                "Comment souhaitez-vous être notifié ?": "How would you like to be notified?",
+                "Canal": "Channel",
+                "Fréquence": "Frequency",
+                "Votre logement": "Your property",
+                "Parlez-nous de votre bien": "Tell us about your property",
+                "Type de bien": "Property type",
+                "Statut d'occupation": "Occupancy status",
+                "Vos préférences de communication": "Your communication preferences",
+                "Participation aux réunions": "Meeting participation",
+                "Contact préféré": "Preferred contact",
+                "Votre implication": "Your involvement",
+                "Engagement communautaire": "Community engagement",
+                "Dernières options": "Last options",
+                "Paiement": "Payment",
+                "Sensibilité au bruit": "Noise sensitivity",
+                "Animaux": "Pets",
+                "Accessibilité": "Accessibility",
+                "Presque terminé !": "Almost done!",
+                "Des suggestions ou commentaires ? (optionnel)": "Suggestions or comments? (optional)",
+                "Précédent": "Previous",
+                "Suivant": "Next",
+                "Terminer": "Finish"
             },
             ar: {
                 "Settings": "الإعدادات",
@@ -354,12 +454,41 @@
                 "Need Assistance": "تحتاج إلى مساعدة؟",
                 "Assistance Desc": "فريق الإدارة لدينا هنا لمساعدتك. اتصل بالنقاب أو أبلغ عن مشكلة.",
                 "Contact Syndic": "اتصل بالنقاب",
-                "Report Problem": "الإبلاغ عن مشكلة"
+                "Report Problem": "الإبلاغ عن مشكلة",
+                "Welcome to Syndicati": "مرحباً بك في Syndicati",
+                "Bienvenue sur SyndiGest": "مرحباً بك في Syndicati",
+                "Personnalisez votre expérience en quelques étapes": "خصص تجربتك في خطوات قليلة",
+                "Langue": "اللغة",
+                "Thème": "المظهر",
+                "Aperçu :": "معاينة:",
+                "Voici un aperçu de votre thème sélectionné.": "إليك معاينة للمظهر المختار.",
+                "Comment souhaitez-vous être notifié ?": "كيف تريد أن يتم إعلامك؟",
+                "Canal": "القناة",
+                "Fréquence": "التكرار",
+                "Votre logement": "مسكنك",
+                "Parlez-nous de votre bien": "أخبرنا عن مسكنك",
+                "Type de bien": "نوع المسكن",
+                "Statut d'occupation": "وضع الإشغال",
+                "Vos préférences de communication": "تفضيلات الاتصال",
+                "Participation aux réunions": "المشاركة في الاجتماعات",
+                "Contact préféré": "جهة الاتصال المفضلة",
+                "Votre implication": "مشاركتك",
+                "Engagement communautaire": "المشاركة المجتمعية",
+                "Dernières options": "آخر الخيارات",
+                "Paiement": "الدفع",
+                "Sensibilité au bruit": "الحساسية للضوضاء",
+                "Animaux": "الحيوانات الأليفة",
+                "Accessibilité": "إمكانية الوصول",
+                "Presque terminé !": "كدنا ننتهي!",
+                "Des suggestions ou commentaires ? (optionnel)": "اقتراحات أو تعليقات؟ (اختياري)",
+                "Précédent": "السابق",
+                "Suivant": "التالي",
+                "Terminer": "إنهاء"
             }
         };
-        
+
         function translateAll(toLang) {
-            document.querySelectorAll('[data-i18n]').forEach(function(el) {
+            document.querySelectorAll('[data-i18n]').forEach(function (el) {
                 var key = el.getAttribute('data-i18n');
                 var t;
                 if (translations[toLang] && Object.prototype.hasOwnProperty.call(translations[toLang], key)) {
@@ -374,22 +503,22 @@
                 el.textContent = t;
             });
         }
-        
+
         function initSmartTranslate(preferredLang) {
             translateAll(preferredLang);
         }
-        
-        document.addEventListener('DOMContentLoaded', function() {
+
+        document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => {
                 let lang = localStorage.getItem('lang') || 'fr';
                 initSmartTranslate(lang);
             }, 200);
         });
-        
+
         window.SmartTranslate = { init: initSmartTranslate };
         window.translations = translations;
-        
-        window.setLanguage = function(newLang) {
+
+        window.setLanguage = function (newLang) {
             localStorage.setItem('lang', newLang);
             document.documentElement.setAttribute('lang', newLang);
             if (window.SmartTranslate) {
@@ -397,5 +526,5 @@
             }
             translateAll(newLang);
         };
-    } catch (e) {}
+    } catch (e) { }
 })();

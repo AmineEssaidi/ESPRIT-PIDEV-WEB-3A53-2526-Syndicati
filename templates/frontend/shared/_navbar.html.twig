@@ -8,12 +8,21 @@
         var accentGradient = localStorage.getItem('accent-gradient') || 'linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)';
         var accentColor = localStorage.getItem('accent-color') || '#6c5ce7';
         var lang = localStorage.getItem('lang') || 'fr';
+        function hexToRgb(hex) {
+            var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)].join(', ') : '108, 92, 231';
+        }
         html.setAttribute('data-theme', theme);
         html.style.setProperty('--main-home-accent-gradient', accentGradient);
         html.style.setProperty('--accent-gradient', accentGradient);
         html.style.setProperty('--main-home-accent-color', accentColor);
         html.style.setProperty('--accent', accentColor);
-        // Optionally set lang attribute for accessibility
+        html.style.setProperty('--primary', accentColor);
+        html.style.setProperty('--main-home-accent-rgb', hexToRgb(accentColor));
+        html.style.setProperty('--accent-glow', 'rgba(' + hexToRgb(accentColor) + ', 0.5)');
+        var firstColor = accentGradient.match(/#[0-9a-fA-F]{3,8}/)?.[0] || '#6c5ce7';
+        html.style.setProperty('--main-home-accent-gradient-border', accentGradient.replace(/\)\s*$/, ', ' + firstColor + ')'));
+        html.style.setProperty('--primary-gradient', accentGradient);
         html.setAttribute('lang', lang);
     } catch (e) {}
 })();
@@ -170,7 +179,7 @@
             <!-- Auth Buttons (Not Logged In) -->
             <div class="main-home-auth-buttons">
                 <a href="{{ path('auth_sign_in') }}" data-i18n="Sign In" class="main-home-btn main-home-btn-auth-secondary {{ active_tab|default('') == 'sign_in' ? 'active' : '' }}">Connexion</a>
-                <a href="{{ path('auth_sign_up') }}" data-i18n="Sign Up" class="main-home-btn main-home-btn-auth-primary {{ active_tab|default('') == 'sign_up' ? 'active' : '' }}">Créer un compte</a>
+                <a href="{{ path('user_signup') }}" data-i18n="Sign Up" class="main-home-btn main-home-btn-auth-primary {{ active_tab|default('') == 'sign_up' ? 'active' : '' }}">Créer un compte</a>
             </div>
         {% endif %}
     </div>

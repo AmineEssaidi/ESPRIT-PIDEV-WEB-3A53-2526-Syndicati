@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
+    {% if app.session.get('is_logged_in') and app.session.get('user') is iterable %}
+        <script>
+            window.serverSettings = {{ app.session.get('user').settings|default({})|json_encode|raw }};
+        </script>
+    {% endif %}
     <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
     <meta charset="UTF-8">
-    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In - PiDev</title>
 
@@ -29,6 +33,8 @@
     </div>
 </div>
 
+{% include 'shared/_access_denied_popup.html.twig' %}
+
 <!-- Layout Wrapper -->
 <div class="main-home-layout-wrapper">
     <div class="main-home-page">
@@ -38,83 +44,105 @@
         <!-- Auth Content -->
         <div class="main-home-content-wrapper">
             <div class="main-home-auth-container">
-                <div class="main-home-auth-card">
-                    <div class="main-home-auth-header">
-                        <h1 class="main-home-auth-title">Welcome Back</h1>
-                        <p class="main-home-auth-subtitle">Sign in to your account to continue</p>
-                    </div>
-
-                    {% if error is defined and error %}
-                        <div class="main-home-auth-error">
-                            {{ error }}
-                        </div>
-                    {% endif %}
-
-                    <form class="main-home-auth-form" action="{{ path('auth_sign_in') }}" method="POST">
-                        <div class="main-home-form-group">
-                            <label for="email" class="main-home-form-label">Email</label>
-                            <input 
-                                type="email" 
-                                id="email" 
-                                name="email" 
-                                class="main-home-form-input" 
-                                placeholder="Enter your email"
-                                value="{{ last_email|default('') }}"
-                                required
-                            />
-                        </div>
-
-                        <div class="main-home-form-group">
-                            <label for="password" class="main-home-form-label">Password</label>
-                            <div class="main-home-password-wrapper">
-                                <input 
-                                    type="password" 
-                                    id="password" 
-                                    name="password" 
-                                    class="main-home-form-input" 
-                                    placeholder="Enter your password"
-                                    required
-                                />
-                                <button type="button" class="main-home-password-toggle" onclick="togglePassword('password')">
-                                    <span class="main-home-eye-icon">👁️</span>
-                                </button>
+                <div class="main-home-auth-card {{ show_destination_choice|default(false) ? 'main-home-auth-card--destination' : '' }}">
+                    {% if show_destination_choice|default(false) %}
+                        <div class="main-home-auth-destination">
+                            <div class="main-home-auth-destination-header">
+                                <div class="main-home-auth-destination-icon">✓</div>
+                                <h1 class="main-home-auth-title">You're in</h1>
+                                <p class="main-home-auth-subtitle">Where do you want to go?</p>
+                            </div>
+                            <div class="main-home-auth-destination-buttons">
+                                <a href="{{ path('main_home') }}" class="main-home-destination-btn main-home-destination-btn--home">
+                                    <span class="main-home-destination-btn-icon">🏠</span>
+                                    <span class="main-home-destination-btn-text">Log into Home</span>
+                                </a>
+                                <a href="{{ path('admin_dashboard') }}" class="main-home-destination-btn main-home-destination-btn--dashboard">
+                                    <span class="main-home-destination-btn-icon">📊</span>
+                                    <span class="main-home-destination-btn-text">Dashboard</span>
+                                </a>
                             </div>
                         </div>
+                    {% else %}
+                        <div class="main-home-auth-form-wrap">
+                            <div class="main-home-auth-header">
+                                <h1 class="main-home-auth-title">Welcome Back</h1>
+                                <p class="main-home-auth-subtitle">Sign in to your account to continue</p>
+                            </div>
 
-                        <div class="main-home-form-options">
-                            <label class="main-home-checkbox-wrapper">
-                                <input type="checkbox" name="_remember_me" class="main-home-checkbox"/>
-                                <span class="main-home-checkbox-label">Remember me</span>
-                            </label>
-                            <a href="#" class="main-home-forgot-link">Forgot Password?</a>
+                            {% if error is defined and error %}
+                                <div class="main-home-auth-error">
+                                    {{ error }}
+                                </div>
+                            {% endif %}
+
+                            <form class="main-home-auth-form" action="{{ path('auth_sign_in') }}" method="POST">
+                                <div class="main-home-form-group">
+                                    <label for="email" class="main-home-form-label">Email</label>
+                                    <input 
+                                        type="email" 
+                                        id="email" 
+                                        name="email" 
+                                        class="main-home-form-input" 
+                                        placeholder="Enter your email"
+                                        value="{{ last_email|default('') }}"
+                                        required
+                                    />
+                                </div>
+
+                                <div class="main-home-form-group">
+                                    <label for="password" class="main-home-form-label">Password</label>
+                                    <div class="main-home-password-wrapper">
+                                        <input 
+                                            type="password" 
+                                            id="password" 
+                                            name="password" 
+                                            class="main-home-form-input" 
+                                            placeholder="Enter your password"
+                                            required
+                                        />
+                                        <button type="button" class="main-home-password-toggle" onclick="togglePassword('password')">
+                                            <span class="main-home-eye-icon">👁️</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="main-home-form-options">
+                                    <label class="main-home-checkbox-wrapper">
+                                        <input type="checkbox" name="_remember_me" class="main-home-checkbox"/>
+                                        <span class="main-home-checkbox-label">Remember me</span>
+                                    </label>
+                                    <a href="#" class="main-home-forgot-link">Forgot Password?</a>
+                                </div>
+
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                                <button type="submit" class="main-home-btn main-home-btn-auth-submit">
+                                    Sign In
+                                </button>
+                            </form>
+
+                            <div class="main-home-auth-divider">
+                                <span>or continue with</span>
+                            </div>
+
+                            <div class="main-home-social-auth">
+                                <button class="main-home-social-btn main-home-social-google">
+                                    <span class="main-home-social-icon">G</span>
+                                    <span>Google</span>
+                                </button>
+                                <button class="main-home-social-btn main-home-social-github">
+                                    <span class="main-home-social-icon">⚡</span>
+                                    <span>GitHub</span>
+                                </button>
+                            </div>
+
+                            <p class="main-home-auth-footer">
+                                Don't have an account? 
+                                <a href="{{ path('user_signup') }}" class="main-home-auth-link">Sign Up</a>
+                            </p>
                         </div>
-
-                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-
-                        <button type="submit" class="main-home-btn main-home-btn-auth-submit">
-                            Sign In
-                        </button>
-                    </form>
-
-                    <div class="main-home-auth-divider">
-                        <span>or continue with</span>
-                    </div>
-
-                    <div class="main-home-social-auth">
-                        <button class="main-home-social-btn main-home-social-google">
-                            <span class="main-home-social-icon">G</span>
-                            <span>Google</span>
-                        </button>
-                        <button class="main-home-social-btn main-home-social-github">
-                            <span class="main-home-social-icon">⚡</span>
-                            <span>GitHub</span>
-                        </button>
-                    </div>
-
-                    <p class="main-home-auth-footer">
-                        Don't have an account? 
-                        <a href="{{ path('auth_sign_up') }}" class="main-home-auth-link">Sign Up</a>
-                    </p>
+                    {% endif %}
                 </div>
             </div>
 
@@ -136,6 +164,17 @@
         const input = document.getElementById(inputId);
         input.type = input.type === 'password' ? 'text' : 'password';
     }
+    // Destination choice animation (admin roles post-login)
+    {% if show_destination_choice|default(false) %}
+    document.addEventListener('DOMContentLoaded', function() {
+        var card = document.querySelector('.main-home-auth-card--destination');
+        var btns = document.querySelectorAll('.main-home-destination-btn');
+        if (card) card.classList.add('main-home-auth-card--destination-visible');
+        btns.forEach(function(btn, i) {
+            btn.style.animationDelay = (0.15 * (i + 1)) + 's';
+        });
+    });
+    {% endif %}
 </script>
 </body>
 </html>

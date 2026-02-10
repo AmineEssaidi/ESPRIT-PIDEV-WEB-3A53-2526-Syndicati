@@ -3,26 +3,10 @@
 // Application Data
 const dashboardData = {
   "kpis": {
-    "profit": {
-      "value": "$12,628",
-      "change": "72.8%",
-      "trend": "up"
-    },
-    "sales": {
-      "value": "$4,679", 
-      "change": "28.42%",
-      "trend": "up"
-    },
-    "payments": {
-      "value": "$2,468",
-      "change": "-14.82%",
-      "trend": "down"
-    },
-    "transactions": {
-      "value": "$14,857",
-      "change": "28.14%", 
-      "trend": "up"
-    }
+    "profit": { "value": "$12,628", "change": "72.8%", "trend": "up" },
+    "sales": { "value": "$4,679", "change": "28.42%", "trend": "up" },
+    "payments": { "value": "$2,468", "change": "-14.82%", "trend": "down" },
+    "transactions": { "value": "$14,857", "change": "28.14%", "trend": "up" }
   },
   "revenue_chart": {
     "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
@@ -34,12 +18,12 @@ const dashboardData = {
     "chart_data": [10, 20, 15, 25, 18, 30, 25]
   },
   "transactions": [
-    {"type": "PayPal", "description": "Send money", "amount": "+$82.6", "currency": "USD", "icon": "paypal"},
-    {"type": "Wallet", "description": "Mac'D", "amount": "+$270.69", "currency": "USD", "icon": "wallet"},
-    {"type": "Transfer", "description": "Refund", "amount": "+$637.91", "currency": "USD", "icon": "transfer"},
-    {"type": "Credit Card", "description": "Ordered Food", "amount": "-$838.71", "currency": "USD", "icon": "credit-card"},
-    {"type": "Wallet", "description": "Starbucks", "amount": "+$203.33", "currency": "USD", "icon": "wallet"},
-    {"type": "Mastercard", "description": "Ordered Food", "amount": "-$92.45", "currency": "USD", "icon": "mastercard"}
+    { "type": "PayPal", "description": "Send money", "amount": "+$82.6", "currency": "USD", "icon": "paypal" },
+    { "type": "Wallet", "description": "Mac'D", "amount": "+$270.69", "currency": "USD", "icon": "wallet" },
+    { "type": "Transfer", "description": "Refund", "amount": "+$637.91", "currency": "USD", "icon": "transfer" },
+    { "type": "Credit Card", "description": "Ordered Food", "amount": "-$838.71", "currency": "USD", "icon": "credit-card" },
+    { "type": "Wallet", "description": "Starbucks", "amount": "+$203.33", "currency": "USD", "icon": "wallet" },
+    { "type": "Mastercard", "description": "Ordered Food", "amount": "-$92.45", "currency": "USD", "icon": "mastercard" }
   ]
 };
 
@@ -48,61 +32,47 @@ let revenueChart = null;
 let orderChart = null;
 let incomeChart = null;
 
-// DOM Content Loaded Event
-
-// Shared date/time update for admin header
+// Shared date/time update
 function updateCurrentDateTime() {
   const dateElement = document.getElementById('currentDate');
   const timeElement = document.getElementById('currentTime');
   if (dateElement) {
     const now = new Date();
-    const options = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'long'
-    };
-    const formattedDate = now.toLocaleDateString('en-US', options);
+    const formattedDate = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
     dateElement.textContent = formattedDate;
   }
   if (timeElement) {
     const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const seconds = now.getSeconds().toString().padStart(2, '0');
-    const formattedTime = `${hours}:${minutes}:${seconds}`;
+    const formattedTime = now.toLocaleTimeString('en-US', { hour12: false });
     timeElement.textContent = formattedTime;
   }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  initializeCharts();
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof Chart !== 'undefined') {
+    initializeCharts();
+  }
   initializeMobileMenu();
   initializeMenuToggle();
   populateTransactions();
   initializeMenuInteractions();
-
-  // Start date/time update for all admin pages
   updateCurrentDateTime();
   setInterval(updateCurrentDateTime, 1000);
 });
 
-// Initialize all charts
 function initializeCharts() {
   initializeRevenueChart();
   initializeOrderChart();
   initializeIncomeChart();
 }
 
-// Revenue Chart
 function initializeRevenueChart() {
   const ctx = document.getElementById('revenueChart');
-  if (!ctx) return;
-
-  const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
+  if (!ctx || typeof Chart === 'undefined') return;
+  const context = ctx.getContext('2d');
+  const gradient = context.createLinearGradient(0, 0, 0, 300);
   gradient.addColorStop(0, 'rgba(115, 103, 240, 0.2)');
   gradient.addColorStop(1, 'rgba(115, 103, 240, 0.02)');
-
   revenueChart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -115,185 +85,68 @@ function initializeRevenueChart() {
         borderWidth: 3,
         fill: true,
         tension: 0.4,
-        pointRadius: 0,
-        pointHoverRadius: 8,
-        pointHoverBackgroundColor: '#7367F0',
-        pointHoverBorderColor: '#ffffff',
-        pointHoverBorderWidth: 2
+        pointRadius: 0
       }]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
-        }
-      },
-      scales: {
-        x: {
-          grid: {
-            display: false
-          },
-          ticks: {
-            color: '#A5ACB8',
-            font: {
-              size: 12
-            }
-          }
-        },
-        y: {
-          grid: {
-            color: '#3A3E5C',
-            borderDash: [3, 3]
-          },
-          ticks: {
-            color: '#A5ACB8',
-            font: {
-              size: 12
-            },
-            callback: function(value) {
-              return value + 'k';
-            }
-          }
-        }
-      },
-      interaction: {
-        intersect: false,
-        mode: 'index'
-      },
-      elements: {
-        point: {
-          hoverRadius: 8
-        }
-      }
-    }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
   });
 }
 
-// Order Statistics Chart (Donut)
 function initializeOrderChart() {
   const ctx = document.getElementById('orderChart');
-  if (!ctx) return;
-
+  if (!ctx || typeof Chart === 'undefined') return;
   orderChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Electronic', 'Fashion', 'Decor', 'Sports'],
-      datasets: [{
-        data: [82.5, 23.8, 8.4, 1.0],
-        backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#5D878F'],
-        borderWidth: 0,
-        cutout: '75%'
-      }]
+      labels: ['Electronic', 'Fashion', 'Decor'],
+      datasets: [{ data: [300, 50, 100], backgroundColor: ['#7367F0', '#00CFE8', '#FF9F43'], borderWidth: 0 }]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              return context.label + ': ' + context.parsed + 'k';
-            }
-          }
-        }
-      }
-    }
+    options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
   });
 }
 
-// Income Chart (Small Line Chart)
 function initializeIncomeChart() {
   const ctx = document.getElementById('incomeChart');
-  if (!ctx) return;
-
-  const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 80);
-  gradient.addColorStop(0, 'rgba(115, 103, 240, 0.3)');
-  gradient.addColorStop(1, 'rgba(115, 103, 240, 0.05)');
-
+  if (!ctx || typeof Chart === 'undefined') return;
   incomeChart = new Chart(ctx, {
-    type: 'line',
+    type: 'bar',
     data: {
-      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      datasets: [{
-        data: dashboardData.income_data.chart_data,
-        borderColor: '#7367F0',
-        backgroundColor: gradient,
-        borderWidth: 2,
-        fill: true,
-        tension: 0.4,
-        pointRadius: 0,
-        pointHoverRadius: 0
-      }]
+      labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+      datasets: [{ data: dashboardData.income_data.chart_data, backgroundColor: '#7367F0', borderRadius: 5, barThickness: 10 }]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
-        },
-        tooltip: {
-          enabled: false
-        }
-      },
-      scales: {
-        x: {
-          display: false
-        },
-        y: {
-          display: false
-        }
-      },
-      interaction: {
-        intersect: false
-      },
-      elements: {
-        point: {
-          hoverRadius: 0
-        }
-      }
-    }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
   });
 }
 
-// Mobile Menu Functionality
 function initializeMobileMenu() {
   const mobileToggle = document.querySelector('.mobile-menu-toggle');
-  const sidebar = document.querySelector('.layout-menu');
-  const overlay = document.createElement('div');
-  
-  overlay.className = 'layout-overlay';
-  document.body.appendChild(overlay);
+  const existingOverlay = document.querySelector('.layout-overlay');
+
+  if (!existingOverlay) {
+    const overlay = document.createElement('div');
+    overlay.className = 'layout-overlay';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', closeMobileMenu);
+  } else {
+    existingOverlay.addEventListener('click', closeMobileMenu);
+  }
 
   if (mobileToggle) {
-    mobileToggle.addEventListener('click', function(e) {
+    mobileToggle.addEventListener('click', function (e) {
       e.preventDefault();
       toggleMobileMenu();
     });
   }
 
-  // Close menu when clicking overlay
-  overlay.addEventListener('click', function() {
-    closeMobileMenu();
-  });
-
-  // Close menu on window resize if desktop
-  window.addEventListener('resize', function() {
-    if (window.innerWidth > 991) {
-      closeMobileMenu();
-    }
+  window.addEventListener('resize', function () {
+    if (window.innerWidth > 991) closeMobileMenu();
   });
 }
 
 function toggleMobileMenu() {
   const sidebar = document.querySelector('.layout-menu');
   const overlay = document.querySelector('.layout-overlay');
-  
+  if (!sidebar || !overlay) return;
   sidebar.classList.toggle('show');
   overlay.classList.toggle('show');
   document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
@@ -302,225 +155,96 @@ function toggleMobileMenu() {
 function closeMobileMenu() {
   const sidebar = document.querySelector('.layout-menu');
   const overlay = document.querySelector('.layout-overlay');
-  
-  sidebar.classList.remove('show');
-  overlay.classList.remove('show');
+  if (sidebar) sidebar.classList.remove('show');
+  if (overlay) overlay.classList.remove('show');
   document.body.style.overflow = '';
 }
 
-// Desktop Menu Toggle
 function initializeMenuToggle() {
-  const menuToggle = document.querySelector('.layout-menu-toggle:not(.mobile-menu-toggle)');
-  
+  const menuToggle = document.querySelector('.menu-toggle');
   if (menuToggle) {
-    menuToggle.addEventListener('click', function(e) {
+    menuToggle.addEventListener('click', function (e) {
       e.preventDefault();
-      // Add collapsed state functionality here if needed
+      document.body.classList.toggle('layout-menu-expanded');
     });
   }
 }
 
-// Populate Transactions List
 function populateTransactions() {
-  const transactionList = document.getElementById('transactionList');
-  if (!transactionList) return;
-
-  transactionList.innerHTML = '';
-
-  dashboardData.transactions.forEach(transaction => {
-    const listItem = document.createElement('li');
-    const isPositive = transaction.amount.startsWith('+');
-    
-    listItem.innerHTML = `
-      <div class="transaction-icon ${transaction.icon}">
-        ${getTransactionIcon(transaction.icon)}
+  const container = document.getElementById('transactionsList');
+  if (!container) return;
+  container.innerHTML = dashboardData.transactions.map(t => `
+    <div class="transaction-item d-flex align-items-center mb-3">
+      <div class="avatar flex-shrink-0 me-3">
+        <span class="avatar-initial rounded bg-label-primary"><i class="bx bx-${t.icon}"></i></span>
       </div>
-      <div class="transaction-details">
-        <div class="transaction-type">${transaction.type}</div>
-        <div class="transaction-desc">${transaction.description}</div>
+      <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+        <div class="me-2">
+          <h6 class="mb-0">${t.type}</h6>
+          <small class="text-muted">${t.description}</small>
+        </div>
+        <div class="user-progress d-flex align-items-center gap-1">
+          <h6 class="mb-0">${t.amount}</h6>
+          <span class="text-muted">${t.currency}</span>
+        </div>
       </div>
-      <div class="transaction-amount ${isPositive ? 'positive' : 'negative'}">
-        ${transaction.amount}
-      </div>
-    `;
-    
-    transactionList.appendChild(listItem);
-  });
+    </div>
+  `).join('');
 }
 
-// Get transaction icon based on type
-function getTransactionIcon(iconType) {
-  const icons = {
-    'paypal': '<i class="fab fa-paypal"></i>',
-    'wallet': '<i class="fas fa-wallet"></i>',
-    'transfer': '<i class="fas fa-exchange-alt"></i>',
-    'credit-card': '<i class="fas fa-credit-card"></i>',
-    'mastercard': '<i class="fab fa-cc-mastercard"></i>'
-  };
-  
-  return icons[iconType] || '<i class="fas fa-dollar-sign"></i>';
-}
-
-// Menu Interactions
 function initializeMenuInteractions() {
   const menuItems = document.querySelectorAll('.menu-item');
-  
   menuItems.forEach(item => {
-    const menuLink = item.querySelector('.menu-link');
-    const menuSub = item.querySelector('.menu-sub');
-    
-    if (menuLink && menuSub) {
-      menuLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        // Close other open menus
-        menuItems.forEach(otherItem => {
-          if (otherItem !== item) {
-            otherItem.classList.remove('open');
-          }
-        });
-        
-        // Toggle current menu
-        item.classList.toggle('open');
-      });
-    }
-    
-    // Handle sub-menu item clicks
-    const subMenuLinks = item.querySelectorAll('.menu-sub .menu-link');
-    subMenuLinks.forEach(subLink => {
-      subLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        // Remove active class from all menu items
-        document.querySelectorAll('.menu-item').forEach(menuItem => {
-          menuItem.classList.remove('active');
-        });
-        
-        // Add active class to parent menu item
-        item.classList.add('active');
-        
-        // Close mobile menu if open
-        if (window.innerWidth <= 991) {
-          closeMobileMenu();
-        }
-      });
+    item.addEventListener('mouseenter', function () {
+      if (!document.body.classList.contains('layout-menu-collapsed')) {
+        const subMenu = this.querySelector('.menu-sub');
+        if (subMenu) subMenu.style.display = 'block';
+      }
+    });
+    item.addEventListener('mouseleave', function () {
+      const subMenu = this.querySelector('.menu-sub');
+      if (subMenu) subMenu.style.display = 'none';
     });
   });
 }
 
-// Utility Functions
-function formatNumber(num) {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M';
-  } else if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K';
-  }
-  return num.toString();
-}
-
-function formatCurrency(amount, currency = 'USD') {
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency,
-  });
-  return formatter.format(amount);
-}
-
-// Revenue Chart Year Selector
-document.addEventListener('change', function(e) {
-  if (e.target.matches('select.form-select')) {
-    const selectedYear = e.target.value;
-    updateRevenueChart(selectedYear);
+// Safe Event Listeners
+document.addEventListener('change', function (e) {
+  if (e.target instanceof Element && e.target.matches('select.form-select')) {
+    updateRevenueChart(e.target.value);
   }
 });
 
 function updateRevenueChart(year) {
   if (!revenueChart) return;
-  
   const data = year === '2023' ? dashboardData.revenue_chart.year_2023 : dashboardData.revenue_chart.year_2024;
   revenueChart.data.datasets[0].data = data;
   revenueChart.data.datasets[0].label = year;
-  revenueChart.update('active');
+  revenueChart.update();
 }
 
-// Smooth scrolling for anchor links
-document.addEventListener('click', function(e) {
-  if (e.target.matches('a[href^="#"]')) {
-    e.preventDefault();
-    const target = document.querySelector(e.target.getAttribute('href'));
+document.addEventListener('click', function (e) {
+  if (e.target instanceof Element && e.target.matches('a[href^="#"]')) {
+    const href = e.target.getAttribute('href');
+    if (href === '#') return;
+    const target = document.querySelector(href);
     if (target) {
-      target.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 });
 
-// Card hover effects
-document.addEventListener('mouseenter', function(e) {
-  if (e.target.matches('.card') || e.target.closest('.card')) {
+document.addEventListener('mouseenter', function (e) {
+  if (e.target instanceof Element && (e.target.matches('.card') || e.target.closest('.card'))) {
     const card = e.target.matches('.card') ? e.target : e.target.closest('.card');
     card.style.transform = 'translateY(-2px)';
   }
 }, true);
 
-document.addEventListener('mouseleave', function(e) {
-  if (e.target.matches('.card') || e.target.closest('.card')) {
+document.addEventListener('mouseleave', function (e) {
+  if (e.target instanceof Element && (e.target.matches('.card') || e.target.closest('.card'))) {
     const card = e.target.matches('.card') ? e.target : e.target.closest('.card');
     card.style.transform = 'translateY(0)';
   }
 }, true);
-
-// Loading animation for charts
-function showChartLoader(containerId) {
-  const container = document.getElementById(containerId);
-  if (container) {
-    container.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
-  }
-}
-
-// Error handling for charts
-Chart.defaults.plugins.legend.onClick = function(e, legendItem) {
-  // Custom legend click handler
-};
-
-// Responsive chart updates
-window.addEventListener('resize', function() {
-  if (revenueChart) revenueChart.resize();
-  if (orderChart) orderChart.resize();
-  if (incomeChart) incomeChart.resize();
-});
-
-// Performance optimization - Intersection Observer for charts
-if ('IntersectionObserver' in window) {
-  const chartObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const chartId = entry.target.id;
-        if (chartId === 'revenueChart' && !revenueChart) {
-          initializeRevenueChart();
-        } else if (chartId === 'orderChart' && !orderChart) {
-          initializeOrderChart();
-        } else if (chartId === 'incomeChart' && !incomeChart) {
-          initializeIncomeChart();
-        }
-      }
-    });
-  }, { threshold: 0.1 });
-
-  document.addEventListener('DOMContentLoaded', function() {
-    const charts = document.querySelectorAll('canvas[id$="Chart"]');
-    charts.forEach(chart => chartObserver.observe(chart));
-  });
-}
-
-// Export functions for potential use
-window.DashboardApp = {
-  initializeCharts,
-  toggleMobileMenu,
-  closeMobileMenu,
-  updateRevenueChart,
-  formatNumber,
-  formatCurrency
-};

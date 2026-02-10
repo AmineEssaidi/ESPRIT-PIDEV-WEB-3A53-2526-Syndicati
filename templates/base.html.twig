@@ -7,7 +7,6 @@
     <title>{% block title %}Sneat - Dashboard{% endblock %}</title>
 
     <!-- Preload critical resources -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     {% if app.request.get('_route') starts with 'admin_' %}
         <link rel="preload" href="{{ asset('css/admin.css') }}" as="style">
         <link rel="preconnect" href="https://demos.themeselection.com">
@@ -28,7 +27,9 @@
     {% block stylesheets %}{% endblock %}
 </head>
 </head>
-<body class="layout-menu-fixed">
+{% set is_admin = app.request.get('_route') starts with 'admin_' %}
+
+<body class="{{ is_admin ? 'admin-body' : 'layout-menu-fixed' }}">
     <!-- Page Loader -->
     <div class="page-loader" id="pageLoader">
         <div class="loader-content">
@@ -40,64 +41,42 @@
         </div>
     </div>
 
-    <div class="layout-wrapper layout-content-navbar">
-        <!-- Sidebar -->
-        {% include 'admin/_sidebar.html.twig' %}
+    {% include 'shared/_access_denied_popup.html.twig' %}
 
-        <div class="layout-page">
-            <!-- Header -->
-            {% include 'admin/_header.html.twig' %}
+    {% if is_admin %}
+        <div class="admin-shell">
+            {% include 'admin/_sidebar.html.twig' %}
 
-            <!-- Main Content -->
-            <div class="content-wrapper">
-                <div class="container-xxl flex-grow-1 container-p-y">
-                    {% block content %}{% endblock %}
+            <main class="admin-main">
+                <div class="admin-main-surface">
+    {% else %}
+        <div class="layout-wrapper layout-content-navbar">
+            <div class="layout-page">
+                <div class="content-wrapper">
+                    <div class="container-xxl flex-grow-1 container-p-y">
+    {% endif %}
+
+                        {% block content %}{% endblock %}
+
+    {% if is_admin %}
                 </div>
-
-                <!-- Footer -->
-                {% include 'admin/_footer.html.twig' %}
-
-                <div class="content-backdrop fade"></div>
+            </main>
+        </div>
+    {% else %}
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <div class="layout-overlay layout-menu-toggle"></div>
+    {% endif %}
 
     <!-- JavaScript Dependencies - defer for non-blocking load -->
     <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}" defer></script>
     <script src="{{ asset('js/app.js') }}" defer></script>
     <script src="{{ asset('js/page-loader.js') }}"></script>
+    {% if is_admin %}
+        <script src="{{ asset('js/admin-sidebar.js') }}" defer></script>
+    {% endif %}
 
-    <script>
-    // Admin page loader navigation (matches frontend)
-    document.addEventListener('DOMContentLoaded', function() {
-        const loader = document.getElementById('pageLoader');
-        if (!loader) return;
-        function showLoader() {
-            loader.classList.remove('fade-out');
-            loader.classList.add('active');
-            loader.offsetHeight;
-        }
-        // Intercept all internal <a> clicks
-        document.body.addEventListener('click', function(e) {
-            const a = e.target.closest('a');
-            if (!a) return;
-            const href = a.getAttribute('href');
-            if (!href || href.startsWith('#') || a.hasAttribute('target') || a.hasAttribute('download') || a.getAttribute('rel') === 'external') return;
-            // Only handle internal links
-            if (href.startsWith('http') && !href.startsWith(window.location.origin)) return;
-            // Ignore JS links
-            if (href.startsWith('javascript:')) return;
-            // Ignore if modifier keys are pressed
-            if (e.ctrlKey || e.shiftKey || e.metaKey || e.altKey) return;
-            // Prevent default and show loader
-            e.preventDefault();
-            showLoader();
-            setTimeout(() => { window.location.href = href; }, 350);
-        });
-    });
-    </script>
     {% block javascripts %}{% endblock %}
 </body>
 </html>

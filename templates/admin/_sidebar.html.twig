@@ -1,100 +1,94 @@
-<!-- Sidebar -->
-<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-    <!-- App Brand -->
-    <div class="app-brand demo">
-        <a href="{{ path('admin_dashboard') }}" class="app-brand-link">
-            <span class="app-brand-logo demo">
-                <svg width="25" viewBox="0 0 25 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M13.7918 6.52326V41.5835H25V0H13.7918V6.52326Z" fill="#7367F0"/>
-                    <path d="M11.2082 0H0V35.0618H11.2082V0Z" fill="#7367F0"/>
-                </svg>
-            </span>
-            <span class="app-brand-text demo menu-text fw-bold ms-2">Syndicati Administration</span>
-        </a>
+<aside class="admin-sidebar">
+    <div class="admin-sidebar-inner">
+        <!-- Logo + Expand toggle -->
+        <div class="admin-sidebar-top">
+            <div class="admin-sidebar-logo">
+                <a href="{{ path('admin_dashboard') }}" class="admin-sidebar-logo-link" title="Dashboard">
+                    <img src="{{ asset('images/logo/syndicatioffwhite.png') }}"
+                         alt="Syndicati Logo"
+                         class="admin-sidebar-logo-img logo-dark">
+                    <img src="{{ asset('images/logo/syndicati.png') }}"
+                         alt="Syndicati Logo"
+                         class="admin-sidebar-logo-img logo-light">
+                </a>
+            </div>
 
-        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
-            <i class="bx bx-chevron-left bx-sm align-middle"></i>
-        </a>
+            <button class="admin-sidebar-toggle" type="button" aria-label="Toggle sidebar" title="Toggle sidebar">
+                <i class="bx bx-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Main navigation icons -->
+        <nav class="admin-sidebar-nav">
+            <a href="{{ path('admin_dashboard') }}"
+               class="admin-sidebar-item {{ app.request.get('_route') == 'admin_dashboard' ? 'is-active' : '' }}"
+               title="Dashboard">
+                <i class="admin-sidebar-icon bx bx-grid-alt"></i>
+                <span class="admin-sidebar-label">Dashboard</span>
+            </a>
+
+            <a href="{{ path('admin_super_dashboard') }}"
+               class="admin-sidebar-item {{ app.request.get('_route') == 'admin_super_dashboard' ? 'is-active' : '' }}"
+               title="Super Dashboard">
+                <i class="admin-sidebar-icon bx bx-bolt-circle"></i>
+                <span class="admin-sidebar-label">Super Dashboard</span>
+            </a>
+
+            <div class="admin-sidebar-separator"></div>
+
+            <a href="{{ path('admin_users') }}"
+               class="admin-sidebar-item {{ app.request.get('_route') == 'admin_users' ? 'is-active' : '' }}"
+               title="Users">
+                <i class="admin-sidebar-icon bx bx-user-circle"></i>
+                <span class="admin-sidebar-label">Users</span>
+            </a>
+
+            <a href="{{ path('admin_forum') }}"
+               class="admin-sidebar-item {{ app.request.get('_route') == 'admin_forum' ? 'is-active' : '' }}"
+               title="Forum">
+                <i class="admin-sidebar-icon bx bx-message-dots"></i>
+                <span class="admin-sidebar-label">Forum</span>
+            </a>
+
+            <a href="{{ path('admin_syndicat') }}"
+               class="admin-sidebar-item {{ app.request.get('_route') == 'admin_syndicat' ? 'is-active' : '' }}"
+               title="Syndicat">
+                <i class="admin-sidebar-icon bx bx-building-house"></i>
+                <span class="admin-sidebar-label">Syndicat</span>
+            </a>
+
+            <a href="{{ path('admin_residence') }}"
+               class="admin-sidebar-item {{ app.request.get('_route') == 'admin_residence' ? 'is-active' : '' }}"
+               title="Residence">
+                <i class="admin-sidebar-icon bx bx-buildings"></i>
+                <span class="admin-sidebar-label">Residence</span>
+            </a>
+
+            <a href="{{ path('admin_evenement') }}"
+               class="admin-sidebar-item {{ app.request.get('_route') == 'admin_evenement' ? 'is-active' : '' }}"
+               title="Evenement">
+                <i class="admin-sidebar-icon bx bx-party"></i>
+                <span class="admin-sidebar-label">Evenement</span>
+            </a>
+        </nav>
+
+        <!-- Bottom controls -->
+        <div class="admin-sidebar-bottom">
+            <div class="admin-sidebar-theme-toggle-wrapper" title="Switch Theme">
+                <div class="main-home-toggle-container" id="theme-toggle">
+                    <div class="main-home-toggle-track">
+                        <div class="main-home-toggle-thumb">
+                            <span class="main-home-toggle-icon main-home-sun-icon">☀️</span>
+                            <span class="main-home-toggle-icon main-home-moon-icon">🌙</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="{{ path('admin_logout') }}" class="admin-sidebar-item admin-sidebar-power" title="Logout">
+                <i class="admin-sidebar-icon bx bx-power-off"></i>
+                <span class="admin-sidebar-label">Sign out</span>
+            </a>
+        </div>
     </div>
-
-    <div class="menu-inner-shadow"></div>
-
-    <ul class="menu-inner py-1">
-        <!-- Dashboard -->
-        <li class="menu-item {{ app.request.get('_route') == 'admin_dashboard' ? 'active' : '' }}">
-            <a href="{{ path('admin_dashboard') }}" class="menu-link">
-                <div class="menu-content">
-                    <span class="menu-icon">🏠</span>
-                    <div data-i18n="Dashboard">Tableau de bord</div>
-                </div>
-            </a>
-        </li>
-
-        <!-- Super Dashboard -->
-        <li class="menu-item {{ app.request.get('_route') == 'admin_super_dashboard' ? 'active' : '' }}">
-            <a href="{{ path('admin_super_dashboard') }}" class="menu-link">
-                <div class="menu-content">
-                    <span class="menu-icon">⚡</span>
-                    <div data-i18n="Super Dashboard">Super Tableau de bord</div>
-                </div>
-            </a>
-        </li>
-
-        <!-- Main Home -->
-
-        <!-- Pages -->
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Syndicati Services</span>
-        </li>
-        <li class="menu-item {{ app.request.get('_route') == 'admin_users' ? 'active' : '' }}">
-            <a href="{{ path('admin_users') }}" class="menu-link">
-                <div class="menu-content">
-                    <span class="menu-icon">👥</span>
-                    <div data-i18n="Users">Users</div>
-                </div>
-            </a>
-        </li>
-        <li class="menu-item {{ app.request.get('_route') == 'admin_forum' ? 'active' : '' }}">
-            <a href="{{ path('admin_forum') }}" class="menu-link">
-                <div class="menu-content">
-                    <span class="menu-icon">💬</span>
-                    <div data-i18n="Forum">Forum</div>
-                </div>
-            </a>
-        </li>
-        <li class="menu-item {{ app.request.get('_route') == 'admin_syndicat' ? 'active' : '' }}">
-            <a href="{{ path('admin_syndicat') }}" class="menu-link">
-                <div class="menu-content">
-                    <span class="menu-icon">🏛️</span>
-                    <div data-i18n="Syndicat">Syndicat</div>
-                </div>
-            </a>
-        </li>
-        <li class="menu-item {{ app.request.get('_route') == 'admin_residence' ? 'active' : '' }}">
-            <a href="{{ path('admin_residence') }}" class="menu-link">
-                <div class="menu-content">
-                    <span class="menu-icon">🏢</span>
-                    <div data-i18n="Residence">Residence</div>
-                </div>
-            </a>
-        </li>
-        <li class="menu-item {{ app.request.get('_route') == 'admin_appartements' ? 'active' : '' }}">
-            <a href="{{ path('admin_appartement') }}" class="menu-link">
-                <div class="menu-content">
-                    <span class="menu-icon">🏢</span>
-                    <div data-i18n="Appartements">Appartements</div>
-                </div>
-            </a>
-        </li>
-        
-        <li class="menu-item {{ app.request.get('_route') == 'admin_evenement' ? 'active' : '' }}">
-            <a href="{{ path('admin_evenement') }}" class="menu-link">
-                <div class="menu-content">
-                    <span class="menu-icon">🎉</span>
-                    <div data-i18n="Evenement">Evenement</div>
-                </div>
-            </a>
-        </li>
-
-    </ul>
 </aside>

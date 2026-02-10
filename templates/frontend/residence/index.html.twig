@@ -1,51 +1,148 @@
 {% extends 'base_symfony.html.twig' %}
 
-{% block title %}Residence index{% endblock %}
+{% block title %}Residences - Horizon{% endblock %}
 
+{% block stylesheets %}
+    <link href="{{ asset('frontend/css/residence.css') }}" rel="stylesheet">
+{% endblock %}
 
-{% block body%}
-
-    <div class="main-home-layout-wrapper">
-        <div class="main-home-page">
-            {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'services'} %}
-
-            <hr>
-    <div class="container bg-faded">
-                        <h1 class="main-home-content-title text-center">Nos Résidences</h1>
-
-    <div class="row">
-    {% for residence in residences %}
-        <div class="col-sm-4 p-1">
-        <div class="main-home-testimonial-card ">
-            <div class="main-home-testimonial-content text-center">
-                <h4 class="main-home-event-title main-home-content-title">{{ residence.nomR }}</h4>
-                                <img src="{{ residence.imageR ? asset('images/residence/' ~  residence.imageR) : '' }}" width="300">
-            </div>
-            <div class="main-home-testimonial-author">
-                <div class="row ">
-                    <span class="col-sm-auto">{{ residence.adresse }}</span>
-                    <span class="main-home-participation-rate col-sm-auto">{{ residence.dateAjout ? residence.dateAjout|date('Y-m-d') : '' }}</span>
+{% block body %}
+<div class="main-home-layout-wrapper">
+    <div class="main-home-page">
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'residence'} %}
+        
+        <div class="main-home-page-content" style="padding: 0; padding-bottom: 5rem;">
+            
+            <!-- Hero Section -->
+            <div class="residence-hero">
+                <div class="residence-hero-glow"></div>
+                
+                <div class="container residence-hero-content">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8" data-aos="fade-up">
+                            <span class="residence-badge">
+                                <i class='bx bx-home-alt-2'></i> Premium Living
+                            </span>
+                            <h1 class="residence-title">Luxury Living<br>Redefined.</h1>
+                            <p class="residence-subtitle">Explore our curated selection of high-end residences and apartments. Experience a new standard of comfort and elegance with Horizon.</p>
+                            
+                            <div class="d-flex gap-3">
+                                <a href="#showcase" class="syndicat-btn-submit" style="width: auto; padding: 1rem 3rem; margin-top: 0; text-decoration: none;">
+                                    View Residences <i class='bx bx-chevron-down' style="margin-left: 0.5rem;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <button class="btn btn-info mt-2 mb-2"><a class="text-white" href="{{ path('frontend_residence_show', {'id': residence.id}) }}">Voir la résidence</a></button>
-        </div>
-        </div>
-    {% else %}
-            <tr>
-                <td colspan="6">no records found</td>
-            </tr>
-        {% endfor %}
-            <hr>
-            <br>
 
-            </div></div>
-            <hr>
- <div class="container bg-faded">
-                        <h1 class="main-home-content-title text-center">Liste des appartements</h1>
-                            <div class="row">
+            <!-- Residences Showcase -->
+            <div id="showcase" class="residence-showcase container">
+                <div class="section-label" data-aos="fade-up">
+                    <h2>Our Residences</h2>
+                    <p>Discover the perfect space that suits your lifestyle.</p>
+                </div>
 
-{{ render(controller('App\\Controller\\Frontend\\Residence\\AppartementController::index')) }}
+                <div class="row g-4">
+                    {% if residences is empty %}
+                        {# Showcase some demo residences if empty #}
+                        {% for i in 1..3 %}
+                            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 100 }}">
+                                <div class="residence-card">
+                                    <div class="position-relative overflow-hidden">
+                                        <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" alt="Residence" class="residence-card-img">
+                                        <div class="residence-card-overlay">
+                                            <span class="residence-price-tag">Featured</span>
+                                        </div>
+                                    </div>
+                                    <div class="residence-card-body">
+                                        <span class="residence-type">Luxury Suite</span>
+                                        <h3 class="residence-card-title">Horizon Tower {{ i }}</h3>
+                                        <div class="residence-location">
+                                            <i class='bx bx-map'></i> Downtown District, Tunisia
+                                        </div>
+                                        <div class="residence-stats">
+                                            <div class="residence-stat-item">
+                                                <span class="residence-stat-value">12</span>
+                                                <span class="residence-stat-label">Floors</span>
+                                            </div>
+                                            <div class="residence-stat-item">
+                                                <span class="residence-stat-value">48</span>
+                                                <span class="residence-stat-label">Units</span>
+                                            </div>
+                                            <div class="residence-stat-item">
+                                                <span class="residence-stat-value">A, B</span>
+                                                <span class="residence-stat-label">Blocs</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="residence-card-bar"></div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        {% for res in residences %}
+                            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 100 }}">
+                                <div class="residence-card">
+                                    <div class="position-relative overflow-hidden">
+                                        {% if res.imageR %}
+                                            <img src="{{ asset('residence_images/' ~ res.imageR) }}" alt="{{ res.nomR }}" class="residence-card-img">
+                                        {% else %}
+                                            <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" alt="Residence" class="residence-card-img">
+                                        {% endif %}
+                                        <div class="residence-card-overlay">
+                                            <span class="residence-price-tag">{{ res.dateAjout|date('Y') }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="residence-card-body">
+                                        <span class="residence-type">Residence</span>
+                                        <h3 class="residence-card-title">{{ res.nomR }}</h3>
+                                        <div class="residence-location">
+                                            <i class='bx bx-map'></i> {{ res.adresse }}
+                                        </div>
+                                        <div class="residence-stats">
+                                            <div class="residence-stat-item">
+                                                <span class="residence-stat-value">{{ res.nEtages }}</span>
+                                                <span class="residence-stat-label">Floors</span>
+                                            </div>
+                                            <div class="residence-stat-item">
+                                                <span class="residence-stat-value">{{ res.totalAppartements }}</span>
+                                                <span class="residence-stat-label">Total Units</span>
+                                            </div>
+                                            <div class="residence-stat-item">
+                                                <span class="residence-stat-value">{{ res.nBlocs }}</span>
+                                                <span class="residence-stat-label">Bloc</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="residence-card-bar"></div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+        {% include 'frontend/shared/_main_footer.html.twig' %}
+    </div>
 </div>
+{% endblock %}
 
-       
+{% block javascripts %}
+{{ parent() }}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof AOS !== 'undefined') {
+            AOS.init({
+                duration: 1000,
+                once: true,
+                offset: 100
+            });
+        }
+    });
+</script>
 {% endblock %}
