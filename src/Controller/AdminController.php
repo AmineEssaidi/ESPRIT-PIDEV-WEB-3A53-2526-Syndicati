@@ -1030,9 +1030,6 @@ class AdminController extends AbstractController
         return $pageNames[$pageId] ?? 'Page';
     }
 
-    /**
-     * Get default referrer URL for a page (where to go back to)
-     */
     private function getDefaultReferrerForPage(string $pageId): string
     {
         $defaultReferrers = [
