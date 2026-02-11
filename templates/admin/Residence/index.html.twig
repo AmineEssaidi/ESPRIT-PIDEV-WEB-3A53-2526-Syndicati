@@ -579,6 +579,9 @@
                                 <div class="residence-sort-option" data-value="type">Type</div>
                                 <div class="residence-sort-option" data-value="residence">Residence</div>
                                 <div class="residence-sort-option" data-value="status">Status</div>
+                                <div class="residence-sort-option" data-value="surface">Surface</div>
+                                <div class="residence-sort-option" data-value="price">Rent Price</div>
+
                             </div>
                         </div>
                         <div class="residence-search-pill">
@@ -671,7 +674,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <div class="residence-form-group" style="margin-bottom: 2.5rem;">
                 <label class="residence-edit-label">Visual Representation</label>
                 <div class="custom-file-wrapper">
@@ -906,17 +909,6 @@
             </div>
 
             <div class="modal-grid-3">
-                <div class="residence-form-group" style="grid-column: span 1;">
-                    <label class="residence-edit-label">Surface</label>
-                    {{ form_widget(appartementAddForm.superficie, {'attr': {'class': 'residence-edit-input'}}) }}
-                </div>
-                <div class="residence-form-group" style="grid-column: span 2;">
-                    <label class="residence-edit-label">Rent Price</label>
-                    {{ form_widget(appartementAddForm.prixLocation, {'attr': {'class': 'residence-edit-input'}}) }}
-                </div>
-            </div>
-
-            <div class="modal-grid-3">
                <div class="residence-form-group">
                     <label class="residence-edit-label">Features</label>
                     <div class="blocs-checkbox-container">
@@ -935,6 +927,26 @@
                     </div>
                 </div>
             </div>
+
+            <div class="modal-grid-3">
+        <div class="residence-form-group" style="grid-column: span 1;">
+            <label class="residence-edit-label">
+                <i class="bx bx-area"></i> Surface (m²)
+                <span style="color: #ff6b6b;">*</span>
+            </label>
+            {{ form_widget(appartementAddForm.superficie) }}
+        </div>
+            <div class="residence-form-group" style="grid-column: span 2;">
+                <label class="residence-edit-label">
+                    <i class="bx bx-coin"></i> Monthly Rent Price (€)
+                    <span style="color: #ff6b6b;">*</span>
+                </label>
+                <div style="display: flex; align-items: center;">
+                    <span style="color: #fff; margin-right: 0.5rem;">€</span>
+                    {{ form_widget(appartementAddForm.prixLocation) }}
+                </div>
+            </div>
+        </div>
 
             <div class="residence-form-group" style="margin-bottom: 2.5rem;">
                 <label class="residence-edit-label">Unit Image</label>
@@ -988,7 +1000,19 @@
                      <span id="view-app-status" class="badge"></span>
                 </div>
             </div>
-            
+                <div class="forum-view-row">
+                <div class="forum-view-label">Surface</div>
+                <div class="forum-view-value">
+                     <span id="view-app-surface" style="margin-right:0.5rem;"></span><span> m2</span>
+                </div>
+                </div>
+                <div class="forum-view-row">
+                <div class="forum-view-label">Rent Price</div>
+                <div class="forum-view-value">
+                <span id="view-app-prix-location"></span><span> TND </span>
+                </div>
+                </div>
+
             <div class="users-edit-modal-actions">
                 <button type="button" class="users-btn-modify" id="btn-trigger-app-edit">
                     <i class="bx bx-edit-alt"></i> Edit Record
@@ -1075,7 +1099,16 @@
                     </div>
                 </div>
             </div>
-
+            <div class="modal-grid-3">
+                <div class="residence-form-group" style="grid-column: span 1;">
+                    <label class="residence-edit-label">Surface</label>
+                    {{ form_widget(appartementEditForm.superficie, {'attr': {'class': 'residence-edit-input'}}) }}
+                </div>
+                <div class="residence-form-group" style="grid-column: span 2;">
+                    <label class="residence-edit-label">Rent Price</label>
+                    {{ form_widget(appartementEditForm.prixLocation, {'attr': {'class': 'residence-edit-input'}}) }}
+                </div>
+            </div>
             <div class="residence-form-group" style="margin-bottom: 2.5rem;">
                 <label class="residence-edit-label">Unit Image</label>
                 <div class="custom-file-wrapper">
@@ -1186,7 +1219,6 @@
         }{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
-    // Alias for local script compatibility
     const residenceData = window.residenceData;
 
     const rowsPerPage = 10;
@@ -1198,7 +1230,6 @@
     function closeModal(id) {
         const modal = document.getElementById(id);
         if(modal) modal.style.display = 'none';
-        // Close any open custom dropdowns when modal closes
         document.querySelectorAll('.custom-glass-dropdown.open').forEach(d => {
             d.classList.remove('open');
             d.querySelector('.custom-glass-dropdown-menu').style.display = 'none';
@@ -1428,30 +1459,56 @@
     }
 
     function filterAndSort() {
-        const search = document.querySelector('.residence-search-input').value.toLowerCase();
-        filteredData = residenceData.filter(r => 
-            r.name.toLowerCase().includes(search) || 
-            r.address.toLowerCase().includes(search)
-        );
+    const search = document.querySelector('.residence-search-input').value.toLowerCase();
+    filteredData = residenceData.filter(r => 
+        r.name.toLowerCase().includes(search) || 
+        r.address.toLowerCase().includes(search)
+    );
 
-        filteredData.sort((a, b) => {
-            let valA = a[sortValue].toLowerCase();
-            let valB = b[sortValue].toLowerCase();
-            if (sortValue === 'date' || sortValue === 'apartments') {
-                valA = a[sortValue];
-                valB = b[sortValue];
+    filteredData.sort((a, b) => {
+        let valA, valB;
+        
+        // Handle different sort values with proper numeric comparison
+        if (sortValue === 'date') {
+            // Date comparison (string comparison should work if format is YYYY-MM-DD HH:MM)
+            valA = a[sortValue];
+            valB = b[sortValue];
+        } 
+        else if (sortValue === 'apartments' || sortValue === 'floors') {
+            // NUMERIC COMPARISON - parse to integers
+            valA = parseInt(a[sortValue]) || 0;
+            valB = parseInt(b[sortValue]) || 0;
+            
+            // Direct numeric comparison (don't convert back to string)
+            if (sortDirection === 'asc') {
+                return valA - valB;
+            } else {
+                return valB - valA;
             }
-            if (sortValue === 'apartments') {
-                valA = parseInt(a[sortValue]);
-                valB = parseInt(b[sortValue]);
+        }
+        else {
+            // String values (name, address)
+            valA = String(a[sortValue] || '').toLowerCase();
+            valB = String(b[sortValue] || '').toLowerCase();
+            
+            if (sortDirection === 'asc') {
+                return valA > valB ? 1 : -1;
+            } else {
+                return valA < valB ? 1 : -1;
             }
-            if (sortDirection === 'asc') return valA > valB ? 1 : -1;
+        }
+
+        // For date values
+        if (sortDirection === 'asc') {
+            return valA > valB ? 1 : -1;
+        } else {
             return valA < valB ? 1 : -1;
-        });
+        }
+    });
 
-        currentPage = 1;
-        renderTable();
-    }
+    currentPage = 1;
+    renderTable();
+}
 
     // Initialize Custom Dropdowns
     function initCustomDropdowns() {
@@ -1647,12 +1704,13 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
     // --- Appartement Logic ---
-    const appartementData = [
+        const appartementData = [
         {% for a in appartements %}
         {
             id: {{ a.idApp }},
             type: "{{ a.typeA|e('js') }}",
-            surface: "{{ a.superficie ? a.superficie|e('js') : 'N/A' }}",
+            surface: "{{ a.superficie ? a.superficie|e('js') : '-' }}",
+            prixLocation: "{{ a.prixLocation ? a.prixLocation|e('js') : '-' }}", 
             residence: "{{ a.residence ? a.residence.nomR|e('js') : 'N/A' }}",
             resId: "{{ a.residence ? a.residence.idResidence : '' }}",
             owner: "{{ a.user ? a.user.emailUser|e('js') : 'N/A' }}",
@@ -1747,7 +1805,6 @@
                  console.log('Change detected on:', name, 'Value:', this.value);
                  updateAppFormData(this.value, scope);
              });
-             // Trigger if value exists (e.g. browser autofill or edit mode)
              if(el.value) {
                  console.log('Initial value found for:', name, 'Value:', el.value);
                  updateAppFormData(el.value, scope);
@@ -1775,7 +1832,6 @@
             pageData.forEach(a => {
                 const tr = document.createElement('tr');
                 tr.onclick = (e) => {
-                     // Don't trigger if clicked on action buttons
                     if(!e.target.closest('.residence-action-btn')) {
                          openViewAppModal(a.id);
                     }
@@ -1802,8 +1858,8 @@
                     
                                         <td>${a.parking}</td>
 
-                    <td>${a.superficie}</td>
-                    <td>${a.prix}</td>
+                    <td>${a.surface}</td>
+                    <td>${a.prixLocation}</td>
                     <td>
                         <div class="residence-actions">
                             <button class="users-btn-modify view-app-btn" data-id="${a.id}" style="padding: 0.5rem 1.25rem; font-size: 0.95rem; border-radius: 12px;">
@@ -1835,7 +1891,6 @@
         
         pagesContainer.innerHTML = '';
         
-        // Simple pagination: 1 .. current .. last
         if(totalPages <= 1) return;
 
         for (let i = 1; i <= totalPages; i++) {
@@ -1850,34 +1905,49 @@
         }
     }
 
-    function filterAndSortApps() {
-        const searchInput = document.getElementById('app-search-input');
-        if(!searchInput) return;
-        const search = searchInput.value.toLowerCase();
-        
-        appFilteredData = appartementData.filter(a => 
-            a.type.toLowerCase().includes(search) || 
-            a.residence.toLowerCase().includes(search) ||
-            a.owner.toLowerCase().includes(search)
-        );
-
-        appFilteredData.sort((a, b) => {
-            let valA = a[appSortValue];
-            let valB = b[appSortValue];
-            
-            // Normalize
-            valA = String(valA).toLowerCase();
-            valB = String(valB).toLowerCase();
-
-            if (appSortDirection === 'asc') return valA > valB ? 1 : -1;
-            return valA < valB ? 1 : -1;
-        });
-
-        appCurrentPage = 1;
-        renderAppartementTable();
-    }
+function filterAndSortApps() {
+    const searchInput = document.getElementById('app-search-input');
+    if(!searchInput) return;
+    const search = searchInput.value.toLowerCase();
     
-    // Sort logic
+    appFilteredData = window.appartementData.filter(a => 
+        a.type.toLowerCase().includes(search) || 
+        a.residence.toLowerCase().includes(search) ||
+        a.owner.toLowerCase().includes(search) ||
+        String(a.surface).includes(search) ||
+        String(a.prixLocation).includes(search)
+    );
+
+    appFilteredData.sort((a, b) => {
+        if (appSortValue === 'surface') {
+            // NUMERIC COMPARISON for surface
+            const valA = parseFloat(a.surface) || 0;
+            const valB = parseFloat(b.surface) || 0;
+            return appSortDirection === 'asc' ? valA - valB : valB - valA;
+        }
+        else if (appSortValue === 'price') {
+            // NUMERIC COMPARISON for price
+            const valA = parseFloat(a.prixLocation) || 0;
+            const valB = parseFloat(b.prixLocation) || 0;
+            return appSortDirection === 'asc' ? valA - valB : valB - valA;
+        }
+        else {
+            // String comparison for other fields
+            let valA = String(a[appSortValue] || '').toLowerCase();
+            let valB = String(b[appSortValue] || '').toLowerCase();
+            
+            if (appSortDirection === 'asc') {
+                return valA > valB ? 1 : -1;
+            } else {
+                return valA < valB ? 1 : -1;
+            }
+        }
+    });
+
+    appCurrentPage = 1;
+    renderAppartementTable();
+}   
+    
     const appSortPill = document.getElementById('app-sort-pill-custom');
     if(appSortPill) {
         appSortPill.onclick = function(e) {
@@ -1918,7 +1988,6 @@
         document.getElementById('app-search-input').oninput = filterAndSortApps;
     }
 
-     // Globalize modal functions
      window.openViewAppModal = (id) => {
         console.log('Opening View Modal for Apartment:', id);
         const a = window.appartementData.find(item => item.id == id);
@@ -1933,8 +2002,8 @@
         document.getElementById('view-app-owner').textContent = a.owner;
         document.getElementById('view-app-parking').textContent = a.parking === 'Yes' ? 'Parking Included' : 'No Parking';
         document.getElementById('view-app-status').textContent = a.status;
-        document.getElementById('view-app-surface').textContent = a.superficie;
-
+        document.getElementById('view-app-surface').textContent = a.surface;
+        document.getElementById('view-app-prix-location').textContent = a.prixLocation;
         
         const deleteForm = document.getElementById('view-app-delete-form');
         if(deleteForm) {
@@ -1977,96 +2046,165 @@
      };
 
      window.openEditAppModal = (id) => {
-         console.log('Opening Edit Modal for Apartment:', id);
-         closeModal('app-view-modal'); 
-         const a = window.appartementData.find(item => item.id == id);
-         if(!a) {
-             console.error('Apartment data not found for ID:', id);
-             return;
-         }
-         
-         const form = document.getElementById('app-edit-form');
-         if(form) {
-             form.action = `/admin/appartement/${id}/edit`;
-             console.log('Form Action Set to:', form.action);
-             
-             // 1. Residence & Dropdown population
-             const resSelect = form.querySelector('select[name="appartement_edit[residence]"]');
-             if(resSelect) {
-                 resSelect.value = a.resId;
-                 console.log('Residence Set to:', a.resId);
-                 updateAppFormData(a.resId, '#app-edit-form');
-             }
-
-             // 2. Set dynamic fields (bloc, floor, number)
-             // Short delay to ensure options are added to DOM before selecting
-             setTimeout(() => {
+    console.log('Opening Edit Modal for Apartment:', id);
+    closeModal('app-view-modal'); 
+    const a = window.appartementData.find(item => item.id == id);
+    if(!a) {
+        console.error('Apartment data not found for ID:', id);
+        return;
+    }
+    
+    const form = document.getElementById('app-edit-form');
+    if(form) {
+        form.action = `/admin/appartement/${id}/edit`;
+        console.log('Form Action Set to:', form.action);
+        
+        const resSelect = form.querySelector('select[name="appartement_edit[residence]"]');
+        if(resSelect) {
+            resSelect.value = a.resId;
+            console.log('Residence Set to:', a.resId);
+            
+            updateAppFormData(a.resId, '#app-edit-form');
+            
+            let attempts = 0;
+            const maxAttempts = 10;
+            
+            const setDynamicFields = () => {
                 const blocEl = form.querySelector('.bloc-input');
-                if(blocEl) {
-                    blocEl.value = a.bloc;
-                    console.log('Bloc Set to:', a.bloc);
-                }
-                
                 const floorEl = form.querySelector('.floor-input');
-                if(floorEl) {
-                    floorEl.value = a.floor;
-                    console.log('Floor Set to:', a.floor);
-                }
-                
                 const numEl = form.querySelector('.number-input');
-                if(numEl) {
-                    numEl.value = a.number;
-                    console.log('Number Set to:', a.number);
+                
+                if (blocEl && floorEl && numEl) {
+                    if (blocEl.options.length > 1 && floorEl.options.length > 1 && numEl.options.length > 1) {
+                        if (a.bloc) {
+                            blocEl.value = a.bloc;
+                            console.log('Bloc Set to:', a.bloc, 'Available options:', [...blocEl.options].map(o => o.value));
+                        }
+                        if (a.floor !== undefined && a.floor !== '') {
+                            floorEl.value = a.floor;
+                            console.log('Floor Set to:', a.floor);
+                        }
+                        if (a.number) {
+                            numEl.value = a.number;
+                            console.log('Number Set to:', a.number);
+                        }
+                        return true;
+                    }
                 }
-             }, 100); 
+                return false;
+            };
+            
+            if (!setDynamicFields()) {
+                const interval = setInterval(() => {
+                    attempts++;
+                    if (setDynamicFields() || attempts >= maxAttempts) {
+                        clearInterval(interval);
+                        if (attempts >= maxAttempts) {
+                            console.warn('Failed to set dynamic fields after', maxAttempts, 'attempts');
+                        }
+                    }
+                }, 100);
+            }
+        }
 
-             const typeSelect = form.querySelector('select[name="appartement_edit[typeA]"]');
-             if(typeSelect) typeSelect.value = a.type.toUpperCase();
+        const typeSelect = form.querySelector('select[name="appartement_edit[typeA]"]');
+        if(typeSelect) {
+            let found = false;
+            for (let i = 0; i < typeSelect.options.length; i++) {
+                if (typeSelect.options[i].value === a.type) {
+                    typeSelect.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found && a.type) {
+                // Add the option if it doesn't exist
+                const option = document.createElement('option');
+                option.value = a.type;
+                option.text = a.type;
+                typeSelect.add(option);
+                typeSelect.value = a.type;
+            }
+            console.log('Type Set to:', a.type);
+        }
 
-             const userSelect = form.querySelector('select[name="appartement_edit[user]"]');
-             if(userSelect) userSelect.value = a.ownerId;
+        const userSelect = form.querySelector('select[name="appartement_edit[user]"]');
+        if(userSelect) {
+            userSelect.value = a.ownerId;
+            console.log('User Set to:', a.ownerId);
+        }
 
-             const parkingCb = form.querySelector('input[name="appartement_edit[parking]"]');
-             if(parkingCb) parkingCb.checked = a.isParking;
+        // 3. Set surface and price - THESE WERE MISSING!
+        const surfaceInput = form.querySelector('input[name="appartement_edit[superficie]"]');
+        if(surfaceInput) {
+            surfaceInput.value = a.surface && a.surface !== '-' ? a.surface : '';
+            console.log('Surface Set to:', surfaceInput.value);
+        }
+        
+        const priceInput = form.querySelector('input[name="appartement_edit[prixLocation]"]');
+        if(priceInput) {
+            priceInput.value = a.prixLocation && a.prixLocation !== '-' ? a.prixLocation : '';
+            console.log('Price Set to:', priceInput.value);
+        }
 
-             const availCb = form.querySelector('input[name="appartement_edit[disponible]"]');
-             if(availCb) availCb.checked = a.isAvailable;
+        // 4. Set checkboxes
+        const parkingCb = form.querySelector('input[name="appartement_edit[parking]"]');
+        if(parkingCb) parkingCb.checked = a.isParking;
 
-             const imgText = form.querySelector('.custom-file-text');
-             if(imgText) imgText.textContent = "Maintain existing image...";
+        const availCb = form.querySelector('input[name="appartement_edit[disponible]"]');
+        if(availCb) availCb.checked = a.isAvailable;
 
-             form.onsubmit = function(e) {
-                 e.preventDefault();
-                 const formData = new FormData(this);
-                 fetch(this.action, {
-                     method: 'POST',
-                     body: formData
-                 })
-                 .then(res => res.json())
-                 .then(data => {
-                     if(data.success) {
-                         // Update local data
-                         const idx = window.appartementData.findIndex(item => item.id == a.id);
-                         if(idx !== -1) {
-                             window.appartementData[idx] = data.appartement;
-                             appFilteredData = [...window.appartementData];
-                             renderAppartementTable();
-                         }
-                         closeModal('app-edit-modal');
-                         showCoolPopup('Success', 'Apartment updated successfully.', 'success');
-                     } else {
-                         showCoolPopup('Error', data.message, 'error');
-                     }
-                 })
-                 .catch(err => {
-                     console.error(err);
-                     showCoolPopup('Error', 'An unexpected error occurred.', 'error');
-                 });
-             };
+        const imgText = form.querySelector('.custom-file-text');
+        if(imgText) imgText.textContent = "Maintain existing image...";
 
-             openModal('app-edit-modal');
-         }
-     };
+        // 5. Update form submission handler
+        form.onsubmit = function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    // Update local data
+                    const idx = window.appartementData.findIndex(item => item.id == a.id);
+                    if(idx !== -1) {
+                        // Merge the updated data
+                        window.appartementData[idx] = {
+                            ...window.appartementData[idx],
+                            ...data.appartement,
+                            // Ensure these fields are properly updated
+                            surface: data.appartement.surface || formData.get('appartement_edit[superficie]'),
+                            prixLocation: data.appartement.prixLocation || formData.get('appartement_edit[prixLocation]'),
+                            bloc: formData.get('appartement_edit[bloc]'),
+                            floor: formData.get('appartement_edit[floor]'),
+                            number: formData.get('appartement_edit[number]'),
+                            type: formData.get('appartement_edit[typeA]'),
+                            isParking: formData.get('appartement_edit[parking]') === 'on',
+                            parking: formData.get('appartement_edit[parking]') === 'on' ? 'Yes' : 'No',
+                            isAvailable: formData.get('appartement_edit[disponible]') === 'on',
+                            status: formData.get('appartement_edit[disponible]') === 'on' ? 'Available' : 'Occupied'
+                        };
+                        appFilteredData = [...window.appartementData];
+                        renderAppartementTable();
+                    }
+                    closeModal('app-edit-modal');
+                    showCoolPopup('Success', 'Apartment updated successfully.', 'success');
+                } else {
+                    showCoolPopup('Error', data.message, 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showCoolPopup('Error', 'An unexpected error occurred.', 'error');
+            });
+        };
+
+        openModal('app-edit-modal');
+    }
+};
 
     document.getElementById('btn-show-add-app-modal').onclick = () => openModal('app-add-modal');
 
