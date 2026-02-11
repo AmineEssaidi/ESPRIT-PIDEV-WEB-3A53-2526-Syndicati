@@ -593,10 +593,11 @@
                             <tr>
                                 <th>Listing</th>
                                 <th>Residence</th>
+                                <th>Status</th>
                                 <th>Type</th>
                                 <th>Parking</th>
-                                <th>Status</th>
-                                <th>Owner</th>
+                                <th>Surface</th>
+                                <th>Rent Price</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -901,6 +902,18 @@
                     <label class="residence-edit-label">Owner (User)</label>
                     {{ form_widget(appartementAddForm.user, {'attr': {'class': 'residence-edit-input'}}) }}
                 </div>
+                
+            </div>
+
+            <div class="modal-grid-3">
+                <div class="residence-form-group" style="grid-column: span 1;">
+                    <label class="residence-edit-label">Surface</label>
+                    {{ form_widget(appartementAddForm.superficie, {'attr': {'class': 'residence-edit-input'}}) }}
+                </div>
+                <div class="residence-form-group" style="grid-column: span 2;">
+                    <label class="residence-edit-label">Rent Price</label>
+                    {{ form_widget(appartementAddForm.prixLocation, {'attr': {'class': 'residence-edit-input'}}) }}
+                </div>
             </div>
 
             <div class="modal-grid-3">
@@ -915,7 +928,7 @@
                                 </div>
                                 <div class="checkbox-wrapper" style="display:flex; align-items:center; gap:0.5rem; color:#fff;">
                                     {{ form_widget(appartementAddForm.disponible) }}
-                                    <label for="{{ appartementAddForm.disponible.vars.id }}" style="cursor:pointer; font-size:0.95rem;">Available</label>
+                                    <label for="{{ appartementAddForm.disponible.vars.id }}" style="cursor:pointer; font-size:0.95rem;">For Rent</label>
                                 </div>
                              </div>
                         </div>
@@ -1639,11 +1652,11 @@
         {
             id: {{ a.idApp }},
             type: "{{ a.typeA|e('js') }}",
+            surface: "{{ a.superficie ? a.superficie|e('js') : 'N/A' }}",
             residence: "{{ a.residence ? a.residence.nomR|e('js') : 'N/A' }}",
             resId: "{{ a.residence ? a.residence.idResidence : '' }}",
             owner: "{{ a.user ? a.user.emailUser|e('js') : 'N/A' }}",
             ownerId: "{{ a.user ? a.user.idUser : '' }}",
-            {# Use a.appartementInfo.key OR a.appartementInfo['key'] safely #}
             parking: "{{ attribute(a.appartementInfo, 'parking')|default(a.parking) ? 'Yes' : 'No' }}",
             isParking: {{ attribute(a.appartementInfo, 'parking')|default(a.parking) ? 'true' : 'false' }},
             status: "{{ attribute(a.appartementInfo, 'disponible')|default(a.disponible) ? 'Available' : 'Occupied' }}",
@@ -1652,7 +1665,6 @@
             floor: "{{ attribute(a.appartementInfo, 'floor')|default('')|e('js') }}",
             number: "{{ attribute(a.appartementInfo, 'number')|default('')|e('js') }}",
             image: "{{ a.imageA ? asset('appartement_images/' ~ a.imageA) : asset('frontend/images/property-placeholder.jpg') }}",
-            {# Deletion token must include the specific apartment ID #}
             deleteToken: "{{ csrf_token('appartement_delete') }}" 
         }{% if not loop.last %},{% endif %}
         {% endfor %}
@@ -1781,14 +1793,17 @@
                         </div>
                     </td>
                     <td>${a.residence}</td>
-                    <td><span class="badge badge-blue">${a.type}</span></td>
-                    <td>${a.parking}</td>
                     <td>
                         <span class="badge ${a.status === 'Available' ? 'badge-green' : 'badge-red'}">
                             ${a.status}
                         </span>
                     </td>
-                    <td>${a.owner}</td>
+                    <td><span class="badge badge-blue">${a.type}</span></td>
+                    
+                                        <td>${a.parking}</td>
+
+                    <td>${a.superficie}</td>
+                    <td>${a.prix}</td>
                     <td>
                         <div class="residence-actions">
                             <button class="users-btn-modify view-app-btn" data-id="${a.id}" style="padding: 0.5rem 1.25rem; font-size: 0.95rem; border-radius: 12px;">
@@ -1918,6 +1933,8 @@
         document.getElementById('view-app-owner').textContent = a.owner;
         document.getElementById('view-app-parking').textContent = a.parking === 'Yes' ? 'Parking Included' : 'No Parking';
         document.getElementById('view-app-status').textContent = a.status;
+        document.getElementById('view-app-surface').textContent = a.superficie;
+
         
         const deleteForm = document.getElementById('view-app-delete-form');
         if(deleteForm) {
@@ -2003,14 +2020,12 @@
                 }
              }, 100); 
 
-             // 3. Static fields
              const typeSelect = form.querySelector('select[name="appartement_edit[typeA]"]');
              if(typeSelect) typeSelect.value = a.type.toUpperCase();
 
              const userSelect = form.querySelector('select[name="appartement_edit[user]"]');
              if(userSelect) userSelect.value = a.ownerId;
 
-             // 4. Checkboxes
              const parkingCb = form.querySelector('input[name="appartement_edit[parking]"]');
              if(parkingCb) parkingCb.checked = a.isParking;
 
@@ -2098,6 +2113,7 @@
         if (appCurrentPage < Math.ceil(appFilteredData.length / appRowsPerPage)) { appCurrentPage++; renderAppartementTable(); } 
     };
     });
+
 </script>
 {% endblock %}
 

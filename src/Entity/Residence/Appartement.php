@@ -38,6 +38,15 @@ class Appartement
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $appartementInfo = [];
 
+    #[ORM\Column(nullable: true)]
+    private ?float $superficie = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?float $prix_location = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?float $prix_vente = null;
+
     public function getIdApp(): ?int
     {
         return $this->idApp;
@@ -123,6 +132,42 @@ class Appartement
     public function setAppartementInfo(?array $appartementInfo): self
     {
         $this->appartementInfo = $appartementInfo;
+        return $this;
+    }
+
+    public function getSuperficie(): ?float
+    {
+        return $this->superficie;
+    }
+
+    public function setSuperficie(?float $superficie): static
+    {
+        $this->superficie = $superficie;
+
+        return $this;
+    }
+
+    public function getPrixLocation(): ?float
+    {
+        return $this->prix_location;
+    }
+
+    public function setPrixLocation(?float $prix_location): static
+    {
+        $this->prix_location = $prix_location;
+
+        return $this;
+    }
+
+    public function getPrixVente(): ?float
+    {
+        return $this->prix_vente;
+    }
+
+    public function setPrixVente(?float $prix_vente): static
+    {
+        $this->prix_vente = $prix_vente;
+
         return $this;
     }
 }

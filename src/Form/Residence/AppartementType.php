@@ -81,10 +81,12 @@ class AppartementType extends AbstractType
             ])
             ->add('user', EntityType::class, [
                 'class' => User::class,
-                'choice_label' => 'emailUser', // Correct property path for getEmailUser()
+                'choice_label' => 'emailUser',
                 'label' => 'Owner / User',
                 'placeholder' => 'Select Owner',
             ])
+            ->add('superficie')
+            ->add('prixLocation')
         ;
     }
 
