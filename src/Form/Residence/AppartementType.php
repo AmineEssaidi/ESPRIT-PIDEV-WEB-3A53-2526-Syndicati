@@ -10,6 +10,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
@@ -47,7 +48,7 @@ class AppartementType extends AbstractType
             ->add('typeA', ChoiceType::class, [
                 'label' => 'Apartment Type',
                 'choices' => [
-                    'Studio' => 'STUDIO',
+                    'Studio' => 'S+0',
                     'S+1' => 'S+1',
                     'S+2' => 'S+2',
                     'S+3' => 'S+3',
@@ -87,7 +88,13 @@ class AppartementType extends AbstractType
             ])
             ->add('superficie')
             ->add('prixLocation')
-        ;
+              ->add('predictedPrice', NumberType::class, [
+            'mapped' => false,
+            'required' => false,
+            'disabled' => true,
+            'attr' => ['readonly' => true, 'class' => 'predicted-price-field']
+        ]);
+        
     }
 
     public function configureOptions(OptionsResolver $resolver): void

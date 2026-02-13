@@ -72,7 +72,6 @@
         }
 
 
-		/* Light theme improvements for search, sort, arrow pills (from Users) */
 		[data-theme="light"] .residence-sort-dir-pill {
 			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
 			color: #23272f;
@@ -898,8 +897,7 @@
             <div class="modal-grid-3">
                 <div class="residence-form-group">
                     <label class="residence-edit-label">Unit Type</label>
-                    {{ form_widget(appartementAddForm.typeA, {'attr': {'class': 'residence-edit-input'}}) }}
-                </div>
+{{ form_widget(appartementAddForm.typeA, { 'id': 'appartement_add_typeA', 'attr': {'class': 'predict-trigger'} }) }}                </div>
                 <!-- Owner selection -->
                 <div class="residence-form-group" style="grid-column: span 2;">
                     <label class="residence-edit-label">Owner (User)</label>
@@ -915,8 +913,7 @@
                         <div class="blocs-checkboxes">
                              <div style="display:flex; gap:1.5rem; align-items:center;">
                                 <div class="checkbox-wrapper" style="display:flex; align-items:center; gap:0.5rem; color:#fff;">
-                                    {{ form_widget(appartementAddForm.parking) }}
-                                    <label for="{{ appartementAddForm.parking.vars.id }}" style="cursor:pointer; font-size:0.95rem;">Parking</label>
+{{ form_widget(appartementAddForm.parking, { 'id': 'appartement_add_parking', 'attr': {'class': 'predict-trigger'} }) }}                                    <label for="{{ appartementAddForm.parking.vars.id }}" style="cursor:pointer; font-size:0.95rem;">Parking</label>
                                 </div>
                                 <div class="checkbox-wrapper" style="display:flex; align-items:center; gap:0.5rem; color:#fff;">
                                     {{ form_widget(appartementAddForm.disponible) }}
@@ -934,7 +931,7 @@
                 <i class="bx bx-area"></i> Surface (m²)
                 <span style="color: #ff6b6b;">*</span>
             </label>
-            {{ form_widget(appartementAddForm.superficie) }}
+            {{ form_widget(appartementAddForm.superficie, { 'id': 'appartement_add_superficie', 'attr': {'class': 'predict-trigger'} }) }}
         </div>
             <div class="residence-form-group" style="grid-column: span 2;">
                 <label class="residence-edit-label">
@@ -959,7 +956,18 @@
                     </div>
                 </div>
             </div>
-
+             <div class="form-group">
+        <label>Prix estimé (IA)</label>
+        <div class="predicted-price-container">
+            <input type="text" 
+                   id="predicted_price_display" 
+                   class="form-control" 
+                   readonly 
+                   value="Chargement..."
+                   style="background-color: #f8f9fa; font-weight: bold; color: #28a745;">
+            <small class="form-text text-muted">Estimation basée sur la superficie, type et parking</small>
+        </div>
+    </div>
             <div class="users-edit-modal-actions">
                 <button type="button" class="users-btn-cancel" onclick="closeModal('app-add-modal')">Discard</button>
                 <span class="users-edit-modal-actions-spacer"></span>
@@ -1007,12 +1015,17 @@
                 </div>
                 </div>
                 <div class="forum-view-row">
-                <div class="forum-view-label">Rent Price</div>
-                <div class="forum-view-value">
-                <span id="view-app-prix-location"></span><span> TND </span>
+                    <div class="forum-view-label">Rent Price</div>
+                    <div class="forum-view-value">
+                        <span id="view-app-prix-location"></span><span> TND </span>
+                    </div>
                 </div>
+                <div class="forum-view-row">
+                    <div class="forum-view-label">PREDICTED PRICE</div>
+                    <div class="forum-view-value">
+                        <span id="view-app-prix-prediction"></span><span> PREDICTED PRICE TND </span>
+                    </div>
                 </div>
-
             <div class="users-edit-modal-actions">
                 <button type="button" class="users-btn-modify" id="btn-trigger-app-edit">
                     <i class="bx bx-edit-alt"></i> Edit Record
@@ -1702,34 +1715,45 @@
     });
 </script>
 <script>
+
     document.addEventListener('DOMContentLoaded', () => {
     // --- Appartement Logic ---
-        const appartementData = [
-        {% for a in appartements %}
-        {
-            id: {{ a.idApp }},
-            type: "{{ a.typeA|e('js') }}",
-            surface: "{{ a.superficie ? a.superficie|e('js') : '-' }}",
-            prixLocation: "{{ a.prixLocation ? a.prixLocation|e('js') : '-' }}", 
-            residence: "{{ a.residence ? a.residence.nomR|e('js') : 'N/A' }}",
-            resId: "{{ a.residence ? a.residence.idResidence : '' }}",
-            owner: "{{ a.user ? a.user.emailUser|e('js') : 'N/A' }}",
-            ownerId: "{{ a.user ? a.user.idUser : '' }}",
-            parking: "{{ attribute(a.appartementInfo, 'parking')|default(a.parking) ? 'Yes' : 'No' }}",
-            isParking: {{ attribute(a.appartementInfo, 'parking')|default(a.parking) ? 'true' : 'false' }},
-            status: "{{ attribute(a.appartementInfo, 'disponible')|default(a.disponible) ? 'Available' : 'Occupied' }}",
-            isAvailable: {{ attribute(a.appartementInfo, 'disponible')|default(a.disponible) ? 'true' : 'false' }},
-            bloc: "{{ attribute(a.appartementInfo, 'bloc')|default('')|e('js') }}",
-            floor: "{{ attribute(a.appartementInfo, 'floor')|default('')|e('js') }}",
-            number: "{{ attribute(a.appartementInfo, 'number')|default('')|e('js') }}",
-            image: "{{ a.imageA ? asset('appartement_images/' ~ a.imageA) : asset('frontend/images/property-placeholder.jpg') }}",
-            deleteToken: "{{ csrf_token('appartement_delete') }}" 
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    ];
-    // Globalize for accessibility
-    window.appartementData = appartementData;
+const appartementData = [
+    {% for a in appartements %}
+    {
+        id: {{ a.idApp }},
+        type: "{{ a.typeA|e('js') }}",
+        surface: "{{ a.superficie ? a.superficie|e('js') : '-' }}",
+        prixLocation: "{{ a.prixLocation ? a.prixLocation|e('js') : '-' }}", 
+        residence: "{{ a.residence ? a.residence.nomR|e('js') : 'N/A' }}",
+        resId: "{{ a.residence ? a.residence.idResidence : '' }}",
+        owner: "{{ a.user ? a.user.emailUser|e('js') : 'N/A' }}",
+        ownerId: "{{ a.user ? a.user.idUser : '' }}",
+        parking: "{{ attribute(a.appartementInfo, 'parking')|default(a.parking) ? 'Yes' : 'No' }}",
+        isParking: {{ attribute(a.appartementInfo, 'parking')|default(a.parking) ? 'true' : 'false' }},
+        status: "{{ attribute(a.appartementInfo, 'disponible')|default(a.disponible) ? 'Available' : 'Occupied' }}",
+        isAvailable: {{ attribute(a.appartementInfo, 'disponible')|default(a.disponible) ? 'true' : 'false' }},
+        bloc: "{{ attribute(a.appartementInfo, 'bloc')|default('')|e('js') }}",
+        floor: "{{ attribute(a.appartementInfo, 'floor')|default('')|e('js') }}",
+        number: "{{ attribute(a.appartementInfo, 'number')|default('')|e('js') }}",
+        image: "{{ a.imageA ? asset('appartement_images/' ~ a.imageA) : asset('frontend/images/property-placeholder.jpg') }}",
+        deleteToken: "{{ csrf_token('appartement_delete') }}",
+        predicted_price: "{{ predictions[a.idApp] }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+// Globalize for accessibility
+window.appartementData = appartementData;
 
+ const predictions = window.appartementData.map(apt => ({
+        id: apt.id,
+        actual: apt.prixLocation,
+        predicted: apt.predicted_price,
+        type: apt.type,
+        surface: apt.surface
+    }));
+    
+    console.log('All predictions:', predictions);
     const appRowsPerPage = 10;
     let appCurrentPage = 1;
     let appSortValue = 'type';
@@ -2003,6 +2027,7 @@ function filterAndSortApps() {
         document.getElementById('view-app-parking').textContent = a.parking === 'Yes' ? 'Parking Included' : 'No Parking';
         document.getElementById('view-app-status').textContent = a.status;
         document.getElementById('view-app-surface').textContent = a.surface;
+        document.getElementById('view-app-prix-prediction').textContent = a.predicted_price;
         document.getElementById('view-app-prix-location').textContent = a.prixLocation;
         
         const deleteForm = document.getElementById('view-app-delete-form');
@@ -2240,10 +2265,8 @@ function filterAndSortApps() {
         };
     }
 
-    // Initial render
     renderAppartementTable();
     
-    // Pagination listeners
     const prevBtn = document.getElementById('app-table-prev');
     if(prevBtn) prevBtn.onclick = () => { if (appCurrentPage > 1) { appCurrentPage--; renderAppartementTable(); } };
      const nextBtn = document.getElementById('app-table-next');
@@ -2252,6 +2275,89 @@ function filterAndSortApps() {
     };
     });
 
+document.addEventListener('DOMContentLoaded', function() {
+    const superficieInput = document.querySelector('#{{ appartementAddForm.superficie.vars.id }}');
+    const typeSelect = document.querySelector('#{{ appartementAddForm.typeA.vars.id }}');
+    const parkingCheckbox = document.querySelector('#{{ appartementAddForm.parking.vars.id }}');
+    const predictedDisplay = document.getElementById('predicted_price_display');
+    const prixLocationField = document.querySelector('#{{ appartementAddForm.prixLocation.vars.id }}');
+    
+    if (!superficieInput || !typeSelect || !parkingCheckbox || !predictedDisplay) {
+        return;
+    }
+    
+    function fetchPrediction() {
+        const superficie = superficieInput.value;
+        const typeA = typeSelect.value;
+        const parking = parkingCheckbox.checked;
+        
+        if (!superficie || superficie.trim() === '') {
+            predictedDisplay.value = 'Entrez une superficie';
+            predictedDisplay.style.color = '#6c757d';
+            return;
+        }
+        
+        const superficieFloat = parseFloat(superficie);
+        if (isNaN(superficieFloat) || superficieFloat <= 0) {
+            predictedDisplay.value = superficieFloat <= 0 ? 'Superficie doit être > 0' : 'Superficie invalide';
+            predictedDisplay.style.color = '#6c757d';
+            return;
+        }
+        
+        predictedDisplay.value = 'Calcul en cours...';
+        predictedDisplay.style.color = '#007bff';
+        
+        const url = '{{ path('prediction_prix') }}';
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                superficie: superficieFloat,
+                type: typeA,
+                parking: parking
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error || data.success === false) {
+                throw new Error(data.error || 'Prediction failed');
+            }
+            
+            const displayValue = data.formatted_price || 
+                (data.predicted_price ? Number(data.predicted_price).toLocaleString('fr-FR') + ' TND' : 'Non disponible');
+            
+            predictedDisplay.value = displayValue;
+            predictedDisplay.style.color = '#28a745';
+            
+            if (prixLocationField && !prixLocationField.value && data.predicted_price) {
+                prixLocationField.value = data.predicted_price;
+            }
+        })
+        .catch(() => {
+            predictedDisplay.value = 'Erreur de calcul';
+            predictedDisplay.style.color = '#dc3545';
+        });
+    }
+    
+    superficieInput.addEventListener('input', fetchPrediction);
+    superficieInput.addEventListener('blur', fetchPrediction);
+    typeSelect.addEventListener('change', fetchPrediction);
+    parkingCheckbox.addEventListener('change', fetchPrediction);
+    
+    if (superficieInput.value && parseFloat(superficieInput.value) > 0) {
+        fetchPrediction();
+    }
+});
 </script>
 {% endblock %}
 

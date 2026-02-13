@@ -28,7 +28,7 @@ class Appartement
     #[ORM\Column(type: 'string', length: 500, name: 'image_a', nullable: true)]
     private ?string $imageA = null;
 
-    #[ORM\Column(type: 'string', length: 255, name: 'type_a', columnDefinition: "ENUM('STUDIO', 'S+1', 'S+2', 'S+3', 'S+4', 'S+5')")]
+    #[ORM\Column(type: 'string', length: 255, name: 'type_a', columnDefinition: "ENUM('S+0', 'S+1', 'S+2', 'S+3', 'S+4', 'S+5')")]
     private ?string $typeA = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]

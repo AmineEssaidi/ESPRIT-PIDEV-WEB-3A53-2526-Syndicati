@@ -22,7 +22,7 @@ final class Version20260211155604 extends AbstractMigration
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql('ALTER TABLE appartement DROP FOREIGN KEY FK_71A6BD8D6B3CA4B');
         $this->addSql('ALTER TABLE appartement DROP FOREIGN KEY FK_71A6BD8D8B225FBD');
-        $this->addSql('ALTER TABLE appartement CHANGE type_a type_a ENUM(\'STUDIO\', \'S+1\', \'S+2\', \'S+3\', \'S+4\', \'S+5\'), CHANGE appartement_info appartement_info JSON DEFAULT NULL');
+        $this->addSql('ALTER TABLE appartement CHANGE type_a type_a ENUM(\'S+0\', \'S+1\', \'S+2\', \'S+3\', \'S+4\', \'S+5\'), CHANGE appartement_info appartement_info JSON DEFAULT NULL');
         $this->addSql('ALTER TABLE appartement ADD CONSTRAINT FK_71A6BD8D6B3CA4B FOREIGN KEY (id_user) REFERENCES user (id_user) ON DELETE CASCADE');
         $this->addSql('ALTER TABLE appartement ADD CONSTRAINT FK_71A6BD8D8B225FBD FOREIGN KEY (residence_id) REFERENCES residence (id_residence) ON DELETE CASCADE');
         $this->addSql('ALTER TABLE evenement CHANGE statut_event statut_event ENUM(\'planifie\', \'en_cours\', \'termine\', \'annule\'), CHANGE type_event type_event ENUM(\'reunion\', \'social\', \'formation\', \'maintenance\', \'culturel\', \'sportif\')');

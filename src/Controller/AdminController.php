@@ -13,6 +13,7 @@ use App\Repository\Profile\ProfileRepository;
 use App\Repository\User\UserRepository;
 use App\Repository\Residence\ResidenceRepository;
 use App\Entity\Residence\Residence;
+use App\Entity\Residence\Appartement;
 use App\Form\Residence\ResidenceType;
 use App\Repository\Syndicat\ReclamationRepository;
 use App\Entity\Syndicat\Reclamation;
@@ -26,6 +27,10 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+
+use App\Service\MachineLearning;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+
 
 class AdminController extends AbstractController
 {
@@ -200,36 +205,67 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/residence', name: 'admin_residence')]
-    public function residence(PageStatusService $pageStatusService, Request $request, ResidenceRepository $residenceRepository, \App\Repository\Residence\AppartementRepository $appartementRepository, \Symfony\Component\Form\FormFactoryInterface $formFactory, EntityManagerInterface $em, \Symfony\Component\String\Slugger\SluggerInterface $slugger): Response
-    {
-        $pageStatusService->setPageStatus('residence', 'online');
+    public function residence(
+    PageStatusService $pageStatusService, 
+    Request $request, 
+    ResidenceRepository $residenceRepository, 
+    \App\Repository\Residence\AppartementRepository $appartementRepository, 
+    \Symfony\Component\Form\FormFactoryInterface $formFactory, 
+    EntityManagerInterface $em, 
+    \Symfony\Component\String\Slugger\SluggerInterface $slugger,
+    \App\Service\MachineLearning $predictor,
+    \Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface $params
+): Response
+{
+    $pageStatusService->setPageStatus('residence', 'online');
 
-        $residences = $residenceRepository->findAll();
+    $residences = $residenceRepository->findAll();
 
-        $residenceAddForm = $this->createForm(ResidenceType::class, new Residence(), [
-            'action' => $this->generateUrl('admin_residence_add'),
-            'method' => 'POST',
-        ]);
+    $residenceAddForm = $this->createForm(ResidenceType::class, new Residence(), [
+        'action' => $this->generateUrl('admin_residence_add'),
+        'method' => 'POST',
+    ]);
 
-        $appartements = $appartementRepository->findAll();
-        $appartementAddForm = $formFactory->createNamed('appartement_add', \App\Form\Residence\AppartementType::class, new \App\Entity\Residence\Appartement(), [
-            'action' => $this->generateUrl('app_appartement_new'),
-            'method' => 'POST',
-        ]);
-
-        $residenceEditForm = $formFactory->createNamed('residence_edit', ResidenceType::class, new Residence());
-        $appartementEditForm = $formFactory->createNamed('appartement_edit', \App\Form\Residence\AppartementType::class, new \App\Entity\Residence\Appartement());
-
-        return $this->render('admin/Residence/index.html.twig', [
-            'residences' => $residences,
-            'appartements' => $appartements,
-            'residenceAddForm' => $residenceAddForm->createView(),
-            'residenceEditForm' => $residenceEditForm->createView(),
-            'appartementAddForm' => $appartementAddForm->createView(),
-            'appartementEditForm' => $appartementEditForm->createView(),
-        ]);
+    $appartements = $appartementRepository->findAll();
+    
+    $modelPath = $params->get('kernel.project_dir') . '/var/models/appartement_prix.model';
+    $predictions = [];
+    
+    if (file_exists($modelPath)) {
+        try {
+            $predictor->loadModel($modelPath);
+            
+            foreach ($appartements as $appartement) {
+                try {
+                    $prediction = $predictor->predict($appartement);
+                    $predictions[$appartement->getIdApp()] = is_numeric($prediction) ? round((float) $prediction) : 0;
+                } catch (\Exception $e) {
+                    $predictions[$appartement->getIdApp()] = 0;
+                }
+            }
+        } catch (\Exception $e) {
+            error_log('Failed to load prediction model: ' . $e->getMessage());
+        }
     }
 
+    $appartementAddForm = $formFactory->createNamed('appartement_add', \App\Form\Residence\AppartementType::class, new \App\Entity\Residence\Appartement(), [
+        'action' => $this->generateUrl('app_appartement_new'),
+        'method' => 'POST',
+    ]);
+
+    $residenceEditForm = $formFactory->createNamed('residence_edit', ResidenceType::class, new Residence());
+    $appartementEditForm = $formFactory->createNamed('appartement_edit', \App\Form\Residence\AppartementType::class, new \App\Entity\Residence\Appartement());
+
+    return $this->render('admin/Residence/index.html.twig', [
+        'residences' => $residences,
+        'appartements' => $appartements,
+        'predictions' => $predictions,
+        'residenceAddForm' => $residenceAddForm->createView(),
+        'residenceEditForm' => $residenceEditForm->createView(),
+        'appartementAddForm' => $appartementAddForm->createView(),
+        'appartementEditForm' => $appartementEditForm->createView(),
+    ]);
+}
     #[Route('/admin/residence/add', name: 'admin_residence_add', methods: ['POST'])]
     public function residenceAdd(Request $request, EntityManagerInterface $em, \Symfony\Component\String\Slugger\SluggerInterface $slugger, \Symfony\Component\Security\Csrf\CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
     {
@@ -352,6 +388,101 @@ class AdminController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }
+
+    //            FONCTION POUR LA PREDICTION DU PRIX                    //
+    ///////////////////////////////////////////////////////////////////////
+
+    #[Route('admin/prediction', name: 'prediction_prix', methods: ['POST'])]
+      public function predictPrice(
+        Request $request, 
+        MachineLearning $predictor, // Your service is named MachineLearning
+        ParameterBagInterface $params
+    ): JsonResponse {
+        try {
+            // Log the raw request for debugging
+            error_log('=== PREDICTION API CALLED ===');
+            $rawContent = $request->getContent();
+            error_log('Raw request content: ' . $rawContent);
+            
+            // Decode JSON data
+            $data = json_decode($rawContent, true);
+            error_log('Decoded data: ' . print_r($data, true));
+            
+            if (!$data) {
+                throw new \Exception('Invalid JSON data received');
+            }
+            
+            // Validate required fields
+            if (!isset($data['superficie']) || !isset($data['type'])) {
+                throw new \Exception('Missing required fields: superficie and type are required');
+            }
+            
+            // Create apartment object directly
+            $appartement = new Appartement();
+            $appartement->setSuperficie((float) $data['superficie']);
+            $appartement->setTypeA((string) $data['type']); // Your entity uses typeA
+            $appartement->setParking(isset($data['parking']) ? (bool) $data['parking'] : false);
+            
+            error_log('Apartment created:');
+            error_log('  - Superficie: ' . $appartement->getSuperficie());
+            error_log('  - TypeA: ' . $appartement->getTypeA());
+            error_log('  - Parking: ' . ($appartement->isParking() ? 'Yes' : 'No'));
+            
+            // Get model path
+            $modelPath = $params->get('kernel.project_dir') . '/var/models/appartement_prix.model';
+            error_log('Model path: ' . $modelPath);
+            
+            $predictedPrice = 0;
+            
+            // Check if model exists and make prediction
+            if (file_exists($modelPath)) {
+                error_log('Model file found, loading...');
+                $predictor->loadModel($modelPath);
+                
+                error_log('Making prediction...');
+                $predictedPrice = $predictor->predict($appartement);
+                error_log('Raw prediction: ' . $predictedPrice);
+                
+                // Ensure it's a valid number
+                $predictedPrice = is_numeric($predictedPrice) ? (float) $predictedPrice : 0;
+            } else {
+                error_log('Model file not found at: ' . $modelPath);
+                // You might want to train the model here if it doesn't exist
+                // For now, return a default value
+                $predictedPrice = $appartement->getSuperficie() * 50000; // Fallback calculation
+                error_log('Using fallback calculation: ' . $predictedPrice);
+            }
+            
+            // Format the price for display
+            $formattedPrice = number_format($predictedPrice, 0, ',', ' ') . ' TND';
+            error_log('Formatted price: ' . $formattedPrice);
+            
+            // Return success response
+            $response = [
+                'success' => true,
+                'predicted_price' => $predictedPrice,
+                'formatted_price' => $formattedPrice
+            ];
+            
+            error_log('Response: ' . print_r($response, true));
+            error_log('=== PREDICTION API COMPLETED SUCCESSFULLY ===');
+            
+            return $this->json($response);
+            
+        } catch (\Exception $e) {
+            error_log('❌ PREDICTION ERROR: ' . $e->getMessage());
+            error_log('Error trace: ' . $e->getTraceAsString());
+            
+            return $this->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'predicted_price' => 0,
+                'formatted_price' => 'Erreur de calcul'
+            ], 500);
+        }
+    }
+
+
     #[Route('/admin/forum', name: 'admin_forum')]
     public function forum(PageStatusService $pageStatusService, Request $request, \App\Repository\Forum\PublicationRepository $publicationRepository, \App\Repository\Forum\CommentaireRepository $commentaireRepository, \Symfony\Component\Form\FormFactoryInterface $formFactory): Response
     {
@@ -1013,4 +1144,5 @@ class AdminController extends AbstractController
 
         return $this->redirectToRoute('main_home');
     }
+
 }
