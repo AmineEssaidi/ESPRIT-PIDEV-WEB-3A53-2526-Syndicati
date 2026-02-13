@@ -158,17 +158,7 @@ class Residence
     /**
      * Get total apartments (apartments per floor × number of floors × number of blocs)
      */
-    public function getTotalAppartements(): int
-    {
-        $perFloor = (int) $this->nAppartements;
-        $floors = (int) $this->nEtages;
-        $blocsCount = count($this->getBlocsArray());
 
-        // Prevent zero multiplication if no blocs selected (though should be required)
-        $blocsCount = $blocsCount > 0 ? $blocsCount : 1;
-
-        return $perFloor * $floors * $blocsCount;
-    }
 
     /**
      * @return Collection<int, Appartement>
@@ -178,6 +168,10 @@ class Residence
         return $this->appartements;
     }
 
+        public function getTotalAppartements(): int
+    {
+        return $totalAppartments = $this->getAppartements()->count();
+    }
     public function addAppartement(Appartement $appartement): self
     {
         if (!$this->appartements->contains($appartement)) {
@@ -199,4 +193,6 @@ class Residence
 
         return $this;
     }
+
+    
 }

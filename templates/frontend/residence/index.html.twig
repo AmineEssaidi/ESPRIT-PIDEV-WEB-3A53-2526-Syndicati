@@ -107,13 +107,16 @@
                                             </div>
                                             <div class="residence-stat-item">
                                                 <span class="residence-stat-value">{{ res.totalAppartements }}</span>
-                                                <span class="residence-stat-label">Total Units</span>
+                                                <span class="residence-stat-label">Number of Appartments</span>
                                             </div>
                                             <div class="residence-stat-item">
                                                 <span class="residence-stat-value">{{ res.nBlocs }}</span>
                                                 <span class="residence-stat-label">Bloc</span>
                                             </div>
                                         </div>
+                                        <form method="post" action="{{ path('send_sms') }}">
+    <button type="submit">Envoyer sms</button>
+</form>
                                     </div>
                                     <div class="residence-card-bar"></div>
                                 </div>
