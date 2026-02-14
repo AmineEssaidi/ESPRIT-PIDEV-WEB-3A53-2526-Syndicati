@@ -1,102 +1,174 @@
-<div class="modal-header border-bottom border-secondary pb-3">
+<div class="modal-header">
     <div>
-        <h5 class="modal-title text-white fw-bold mb-1">{{ reclamation.titrereclamations }}</h5>
-        <span class="badge bg-{{ reclamation.statutreclamation == 'active' ? 'success' : (reclamation.statutreclamation == 'en_attente' ? 'warning' : 'danger') }}">
+        <h5 class="modal-title fw-bold mb-1 text-white">{{ reclamation.titrereclamations }}</h5>
+        {% set status_class = reclamation.statutreclamation == 'active' ? 'success' : (reclamation.statutreclamation == 'en_attente' ? 'warning' : 'danger') %}
+        {% set status_color = reclamation.statutreclamation == 'active' ? '#00e676' : (reclamation.statutreclamation == 'en_attente' ? '#ffeb3b' : '#ff3b30') %}
+        <span class="badge rounded-pill" style="background: {{ status_color }}20; color: {{ status_color }}; border: 1px solid {{ status_color }}40; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 0.3rem 0.6rem; font-size: 0.7rem;">
             {{ reclamation.statutreclamation|capitalize }}
         </span>
     </div>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-</div>
-<div class="modal-body">
-    <!-- Description -->
-    <div class="p-3 rounded-3 bg-dark-subtle mb-3 border border-secondary border-opacity-25">
-        <p class="mb-0 text-light small">{{ reclamation.descreclamation }}</p>
+    <div class="d-flex align-items-center gap-2">
+        {% if isAdmin %}
+            <div class="d-flex gap-2 me-2">
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="toggleEditMode()">
+                    <i class="bx bx-edit-alt"></i> Edit
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="deleteReclamation({{ reclamation.id }})">
+                    <i class="bx bx-trash"></i> Delete
+                </button>
+            </div>
+        {% endif %}
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
-
-    <!-- Images -->
-    {% if images is defined and images is not empty %}
-        <div class="d-flex gap-2 mb-4 overflow-auto pb-2">
-            {% for img in images %}
-                <a href="{{ asset('reclamation_images/' ~ img) }}" target="_blank" class="flex-shrink-0">
-                    <img src="{{ asset('reclamation_images/' ~ img) }}" class="rounded-3 border border-secondary" style="height: 80px; width: 80px; object-fit: cover; cursor: zoom-in;">
-                </a>
-            {% endfor %}
+</div>
+<div class="modal-body p-4">
+    <!-- View Mode Content -->
+    <div id="reclamation-view-mode">
+        <!-- Description -->
+        <div class="p-3 rounded-3 mb-3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+            <p class="mb-0 text-white-50 small" id="view-desc">{{ reclamation.descreclamation }}</p>
         </div>
-    {% endif %}
 
-    <hr class="border-secondary opacity-25">
+        <!-- Images -->
+        {% if images is defined and images is not empty %}
+            <div class="d-flex gap-2 mb-4 overflow-auto pb-2 scrollbar-hide">
+                {% for img in images %}
+                    <a href="{{ asset('reclamation_images/' ~ img) }}" target="_blank" class="flex-shrink-0">
+                        <img src="{{ asset('reclamation_images/' ~ img) }}" class="rounded-3" style="height: 80px; width: 80px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); cursor: zoom-in; transition: all 0.3s;">
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
 
-    <!-- Discussion -->
-    <h6 class="text-white mb-3 d-flex align-items-center gap-2">
-        <i class='bx bx-message-square-detail text-primary'></i> Discussion
-    </h6>
-    
-    <div class="d-flex flex-column gap-3 mb-4 pe-2" style="max-height: 400px; overflow-y: auto;">
-        {% for reponse in reclamation.reponses %}
-            <div class="d-flex {{ reponse.user.idUser == app.session.get('user').id ? 'justify-content-end' : 'justify-content-start' }}">
-                <div class="card border-0 shadow-sm {{ reponse.user.idUser == app.session.get('user').id ? 'bg-primary text-white' : 'bg-secondary bg-opacity-25 text-light' }}" style="max-width: 85%; border-radius: 12px; {{ reponse.user.idUser == app.session.get('user').id ? 'border-bottom-right-radius: 2px;' : 'border-bottom-left-radius: 2px;' }}">
-                    <div class="card-body p-2 px-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1 gap-3">
-                            <span class="fw-bold" style="font-size: 0.75rem;">{{ reponse.titrereponse ?: 'Response' }}</span>
-                            <small class="opacity-75" style="font-size: 0.65rem;">
-                                {{ reponse.user.firstName }} • {{ reponse.createdAt|date('M d, H:i') }}
-                            </small>
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 1.5rem 0;"></div>
+
+        <!-- Discussion -->
+        <h6 class="text-white mb-3 d-flex align-items-center gap-2">
+            <i class='bx bx-message-square-detail text-primary'></i> Discussion
+        </h6>
+        
+        <div class="d-flex flex-column gap-3 mb-4 pe-2" style="max-height: 400px; overflow-y: auto;">
+            {% for reponse in reclamation.reponses %}
+                <div class="d-flex {{ reponse.user.idUser == app.session.get('user').id ? 'justify-content-end' : 'justify-content-start' }}">
+                    <div class="card border-0 {{ reponse.user.idUser == app.session.get('user').id ? 'glass-card-accent' : '' }}" 
+                         style="max-width: 85%; border-radius: 16px; background: {{ reponse.user.idUser == app.session.get('user').id ? 'rgba(var(--syndicat-accent-rgb), 0.15)' : 'rgba(255,255,255,0.05)' }}; border: 1px solid {{ reponse.user.idUser == app.session.get('user').id ? 'rgba(var(--syndicat-accent-rgb), 0.3)' : 'rgba(255,255,255,0.1)' }} !important;">
+                        <div class="card-body p-2 px-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1 gap-3">
+                                <span class="fw-bold" style="font-size: 0.75rem;">{{ reponse.titrereponsee ?: 'Response' }}</span>
+                                <small class="opacity-75" style="font-size: 0.65rem;">
+                                    {{ reponse.user.firstName }} • {{ reponse.createdAt|date('M d, H:i') }}
+                                </small>
+                            </div>
+                            <p class="mb-0 small" style="white-space: pre-wrap;">{{ reponse.messagereponse }}</p>
                         </div>
-                        <p class="mb-0 small" style="white-space: pre-wrap;">{{ reponse.messagereponse }}</p>
-                        
-                        {% if reponse.imagereponse %}
-                             {% set respImagesRaw = reponse.imagereponse %}
-                             {% if '[' in respImagesRaw %}
-                                 {% set respImages = respImagesRaw|json_decode %}
-                             {% else %}
-                                 {% set respImages = [respImagesRaw] %}
-                             {% endif %}
-
-                             {% if respImages %}
-                                <div class="mt-2 pt-2 border-top border-white border-opacity-25 row g-2">
-                                    {% for rImg in respImages %}
-                                        <div class="col-auto">
-                                            <a href="{{ asset('reclamation_images/' ~ rImg) }}" target="_blank">
-                                                <img src="{{ asset('reclamation_images/' ~ rImg) }}" class="rounded-2" style="max-height: 60px; object-fit: cover;">
-                                            </a>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                             {% endif %}
-                        {% endif %}
                     </div>
                 </div>
-            </div>
-        {% else %}
-            <div class="text-center text-secondary py-4 small">
-                <i class='bx bx-ghost fs-4 mb-2 d-block'></i>
-                No responses yet. Only the sound of crickets...
-            </div>
-        {% endfor %}
+            {% else %}
+                <div class="text-center text-secondary py-4 small">
+                    <i class='bx bx-ghost fs-4 mb-2 d-block'></i>
+                    No responses yet. Only the sound of crickets...
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Reply Form -->
+        <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+            {{ form_start(form, {'action': path('frontend_reclamation_details', {'id': reclamation.id}), 'attr': {'id': 'reponse-form', 'class': 'd-flex flex-column gap-2'}}) }}
+                {{ form_widget(form.titrereponse, {'attr': {'class': 'glass-input p-2 mb-1', 'placeholder': 'Optional Title', 'style': 'font-size: 0.85rem;'}}) }}
+                <div class="d-flex gap-2">
+                    {{ form_widget(form.messagereponse, {'attr': {'class': 'glass-textarea flex-grow-1 p-2', 'placeholder': 'Type your reply...', 'rows': 1, 'style': 'resize: none; min-height: 45px;'}}) }}
+                    <button type="submit" class="glass-btn-save p-0" style="width: 45px; height: 45px; border-radius: 12px;"><i class='bx bx-send'></i></button>
+                </div>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                     <label class="btn btn-sm btn-outline-light border-0 text-start p-0 px-2 d-flex align-items-center gap-2 opacity-75 hover-opacity-100" style="cursor: pointer;">
+                        <i class='bx bx-image-add fs-5'></i> <span class="small">Attach Image</span>
+                        {{ form_widget(form.imagereponse, {'attr': {'class': 'd-none', 'onchange': "if(this.files.length > 0) document.getElementById('file-chosen').textContent = this.files[0].name;"}}) }}
+                    </label>
+                    <span id="file-chosen" class="small text-white-50 fst-italic"></span>
+                </div>
+            {{ form_end(form) }}
+        </div>
     </div>
 
-    <!-- Reply Form -->
-    <div class="bg-dark border border-secondary rounded-3 p-3">
-        {{ form_start(form, {'action': path('frontend_reclamation_details', {'id': reclamation.id}), 'attr': {'id': 'reponse-form', 'class': 'd-flex flex-column gap-2'}}) }}
-            
-            {# Optional Title Input #}
-            {{ form_widget(form.titrereponse, {'attr': {'class': 'form-control form-control-sm bg-dark text-white border-secondary mb-1', 'placeholder': 'Optional Title'}}) }}
-
-            <div class="input-group">
-                {{ form_widget(form.messagereponse, {'attr': {'class': 'form-control bg-dark text-white border-secondary', 'placeholder': 'Type your reply...', 'rows': 1, 'style': 'resize: none;'}}) }}
-                <button type="submit" class="btn btn-primary"><i class='bx bx-send'></i></button>
+    {% if isAdmin %}
+    <!-- Admin Edit Mode Content (Hidden) -->
+    <div id="reclamation-edit-mode" class="d-none">
+        <form id="admin-edit-form" action="{{ path('api_reclamation_update', {'id': reclamation.id}) }}">
+            <div class="glass-form-group mb-3">
+                <label class="glass-label mb-1 opacity-75">Title</label>
+                <input type="text" name="title" class="glass-input" value="{{ reclamation.titrereclamations }}" required>
             </div>
-            
-            <div class="d-flex align-items-center gap-2 mt-1">
-                 <label class="btn btn-sm btn-outline-secondary border-0 text-start p-0 px-2 d-flex align-items-center gap-2 text-light opacity-75 hover-opacity-100" style="cursor: pointer;">
-                    <i class='bx bx-image-add fs-5'></i> 
-                    <span class="small">Attach Image</span>
-                    {{ form_widget(form.imagereponse, {'attr': {'class': 'd-none', 'onchange': "if(this.files.length > 0) document.getElementById('file-chosen').textContent = this.files[0].name;"}}) }}
-                </label>
-                <span id="file-chosen" class="small text-muted fst-italic"></span>
+            <div class="glass-form-group mb-3">
+                <label class="glass-label mb-1 opacity-75">Description</label>
+                <textarea name="description" class="glass-textarea" rows="4" required>{{ reclamation.descreclamation }}</textarea>
             </div>
-            
-            {{ form_errors(form) }}
-        {{ form_end(form) }}
+            <div class="glass-form-group mb-4">
+                <label class="glass-label mb-1 opacity-75">Status</label>
+                <select name="status" class="glass-select">
+                    {% for st in ['active', 'en_attente', 'refuse', 'termine'] %}
+                        <option value="{{ st }}" {{ reclamation.statutreclamation == st ? 'selected' : '' }}>{{ st|capitalize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="glass-btn-cancel flex-grow-1" onclick="toggleEditMode()">Cancel</button>
+                <button type="submit" class="glass-btn-save flex-grow-2">Save Changes</button>
+            </div>
+        </form>
     </div>
+
+    <script>
+    window.toggleEditMode = function() {
+        const view = document.getElementById('reclamation-view-mode');
+        const edit = document.getElementById('reclamation-edit-mode');
+        view.classList.toggle('d-none');
+        edit.classList.toggle('d-none');
+    };
+
+    document.getElementById('admin-edit-form').onsubmit = function(e) {
+        e.preventDefault();
+        const btn = this.querySelector('button[type="submit"]');
+        btn.disabled = true; btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Saving...';
+        
+        fetch(this.action, { method: 'POST', body: new FormData(this), headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showCoolPopup('Updated!', data.message, 'success');
+                // Refresh modal content
+                fetch(window.location.origin + '/syndicat/{{ reclamation.id }}/details', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.text()).then(html => {
+                    document.getElementById('reclamation-modal-content').innerHTML = html;
+                });
+            } else {
+                showCoolPopup('Error', data.message || 'Update failed', 'error');
+                btn.disabled = false; btn.innerHTML = 'Save Changes';
+            }
+        }).catch(err => {
+            console.error(err);
+            btn.disabled = false; btn.innerHTML = 'Save Changes';
+        });
+    };
+
+    window.deleteReclamation = function(id) {
+        if (!confirm('Are you sure you want to delete this reclamation?')) return;
+        
+        fetch(`/reclamation/${id}`, { 
+            method: 'POST', 
+            body: new URLSearchParams({ '_token': '{{ csrf_token('delete' ~ reclamation.id) }}' }),
+            headers: { 'X-Requested-With': 'XMLHttpRequest' } 
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showCoolPopup('Deleted', data.message, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('reclamationDetailsModal')).hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showCoolPopup('Error', data.message, 'error');
+            }
+        });
+    };
+    </script>
+    {% endif %}
 </div>

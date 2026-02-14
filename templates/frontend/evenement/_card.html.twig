@@ -1,47 +1,258 @@
-<div class="event-card">
-    <div class="event-card-image">
-        <span class="event-type-tag">{{ evenement.typeEvent }}</span>
-        <div class="event-card-image-overlay"></div>
-        {% if evenement.imageEvent %}
-            <img src="{{ asset('event_images/' ~ evenement.imageEvent) }}" alt="{{ evenement.titreEvent }}" loading="lazy">
-        {% else %}
-            <div style="width: 100%; height: 100%; background: var(--event-gradient);"></div>
-        {% endif %}
-    </div>
-
-    <div class="event-card-body">
-        <div class="event-meta">
-            <span><i class='bx bxs-calendar-event'></i> {{ evenement.dateEvent|date('M d, Y') }}</span>
-            <span><i class='bx bxs-map-pin'></i> {{ evenement.lieuEvent }}</span>
+<div id="evenementCardSwitcher_{{ evenement.id }}" class="event-card glass-switcher style-slide">
+    <!-- FACE 1: MAIN CARD -->
+    <div class="glass-switcher-face glass-switcher-face-main">
+        <div class="event-card-image">
+            <span class="event-type-tag">{{ evenement.typeEvent }}</span>
+            <div class="event-card-image-overlay"></div>
+            {% if evenement.imageEvent %}
+                <img src="{{ asset('event_images/' ~ evenement.imageEvent) }}" alt="{{ evenement.titreEvent }}" loading="lazy">
+            {% else %}
+                <div style="width: 100%; height: 100%; background: var(--event-gradient);"></div>
+            {% endif %}
         </div>
 
-        <h3 class="event-card-title">{{ evenement.titreEvent }}</h3>
-        <p class="event-card-desc">{{ evenement.descriptionEvent }}</p>
-
-        <div class="event-card-footer">
-            <div class="event-availability">
-                <span class="avail-count">{{ evenement.nbRestants ?? 0 }}</span>
-                <span class="avail-label">Places Left</span>
+        <div class="event-card-body">
+            <div class="event-meta">
+                <span><i class='bx bxs-calendar-event'></i> {{ evenement.dateEvent|date('M d, Y') }}</span>
+                <span><i class='bx bxs-map-pin'></i> {{ evenement.lieuEvent }}</span>
             </div>
-            <div class="btn-event-action view-event-details" 
-               style="cursor: pointer;"
-               data-id="{{ evenement.id }}"
-               data-title="{{ evenement.titreEvent }}"
-               data-description="{{ evenement.descriptionEvent }}"
-               data-date="{{ evenement.dateEvent|date('F d, Y • H:i') }}"
-               data-date-raw="{{ evenement.dateEvent|date('Y-m-d\\TH:i') }}"
-               data-lieu="{{ evenement.lieuEvent }}"
-               data-type="{{ evenement.typeEvent }}"
-               data-restants="{{ evenement.nbRestants }}"
-               data-places="{{ evenement.nbPlaces }}"
-               data-statut="{{ evenement.statutEvent }}"
-               data-image="{% if evenement.imageEvent %}{{ asset('event_images/' ~ evenement.imageEvent) }}{% endif %}"
-               data-author-id="{{ evenement.user.idUser|default(evenement.user.id|default('')) }}"
-               data-edit-path="{{ path('app_evenement_edit', {'id': evenement.id}) }}"
-               data-delete-path="{{ path('app_evenement_delete', {'id': evenement.id}) }}"
-               data-has-participated="{{ evenement.id in participatedEventIds ? 'true' : 'false' }}"
-               data-token="{{ csrf_token('delete' ~ evenement.id) }}">
-                View Details
+
+            <h3 class="event-card-title">{{ evenement.titreEvent }}</h3>
+            <p class="event-card-desc">{{ evenement.descriptionEvent }}</p>
+
+            <div class="event-card-footer">
+                <div class="event-availability">
+                    <span class="avail-count">{{ evenement.nbRestants ?? 0 }}</span>
+                    <span class="avail-label">Places Left</span>
+                </div>
+                <div class="btn-event-action" 
+                   style="cursor: pointer;"
+                   onclick="switchGlassCard('evenementCardSwitcher_{{ evenement.id }}', 'details')">
+                    View Details
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FACE 2: DETAILS -->
+    <div class="glass-switcher-face glass-switcher-face-details">
+        <div class="p-4 h-100 d-flex flex-column">
+            <!-- Header (Always visible at top) -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="m-0 fw-bold" style="font-size: 1.4rem;">Details</h4>
+                <button class="btn-switcher-back" onclick="switchGlassCard('evenementCardSwitcher_{{ evenement.id }}', 'main')">
+                    <i class='bx bx-left-arrow-alt'></i>
+                </button>
+            </div>
+            
+            <!-- Scrollable Content Area -->
+            <div class="glass-switcher-content-scroll flex-grow-1" style="overflow-y: auto; overflow-x: hidden; padding-right: 8px;">
+                <!-- Internal Image -->
+                <div class="event-details-image mb-3">
+                    {% if evenement.imageEvent %}
+                        <img src="{{ asset('event_images/' ~ evenement.imageEvent) }}" alt="{{ evenement.titreEvent }}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 16px;">
+                    {% else %}
+                        <div style="width: 100%; height: 160px; background: var(--event-gradient); border-radius: 16px;"></div>
+                    {% endif %}
+                </div>
+
+                <!-- Premium Split Info Layer -->
+                <div class="d-flex justify-content-between align-items-center mb-4 pt-3 border-top border-white-10">
+                    <!-- Left: Core Info -->
+                    <div style="flex: 1.2; min-width: 0;">
+                        <h5 class="fw-bold text-white mb-3" style="font-size: 1.5rem; letter-spacing: -1px; line-height: 1.1;">{{ evenement.titreEvent }}</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="tag-pill" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); font-size: 0.75rem;">
+                                <i class='bx bxs-calendar-event me-1' style="color: var(--event-accent);"></i> {{ evenement.dateEvent|date('M d, Y') }}
+                            </span>
+                            <span class="tag-pill" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); font-size: 0.75rem;">
+                                <i class='bx bxs-map-pin me-1' style="color: var(--event-accent);"></i> {{ evenement.lieuEvent }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Dynamic Context -->
+                    <div class="text-end d-flex flex-column align-items-end gap-3 ps-4" style="border-left: 1px solid rgba(255,255,255,0.05); flex: 0.8;">
+                        <div class="event-availability-badge">
+                             <div class="avail-count" style="font-size: 1.6rem; line-height: 1; margin-bottom: 2px;">{{ evenement.nbRestants ?? 0 }}</div>
+                             <div class="avail-label" style="font-size: 0.6rem; opacity: 0.5; font-weight: 700;">PLACES LEFT</div>
+                        </div>
+                        
+                        <div class="organizer-badge-small">
+                            <span style="font-size: 0.6rem; opacity: 0.4; letter-spacing: 1px; display: block; margin-bottom: 4px;">HOSTED BY</span>
+                            <span class="text-white fw-bold" style="font-size: 0.85rem; letter-spacing: -0.2px;">{{ evenement.user.firstName|default('') }} {{ evenement.user.lastName|default('') }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-description-text" style="font-size: 0.95rem; opacity: 0.6; padding: 1.5rem; background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid rgba(255,255,255,0.04); margin-top: 0.5rem; margin-bottom: 3rem;">
+                    {{ evenement.descriptionEvent }}
+                </div>
+            </div>
+
+            <div class="mt-auto pt-3 border-top border-white-10">
+                
+                {% if app.session.get('is_logged_in') %}
+                    {% if evenement.nbRestants > 0 %}
+                        <button class="main-home-btn-auth-submit w-100" style="margin: 0;" onclick="switchGlassCard('evenementCardSwitcher_{{ evenement.id }}', 'participate')">
+                            Join Now <i class='bx bx-right-arrow-alt ms-2'></i>
+                        </button>
+                    {% else %}
+                        <button class="main-home-btn-auth-submit w-100 disabled" style="margin: 0; filter: grayscale(1); opacity: 0.5; pointer-events: none;">
+                            Full Capacity
+                        </button>
+                    {% endif %}
+
+                    {% set authorId = evenement.user.idUser|default(evenement.user.id|default('')) %}
+                    {% if authorId == currentUserId or currentUserRole == 'ROLE_ADMIN' %}
+                        <div class="d-flex gap-2 mt-3 pt-3 border-top border-white-10">
+                            <button class="btn-event-action" 
+                                style="flex: 1; height: 40px; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff;"
+                                onclick="switchGlassCard('evenementCardSwitcher_{{ evenement.id }}', 'edit')">
+                                <i class='bx bxs-edit-alt me-1'></i> Edit
+                            </button>
+
+                            <button class="btn-event-action" 
+                                style="flex: 1; height: 40px; font-size: 0.8rem; background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.2);"
+                                onclick="openDeleteConfirmModal('{{ evenement.id }}', '{{ path('app_evenement_delete', {'id': evenement.id}) }}', '{{ csrf_token('delete' ~ evenement.id) }}')">
+                                <i class='bx bxs-trash me-1'></i> Delete
+                            </button>
+                        </div>
+                    {% endif %}
+                {% else %}
+                     <a href="{{ path('app_login_index') }}" class="main-home-btn-auth-submit w-100 text-center d-flex align-items-center justify-content-center" style="margin: 0; text-decoration: none;">
+                        Login to Participate
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- FACE 3: PARTICIPATE (Form) -->
+    <div class="glass-switcher-face glass-switcher-face-participate">
+         <div class="p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="m-0 fw-bold" style="font-size: 1.4rem;">Register</h4>
+                <button class="btn-switcher-back" onclick="switchGlassCard('evenementCardSwitcher_{{ evenement.id }}', 'details')">
+                    <i class='bx bx-left-arrow-alt'></i>
+                </button>
+            </div>
+
+            <form action="{{ path('app_participation_new', {'id': evenement.id}) }}" method="POST" class="main-home-auth-form" data-ajax="true">
+                <input type="hidden" name="participation[_token]" value="{{ csrf_token('participation') }}">
+                <div class="glass-form-group">
+                    <label class="glass-label">Guests Joining You</label>
+                    <input type="number" name="participation[nb_accompagnants]" class="glass-input" value="0" min="0">
+                </div>
+                <div class="glass-form-group">
+                    <label class="glass-label">Special Note</label>
+                    <textarea name="participation[commentaire_participation]" class="glass-input" rows="3" placeholder="Anything we should know?"></textarea>
+                </div>
+                <button type="submit" class="main-home-btn-auth-submit w-100 mt-2" style="margin: 0; height: 50px;">
+                    Confirm Spot <i class='bx bx-check ms-2'></i>
+                </button>
+            </form>
+         </div>
+    </div>
+
+    <!-- FACE 4: EDIT (Form) -->
+    <div class="glass-switcher-face glass-switcher-face-edit">
+         <div class="p-4 h-100 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="m-0 fw-bold" style="font-size: 1.4rem;">Edit Event</h4>
+                <button class="btn-switcher-back" onclick="switchGlassCard('evenementCardSwitcher_{{ evenement.id }}', 'details')">
+                    <i class='bx bx-left-arrow-alt'></i>
+                </button>
+            </div>
+
+            <div class="glass-switcher-content-scroll flex-grow-1" style="overflow-y: auto; overflow-x: hidden; padding-right: 8px;">
+                <form action="{{ path('app_evenement_edit', {'id': evenement.id}) }}" method="POST" enctype="multipart/form-data" class="main-home-auth-form" data-ajax="true">
+                    <input type="hidden" name="evenement[_token]" value="{{ csrf_token('evenement') }}">
+                    
+                    <div class="glass-form-group">
+                        <label class="glass-label">Event Title</label>
+                        <input type="text" name="evenement[titre_event]" class="glass-input" value="{{ evenement.titreEvent }}" required placeholder="What is the event called?">
+                    </div>
+
+                    <div class="glass-form-group">
+                        <label class="glass-label">Event Type</label>
+                        <div class="custom-select-wrapper">
+                            <select name="evenement[type_event]" class="glass-input">
+                                {% for choice in form.type_event.vars.choices %}
+                                    <option value="{{ choice.value }}" {% if choice.value == evenement.typeEvent %}selected{% endif %}>{{ choice.value|replace({'_': ' '})|title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="glass-form-group">
+                                <label class="glass-label">Date & Time</label>
+                                <input type="text" name="evenement[date_event]" class="glass-input flatpickr-input" value="{{ evenement.dateEvent|date('Y-m-d H:i') }}" required placeholder="Pick a date">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="glass-form-group main-home-form-group">
+                                 <label class="glass-label">Event Status</label>
+                                <div class="custom-status-selector">
+                                    {% set statusMap = {
+                                        'planifie': 'Upcoming',
+                                        'en_cours': 'Ongoing',
+                                        'termine': 'Completed',
+                                        'annule': 'Cancelled'
+                                    } %}
+                                    {% for choice in form.statut_event.vars.choices %}
+                                        <div class="status-pill {% if choice.value == evenement.statutEvent %}active{% endif %}" data-value="{{ choice.value }}">
+                                            <span>{{ statusMap[choice.value]|default(choice.value|title) }}</span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <select name="evenement[statut_event]" style="position: absolute; opacity: 0; pointer-events: none;">
+                                    {% for choice in form.statut_event.vars.choices %}
+                                        <option value="{{ choice.value }}" {% if choice.value == evenement.statutEvent %}selected{% endif %}>{{ statusMap[choice.value]|default(choice.value|title) }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-form-group">
+                        <label class="glass-label">Location</label>
+                        <input type="text" name="evenement[lieu_event]" class="glass-input" value="{{ evenement.lieuEvent }}" required placeholder="Where is it happening?">
+                    </div>
+
+                    <div class="glass-form-group">
+                        <label class="glass-label">Description</label>
+                        <textarea name="evenement[description_event]" class="glass-input" rows="4" placeholder="Tell us more...">{{ evenement.descriptionEvent }}</textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="glass-form-group">
+                                <label class="glass-label">Total Places</label>
+                                <input type="number" name="evenement[nb_places]" class="glass-input" value="{{ evenement.nbPlaces }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="glass-form-group">
+                                <label class="glass-label">Remaining</label>
+                                <input type="number" name="evenement[nb_restants]" class="glass-input" value="{{ evenement.nbRestants }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-form-group">
+                        <label class="glass-label">Update Banner (Optional)</label>
+                        <input type="file" name="evenement[image_event]" class="glass-input" style="padding-top: 0.7rem;">
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="main-home-btn-auth-submit w-100" style="margin: 0; height: 50px;">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

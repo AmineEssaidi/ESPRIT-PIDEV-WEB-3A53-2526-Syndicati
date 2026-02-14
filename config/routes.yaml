@@ -12,16 +12,8 @@ user_signup_success:
     path: /signup/success
     controller: App\Controller\User\UserController::signupSuccess
 
-frontend_settings:
-    resource: "routes/frontend_settings.yaml"
-    type: yaml
-
-frontend_services:
-    resource: "routes/frontend_services.yaml"
-    type: yaml
-
 # Explicit override to fix 405 Method Not Allowed (Cache issue)
 frontend_forum_override:
     path: /forum
-    controller: App\Controller\Frontend\Forum\ForumController::index
+    controller: App\Controller\Forum\ForumController::index
     methods: [GET, POST]

@@ -5,8 +5,8 @@
     try {
         var html = document.documentElement;
         var theme = localStorage.getItem('theme') || 'dark';
-        var accentGradient = localStorage.getItem('accent-gradient') || 'linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)';
-        var accentColor = localStorage.getItem('accent-color') || '#6c5ce7';
+        var accentGradient = localStorage.getItem('accent-gradient') || 'linear-gradient(135deg, transparent, transparent, transparent)';
+        var accentColor = localStorage.getItem('accent-color') || 'transparent';
         var lang = localStorage.getItem('lang') || 'fr';
         function hexToRgb(hex) {
             var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -20,7 +20,7 @@
         html.style.setProperty('--primary', accentColor);
         html.style.setProperty('--main-home-accent-rgb', hexToRgb(accentColor));
         html.style.setProperty('--accent-glow', 'rgba(' + hexToRgb(accentColor) + ', 0.5)');
-        var firstColor = accentGradient.match(/#[0-9a-fA-F]{3,8}/)?.[0] || '#6c5ce7';
+        var firstColor = accentGradient.match(/#[0-9a-fA-F]{3,8}/)?.[0] || 'transparent';
         html.style.setProperty('--main-home-accent-gradient-border', accentGradient.replace(/\)\s*$/, ', ' + firstColor + ')'));
         html.style.setProperty('--primary-gradient', accentGradient);
         html.setAttribute('lang', lang);
@@ -61,10 +61,10 @@
             <div class="main-home-nav-tab {{ active_tab|default('') == 'services' ? 'active' : '' }}">
                 <span class="main-home-tab-text"><a href="#" data-i18n="Services" style="text-decoration: none; color: inherit;">Services</a></span>
                 <div class="main-home-tab-dropdown">
-                    <a href="{{ path('frontend_residence') }}" class="main-home-dropdown-item" data-i18n="Residence">Residence</a>
+                    <a href="{{ path('app_residence_index') }}" class="main-home-dropdown-item" data-i18n="Residence">Residence</a>
                     <a href="{{ path('frontend_forum') }}" class="main-home-dropdown-item" data-i18n="Forum">Forum</a>
                     <a href="{{ path('frontend_syndicat') }}" class="main-home-dropdown-item" data-i18n="Syndicat">Syndicat</a>
-                    <a href="{{ path('frontend_evenement') }}" class="main-home-dropdown-item" data-i18n="Evenement">Evenement</a>
+                    <a href="{{ path('app_evenement_index') }}" class="main-home-dropdown-item" data-i18n="Evenement">Evenement</a>
                 </div>
             </div>
             <div class="main-home-nav-tab {{ active_tab|default('') == 'about' ? 'active' : '' }}">
@@ -145,7 +145,6 @@
                             <div class="main-home-notification-circle">
                                 <div class="main-home-dynamic-island" id="dynamicIsland" title="Notifications">
                                     <span class="main-home-notification-icon">🔔</span>
-                                    <span class="main-home-notification-badge">3</span>
                                     <!-- Dynamic Content -->
                                     <div class="main-home-dynamic-content">
                                         <p class="main-home-dynamic-text" data-i18n="Notifications">Notifications</p>

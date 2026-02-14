@@ -15,6 +15,7 @@
     <!-- Preload critical resources -->
     <link rel="preload" href="{{ asset('frontend/css/main-home.css') }}" as="style">
     <link rel="preload" href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" as="style">
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     
     <!-- DNS prefetch for external resources -->
     <link rel="dns-prefetch" href="https://demos.themeselection.com">
@@ -86,12 +87,12 @@
         @keyframes onboardSlide { from { opacity: 0; transform: translateY(32px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .onboarding-progress { display: flex; gap: 0.5rem; margin-bottom: 2rem; justify-content: center; }
         .onboarding-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.25); transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); }
-        .onboarding-dot.active { background: linear-gradient(135deg, #6c5ce7, #06b6d4); transform: scale(1.35); box-shadow: 0 0 24px rgba(108,92,231,0.6), 0 0 48px rgba(6,182,212,0.3); }
-        .onboarding-dot.done { background: linear-gradient(135deg, rgba(108,92,231,0.8), rgba(6,182,212,0.6)); box-shadow: 0 0 12px rgba(108,92,231,0.4); }
-        .onboarding-title { font-size: 1.85rem; font-weight: 800; margin-bottom: 0.35rem; background: linear-gradient(120deg, #6c5ce7, #8b5cf6, #06b6d4); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; }
+        .onboarding-dot.active { background: var(--primary-gradient); transform: scale(1.35); box-shadow: 0 0 24px rgba(var(--main-home-accent-rgb),0.6), 0 0 48px rgba(6,182,212,0.3); }
+        .onboarding-dot.done { background: linear-gradient(135deg, rgba(var(--main-home-accent-rgb),0.8), rgba(6,182,212,0.6)); box-shadow: 0 0 12px rgba(var(--main-home-accent-rgb),0.4); }
+        .onboarding-title { font-size: 1.85rem; font-weight: 800; margin-bottom: 0.35rem; background: var(--primary-gradient); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; }
         .onboarding-title .onboarding-user-name { background: none; -webkit-text-fill-color: inherit; color: rgba(255,255,255,0.95); }
         [data-theme="light"] .onboarding-title .onboarding-user-name { color: #1e293b; }
-        [data-theme="light"] .onboarding-title { background: linear-gradient(120deg, #6c5ce7, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        [data-theme="light"] .onboarding-title { background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .onboarding-subtitle { color: rgba(255,255,255,0.75); font-size: 1.05rem; margin-bottom: 2rem; font-weight: 500; }
         [data-theme="light"] .onboarding-subtitle { color: #475569; }
         .onboarding-section { margin-bottom: 1.75rem; animation: onboardSectionIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
@@ -491,7 +492,17 @@ document.addEventListener('DOMContentLoaded', function() {
             <script>
             (function() {
                 const video = document.getElementById('heroVideo');
-                if (video) video.playbackRate = 0.5;
+                if (video) {
+                    video.playbackRate = 0.5;
+                    // Robust fallback for loop attribute
+                    video.addEventListener('ended', function() {
+                        video.play();
+                    }, false);
+                    
+                    // Safari/Chrome fix: sometimes autoplay is blocked if page wasn't touched
+                    // We attempt to play on first interaction or just force it here if muted
+                    video.play().catch(e => console.log("Autoplay prevented:", e));
+                }
             })();
             </script>
             <div class="main-home-hero-bg-gradient"></div>
@@ -499,22 +510,27 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <style>
         .main-home-hero-bg-fixed {
-            position:absolute;
-            top:0;
-            left:0;
-            width:100vw;
-            height:1000px;
-            z-index:0;
-            overflow:hidden;
-            pointer-events:none;
-            background:transparent;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2; /* Pull further back */
+            overflow: hidden;
+            pointer-events: none;
+            background: #000;
+            transform: translateZ(0); /* Hardware acceleration */
+            will-change: transform;
         }
         .main-home-hero-bg-img {
-            width:100vw;
-            height:1000px;
-            object-fit:cover;
-            object-position:center top;
-            display:block;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            object-position: center center;
+            display: block;
+            will-change: transform;
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
         .main-home-hero-bg-gradient {
             position:absolute;
@@ -538,54 +554,36 @@ document.addEventListener('DOMContentLoaded', function() {
             from { opacity: 0; transform: translateX(60px); }
             to { opacity: 1; transform: translateX(0); }
         }
-        :root {
-            --hero-card-bg: #fff;
-            --hero-card-title: #222;
-            --hero-card-desc: #444;
-        }
-        [data-theme="dark"] {
-            --hero-card-bg: #181818;
-            --hero-card-title: #fff;
-            --hero-card-desc: #e0e0e0;
-        }
-        .main-home-hero-card {
-            background: var(--hero-card-bg, #fff) !important;
-            transition: background 0.3s;
-        }
         .hero-card-title {
-            color: var(--hero-card-title, #222) !important;
             font-size:2.2rem;
             margin-bottom:1rem;
         }
         .hero-card-desc {
-            color: var(--hero-card-desc, #444) !important;
             font-size:1.1rem;
             margin-bottom:0;
             max-width:420px;
         }
         .main-home-hero-fade {
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 100%;
-            height: 120px;
-            pointer-events: none;
-            background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, var(--hero-fade-color, #F5F5F5) 100%);
+            display: none; /* Removed as it obscures the global video background */
         }
         :root {
-            --hero-fade-color: #F5F5F5;
+            --hero-fade-color: transparent;
         }
         [data-theme="dark"] {
-            --hero-fade-color: #181818;
+            --hero-fade-color: transparent;
+        }
+        /* Ensure body is transparent to reveal the fixed video below it */
+        body {
+            background: transparent !important;
         }
         </style>
         <!-- Hero Section (text and content) -->
         <div class="main-home-landing-section">
             <!-- Welcome to Syndicati Card -->
             
-            <div class="main-home-hero split-hero" style="min-height:900px; height:900px; position:relative;">
-                <div class="main-home-hero-left" style="padding:60px 40px; display:flex; flex-direction:column; justify-content:center; position:relative; z-index:2;">
-                    <div class="main-home-testimonial-card main-home-hero-card" style="margin-bottom:0; max-width: 520px; box-shadow: 0 4px 32px 0 rgba(90,90,214,0.08); background: var(--hero-card-bg, #fff); position: relative; z-index: 2;">
+            <div class="main-home-hero split-hero" style="min-height:90vh; position:relative; background:transparent;">
+                <div class="main-home-hero-left" style="padding:10vh 40px; display:flex; flex-direction:column; justify-content:center; position:relative; z-index:2;">
+                    <div class="main-home-glass-hero-card">
                         <div class="main-home-testimonial-content">
                             <h1 class="main-home-hero-title main-home-content-title hero-card-title">Welcome to Syndicati</h1>
                             <p class="main-home-hero-subtitle hero-card-desc">Syndicati is your modern platform for community management, collaboration, and innovation. Join us to experience a new era of digital living and seamless communication.</p>
@@ -743,26 +741,22 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
                             </div>
 
-                             <!-- Quick Actions / CTA Section -->
+                            <!-- Quick Actions / CTA Section -->
                             <div class="main-home-cta-section">
-                                <div class="main-home-cta-content">
-                                    <h2 data-i18n="Need Assistance">Besoin d'Assistance?</h2>
-                                    <p data-i18n="Assistance Desc">Notre équipe de gestion est là pour vous aider. Contactez le syndic ou signalez un problème.</p>
-                                    <div class="main-home-cta-buttons">
-                                        <button class="main-home-btn main-home-btn-primary" data-i18n="Contact Syndic">📞 Contacter le Syndic</button>
-                                        <button class="main-home-btn main-home-btn-secondary" data-i18n="Report Problem">🔧 Signaler un Problème</button>
-                                    </div>
+                                <h2 data-i18n="Need Assistance">Besoin d'Assistance?</h2>
+                                <p data-i18n="Assistance Desc">Notre équipe de gestion est là pour vous aider. Contactez le syndic ou signalez un problème.</p>
+                                <div class="main-home-cta-buttons">
+                                    <button class="main-home-btn main-home-btn-primary" data-i18n="Contact Syndic">📞 Contacter le Syndic</button>
+                                    <button class="main-home-btn main-home-btn-secondary" data-i18n="Report Problem">🔧 Signaler un Problème</button>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            {% include 'frontend/shared/_main_footer.html.twig' %}
-        </div>
-    </div>
-</div>
+            <!-- Footer Integration -->
+        </div> {# main-home-content-wrapper #}
+        
+        {% include 'frontend/shared/_main_footer.html.twig' %}
+    </div> {# main-home-page #}
+</div> {# main-home-layout-wrapper #}
 
 {% include 'frontend/shared/_scroll_pill.html.twig' %}
 <link href="{{ asset('frontend/css/scroll-pill.css') }}" rel="stylesheet">

@@ -1,6 +1,6 @@
 // Main Home Frontend JavaScript - PiDev
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Enable smooth theme transitions after initial paint
     document.documentElement.classList.add('theme-ready');
 
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize theme toggle (for settings and main island)
     initThemeToggle();
     // Robust event delegation for header theme toggle (island)
-    document.body.addEventListener('click', function(e) {
+    document.body.addEventListener('click', function (e) {
         const toggle = e.target.closest('#theme-toggle');
         if (toggle) {
             const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     // Language switcher logic (similar to theme)
     const langSwitcher = document.querySelectorAll('.main-home-language-switch, .language-switch');
-    langSwitcher.forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
+    langSwitcher.forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
             const newLang = btn.dataset.lang;
             if (newLang && window.setLanguage) {
                 window.setLanguage(newLang);
@@ -41,6 +41,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Dynamic Island
     initDynamicIsland();
 
+    // Initialize Sticky Navbar
+    initStickyNavbar();
+
     // Only initialize SmartTranslate if not already initialized
     if (!window._smartTranslateObserver && window.SmartTranslate) {
         let lang = localStorage.getItem('lang') || 'fr';
@@ -50,8 +53,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize the main home page
 function initMainHome() {
-    console.log('🏠 Main Home initialized');
-    
+    // console.log('🏠 Main Home initialized');
+
     // Set up heart animation
     setupHeartAnimation();
 
@@ -67,7 +70,7 @@ function initMainHome() {
                 percentLabel.textContent = Math.round(audioSlider.value * 100) + '%';
             }
         }
-        audioSlider.addEventListener('input', function() {
+        audioSlider.addEventListener('input', function () {
             video.volume = audioSlider.value;
             updatePercent();
         });
@@ -87,7 +90,7 @@ function initMainHome() {
         }
         tryAutoplay();
         // Restore play/pause toggle on click
-        video.addEventListener('click', function() {
+        video.addEventListener('click', function () {
             if (video.paused) {
                 video.play();
             } else {
@@ -99,7 +102,7 @@ function initMainHome() {
 
 // Set up heart animation
 function setupHeartAnimation() {
-    console.log('❤️ Heart animation initialized');
+    // console.log('❤️ Heart animation initialized');
     // The heart animation is handled by CSS, this function is here for future enhancements
 }
 
@@ -114,7 +117,7 @@ function showNotification(title, message) {
             <p>${message}</p>
         </div>
     `;
-    
+
     // Add styles
     notification.style.cssText = `
         position: fixed;
@@ -129,13 +132,13 @@ function showNotification(title, message) {
         z-index: 1000;
         animation: slideIn 0.3s ease-out;
     `;
-    
+
     // Add to page
     document.body.appendChild(notification);
-            const pill = document.getElementById('mainHomeAudioPill');
-            if (pill) {
-                pill.style.display = 'flex';
-            }
+    const pill = document.getElementById('mainHomeAudioPill');
+    if (pill) {
+        pill.style.display = 'flex';
+    }
 }
 
 // Initialize theme toggle
@@ -145,21 +148,21 @@ function initThemeToggle() {
         themeToggle.addEventListener('click', () => {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
+
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-            
+
             // Update toggle icon
             const icon = themeToggle.querySelector('i');
             if (icon) {
                 icon.textContent = newTheme === 'light' ? '🌙' : '☀️';
             }
         });
-        
+
         // Load saved theme
         const savedTheme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
-        
+
         const icon = themeToggle.querySelector('i');
         if (icon) {
             icon.textContent = savedTheme === 'light' ? '🌙' : '☀️';
@@ -178,19 +181,19 @@ function initInteractiveElements() {
             console.log('🔍 Searching for:', query);
         });
     }
-    
+
     // Sidebar navigation
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            
+
             // Remove active class from all links
             navLinks.forEach(l => l.classList.remove('active'));
-            
+
             // Add active class to clicked link
             link.classList.add('active');
-            
+
             // Handle navigation
             const route = link.dataset.route;
             if (route) {
@@ -205,18 +208,18 @@ function initInteractiveElements() {
 function initAnimations() {
     // Add entrance animations
     const elements = document.querySelectorAll('.welcome-card, .heart-section');
-    
+
     elements.forEach((element, index) => {
         element.style.opacity = '0';
         element.style.transform = 'translateY(20px)';
-        
+
         setTimeout(() => {
             element.style.transition = 'all 0.6s ease-out';
             element.style.opacity = '1';
             element.style.transform = 'translateY(0)';
         }, index * 100);
     });
-    
+
     // Add CSS for animations
     const style = document.createElement('style');
     style.textContent = `
@@ -277,7 +280,7 @@ function generateRandomValue(min, max) {
 function initDynamicIsland() {
     const dynamicIsland = document.getElementById('dynamicIsland');
     if (!dynamicIsland) return;
-    
+
     let isExpanded = false;
     let isShowingNotification = false;
     let isShowingNotificationsList = false;
@@ -296,31 +299,31 @@ function initDynamicIsland() {
         { title: translations[lang]["Fichier téléchargé"] || "Fichier téléchargé", message: translations[lang]["Document.pdf a été téléchargé"] || "Document.pdf a été téléchargé", icon: "📄", time: "il y a 6 heures" }
     ];
     let clickCount = 0;
-    
+
     // Initialize badge count and dynamic content
     const badge = dynamicIsland.querySelector('.main-home-notification-badge');
     if (badge) {
         badge.textContent = notificationsList.length;
     }
-    
+
     const dynamicText = dynamicIsland.querySelector('.main-home-dynamic-text');
     const dynamicSubtext = dynamicIsland.querySelector('.main-home-dynamic-subtext');
     if (dynamicText && dynamicSubtext) {
         dynamicText.textContent = notificationsList.length;
         dynamicSubtext.textContent = notificationsList.length === 1 ? 'notification' : 'notifications';
     }
-    
+
     // Close button handler for expanded island
     const closeBtn = document.querySelector('.main-home-dynamic-close-btn');
     if (closeBtn) {
-        closeBtn.addEventListener('click', function(e) {
+        closeBtn.addEventListener('click', function (e) {
             e.stopPropagation(); // Prevent triggering the main click handler
             collapseIsland();
         });
     }
-    
+
     // Click handler for Dynamic Island
-    dynamicIsland.addEventListener('click', function() {
+    dynamicIsland.addEventListener('click', function () {
         if (isShowingNotification) {
             hideNotificationPopup();
         } else if (isShowingNotificationsList) {
@@ -341,9 +344,9 @@ function initDynamicIsland() {
             expandIsland();
         }
     });
-    
+
     // Hover handlers
-    dynamicIsland.addEventListener('mouseenter', function() {
+    dynamicIsland.addEventListener('mouseenter', function () {
         if (!isExpanded && !isShowingNotification && !isShowingNotificationsList && notificationsList.length === 0) {
             clearTimeout(expandTimeout);
             expandTimeout = setTimeout(() => {
@@ -351,8 +354,8 @@ function initDynamicIsland() {
             }, 500);
         }
     });
-    
-    dynamicIsland.addEventListener('mouseleave', function() {
+
+    dynamicIsland.addEventListener('mouseleave', function () {
         clearTimeout(expandTimeout);
         if (isExpanded && !isShowingNotification && !isShowingNotificationsList && notificationsList.length === 0) {
             setTimeout(() => {
@@ -360,59 +363,59 @@ function initDynamicIsland() {
             }, 1000);
         }
     });
-    
+
     // Expand Dynamic Island
     function expandIsland() {
         if (isExpanded || isShowingNotification || isShowingNotificationsList) return;
-        
+
         isExpanded = true;
         dynamicIsland.classList.add('expanded');
-        
+
         // Show the dynamic content
         const dynamicContent = dynamicIsland.querySelector('.main-home-dynamic-content');
         if (dynamicContent) {
             dynamicContent.style.display = 'block';
         }
-        
+
         // Update content
         const dynamicText = dynamicIsland.querySelector('.main-home-dynamic-text');
         const dynamicSubtext = dynamicIsland.querySelector('.main-home-dynamic-subtext');
-        
+
         if (dynamicText && dynamicSubtext) {
             dynamicText.textContent = 'Notifications';
             dynamicSubtext.textContent = `${notificationsList.length} nouveaux messages`;
         }
     }
-    
+
     // Collapse Dynamic Island
     function collapseIsland() {
         if (!isExpanded || isShowingNotification || isShowingNotificationsList) return;
-        
+
         isExpanded = false;
         dynamicIsland.classList.remove('expanded');
-        
+
         // Hide the dynamic content
         const dynamicContent = dynamicIsland.querySelector('.main-home-dynamic-content');
         if (dynamicContent) {
             dynamicContent.style.display = 'none';
         }
-        
+
         // Hide the animated close button
         if (closeBtn) {
             closeBtn.classList.remove('show');
         }
     }
-    
+
     // Show notifications list
     function showNotificationsList() {
         if (isShowingNotificationsList || notificationsList.length === 0) return;
-        
+
         // Check if there's already an overlay and remove it first
         const existingOverlay = document.getElementById('notificationsListOverlay');
         if (existingOverlay) {
             existingOverlay.remove();
         }
-        
+
         // First expand the island if it's not already expanded
         if (!isExpanded) {
             expandIsland();
@@ -422,21 +425,21 @@ function initDynamicIsland() {
             }, 400); // Match the expansion animation duration
             return; // Exit early to prevent immediate execution
         }
-        
+
         // If already expanded, show big popup immediately
         showBigPopup();
     }
-    
+
     // Helper function to show the big popup
     function showBigPopup() {
         // Get the current position of the expanded Dynamic Island
         const currentRect = dynamicIsland.getBoundingClientRect();
-    
+
         // Create a new element for the notifications list that appears on top
         const notificationsListElement = document.createElement('div');
         notificationsListElement.className = 'main-home-dynamic-island notifications-list';
         notificationsListElement.id = 'notificationsListOverlay';
-        
+
         // Position it in the EXACT same location as the expanded island
         notificationsListElement.style.position = 'fixed';
         notificationsListElement.style.top = `${currentRect.top}px`;
@@ -449,7 +452,7 @@ function initDynamicIsland() {
         notificationsListElement.style.opacity = '0'; // Start invisible
         notificationsListElement.style.transition = 'opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'; // Only animate opacity
         notificationsListElement.style.isolation = 'isolate'; // Create new stacking context
-        
+
         // Add the notifications container with close button
         notificationsListElement.innerHTML = `
             <div class="main-home-notifications-container" style="display: flex; flex-direction: column; height: 100%;">
@@ -462,24 +465,24 @@ function initDynamicIsland() {
                 </div>
             </div>
         `;
-        
+
         // Add to the page
         document.body.appendChild(notificationsListElement);
-        
+
         // Add click handler for close button
         const closeButton = notificationsListElement.querySelector('.main-home-close-notifications-btn');
         if (closeButton) {
-            closeButton.addEventListener('click', function(e) {
+            closeButton.addEventListener('click', function (e) {
                 e.stopPropagation();
                 hideNotificationsList();
             });
         }
-        
+
         // Render the notifications
         const scrollContainer = notificationsListElement.querySelector('.main-home-notifications-scroll');
         if (scrollContainer) {
             scrollContainer.innerHTML = '';
-            
+
             notificationsList.forEach((notification, index) => {
                 const notificationItem = document.createElement('div');
                 notificationItem.className = 'main-home-notification-item';
@@ -494,30 +497,30 @@ function initDynamicIsland() {
                 scrollContainer.appendChild(notificationItem);
             });
         }
-        
+
         // Set the state
         isShowingNotificationsList = true;
-        
+
         // Hide the animated close button when showing big popup
         if (closeBtn) {
             closeBtn.classList.remove('show');
         }
-        
+
         // Trigger the smooth transition
         requestAnimationFrame(() => {
             notificationsListElement.style.opacity = '1';
         });
     }
-    
+
     // Hide notifications list
     function hideNotificationsList() {
         if (!isShowingNotificationsList) return;
-        
+
         const overlayElement = document.getElementById('notificationsListOverlay');
         if (overlayElement) {
             // Smooth transition out
             overlayElement.style.opacity = '0';
-            
+
             // Remove element after transition completes
             setTimeout(() => {
                 if (overlayElement.parentNode) {
@@ -525,24 +528,24 @@ function initDynamicIsland() {
                 }
             }, 400); // Match the transition duration
         }
-        
+
         isShowingNotificationsList = false;
-        
+
         // Show the animated close button
         if (closeBtn) {
             closeBtn.classList.add('show');
         }
-        
+
         // The expanded island remains visible underneath
     }
-    
+
     // Render notifications list
     function renderNotificationsList() {
         const scrollContainer = dynamicIsland.querySelector('.main-home-notifications-scroll');
         if (!scrollContainer) return;
-        
+
         scrollContainer.innerHTML = '';
-        
+
         notificationsList.forEach((notification, index) => {
             const notificationItem = document.createElement('div');
             notificationItem.className = 'main-home-notification-item';
@@ -557,34 +560,34 @@ function initDynamicIsland() {
             scrollContainer.appendChild(notificationItem);
         });
     }
-    
+
     // Show notification popup
     function showNotificationPopup(title, message, icon = '📱') {
         if (isShowingNotification) return;
-        
+
         isShowingNotification = true;
         isExpanded = false;
-        
+
         // Remove expanded class and add notification popup class
         dynamicIsland.classList.remove('expanded');
         dynamicIsland.classList.add('notification-popup');
-        
+
         // Hide the dynamic content (the "3 notifications" text)
         const dynamicContent = dynamicIsland.querySelector('.main-home-dynamic-content');
         if (dynamicContent) {
             dynamicContent.style.display = 'none';
         }
-        
+
         // Update popup content
         const popupContent = dynamicIsland.querySelector('.main-home-notification-popup-content');
         const popupIcon = dynamicIsland.querySelector('.main-home-notification-popup-icon');
         const popupTitle = dynamicIsland.querySelector('.main-home-notification-popup-title');
         const popupMessage = dynamicIsland.querySelector('.main-home-notification-popup-message');
-        
+
         if (popupContent && popupIcon && popupTitle && popupMessage) {
             popupContent.style.display = 'flex';
             popupIcon.textContent = icon;
-            
+
             // Show different content based on notification count
             if (notificationsList.length === 1) {
                 popupTitle.textContent = title;
@@ -594,7 +597,7 @@ function initDynamicIsland() {
                 popupMessage.textContent = 'Cliquez à nouveau pour tout voir';
             }
         }
-        
+
         // Auto-hide after 4 seconds only if there's only one notification
         // If there are multiple notifications, keep it open for second click
         if (notificationsList.length === 1) {
@@ -603,29 +606,29 @@ function initDynamicIsland() {
             }, 4000);
         }
     }
-    
+
     // Hide notification popup
     function hideNotificationPopup() {
         if (!isShowingNotification) return;
-        
+
         isShowingNotification = false;
         clearTimeout(notificationTimeout);
-        
+
         dynamicIsland.classList.remove('notification-popup');
-        
+
         // Hide the popup content
         const popupContent = dynamicIsland.querySelector('.main-home-notification-popup-content');
         if (popupContent) {
             popupContent.style.display = 'none';
         }
-        
+
         // Restore the dynamic content (the "3 notifications" text) for future hover/click interactions
         const dynamicContent = dynamicIsland.querySelector('.main-home-dynamic-content');
         if (dynamicContent) {
             dynamicContent.style.display = 'block';
         }
     }
-    
+
     // Simulate incoming notifications
     function simulateNotification() {
         const notifications = [
@@ -645,34 +648,34 @@ function initDynamicIsland() {
             { title: 'Weather Alert', message: 'Heavy rain expected this afternoon', icon: '🌧️' },
             { title: 'Birthday Wish', message: 'Happy Birthday! 🎂', icon: '🎈' }
         ];
-        
+
         const randomNotification = notifications[Math.floor(Math.random() * notifications.length)];
-        
+
         // Add timestamp
         const now = new Date();
-        const timeString = now.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
+        const timeString = now.toLocaleTimeString('en-US', {
+            hour: '2-digit',
             minute: '2-digit',
-            hour12: true 
+            hour12: true
         });
-        
+
         // Add to notifications list
         notificationsList.unshift({
             ...randomNotification,
             time: timeString,
             id: Date.now() + Math.random()
         });
-        
+
         // Keep only last 10 notifications
         if (notificationsList.length > 10) {
             notificationsList = notificationsList.slice(0, 10);
         }
-        
+
         // Don't show notification popup from test button - only update badge count
         // The big popup should only appear when clicking the actual Dynamic Island
     }
-    
-    
+
+
     // Expose functions globally for external use
     window.DynamicIsland = {
         showNotification: showNotificationPopup,
@@ -680,8 +683,42 @@ function initDynamicIsland() {
         expand: expandIsland,
         collapse: collapseIsland
     };
-    
-    console.log('🏝️ Dynamic Island initialized');
+
+    // console.log('🏝️ Dynamic Island initialized');
+}
+
+// Initialize Sticky Navbar behavior
+function initStickyNavbar() {
+    const navbar = document.querySelector('.main-home-navbar');
+    if (!navbar) return;
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    function updateNavbar() {
+        const scrollY = window.scrollY;
+
+        if (scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+
+        ticking = false;
+    }
+
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                updateNavbar();
+            });
+            ticking = true;
+        }
+    });
+
+    // Initial check
+    updateNavbar();
+    // console.log('⚓ Sticky Navbar initialized');
 }
 
 // Export functions for external use

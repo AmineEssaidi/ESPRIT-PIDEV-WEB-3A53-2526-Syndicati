@@ -1,10 +1,15 @@
 <div class="forum-card">
-    {% if publication.imagePub %}
-        <img src="{{ asset('forum_images/' ~ publication.imagePub) }}" alt="{{ publication.titrePub }}" class="forum-card-image">
-    {% endif %}
-    
-    <div class="forum-card-body">
-        <div class="forum-card-meta">
+    <div class="forum-card-image-wrapper">
+        {% if publication.imagePub %}
+            <img src="{{ asset('forum_images/' ~ publication.imagePub) }}" alt="{{ publication.titrePub }}" class="forum-card-image">
+        {% else %}
+            <div class="forum-card-image-placeholder">
+                <i class='bx bx-message-square-dots'></i>
+            </div>
+        {% endif %}
+        
+        {# Floating Meta Island #}
+        <div class="forum-card-floating-meta">
             {% set catClass = '' %}
             {% if publication.categoriePub == 'Suggestion' %}
                 {% set catClass = 'cat-suggestion' %}
@@ -22,26 +27,34 @@
                 {% set catClass = 'cat-sport' %}
             {% endif %}
             <span class="forum-category-badge {{ catClass }}">{{ publication.categoriePub }}</span>
-            <span class="forum-post-date">{{ publication.dateCreationPub|date('M d, Y H:i') }}</span>
+            <span class="forum-post-date-pill">
+                <i class='bx bx-time-five'></i>
+                {{ publication.dateCreationPub|date('M d') }}
+            </span>
         </div>
-        
+    </div>
+    
+    <div class="forum-card-body">
         <h3 class="forum-card-title">{{ publication.titrePub }}</h3>
         <p class="forum-card-excerpt">{{ publication.descriptionPub }}</p>
         
         <div class="forum-card-footer">
-            <div class="forum-user-avatar">
-                {% if author_profile and author_profile.avatar %}
-                    <img src="{{ author_profile.avatar starts with 'http' ? author_profile.avatar : asset(author_profile.avatar) }}" 
-                         alt="{{ publication.user.firstName }}" 
-                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
-                {% else %}
-                    {{ publication.user.firstName|first|upper }}
-                {% endif %}
+            <div class="forum-user-stack">
+                <div class="forum-user-avatar">
+                    {% if author_profile and author_profile.avatar %}
+                        <img src="{{ author_profile.avatar starts with 'http' ? author_profile.avatar : asset(author_profile.avatar) }}" 
+                             alt="{{ publication.user.firstName }}">
+                    {% else %}
+                        <span>{{ publication.user.firstName|first|upper }}</span>
+                    {% endif %}
+                </div>
+                <div class="forum-user-details">
+                    <span class="forum-user-name">{{ publication.user.firstName }} {{ publication.user.lastName }}</span>
+                    <span class="forum-user-role">Resident</span>
+                </div>
             </div>
-            <div class="forum-user-info">
-                <span class="forum-user-name">{{ publication.user.firstName }} {{ publication.user.lastName }}</span>
-            </div>
-            <div class="btn-read-more ms-auto" 
+
+            <div class="btn-read-more-nextgen btn-read-more" 
                  data-id="{{ publication.id }}"
                  data-author-id="{{ publication.user.idUser }}"
                  data-title="{{ publication.titrePub }}"
@@ -53,8 +66,9 @@
                  data-user-initial="{{ publication.user.firstName|first|upper }}"
                  data-avatar="{% if author_profile and author_profile.avatar %}{{ author_profile.avatar starts with 'http' ? author_profile.avatar : asset(author_profile.avatar) }}{% endif %}"
                  data-image="{% if publication.imagePub %}{{ asset('forum_images/' ~ publication.imagePub) }}{% endif %}"
-                 style="cursor: pointer; padding: 8px 20px; border-radius: 99px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; transition: all 0.3s ease; font-weight: 600; font-size: 0.85rem; margin-left: auto; flex-shrink: 0;">
-                Read More
+                 data-token="{{ csrf_token('delete' ~ publication.id) }}">
+                <span>Details</span>
+                <i class='bx bx-right-arrow-alt'></i>
             </div>
         </div>
     </div>

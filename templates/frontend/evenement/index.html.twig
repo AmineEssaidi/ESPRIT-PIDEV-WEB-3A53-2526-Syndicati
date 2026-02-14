@@ -6,6 +6,7 @@
     <link href="{{ asset('frontend/css/evenement-form-custom.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block body %}
@@ -67,42 +68,128 @@
                     </div>
 
                     <!-- Right Column: Interactive Dashboard & Actions -->
-                    <div class="empty-state-right">
-                        {% if app.session.get('is_logged_in') %}
-                            <div id="btnHostEventDashboard" class="event-host-pill-trigger">
-                                <div style="width: 40px; height: 40px; background: var(--event-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                                    <i class='bx bx-plus'></i>
+                    <div id="evenementDashboardSwitcher" class="empty-state-right glass-switcher style-slide">
+                        
+                        <!-- FACE 1: DASHBOARD MAIN -->
+                        <div class="glass-switcher-face glass-switcher-face-main">
+                            {% if app.session.get('is_logged_in') %}
+                                <div id="btnHostEventDashboard" class="event-host-pill-trigger">
+                                    <div style="width: 40px; height: 40px; background: var(--event-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                        <i class='bx bx-plus'></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <div style="font-size: 0.95rem; font-weight: 800;">Host an Event</div>
+                                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); font-weight: 600;">Start your community journey</div>
+                                    </div>
+                                    <i class='bx bx-chevron-right' style="margin-left: auto; font-size: 1.5rem; opacity: 0.5;"></i>
                                 </div>
-                                <div class="text-start">
-                                    <div style="font-size: 0.95rem; font-weight: 800;">Host an Event</div>
-                                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); font-weight: 600;">Start your community journey</div>
-                                </div>
-                                <i class='bx bx-chevron-right' style="margin-left: auto; font-size: 1.5rem; opacity: 0.5;"></i>
-                            </div>
-                        {% endif %}
+                            {% endif %}
 
-                        <!-- Mini Glass Calendar -->
-                        <div class="glass-calendar">
-                            <div class="calendar-header">
-                                <div class="calendar-month" id="calendarMonthDisplay">{{ "now"|date("F Y") }}</div>
-                                <div class="d-flex gap-2">
-                                    <i class='bx bx-chevron-left' id="prevMonth" style="cursor: pointer; opacity: 0.5;"></i>
-                                    <i class='bx bx-chevron-right' id="nextMonth" style="cursor: pointer; opacity: 0.5;"></i>
+                            <!-- Mini Glass Calendar -->
+                            <div class="glass-calendar">
+                                <div class="calendar-header">
+                                    <div class="calendar-month" id="calendarMonthDisplay">{{ "now"|date("F Y") }}</div>
+                                    <div class="d-flex gap-2">
+                                        <i class='bx bx-chevron-left' id="prevMonth" style="cursor: pointer; opacity: 0.5;"></i>
+                                        <i class='bx bx-chevron-right' id="nextMonth" style="cursor: pointer; opacity: 0.5;"></i>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="calendar-grid" id="calendarGrid">
-                                <!-- Days labels -->
-                                <div class="calendar-day-label">Mo</div>
-                                <div class="calendar-day-label">Tu</div>
-                                <div class="calendar-day-label">We</div>
-                                <div class="calendar-day-label">Th</div>
-                                <div class="calendar-day-label">Fr</div>
-                                <div class="calendar-day-label">Sa</div>
-                                <div class="calendar-day-label">Su</div>
-                                
-                                <!-- Days will be injected by JS -->
+                                <div class="calendar-grid" id="calendarGrid">
+                                    <!-- Days labels -->
+                                    <div class="calendar-day-label">Mo</div>
+                                    <div class="calendar-day-label">Tu</div>
+                                    <div class="calendar-day-label">We</div>
+                                    <div class="calendar-day-label">Th</div>
+                                    <div class="calendar-day-label">Fr</div>
+                                    <div class="calendar-day-label">Sa</div>
+                                    <div class="calendar-day-label">Su</div>
+                                    
+                                    <!-- Days will be injected by JS -->
+                                </div>
+                                <!-- Category Insight Pills -->
+                                <div class="category-tags-list">
+                                    <span class="tag-pill">#Workshops</span>
+                                    <span class="tag-pill">#Meetups</span>
+                                    <span class="tag-pill">#Social</span>
+                                    <span class="tag-pill">#Sports</span>
+                                    <span class="tag-pill" style="background: rgba(var(--main-home-accent-rgb), 0.1); border-color: rgba(var(--main-home-accent-rgb), 0.2); color: #fff;">+ {{ evenements|length }} Events</span>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- FACE 2: HOST EVENT FORM -->
+                        <div class="glass-switcher-face glass-switcher-face-extra">
+                            <div class="card-header-actions mb-4">
+                                <h3 class="m-0" style="font-weight: 850; font-size: 1.8rem;">Organize</h3>
+                                <button class="btn-switcher-back" onclick="switchGlassCard('evenementDashboardSwitcher', 'main')">
+                                    <i class='bx bx-left-arrow-alt'></i> Back
+                                </button>
+                            </div>
+
+                            <div class="glass-switcher-content-scroll" style="max-height: 520px; overflow-y: auto; overflow-x: hidden; padding-right: 12px;">
+                                {{ form_start(form, {'attr': {'class': 'main-home-auth-form', 'enctype': 'multipart/form-data', 'id': 'createEventFormDashboard', 'data-ajax': 'true'}}) }}
+                                    <div class="glass-form-group">
+                                        <label class="glass-label">Event Title</label>
+                                        {{ form_widget(form.titre_event, {'attr': {'class': 'glass-input', 'placeholder': 'What is the event called?', 'data-min-length': '5', 'required': 'required'}}) }}
+                                    </div>
+
+                                    <div class="glass-form-group">
+                                        <label class="glass-label">Date & Time</label>
+                                        {{ form_widget(form.date_event, {'attr': {'class': 'glass-input flatpickr-input'}}) }}
+                                    </div>
+
+                                    <div class="glass-form-group">
+                                        <label class="glass-label">Event Type</label>
+                                        <div class="custom-select-wrapper">
+                                            <select name="{{ form.type_event.vars.full_name }}" id="{{ form.type_event.vars.id }}_dashboard" class="glass-input">
+                                                {% for choice in form.type_event.vars.choices %}
+                                                    <option value="{{ choice.value }}">{{ choice.value|replace({'_': ' '})|title }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            {% do form.type_event.setRendered %}
+                                        </div>
+                                    </div>
+
+                                    <div class="glass-form-group">
+                                        <label class="glass-label">Location</label>
+                                        {{ form_widget(form.lieu_event, {'attr': {'class': 'glass-input', 'placeholder': 'Where?'}}) }}
+                                    </div>
+
+                                    <div class="glass-form-group">
+                                        <label class="glass-label">Description</label>
+                                        {{ form_widget(form.description_event, {'attr': {'class': 'glass-input', 'placeholder': 'Tell us more...', 'rows': '3', 'data-min-length': '10', 'required': 'required'}}) }}
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="glass-form-group">
+                                                <label class="glass-label">Total Places</label>
+                                                {{ form_widget(form.nb_places, {'attr': {'class': 'glass-input'}}) }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="glass-form-group">
+                                                <label class="glass-label">Remaining</label>
+                                                {{ form_widget(form.nb_restants, {'attr': {'class': 'glass-input'}}) }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="glass-form-group">
+                                        <label class="glass-label">Event Banner</label>
+                                        {{ form_widget(form.image_event, {'attr': {'class': 'glass-input'}}) }}
+                                    </div>
+
+                                    <button type="submit" class="main-home-btn-auth-submit w-100 mt-4" style="margin: 0; height: 55px;">
+                                        Live the Event <i class='bx bx-rocket ms-2'></i>
+                                    </button>
+
+                                    {# Hide the default status field which is rendered by form_end automatically #}
+                                    {% do form.statut_event.setRendered %}
+                                {{ form_end(form) }}
+                            </div>
+                        </div>
+                    </div>
 
                         {# Pass detailed event data to JS for calendar previews #}
                         <script>
@@ -120,13 +207,6 @@
                             };
                         </script>
 
-                        <!-- Category Insight Pills -->
-                        <div class="category-tags-list">
-                            <span class="tag-pill">#Workshops</span>
-                            <span class="tag-pill">#Meetups</span>
-                            <span class="tag-pill">#Social</span>
-                            <span class="tag-pill">#Sports</span>
-                            <span class="tag-pill">+ {{ evenements|length }} Events</span>
                         </div>
                     </div>
                 </div>
@@ -180,364 +260,67 @@
         </div>
 
         {% include 'frontend/shared/_main_footer.html.twig' %}
+        <div style="height: 120px; width: 100%;"></div>
     </div>
 </div>
 
-<!-- CREATE EVENT MODAL -->
-<div id="createEventModal" class="event-modal">
-    <div class="event-modal-content" style="max-width: 600px;">
-        <span class="event-modal-close" onclick="closeCreateModal()">&times;</span>
-        <div class="main-home-auth-header">
-            <h1 class="main-home-auth-title">Organize Event</h1>
-            <p class="main-home-auth-subtitle">Create a memorable experience</p>
-        </div>
+{# Legacy editEventModal removed to favor in-card switcher #}
 
-                {{ form_start(form, {'attr': {'class': 'main-home-auth-form', 'enctype': 'multipart/form-data', 'id': 'createEventForm', 'data-ajax': 'true'}}) }}
-                    <div class="main-home-form-group">
-                        <label class="main-home-form-label">Event Title</label>
-                        {{ form_widget(form.titre_event, {'attr': {'class': 'main-home-form-input', 'placeholder': 'What is the event called?'}}) }}
-                        <div class="text-danger small">{{ form_errors(form.titre_event) }}</div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="main-home-form-group">
-                                <label class="main-home-form-label">Date & Time</label>
-                                {{ form_widget(form.date_event, {'attr': {'class': 'main-home-form-input flatpickr-input'}}) }}
-                                <div class="text-danger small">{{ form_errors(form.date_event) }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="main-home-form-group">
-                                <label class="main-home-form-label">Event Type</label>
-                                <div class="custom-select-wrapper">
-                                    <select name="{{ form.type_event.vars.full_name }}" id="{{ form.type_event.vars.id }}" class="main-home-form-input">
-                                        {% for choice in form.type_event.vars.choices %}
-                                            <option value="{{ choice.value }}">{{ choice.value|replace({'_': ' '})|title }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    {% do form.type_event.setRendered %}
-                                </div>
-                                <div class="text-danger small">{{ form_errors(form.type_event) }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="main-home-form-group">
-                        <label class="main-home-form-label">Location</label>
-                        {{ form_widget(form.lieu_event, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Where is it happening?'}}) }}
-                        <div class="text-danger small">{{ form_errors(form.lieu_event) }}</div>
-                    </div>
-
-                    <div class="main-home-form-group">
-                        <label class="main-home-form-label">Description</label>
-                        {{ form_widget(form.description_event, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Tell us more about it...'}}) }}
-                        <div class="text-danger small">{{ form_errors(form.description_event) }}</div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="main-home-form-group">
-                                <label class="main-home-form-label">Total Places</label>
-                                {{ form_widget(form.nb_places, {'attr': {'class': 'main-home-form-input'}}) }}
-                                <div class="text-danger small">{{ form_errors(form.nb_places) }}</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="main-home-form-group">
-                                <label class="main-home-form-label">Remaining</label>
-                                {{ form_widget(form.nb_restants, {'attr': {'class': 'main-home-form-input'}}) }}
-                                <div class="text-danger small">{{ form_errors(form.nb_restants) }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="main-home-form-group">
-                        <label class="main-home-form-label">Event Status</label>
-                        <div class="custom-status-selector">
-                            <div class="status-pill" data-value="planifie"><span>Upcoming</span></div>
-                            <div class="status-pill" data-value="en_cours"><span>Ongoing</span></div>
-                            <div class="status-pill" data-value="termine"><span>Completed</span></div>
-                            <div class="status-pill" data-value="annule"><span>Cancelled</span></div>
-                        </div>
-                        {{ form_widget(form.statut_event, {'attr': {'style': 'position: absolute; opacity: 0; pointer-events: none;'}}) }}
-                        <div class="text-danger small">{{ form_errors(form.statut_event) }}</div>
-                    </div>
-
-                    <div class="main-home-form-group">
-                        <label class="main-home-form-label">Event Banner</label>
-                        {{ form_widget(form.image_event, {'attr': {'class': 'main-home-form-input'}}) }}
-                        <div class="text-danger small">{{ form_errors(form.image_event) }}</div>
-                    </div>
-
-                    <div class="d-flex gap-3 mt-4">
-                        <button type="button" class="btn-event-action" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex: 1;" onclick="closeCreateModal()">
-                            Cancel
-                        </button>
-                        <button type="submit" class="main-home-btn-auth-submit" style="flex: 2; margin: 0;">
-                            Live the Event
-                        </button>
-                    </div>
-                {{ form_end(form) }}
-    </div>
-</div>
-
-<!-- EVENT DETAILS MODAL -->
-<div id="eventDetailsModal" class="event-modal">
-    <div class="event-modal-content">
-        <span class="event-modal-close" onclick="closeDetailsModal()">&times;</span>
-        <div id="modalEventBanner" class="event-details-hero-modal">
-            <div class="hero-overlay"></div>
-        </div>
-        
-        <div class="event-details-body">
-            <div class="event-details-grid">
-                <!-- LEFT COLUMN: Main Info -->
-                <div class="main-info">
-                    <span id="modalEventType" class="event-hero-badge mb-3"></span>
-                    <h2 id="modalEventTitle" class="event-hero-title mb-2"></h2>
-                    <p id="modalEventDescription" class="event-hero-subtitle" style="font-size: 1.1rem; max-width: 100%; color: rgba(255,255,255,0.7);"></p>
-
-                    <!-- Host/Admin Actions (Left Side) -->
-                    <div id="modalAdminActions" class="d-none mt-5 pt-4 border-top border-secondary">
-                        <div style="display: flex; gap: 1rem; align-items: stretch;">
-                            <button id="btnOpenEdit" class="btn-event-action" style="flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff;">
-                                <i class='bx bxs-edit-alt'></i> Edit
-                            </button>
-                            <form id="deleteEventForm" method="POST" style="flex: 1; display: flex;">
-                                <input type="hidden" name="_token" id="deleteEventToken">
-                                <button type="button" id="btnOpenDeleteConfirm" class="btn-event-action" style="background: rgba(255, 77, 77, 0.15); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.3); width: 100%;">
-                                    <i class='bx bxs-trash'></i> Delete
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- RIGHT COLUMN: Sidebar Info -->
-                <div class="sidebar-info">
-                    <div class="sidebar-card">
-                        <div class="event-details-meta-pill">
-                            <i class='bx bxs-calendar'></i>
-                            <div class="event-details-meta-content">
-                                <label>Date & Time</label>
-                                <span id="modalEventDate" style="font-weight: 600;"></span>
-                            </div>
-                        </div>
-
-                        <div class="event-details-meta-pill">
-                            <i class='bx bxs-map-pin'></i>
-                            <div class="event-details-meta-content">
-                                <label>Location</label>
-                                <span id="modalEventLieu" style="font-weight: 600;"></span>
-                            </div>
-                        </div>
-
-                        <div class="event-details-meta-pill">
-                            <i class='bx bxs-group'></i>
-                            <div class="event-details-meta-content">
-                                <label>Availability</label>
-                                <span id="modalEventAvailability" style="font-weight: 600;"></span>
-                            </div>
-                        </div>
-                        
-                        <div class="event-details-meta-pill">
-                            <i class='bx bxs-category'></i>
-                            <div class="event-details-meta-content">
-                                <label>Type</label>
-                                <span id="modalEventTypeDisplay" style="font-weight: 600;"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button id="btnOpenParticipation" class="main-home-btn-auth-submit w-100 mt-3" style="height: 60px;">
-                        Participate
-                    </button>
-                    <div style="height: 1rem;"></div>
-                </div>
-            </div>
-            <!-- Extra spacer at bottom of modal body -->
-        </div>
-    </div>
-</div>
-
-<!-- EDIT EVENT MODAL (Refined UI) -->
-<div id="editEventModal" class="event-modal">
-    <div class="event-modal-content" style="max-width: 600px;">
-        <span class="event-modal-close" onclick="closeEditModal()">&times;</span>
-        <div class="main-home-auth-header">
-            <h1 class="main-home-auth-title">Edit Event</h1>
-            <p class="main-home-auth-subtitle">Update your event details</p>
-        </div>
-
-        <form id="editEventForm" method="POST" enctype="multipart/form-data" class="main-home-auth-form" data-ajax="true">
-            <input type="hidden" name="evenement[_token]" value="{{ csrf_token('evenement') }}">
-            
-            <div class="main-home-form-group">
-                <label class="main-home-form-label">Event Title</label>
-                <input type="text" name="evenement[titre_event]" id="editTitre" class="main-home-form-input" required placeholder="What is the event called?">
-            </div>
-
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="main-home-form-group">
-                        <label class="main-home-form-label">Event Type</label>
-                        <div class="custom-select-wrapper">
-                            <select name="evenement[type_event]" id="editType" class="main-home-form-input">
-                                {% for choice in form.type_event.vars.choices %}
-                                    <option value="{{ choice.value }}">{{ choice.value|replace({'_': ' '})|title }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="main-home-form-group">
-                        <label class="main-home-form-label">Date & Time</label>
-                        <input type="text" name="evenement[date_event]" id="editDate" class="main-home-form-input flatpickr-input" required placeholder="Pick a date">
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="main-home-form-group">
-                         <label class="main-home-form-label">Event Status</label>
-                        <div class="custom-status-selector">
-                            {% set statusMap = {
-                                'planifie': 'Upcoming',
-                                'en_cours': 'Ongoing',
-                                'termine': 'Completed',
-                                'annule': 'Cancelled'
-                            } %}
-                            {% for choice in form.statut_event.vars.choices %}
-                                <div class="status-pill" data-value="{{ choice.value }}">
-                                    <span>{{ statusMap[choice.value]|default(choice.value|title) }}</span>
-                                </div>
-                            {% endfor %}
-                        </div>
-                        <select name="evenement[statut_event]" id="editStatut" style="position: absolute; opacity: 0; pointer-events: none;">
-                            {% for choice in form.statut_event.vars.choices %}
-                                <option value="{{ choice.value }}">{{ statusMap[choice.value]|default(choice.value|title) }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="main-home-form-group">
-                <label class="main-home-form-label">Location</label>
-                <input type="text" name="evenement[lieu_event]" id="editLieu" class="main-home-form-input" required placeholder="Where is it happening?">
-            </div>
-
-            <div class="main-home-form-group">
-                <label class="main-home-form-label">Description</label>
-                <textarea name="evenement[description_event]" id="editDesc" class="main-home-form-input" rows="4" placeholder="Tell us more..."></textarea>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="main-home-form-group">
-                        <label class="main-home-form-label">Total Places</label>
-                        <input type="number" name="evenement[nb_places]" id="editPlaces" class="main-home-form-input">
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="main-home-form-group">
-                        <label class="main-home-form-label">Remaining</label>
-                        <input type="number" name="evenement[nb_restants]" id="editRestants" class="main-home-form-input">
-                    </div>
-                </div>
-            </div>
-
-            <div class="main-home-form-group">
-                <label class="main-home-form-label">Update Banner (Optional)</label>
-                <input type="file" name="evenement[image_event]" class="main-home-form-input" style="padding-top: 0.7rem;">
-            </div>
-
-            <div class="d-flex gap-3 mt-4">
-                <button type="button" class="btn-event-action" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex: 1;" onclick="closeEditModal()">
-                    Cancel
-                </button>
-                <button type="submit" class="main-home-btn-auth-submit" style="flex: 2; margin: 0;">
-                    Save Changes
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
 
 <input type="hidden" id="currentUserId" value="{{ currentUserId }}">
 <input type="hidden" id="currentUserRole" value="{{ currentUserRole }}">
 
 <!-- Custom Delete Confirmation Modal -->
-<div id="deleteConfirmModal" class="event-modal">
-    <div class="event-modal-content" style="max-width: 450px; text-align: center; padding: 3rem 2rem;">
-        <div class="delete-icon-wrapper mb-4" style="font-size: 4rem; color: #ff4d4d;">
-            <i class='bx bxs-error-circle'></i>
-        </div>
-        <h2 class="event-hero-title mb-3" style="font-size: 1.8rem;">Are you sure?</h2>
-        <p style="color: rgba(255,255,255,0.7); font-size: 1.1rem; margin-bottom: 2.5rem;">
-            This action cannot be undone. This event will be permanently removed from Horizon.
-        </p>
-        <div class="d-flex gap-3">
-            <button type="button" class="btn-event-action" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex: 1;" onclick="closeDeleteConfirm()">
-                Cancel
-            </button>
-            <button type="button" id="confirmDeleteBtn" class="btn-event-action" style="background: rgba(255, 77, 77, 0.15); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.3); flex: 1.5;">
-                Yes, Delete it
-            </button>
+<div id="deleteConfirmModal" class="glass-modal-overlay" onclick="closeGlassModal('deleteConfirmModal')">
+    <div class="glass-modal-container" style="max-width: 450px;" onclick="event.stopPropagation()">
+        <button type="button" class="glass-modal-close" onclick="closeGlassModal('deleteConfirmModal')">&times;</button>
+        
+        <div class="glass-modal-body p-0">
+            <div style="text-align: center; padding: 3.5rem 2.5rem;">
+                <div class="delete-icon-wrapper mb-4" style="width: 80px; height: 80px; background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; margin: 0 auto;">
+                    <i class='bx bxs-error-circle'></i>
+                </div>
+                <h2 class="text-white fw-bold mb-3" style="font-size: 2rem;">Are you sure?</h2>
+                <p style="color: rgba(255,255,255,0.6); font-size: 1.1rem; line-height: 1.6; margin-bottom: 2.5rem;">
+                    This action cannot be undone. This event will be permanently removed from Horizon.
+                </p>
+                <div class="d-flex gap-3">
+                    <button type="button" class="btn-event-action" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex: 1;" onclick="closeGlassModal('deleteConfirmModal')">
+                        Cancel
+                    </button>
+                    <button type="button" id="confirmDeleteBtn" class="btn-event-action" style="background: linear-gradient(135deg, #ff4d4d 0%, #dc2626 100%); color: #fff; border: none; flex: 1.5; font-weight: 700;">
+                        Yes, Delete it
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- PARTICIPATION MODAL -->
-<div id="participationModal" class="event-modal">
-    <div class="event-modal-content" style="max-width: 500px;">
-        <span class="event-modal-close" onclick="closeParticipationModal()">&times;</span>
-        <div class="main-home-auth-header">
-            <h1 class="main-home-auth-title" style="font-size: 2rem;">Event Participation</h1>
-            <p class="main-home-auth-subtitle">Confirm your spot for <span id="participationEventTitle" style="color: var(--event-accent); font-weight: 800;"></span></p>
-        </div>
-
-        {{ form_start(participationForm, {'attr': {'id': 'participationForm', 'class': 'main-home-auth-form'}}) }}
-            <div class="main-home-form-group">
-                <label class="main-home-form-label">Number of Guests</label>
-                {{ form_widget(participationForm.nb_accompagnants, {'attr': {'class': 'main-home-form-input', 'placeholder': 'How many people are joining you?'}}) }}
-                <div class="text-danger small">{{ form_errors(participationForm.nb_accompagnants) }}</div>
-            </div>
-
-            <div class="main-home-form-group">
-                <label class="main-home-form-label">Special Note / Comment</label>
-                {{ form_widget(participationForm.commentaire_participation, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Anything you want to let the host know?', 'rows': '3'}}) }}
-                <div class="text-danger small">{{ form_errors(participationForm.commentaire_participation) }}</div>
-            </div>
-
-            <div class="main-home-made-with-love mb-4" style="background: rgba(var(--main-home-accent-rgb), 0.05); padding: 1rem; border-radius: 15px; border: 1px solid rgba(var(--main-home-accent-rgb), 0.1);">
-                <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">By participating, your details (Name, Email) will be shared with the event host.</div>
-            </div>
-
-            <div class="d-flex gap-3">
-                <button type="button" class="btn-event-action" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex: 1;" onclick="closeParticipationModal()">
-                    Cancel
-                </button>
-                <button type="submit" class="main-home-btn-auth-submit" style="flex: 2; margin: 0;">
-                    Confirm Participation
-                </button>
-            </div>
-        {{ form_end(participationForm) }}
-    </div>
-</div>
+{# Participation Modal replaced by in-card switcher #}
 
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="{{ asset('frontend/js/form-validation.js') }}"></script>
     <script src="{{ asset('frontend/js/evenement.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize validation for Create Event form
+            if (document.getElementById('createEventFormDashboard')) {
+                const validator = new FormValidator('createEventFormDashboard');
+                // Store validator instance globally or on the form element if needed for AJAX error mapping
+                document.getElementById('createEventFormDashboard').validator = validator;
+            }
+             // Initialize validation for Edit Event form
+            if (document.getElementById('editEventForm')) {
+                const validator = new FormValidator('editEventForm');
+                document.getElementById('editEventForm').validator = validator;
+            }
+        });
+    </script>
     <script>
         // Create custom dropdown for select elements
         function createCustomDropdown(selectElement) {
@@ -720,7 +503,7 @@
             const eventGrid = document.getElementById('eventGrid');
             if (!eventGrid) return;
             
-            const eventsPerPage = 4;
+            const eventsPerPage = 3;
             const allEventCards = Array.from(eventGrid.querySelectorAll('.event-card'));
             const totalPages = Math.ceil(allEventCards.length / eventsPerPage);
             let currentPage = 1;

@@ -6,153 +6,123 @@
 document.addEventListener('DOMContentLoaded', function () {
     // --- CREATE MODAL ---
     const createModal = document.getElementById('createEventModal');
+    const editModal = document.getElementById('editEventModal');
+    const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+    const detailsModal = document.getElementById('eventDetailsModal');
+    const btnOpenEdit = document.getElementById('btnOpenEdit');
+    const btnOpenDeleteConfirm = document.getElementById('btnOpenDeleteConfirm');
+    // --- GLASS SWITCHER UTILITY ---
+    window.switchGlassCard = function (containerId, faceName) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        // Remove all possible active classes
+        container.classList.remove('active-extra', 'active-details', 'active-participate');
+
+        if (faceName !== 'main') {
+            container.classList.add(`active-${faceName}`);
+            // Trigger Flatpickr/Custom Select init for the newly shown face
+            if (typeof initializeCustomFormElements === 'function') {
+                setTimeout(initializeCustomFormElements, 100);
+            }
+        }
+    };
+
+    const btnHostEventDashboard = document.getElementById('btnHostEventDashboard');
+    if (btnHostEventDashboard) {
+        btnHostEventDashboard.onclick = () => switchGlassCard('evenementDashboardSwitcher', 'extra');
+    }
+
+    const scrollToDashboardAndHost = () => {
+        const switcher = document.getElementById('evenementDashboardSwitcher');
+        if (switcher) {
+            switcher.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            switchGlassCard('evenementDashboardSwitcher', 'extra');
+        }
+    };
+
     const btnOpenCreate = document.getElementById('btnOpenCreate');
     const btnOpenCreateTop = document.getElementById('btnOpenCreateTop');
     const btnEmptyCreate = document.getElementById('btnEmptyCreate');
-    const btnHostEventDashboard = document.getElementById('btnHostEventDashboard');
 
-    function lockScroll() {
-        document.body.style.overflow = 'hidden';
-        const scrollPill = document.querySelector('.scroll-down-pill-wrapper');
-        if (scrollPill) scrollPill.classList.add('hide');
-    }
+    if (btnOpenCreate) btnOpenCreate.onclick = scrollToDashboardAndHost;
+    if (btnOpenCreateTop) btnOpenCreateTop.onclick = scrollToDashboardAndHost;
+    if (btnEmptyCreate) btnEmptyCreate.onclick = scrollToDashboardAndHost;
 
-    function unlockScroll() {
-        document.body.style.overflow = '';
-        const scrollPill = document.querySelector('.scroll-down-pill-wrapper');
-        if (scrollPill) scrollPill.classList.remove('hide');
-    }
+    // --- GLOBAL ACTIONS FOR CARDS ---
+    window.openEditModalFromCard = function (btn) {
+        const data = btn.dataset;
+        if (!data) return;
 
-    function openCreateModal() {
-        if (!createModal) return;
-        lockScroll();
-        createModal.style.display = 'flex';
-        setTimeout(() => createModal.classList.add('show'), 10);
-    }
+        // Pre-fill Edit Form
+        const editTitre = document.getElementById('editTitre');
+        const editDesc = document.getElementById('editDesc');
+        const editLieu = document.getElementById('editLieu');
+        const editPlaces = document.getElementById('editPlaces');
+        const editRestants = document.getElementById('editRestants');
+        const editType = document.getElementById('editType');
+        const editDate = document.getElementById('editDate');
 
-    window.closeCreateModal = function () {
-        if (!createModal) return;
-        createModal.classList.remove('show');
-        unlockScroll();
-        setTimeout(() => createModal.style.display = 'none', 300);
-    }
+        if (editTitre) editTitre.value = data.title || "";
+        if (editDesc) editDesc.value = data.description || "";
+        if (editLieu) editLieu.value = data.lieu || "";
+        if (editPlaces) editPlaces.value = data.places || "";
+        if (editRestants) editRestants.value = data.restants || "";
+        if (editType) {
+            editType.value = data.type || "";
+            // Trigger custom dropdown update if it exists
+            const trigger = editType.closest('.custom-select-wrapper')?.querySelector('.selected-text');
+            if (trigger) trigger.textContent = editType.options[editType.selectedIndex]?.text || data.type;
+        }
 
-    if (btnOpenCreate) btnOpenCreate.onclick = openCreateModal;
-    if (btnOpenCreateTop) btnOpenCreateTop.onclick = openCreateModal;
-    if (btnEmptyCreate) btnEmptyCreate.onclick = openCreateModal;
-    if (btnHostEventDashboard) btnHostEventDashboard.onclick = openCreateModal;
+        if (editDate && data.dateRaw) {
+            editDate.value = data.dateRaw;
+        }
 
-    // --- DETAILS MODAL ---
-    const detailsModal = document.getElementById('eventDetailsModal');
-    const viewDetailsBtns = document.querySelectorAll('.view-event-details');
-
-    window.closeDetailsModal = function () {
-        if (!detailsModal) return;
-        detailsModal.classList.remove('show');
-        unlockScroll();
-        setTimeout(() => detailsModal.style.display = 'none', 300);
-    }
-
-    if (viewDetailsBtns.length > 0) {
-        viewDetailsBtns.forEach(btn => {
-            btn.onclick = function () {
-                const data = btn.dataset;
-
-                // Inject Data
-                document.getElementById('modalEventTitle').textContent = data.title;
-                document.getElementById('modalEventDescription').textContent = data.description;
-                document.getElementById('modalEventDate').textContent = data.date;
-                document.getElementById('modalEventLieu').textContent = data.lieu;
-                document.getElementById('modalEventType').textContent = data.type;
-                const typeDisplay = document.getElementById('modalEventTypeDisplay');
-                if (typeDisplay) typeDisplay.textContent = data.type;
-                document.getElementById('modalEventAvailability').textContent = `${data.restants} / ${data.places} Places`;
-
-                // Banner
-                const banner = document.getElementById('modalEventBanner');
-                if (data.image && data.image !== "") {
-                    banner.innerHTML = `<img src="${data.image}" alt="${data.title}"><div class="hero-overlay"></div>`;
-                } else {
-                    banner.innerHTML = `<div style="width: 100%; height: 100%; background: var(--event-gradient);"></div><div class="hero-overlay"></div>`;
+        if (data.statut) {
+            const editStatut = document.getElementById('editStatut');
+            if (editStatut) {
+                editStatut.value = data.statut;
+                const pillContainer = editStatut.closest('.glass-form-group');
+                if (pillContainer) {
+                    pillContainer.querySelectorAll('.status-pill').forEach(p => {
+                        if (p.dataset.value === data.statut) p.classList.add('active');
+                        else p.classList.remove('active');
+                    });
                 }
+            }
+        }
 
-                // Admin Actions Visibility (Creator or Moderator roles)
-                const currentUserId = (document.getElementById('currentUserId')?.value || "").trim();
-                const currentUserRole = (document.getElementById('currentUserRole')?.value || "").trim().toUpperCase();
-                const adminActions = document.getElementById('modalAdminActions');
-                const moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'];
+        const editForm = document.getElementById('editEventForm');
+        if (editForm) editForm.action = data.editPath;
 
-                const authorId = (data.authorId || "").trim();
-                const isAuthor = currentUserId !== "" && authorId !== "" && String(currentUserId) === String(authorId);
-                const isModerator = currentUserRole !== "" && moderatorRoles.includes(currentUserRole);
+        if (typeof openGlassModal === 'function') {
+            openGlassModal('editEventModal');
+        }
+    };
 
-                if (adminActions) {
-                    if (isAuthor || isModerator) {
-                        adminActions.classList.remove('d-none');
-                        adminActions.style.display = 'block';
-                    } else {
-                        adminActions.classList.add('d-none');
-                        adminActions.style.display = 'none';
-                    }
-                }
+    window.openDeleteConfirmModal = function (id, deletePath, token) {
+        const deleteEventForm = document.getElementById('deleteEventForm');
+        const deleteToken = document.getElementById('deleteEventToken');
+        if (deleteEventForm) deleteEventForm.action = deletePath;
+        if (deleteToken) deleteToken.value = token;
 
-                // Delete Form Setup
-                const deleteForm = document.getElementById('deleteEventForm');
-                const deleteToken = document.getElementById('deleteEventToken');
-                if (deleteForm) deleteForm.action = data.deletePath;
-                if (deleteToken) deleteToken.value = data.token;
+        if (typeof openGlassModal === 'function') {
+            openGlassModal('deleteConfirmModal');
+        }
+    };
 
-                // Edit Data storage for later
-                window.currentEventData = data;
+    // if (btnOpenCreate) btnOpenCreate.onclick = () => openGlassModal('createEventModal');
+    // if (btnOpenCreateTop) btnOpenCreateTop.onclick = () => openGlassModal('createEventModal');
+    // if (btnEmptyCreate) btnEmptyCreate.onclick = () => openGlassModal('createEventModal');
 
-                // Participation Button & Already Participated Label
-                const btnOpenParticipation = document.getElementById('btnOpenParticipation');
-                let alreadyLabel = document.getElementById('alreadyParticipatedLabel');
+    // Modals for details and participation have been replaced by card switchers.
+    // Edit and Delete modals are still used but triggered via global window functions.
 
-                if (btnOpenParticipation) {
-                    if (data.hasParticipated === 'true') {
-                        btnOpenParticipation.style.display = 'none';
-                        if (!alreadyLabel) {
-                            alreadyLabel = document.createElement('div');
-                            alreadyLabel.id = 'alreadyParticipatedLabel';
-                            alreadyLabel.className = 'main-home-made-with-love text-center mt-3';
-                            alreadyLabel.style.cssText = `
-                                background: rgba(255, 255, 255, 0.05);
-                                border: 1px solid rgba(255, 255, 255, 0.1);
-                                color: var(--event-accent);
-                                padding: 1.2rem;
-                                border-radius: 15px;
-                                font-weight: 600;
-                                backdrop-filter: blur(10px);
-                            `;
-                            alreadyLabel.innerHTML = '<i class="bx bxs-check-circle" style="font-size: 1.2rem; vertical-align: middle; margin-right: 0.5rem;"></i> You already requested to participate';
-                            btnOpenParticipation.parentNode.insertBefore(alreadyLabel, btnOpenParticipation.nextSibling);
-                        }
-                        alreadyLabel.style.display = 'block';
-                    } else {
-                        btnOpenParticipation.style.display = 'block';
-                        if (alreadyLabel) alreadyLabel.style.display = 'none';
-                    }
-                }
-
-                // Show Modal
-                detailsModal.style.display = 'flex';
-                lockScroll();
-                setTimeout(() => detailsModal.classList.add('show'), 10);
-            };
-        });
-    }
-
-    // --- EDIT MODAL ---
-    const editModal = document.getElementById('editEventModal');
-    const btnOpenEdit = document.getElementById('btnOpenEdit');
     const editForm = document.getElementById('editEventForm');
 
     window.closeEditModal = function () {
-        if (!editModal) return;
-        editModal.classList.remove('show');
-        unlockScroll();
-        setTimeout(() => editModal.style.display = 'none', 300);
+        closeGlassModal('editEventModal');
     }
 
     if (btnOpenEdit) {
@@ -176,11 +146,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 const editStatut = document.getElementById('editStatut');
                 if (editStatut) {
                     editStatut.value = data.statut;
-                    // Manually sync pills for immediate feedback before observer triggers
-                    const pillContainer = editStatut.closest('.main-home-form-group');
+                    const pillContainer = editStatut.closest('.glass-form-group');
                     if (pillContainer) {
-                        const pills = pillContainer.querySelectorAll('.status-pill');
-                        pills.forEach(p => {
+                        pillContainer.querySelectorAll('.status-pill').forEach(p => {
                             if (p.dataset.value === data.statut) p.classList.add('active');
                             else p.classList.remove('active');
                         });
@@ -188,28 +156,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            // Handle DateTime string for input (convert "F d, Y • H:i" back is hard, but we can try or use better data attr)
-            // Let's assume we need a raw ISO date for the input
-            // For now, I'll recommend the user to add a data-raw-date if it fails, 
-            // but I'll try to find a way if it was passed.
-            // Update: I'll go back and add data-date-raw to the card for better compatibility.
-
             editForm.action = data.editPath;
 
             // Transition: Close details, open edit
-            detailsModal.classList.remove('show'); // Slide out details
-            setTimeout(() => {
-                detailsModal.style.display = 'none';
-                editModal.style.display = 'flex';
-                // Lock scroll should already be active from viewDetails
-                setTimeout(() => editModal.classList.add('show'), 10);
-            }, 300);
+            if (typeof closeGlassModal === 'function' && typeof openGlassModal === 'function') {
+                closeGlassModal('eventDetailsModal');
+                setTimeout(() => {
+                    openGlassModal('editEventModal');
+                }, 300);
+            } else {
+                detailsModal.classList.remove('show');
+                setTimeout(() => {
+                    detailsModal.style.display = 'none';
+                    editModal.style.display = 'flex';
+                    setTimeout(() => editModal.classList.add('show'), 10);
+                }, 300);
+            }
         };
     }
 
     // --- DELETE CONFIRMATION ---
-    const deleteConfirmModal = document.getElementById('deleteConfirmModal');
-    const btnOpenDeleteConfirm = document.getElementById('btnOpenDeleteConfirm');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     const deleteEventForm = document.getElementById('deleteEventForm');
 
@@ -227,54 +193,89 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (btnOpenDeleteConfirm) {
         btnOpenDeleteConfirm.onclick = function () {
-            if (!deleteConfirmModal) return;
-            deleteConfirmModal.style.display = 'flex';
-            lockScroll();
-            setTimeout(() => deleteConfirmModal.classList.add('show'), 10);
+            if (typeof openGlassModal === 'function') {
+                openGlassModal('deleteConfirmModal');
+            } else {
+                if (!deleteConfirmModal) return;
+                deleteConfirmModal.style.display = 'flex';
+                lockScroll();
+                setTimeout(() => deleteConfirmModal.classList.add('show'), 10);
+            }
         };
     }
 
     if (confirmDeleteBtn && deleteEventForm) {
-        confirmDeleteBtn.onclick = function () {
-            deleteEventForm.submit();
-        };
-    }
+        confirmDeleteBtn.onclick = async function () {
+            this.disabled = true;
+            this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Deleting...';
 
-    // --- PARTICIPATION MODAL ---
-    const participationModal = document.getElementById('participationModal');
-    const btnOpenParticipation = document.getElementById('btnOpenParticipation');
-    const participationForm = document.getElementById('participationForm');
+            try {
+                const formData = new FormData(deleteEventForm);
+                const response = await fetch(deleteEventForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
 
-    window.closeParticipationModal = function () {
-        if (!participationModal) return;
-        participationModal.classList.remove('show');
-        if (!detailsModal.classList.contains('show')) {
-            unlockScroll();
-        }
-        setTimeout(() => participationModal.style.display = 'none', 300);
-    }
-
-    if (btnOpenParticipation) {
-        btnOpenParticipation.onclick = function () {
-            const data = window.currentEventData;
-            if (!data) return;
-
-            // Check if logged in
-            const currentUserId = document.getElementById('currentUserId')?.value;
-            if (!currentUserId || currentUserId === "") {
-                window.location.href = '/sign-in'; // Correct login route
-                return;
+                const data = await response.json();
+                if (data.success) {
+                    showCoolPopup('Event Removed', data.message, 'success');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showCoolPopup('Error', data.message || 'Could not delete event.', 'error');
+                    this.disabled = false;
+                    this.innerHTML = 'Yes, Delete it';
+                }
+            } catch (err) {
+                console.error('Delete Error:', err);
+                showCoolPopup('Network Error', 'Check your connection.', 'error');
+                this.disabled = false;
+                this.innerHTML = 'Yes, Delete it';
             }
-
-            // Populate Participation Modal
-            document.getElementById('participationEventTitle').textContent = data.title;
-            participationForm.action = `/participation/new/${data.id}`;
-
-            // Show Modal
-            participationModal.style.display = 'flex';
-            lockScroll();
-            setTimeout(() => participationModal.classList.add('show'), 10);
         };
+    }
+
+
+    // --- PARTICIPATION AJAX ---
+    // Delegation handles both standalone forms and in-card forms
+    document.addEventListener('submit', function (e) {
+        const form = e.target.closest('form[data-ajax="true"]');
+        if (form && form.action.includes('/participation/new')) {
+            e.preventDefault();
+            handleAjaxParticipation(form);
+        }
+    });
+
+    async function handleAjaxParticipation(form) {
+        const btn = form.querySelector('button[type="submit"]');
+        if (!btn) return;
+        const originalHTML = btn.innerHTML;
+
+        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Processing...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                showCoolPopup('Spot Secured!', data.message, 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showCoolPopup('Error', data.message || 'Submission failed.', 'error');
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        } catch (err) {
+            console.error('Participation Error:', err);
+            showCoolPopup('Error', 'An unexpected error occurred.', 'error');
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }
     }
 
     // --- CALENDAR LOGIC ---
@@ -425,92 +426,143 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initial render
     renderCalendar();
 
+    // --- CUSTOM PILL SELECTORS (Status) ---
+    function initStatusPills() {
+        const selectors = document.querySelectorAll('.custom-status-selector');
+        selectors.forEach(selector => {
+            selector.onclick = function (e) {
+                const pill = e.target.closest('.status-pill');
+                if (!pill) return;
+
+                const value = pill.dataset.value;
+                const container = pill.closest('.glass-form-group');
+                const select = container ? container.querySelector('select') : null;
+
+                if (select) {
+                    select.value = value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+
+                // Update UI
+                selector.querySelectorAll('.status-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+            };
+        });
+    }
+
+    initStatusPills();
+
     // Outer Click to Close
     window.onclick = function (event) {
-        if (event.target == createModal) closeCreateModal();
-        if (event.target == detailsModal) closeDetailsModal();
+        if (event.target == createModal) closeGlassModal('createEventModal');
         if (event.target == editModal) closeEditModal();
         if (event.target == deleteConfirmModal) closeDeleteConfirm();
-        if (event.target == participationModal) closeParticipationModal();
 
         // Hide preview when clicking elsewhere
-        if (!event.target.closest('.calendar-event-preview') && !event.target.closest('.calendar-day')) {
+        const previewPopover = document.getElementById('calendarEventPreview');
+        if (previewPopover && !event.target.closest('.calendar-event-preview') && !event.target.closest('.calendar-day')) {
             hideEventPreview();
         }
     }
 
-    // --- AJAX EVENT SUBMISSION (NEW) ---
-    const createEventForm = document.getElementById('createEventForm');
-    if (createEventForm) {
-        createEventForm.onsubmit = async function (e) {
+    // --- AJAX EVENT SUBMISSIONS (Unified Delegation) ---
+    document.addEventListener('submit', function (e) {
+        const form = e.target.closest('form[data-ajax="true"]');
+        if (!form) return;
+
+        // Skip participation (handled separately or let's unify)
+        if (form.action.includes('/participation/new')) {
             e.preventDefault();
-            const btn = this.querySelector('button[type="submit"]');
-            const originalHTML = btn.innerHTML;
+            handleAjaxParticipation(form);
+            return;
+        }
 
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Organizing...';
-            btn.disabled = true;
-
-            const formData = new FormData(this);
-            try {
-                const response = await fetch(this.action || '/evenement/new', {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    showCoolPopup('Event Live!', 'Your event has been successfully organized.', 'success');
-                    setTimeout(() => window.location.reload(), 2000);
-                } else {
-                    const errorMsg = data.message || (data.errors ? data.errors.join('<br>') : 'Validation failed.');
-                    showCoolPopup('Check your event', errorMsg, 'error');
-                    btn.innerHTML = originalHTML;
-                    btn.disabled = false;
-                }
-            } catch (error) {
-                console.error('Create Event Error:', error);
-                showCoolPopup('Network Error', 'Please try again later.', 'error');
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
-            }
-        };
-    }
-
-    const editEventForm = document.getElementById('editEventForm');
-    if (editEventForm) {
-        editEventForm.onsubmit = async function (e) {
+        // Handle Event Create/Edit
+        // Matches: #createEventFormDashboard OR /evenement/new OR /evenement/{id}/edit
+        if (form.id === 'createEventFormDashboard' || form.action.includes('/evenement/new') || (form.action.includes('/evenement/') && form.action.includes('/edit'))) {
             e.preventDefault();
-            const btn = this.querySelector('button[type="submit"]');
-            const originalHTML = btn.innerHTML;
+            handleAjaxEventAction(form);
+        }
+    });
 
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Saving...';
-            btn.disabled = true;
+    async function handleAjaxEventAction(form) {
+        const btn = form.querySelector('button[type="submit"]');
+        if (!btn) return;
+        const originalHTML = btn.innerHTML;
+        const isEdit = form.action.includes('/edit');
 
-            const formData = new FormData(this);
-            try {
-                const response = await fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span> ${isEdit ? 'Saving...' : 'Organizing...'}`;
+        btn.disabled = true;
 
-                const data = await response.json();
-                if (data.success) {
-                    showCoolPopup('Updated!', 'Your event details have been saved.', 'success');
-                    setTimeout(() => window.location.reload(), 2000);
+        const formData = new FormData(form);
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                const title = isEdit ? 'Updated!' : 'Event Live!';
+                const message = isEdit ? 'Your event details have been saved.' : 'Your event has been successfully organized.';
+                showCoolPopup(title, message, 'success');
+
+                if (!isEdit) {
+                    // CREATE: Reset form and close
+                    form.reset();
+                    // Reset Flatpickr
+                    const dateInput = form.querySelector('.flatpickr-input');
+                    if (dateInput && dateInput._flatpickr) dateInput._flatpickr.clear();
+
+                    // Reset custom selects/pills
+                    // (Optional: reset dynamic UI)
+
+                    // Close switcher
+                    if (typeof switchGlassCard === 'function') {
+                        switchGlassCard('evenementDashboardSwitcher', 'main');
+                    }
                 } else {
-                    const errorMsg = data.message || (data.errors ? data.errors.join('<br>') : 'Validation failed.');
-                    showCoolPopup('Check your edit', errorMsg, 'error');
-                    btn.innerHTML = originalHTML;
-                    btn.disabled = false;
+                    // EDIT: Close modal/switcher
+                    if (typeof closeGlassModal === 'function') {
+                        closeGlassModal('editEventModal');
+                    }
+                    // If using in-card switcher
+                    const cardSwitcher = form.closest('.glass-switcher');
+                    if (cardSwitcher) {
+                        const switcherId = cardSwitcher.id;
+                        if (typeof switchGlassCard === 'function') {
+                            switchGlassCard(switcherId, 'details');
+                        }
+                    }
                 }
-            } catch (error) {
-                console.error('Edit Event Error:', error);
-                showCoolPopup('Network Error', 'Please try again later.', 'error');
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
+
+                // Ideally we would update the event list here, but without full SPA logic, 
+                // we'll rely on the user refreshing later or implemented a forced reload if absolutely needed.
+                // User asked to "remain in the same page", so we DO NOT reload.
+
+            } else {
+                if (data.errors && typeof data.errors === 'object' && !Array.isArray(data.errors)) {
+                    if (form.validator) {
+                        form.validator.mapErrors(data.errors);
+                        showCoolPopup('Please Correct the Errors', 'Some fields require your attention.', 'error');
+                    } else {
+                        let msg = "Validation failed:<br>";
+                        for (let key in data.errors) { msg += `- ${data.errors[key]}<br>`; }
+                        showCoolPopup('Please Correct the Errors', msg, 'error');
+                    }
+                } else {
+                    const errorMsg = data.message || (Array.isArray(data.errors) ? data.errors.join('<br>') : 'Validation failed.');
+                    showCoolPopup('Check your form', errorMsg, 'error');
+                }
             }
-        };
+        } catch (error) {
+            console.error('Event Action Error:', error);
+            showCoolPopup('Network Error', 'Please try again later.', 'error');
+        } finally {
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }
     }
 });
+

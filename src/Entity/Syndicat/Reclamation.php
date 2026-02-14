@@ -22,7 +22,7 @@ class Reclamation
 
     #[ORM\Column(type: 'string', length: 255, name: 'titrereclamations')]
     #[Assert\NotBlank(message: "The subject cannot be blank.")]
-    #[Assert\Length(min: 10, minMessage: "The subject must be at least 10 characters long.")]
+    #[Assert\Length(min: 5, minMessage: "The subject must be at least 5 characters long.")]
     #[Assert\Regex(
         pattern: "/^[a-zA-Z0-9\s.,!?'\"-]*$/",
         message: "The subject can only contain letters, numbers, spaces, and common punctuation."
@@ -31,7 +31,7 @@ class Reclamation
 
     #[ORM\Column(type: 'string', length: 255, name: 'descreclamation')]
     #[Assert\NotBlank(message: "The description cannot be blank.")]
-    #[Assert\Length(min: 50, minMessage: "The description must be at least 50 characters long.")]
+    #[Assert\Length(min: 10, minMessage: "The description must be at least 10 characters long.")]
     private $descreclamation;
 
     #[ORM\Column(type: 'datetime', name: 'datereclamation')]

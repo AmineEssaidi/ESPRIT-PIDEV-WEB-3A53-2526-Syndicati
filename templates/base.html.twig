@@ -9,6 +9,8 @@
     <!-- Preload critical resources -->
     {% if app.request.get('_route') starts with 'admin_' %}
         <link rel="preload" href="{{ asset('css/admin.css') }}" as="style">
+        <link rel="stylesheet" href="{{ asset('frontend/css/syndicat.css') }}">
+        <link rel="stylesheet" href="{{ asset('frontend/css/glass-modal.css') }}">
         <link rel="preconnect" href="https://demos.themeselection.com">
         <!-- CSS Dependencies -->
         <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
@@ -20,7 +22,7 @@
         <link rel="preconnect" href="https://demos.themeselection.com">
         <!-- CSS Dependencies -->
         <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
-        <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+        <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
         <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
     {% endif %}
 
@@ -30,6 +32,7 @@
 {% set is_admin = app.request.get('_route') starts with 'admin_' %}
 
 <body class="{{ is_admin ? 'admin-body' : 'layout-menu-fixed' }}">
+    {% include 'frontend/shared/_global_video_background.html.twig' %}
     <!-- Page Loader -->
     <div class="page-loader" id="pageLoader">
         <div class="loader-content">
@@ -74,9 +77,39 @@
     <script src="{{ asset('js/app.js') }}" defer></script>
     <script src="{{ asset('js/page-loader.js') }}"></script>
     {% if is_admin %}
+        <script src="{{ asset('js/admin-core.js') }}"></script>
         <script src="{{ asset('js/admin-sidebar.js') }}" defer></script>
+        <script src="{{ asset('js/admin-delete.js') }}" defer></script>
+        {% include 'admin/_delete_popup.html.twig' %}
     {% endif %}
 
     {% block javascripts %}{% endblock %}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // function to disable validation
+            const disableValidation = (form) => {
+                form.setAttribute('novalidate', 'novalidate');
+            };
+
+            // Disable for existing forms
+            document.querySelectorAll('form').forEach(disableValidation);
+
+            // Observer for dynamic forms
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.tagName === 'FORM') {
+                            disableValidation(node);
+                        } else if (node.querySelectorAll) {
+                            node.querySelectorAll('form').forEach(disableValidation);
+                        }
+                    });
+                });
+            });
+
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
 </body>
 </html>

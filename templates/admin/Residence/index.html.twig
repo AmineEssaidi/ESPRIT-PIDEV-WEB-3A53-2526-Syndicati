@@ -1,2104 +1,881 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Residences - Liquid Glass Admin{% endblock %}
+
 {% block stylesheets %}
-	<style>
-        /* Global Modal Reset & Box Sizing */
-        .users-edit-modal *, .users-edit-modal *::before, .users-edit-modal *::after {
+    <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
+    <style>
+        .glass-switcher { position: relative; width: 100%; transition: height 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
+        .glass-switcher-face { width: 100%; }
+
+        /* Hide scrollbars for specific modal containers while allowing them globally */
+        .glass-switcher-face::-webkit-scrollbar,
+        .users-edit-modal::-webkit-scrollbar,
+        .users-edit-modal-body::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        .glass-switcher-face,
+        .users-edit-modal,
+        .users-edit-modal-body {
+            scrollbar-width: none !important; /* Firefox */
+            -ms-overflow-style: none !important; /* IE 10+ */
+        }
+
+        /* Ensure box-sizing prevents padding overflow */
+        .users-edit-modal, .users-edit-modal * {
             box-sizing: border-box !important;
         }
 
-        /* Pill Tab Navigation */
-        .users-pagination-wrapper { width: 100%; max-width: 100%; }
-        .users-pagination-pills {
-            position: relative;
-            display: inline-flex;
-            background: linear-gradient(135deg, rgba(28, 32, 42, 0.85) 80%, rgba(22, 26, 34, 0.85) 100%);
-            border-radius: 999px;
-            padding: 0.35rem;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-            gap: 0.4rem;
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255,255,255,0.08);
+        /* Premium Modal Face-Lift - Obsidian Edition */
+        /* Premium Modal Face-Lift - Obsidian Edition */
+        .users-edit-modal {
+            display: none;
+            position: relative !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 100%;
+            z-index: 10;
+            padding: 0 !important; /* REMOVED PADDING */
+            align-items: flex-start; 
+            justify-content: flex-start; 
+            background: transparent; 
         }
+        .users-edit-modal::-webkit-scrollbar { display: none; /* Chrome/Safari/Webkit */ }
 
-        .pill-tab {
-            position: relative;
-            background: transparent;
-            border: none;
-            color: rgba(191,201,216,0.8);
-            padding: 0.75rem 2rem;
-            border-radius: 999px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 2;
-            white-space: nowrap;
-        }
-        .pill-tab:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.05);
-        }
-        .pill-tab.active {
-            background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-            color: #fff;
-            text-shadow: none;
-            box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
-        }
-        .residence-page-content {
-            animation: fadeIn 0.4s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Light theme for pill navigation */
-        [data-theme="light"] .users-pagination-pills {
-            background: linear-gradient(135deg, #f5f7fa 80%, #e3e8f7 100%);
-            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-            border-color: #e3e8f7;
-        }
-        [data-theme="light"] .pill-tab {
-            color: #5c6370;
-        }
-        [data-theme="light"] .pill-tab:hover {
-            color: #23272f;
-            background: rgba(0,0,0,0.02);
-        }
-        [data-theme="light"] .pill-tab.active {
-            background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-            color: #fff;
-            text-shadow: none;
-            box-shadow: 0 4px 16px rgba(0,123,255,0.15);
-        }
-
-
-		/* Light theme improvements for search, sort, arrow pills (from Users) */
-		[data-theme="light"] .residence-sort-dir-pill {
-			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-			color: #23272f;
-		}
-		[data-theme="light"] .residence-sort-dir-icon svg polyline {
-			stroke: #0072ff;
-		}
-		[data-theme="light"] .residence-sort-pill {
-			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-			color: #fff !important;
-			box-shadow: 0 2px 8px rgba(0,123,255,0.08);
-		}
-		[data-theme="light"] .residence-search-pill {
-			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-		}
-		[data-theme="light"] .residence-search-input {
-			color: #23272f;
-		}
-		[data-theme="light"] .residence-search-icon {
-			color: #0072ff;
-		}
-		/* --- Residence ToolBar Styles --- */
-		.residence-table-toolbar { width: 100%; display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; justify-content: space-between; }
-		.residence-search-pill {
-			display: flex;
-			align-items: center;
-			background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
-			border-radius: 999px;
-			padding: 0.3rem 1.1rem;
-			box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-			position: relative;
-		}
-		.residence-search-input {
-			background: transparent;
-			border: none;
-			color: #fff;
-			font-size: 1rem;
-			outline: none;
-			width: 160px;
-			padding: 0.2rem 0.5rem 0.2rem 0;
-		}
-		.residence-search-icon {
-			color: #bfc9d8;
-			font-size: 1.2rem;
-			margin-left: 0.3rem;
-		}
-		.residence-sort-dir-pill {
-			background: linear-gradient(90deg, #2a2e39 0%, #23272f 100%);
-			border: none;
-			border-radius: 999px;
-			padding: 0.3rem 0.7rem;
-			box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			cursor: pointer;
-			transition: background 0.18s, color 0.18s;
-			outline: none;
-			font-size: 1.1rem;
-			color: #fff;
-		}
-		.residence-sort-dir-pill:active {
-			background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
-		}
-		.residence-sort-pill {
-			position: relative;
-			z-index: 20;
-			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-			border-radius: 999px;
-			padding: 0.3rem 1.1rem;
-			box-shadow: 0 2px 8px rgba(0,123,255,0.10);
-			display: flex;
-			align-items: center;
-			min-width: 160px;
-			cursor: pointer;
-			user-select: none;
-			color: #fff;
-			transition: background 0.18s, color 0.18s;
-		}
-		.residence-sort-selected {
-			flex: 1;
-			font-size: 1rem;
-			font-weight: 600;
-			padding-right: 1.2rem;
-		}
-		.residence-sort-arrow {
-			display: inline-block;
-			width: 1.1em;
-			height: 1.1em;
-			background: url('data:image/svg+xml;utf8,<svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>') no-repeat center/contain;
-			margin-left: -1.1em;
-		}
-		.residence-sort-dropdown {
-			position: absolute;
-			left: 0;
-			top: 110%;
-			min-width: 100%;
-			background: rgba(30, 60, 120, 0.85);
-			border-radius: 1.2em;
-			box-shadow: 0 8px 32px rgba(0,198,255,0.18);
-			backdrop-filter: blur(16px) saturate(160%);
-			z-index: 10;
-			padding: 0.3em 0;
-			display: flex;
-			flex-direction: column;
-			gap: 0.1em;
-			animation: residence-sort-dropdown-fade 0.18s cubic-bezier(.4,1.4,.6,1) both;
-		}
-		@keyframes residence-sort-dropdown-fade {
-			0% { opacity: 0; transform: translateY(-10px) scale(0.98); }
-			100% { opacity: 1; transform: translateY(0) scale(1); }
-		}
-		.residence-sort-option {
-			padding: 0.7em 1.5em;
-			border-radius: 1em;
-			color: #fff;
-			font-size: 1rem;
-			cursor: pointer;
-			transition: background 0.13s, color 0.13s;
-		}
-		.residence-sort-option:hover, .residence-sort-option.active {
-			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-		}
-
-        /* Modal Styles */
-        .users-edit-modal { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 2rem; }
-        .users-edit-modal-backdrop { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); cursor: pointer; }
-        .users-edit-modal-card { position: relative; background: linear-gradient(165deg, rgba(32, 38, 52, 0.98) 0%, rgba(20, 24, 32, 0.98) 100%); border-radius: 24px; box-shadow: 0 25px 80px rgba(0,0,0,0.7); max-width: 800px; width: 100%; border: 1px solid rgba(255,255,255,0.12); overflow: visible; max-height: 90vh; display: flex; flex-direction: column; }
-        .users-edit-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.75rem 2.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .users-edit-modal-header h3 { margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
-        .users-edit-modal-subtitle { margin: 0.5rem 0 0 0; font-size: 0.9rem; color: rgba(191,201,216,0.8); font-weight: 400; }
-        .users-edit-modal-close { background: rgba(255,255,255,0.08); border: none; color: #bfc9d8; width: 2.4rem; height: 2.4rem; border-radius: 50%; font-size: 1.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.25s ease; }
-        .users-edit-modal-close:hover { background: rgba(255,255,255,0.15); color: #fff; transform: rotate(90deg); }
-        .users-edit-modal-body { padding: 2.25rem 2.5rem; display: flex; flex-direction: column; align-items: stretch; overflow-y: auto; scrollbar-width: none; overflow-x: visible; }
-        .users-edit-modal-body::-webkit-scrollbar { display: none; }
-
-        /* Custom Form Groups replacing forum-view-row */
-        .residence-form-group { margin-bottom: 1.75rem; width: 100%; display: flex; flex-direction: column; }
-        .residence-edit-label { display: block; margin-bottom: 0.75rem; color: #bfc9d8; font-weight: 600; font-size: 0.95rem; letter-spacing: 0.02em; }
-        .residence-edit-input { width: 100%; border: 1px solid rgba(255, 255, 255, 0.12); padding: 0.95rem 1.25rem; border-radius: 16px; background: rgba(0, 0, 0, 0.3); color: #fff; font-size: 1rem; outline: none; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); border-left: 4px solid transparent; }
-        .residence-edit-input:focus { border-color: rgba(0, 198, 255, 0.5); border-left-color: #00c6ff; background: rgba(0, 0, 0, 0.45); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-        
-        [data-theme="light"] .residence-edit-input { background: #f0f4f8; border-color: #dce2e8; color: #1c202a; }
-        [data-theme="light"] .residence-edit-label { color: #4a5568; }
-
-        /* Modal Actions Grid */
-        .users-edit-modal-actions { display: flex; gap: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 1rem; align-items: center; }
-        .users-edit-modal-actions-spacer { flex: 1; }
-
-        /* Custom Dropdown UI Styles */
-        .custom-glass-dropdown {
-            position: relative;
-            width: 100%;
-            user-select: none;
-        }
-        .custom-glass-dropdown-trigger {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 16px;
-            padding: 0 1.25rem;
-            color: #fff;
+        .users-edit-modal.active {
             display: flex;
-            align-items: center;
+            animation: modalFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(40px) scale(0.97); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        .users-edit-modal-card {
+            background: transparent !important; /* REMOVED BACKGROUND */
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border: none !important; 
+            box-shadow: none !important; 
+            width: 100% !important;
+            max-width: 100% !important; 
+            margin: 0 !important; 
+            
+            /* Vertical Constraints */
+            min-height: auto !important; 
+            display: flex !important;
+            flex-direction: column !important;
+
+            border-radius: 0 !important; 
+            overflow: visible; 
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .users-edit-modal-header {
+            flex-shrink: 0; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            padding: 1.5rem 2rem !important; /* REDUCED PADDING */
+            display: flex;
             justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            font-size: 1rem;
-            height: 56px;
-            border-left: 4px solid transparent;
-        }
-        .custom-glass-dropdown-trigger:hover {
-            border-color: rgba(0, 198, 255, 0.45);
-            background: rgba(0, 0, 0, 0.4);
-        }
-        .custom-glass-dropdown.open .custom-glass-dropdown-trigger {
-            border-color: #0072ff;
-            border-left-color: #00c6ff;
-            box-shadow: 0 10px 30px rgba(0, 114, 255, 0.15);
-        }
-        .custom-glass-dropdown-arrow {
-            font-size: 1.4rem;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            color: #00c6ff;
-        }
-        .custom-glass-dropdown.open .custom-glass-dropdown-arrow {
-            transform: rotate(180deg);
-        }
-        .custom-glass-dropdown-menu {
-            position: absolute;
-            top: 115%;
-            left: 0;
-            width: 100%;
-            background: rgba(26, 30, 40, 0.98);
-            backdrop-filter: blur(35px) saturate(210%);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            padding: 0.75rem;
-            max-height: 250px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            animation: dropdown-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
-        }
-        @keyframes dropdown-pop {
-            0% { opacity: 0; transform: translateY(-10px) scale(0.95); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .custom-glass-dropdown-menu::-webkit-scrollbar { width: 5px; }
-        .custom-glass-dropdown-menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
-
-        .custom-glass-dropdown-option {
-            padding: 0.9rem 1.25rem;
-            border-radius: 12px;
-            color: rgba(191, 201, 216, 0.9);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 1rem;
-            margin-bottom: 4px;
-        }
-        .custom-glass-dropdown-option:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: #fff;
-            transform: scale(1.02);
-            padding-left: 1.5rem;
-        }
-        .custom-glass-dropdown-option.selected {
-            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-            color: #fff;
-            font-weight: 700;
-            box-shadow: 0 4px 15px rgba(0, 114, 255, 0.3);
-        }
-
-        /* Essential Fix for Overlapping boxes */
-        .hidden-select {
-            display: none !important;
-            visibility: hidden !important;
-            height: 0 !important;
-            width: 0 !important;
-            position: absolute !important;
-            opacity: 0 !important;
-            overflow: hidden !important;
-        }
-
-        /* Responsive Grid System */
-        .modal-grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
-            width: 100%;
-            margin-bottom: 1.75rem;
-        }
-
-        /* Custom File Input UI */
-        .custom-file-wrapper { position: relative; width: 100%; }
-        .custom-file-trigger { 
-            width: 100%; 
-            background: rgba(0, 0, 0, 0.3); 
-            border: 1px dashed rgba(255, 255, 255, 0.2); 
-            border-radius: 16px; 
-            padding: 1rem 1.5rem; 
-            display: flex; 
-            align-items: center; 
-            gap: 1rem; 
-            cursor: pointer; 
-            transition: all 0.3s ease; 
-        }
-        .custom-file-trigger:hover { background: rgba(0, 198, 255, 0.05); border-color: #00c6ff; }
-        .custom-file-icon { font-size: 1.8rem; color: #00c6ff; }
-        .custom-file-text { flex: 1; color: rgba(191, 201, 216, 0.8); font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .custom-file-btn { background: rgba(255, 255, 255, 0.1); color: #fff; padding: 0.5rem 1rem; border-radius: 10px; font-weight: 600; font-size: 0.85rem; }
-
-        /* Legacy Compatibility Row */
-        .forum-view-row { display: flex; gap: 1.5rem; padding: 1.25rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .forum-view-label { min-width: 120px; font-size: 0.9rem; font-weight: 700; color: rgba(191,201,216,0.7); text-transform: uppercase; letter-spacing: 0.08em; }
-        .forum-view-value { flex: 1; font-size: 1.05rem; color: #e3e8f7; line-height: 1.6; }
-
-        /* General Buttons Enhancements */
-        .users-btn-cancel, .users-btn-modify, .users-btn-delete { 
-            border: none; border-radius: 14px; padding: 0.9rem 1.75rem; 
-            font-size: 1.05rem; font-weight: 700; cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            display: inline-flex; align-items: center; gap: 0.75rem; 
-        }
-        .users-btn-cancel { background: rgba(255, 255, 255, 0.08); color: #bfc9d8; }
-        .users-btn-cancel:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: translateY(-2px); }
-        .users-btn-modify { background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); color: #fff; box-shadow: 0 10px 25px rgba(0, 114, 255, 0.3); }
-        .users-btn-modify:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0, 114, 255, 0.45); }
-        .users-btn-delete { background: linear-gradient(135deg, #ff3b30 0%, #ff2d92 100%); color: #fff; box-shadow: 0 10px 25px rgba(255, 45, 146, 0.25); }
-        .users-btn-delete:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(255, 45, 146, 0.4); }
-
-        [data-theme="light"] .custom-glass-dropdown-trigger { background: #f0f4f8; border-color: #dce2e8; color: #1c202a; }
-        [data-theme="light"] .custom-glass-dropdown-menu { background: #fff; border-color: #dce2e8; }
-        [data-theme="light"] .custom-file-trigger { background: #f0f4f8; border-color: #dce2e8; }
-
-		/* Blocs Checkbox Styling */
-		.blocs-checkbox-container {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 0.75rem;
-			padding: 0.5rem 0;
-		}
-		.blocs-checkboxes {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 0.75rem;
-			width: 100%;
-		}
-		.blocs-checkboxes > div {
-			flex: 0 0 auto;
-		}
-		.blocs-checkboxes input[type="checkbox"] {
-			/* Hide the actual input but keep it in flow/accessible if needed, 
-			   or just display:none since we rely on the label's 'for' attribute */
-			display: none; 
-		}
-		.blocs-checkboxes label {
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			padding: 0.75rem 1.5rem;
-			background: rgba(0, 0, 0, 0.3);
-			border: 1.5px solid rgba(255, 255, 255, 0.1);
-			border-radius: 12px;
-			color: rgba(255, 255, 255, 0.7);
-			font-weight: 600;
-			font-size: 0.95rem;
-			cursor: pointer;
-			transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-			min-width: 80px;
-			user-select: none;
-		}
-		.blocs-checkboxes label:hover {
-			background: rgba(0, 198, 255, 0.08);
-			border-color: rgba(0, 198, 255, 0.3);
-			color: #fff;
-			transform: translateY(-2px);
-		}
-		.blocs-checkboxes input[type="checkbox"]:checked + label {
-			background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-			border-color: transparent;
-			color: #fff;
-			box-shadow: 0 8px 20px rgba(0, 114, 255, 0.35);
-			transform: scale(1.05);
-		}
-		[data-theme="light"] .blocs-checkboxes label {
-			background: #f0f4f8;
-			border-color: #dce2e8;
-			color: #4a5568;
-		}
-		[data-theme="light"] .blocs-checkboxes label:hover {
-			background: rgba(0, 198, 255, 0.1);
-			border-color: #00c6ff;
-			color: #0072ff;
-		}
-		[data-theme="light"] .blocs-checkboxes input[type="checkbox"]:checked + label {
-			background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-			color: #fff;
-		}
-
-        /* --- SICK UI COOL POPUP SYSTEM --- */
-        #cool-popup-wrapper {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: none;
             align-items: center;
-            justify-content: center;
-            z-index: 30000;
+            background: transparent; 
         }
-        .cool-popup-backdrop {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(12px);
+        .users-edit-modal-header h3 {
+            font-size: 2rem !important;
+            font-weight: 900 !important;
+            letter-spacing: -0.04em !important;
+            margin: 0 !important;
+            color: #fff !important;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
-        .cool-popup-card {
-            position: relative;
-            background: linear-gradient(165deg, rgba(32, 38, 52, 0.95) 0%, rgba(20, 24, 32, 0.95) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 28px;
-            padding: 2.5rem;
+        .users-edit-modal-subtitle {
+            font-size: 1rem !important;
+            color: rgba(255, 255, 255, 0.45) !important;
+            margin-top: 0.5rem !important;
+            font-weight: 500;
+        }
+        .users-edit-modal-close {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 50% !important;
+            color: rgba(255, 255, 255, 0.6) !important;
+            font-size: 1.6rem !important;
+            display: flex !important;
+            align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+        .users-edit-modal-close:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            transform: rotate(180deg) scale(1.1);
+            color: #fff !important;
+        }
+        .users-edit-modal-body {
+            padding: 2rem !important; /* REDUCED PADDING */
+            overflow-y: auto !important; 
+            max-height: 80vh; /* Prevent it from growing too long */
+            flex-grow: 1; 
+            
+            /* Hide scrollbar completely */
+            scrollbar-width: none; 
+            -ms-overflow-style: none; 
+        }
+        .users-edit-modal-body::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Webkit */
+        }
+
+        /* Obsidian Form Styling */
+        .glass-form-group {
+            margin-bottom: 1.5rem; /* REDUCED MARGIN */
+        }
+        .glass-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.3) !important;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            transition: all 0.3s ease;
+        }
+        .glass-form-group:focus-within .glass-label { color: rgba(255, 255, 255, 0.8) !important; transform: translateX(5px); }
+        .glass-input, .form-control.bg-dark {
             width: 100%;
-            max-width: 440px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            transform: scale(0.9);
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: rgba(0, 0, 0, 0.5) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            border-radius: 20px !important;
+            padding: 1.2rem 1.6rem !important;
+            color: #fff !important;
+            font-size: 1.1rem !important;
+            font-weight: 500;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5) !important;
         }
-        #cool-popup-wrapper.active .cool-popup-card {
-            transform: scale(1);
-            opacity: 1;
+        .glass-input:focus, .form-control.bg-dark:focus {
+            background: rgba(0, 0, 0, 0.7) !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 20px 40px rgba(0,0,0,0.4) !important;
+            outline: none !important;
+            transform: scale(1.01) translateY(-2px);
         }
-        .cool-popup-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
+
+        /* Obsidian View Details */
+        .glass-view-row {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 2.5rem;
+            align-items: flex-start; /* ALIGNED TO TOP FOR LONG TEXT */
+            padding: 1.8rem 2.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 24px;
+            margin-bottom: 1.5rem;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
         }
-        .cool-popup-icon.success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-        .cool-popup-icon.error { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-        .cool-popup-icon.confirm { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-        .cool-popup-title { color: #fff; font-size: 1.75rem; font-weight: 800; margin-bottom: 0.75rem; }
-        .cool-popup-message { color: rgba(191, 201, 216, 0.85); font-size: 1.05rem; line-height: 1.6; margin-bottom: 2rem; }
-        .cool-popup-actions { display: flex; gap: 1rem; justify-content: center; }
-        .cool-btn {
-            border: none; border-radius: 14px; padding: 0.9rem 1.8rem;
-            font-weight: 700; cursor: pointer; transition: all 0.3s ease; font-size: 1rem;
+        .glass-view-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(12px) scale(1.01);
+            box-shadow: -20px 0 40px rgba(0,0,0,0.3);
         }
-        .cool-btn-primary { background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); color: #fff; }
-        .cool-btn-secondary { background: rgba(255, 255, 255, 0.1); color: #bfc9d8; }
-        .cool-btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #fff; }
-        .cool-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); }
-	</style>
-{% endblock %}
-{% extends 'base.html.twig' %}
+        .glass-view-label {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.25) !important;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            width: 180px;
+            flex-shrink: 0;
+        }
+        .glass-view-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            flex: 1;
+            word-break: break-all !important; /* PREVENTS OVERFLOW ON LONG STRINGS */
+            white-space: pre-wrap !important; /* PRESERVES LINE BREAKS */
+            line-height: 1.6;
+        }
 
-{% block title %}Residence Management - Horizon Admin{% endblock %}
+        /* Obsidian Buttons */
+        .users-btn-modify {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%) !important;
+            color: #fff !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            padding: 1rem 2.5rem !important;
+            border-radius: 100px !important;
+            font-weight: 800 !important;
+            font-size: 1.1rem !important;
+            letter-spacing: 0.04em !important;
+            display: inline-flex !important; align-items: center !important; gap: 1rem !important;
+            cursor: pointer !important; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1) !important;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+        }
+        .users-btn-modify:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            transform: translateY(-4px) scale(1.04);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.1) !important;
+        }
+        .users-btn-delete {
+            background: rgba(255, 59, 48, 0.05) !important;
+            color: #ff3b30 !important;
+            border: 1px solid rgba(255, 59, 48, 0.15) !important;
+            padding: 1rem 2.5rem !important;
+            border-radius: 100px !important;
+            font-weight: 800 !important;
+            font-size: 1.1rem !important;
+            cursor: pointer !important;
+            transition: all 0.4s ease !important;
+            display: inline-flex !important; align-items: center !important; gap: 1rem !important;
+            backdrop-filter: blur(5px);
+        }
+        .users-btn-delete:hover {
+            background: rgba(255, 59, 48, 0.15) !important;
+            border-color: #ff3b30 !important;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 59, 48, 0.2) !important;
+        }
+        .users-btn-cancel, .users-btn-discard {
+            background: rgba(255, 255, 255, 0.02) !important;
+            color: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            padding: 1rem 2.5rem !important;
+            border-radius: 100px !important;
+            font-weight: 700 !important;
+            font-size: 1rem !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+        }
+        .users-btn-cancel:hover { background: rgba(255, 255, 255, 0.08) !important; color: #fff !important; }
+
+        /* Premium Switcher Styles (Unified) */
+        .premium-switcher-container {
+            padding: 4px; background: rgba(10, 10, 10, 0.45); backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 100px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); position: relative; z-index: 10; min-width: 400px;
+        }
+        .premium-switcher-pill { display: flex; position: relative; width: 100%; height: 44px; }
+        .premium-switcher-slider {
+            position: absolute; top: 0; left: 0; height: 100%;
+            background: var(--accent-gradient, linear-gradient(90deg, #00c6ff 0%, #0072ff 100%));
+            border-radius: 100px; box-shadow: 0 4px 20px rgba(0, 114, 255, 0.4);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1); z-index: 1; pointer-events: none;
+        }
+        .premium-switcher-tab {
+            flex: 1; position: relative; z-index: 2; background: transparent; border: none;
+            color: rgba(255, 255, 255, 0.55); font-weight: 700; font-size: 0.95rem;
+            letter-spacing: 0.03em; cursor: pointer; transition: all 0.3s ease;
+            white-space: nowrap; outline: none; display: flex; align-items: center; justify-content: center;
+            padding: 0 1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .premium-switcher-tab.active { color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+    </style>
+{% endblock %}
 
 {% block content %}
-{% include 'admin/_dashboard_header.html.twig' with { 'title': 'Residence Management' } %}
+{% include 'admin/_dashboard_header.html.twig' with { 'title': 'Residences' } %}
 
 <div class="users-pagination-wrapper" style="margin-top: 2rem; display: flex; justify-content: center;">
-    <div class="users-pagination-pills pills-animated">
-        <button class="pill-tab active" data-page="1">Residences</button>
-        <button class="pill-tab" data-page="2">Appartments</button>
+    <div class="premium-switcher-container">
+        <div class="premium-switcher-pill">
+            <div class="premium-switcher-slider" id="residence-switcher-slider"></div>
+            <button class="premium-switcher-tab active" data-page="1">Residences</button>
+            <button class="premium-switcher-tab" data-page="2">Appartements</button>
+        </div>
     </div>
 </div>
+
 <div id="residence-content" class="residence-content" style="margin-top: 1.5rem;">
+    <!-- Page 1: Residences -->
     <div class="residence-page-content" data-page="1">
-<div class="liquid-glass-table-container">
-        <h3 style="margin-bottom:1.5rem;">Properties Directory</h3>
-        <div class="residence-table-toolbar">
-            <div style="display: flex; align-items: center;">
-                <button class="residence-btn-add-db" id="btn-show-add-modal" title="Add Residence"><i class="bx bx-plus-circle"></i> New Residence</button>
-            </div>
-            <div style="display: flex; gap: 0.75rem; align-items: center;">
-                <button class="residence-sort-dir-pill" id="residence-sort-dir-pill" title="Toggle Sort Direction">
-                    <span id="residence-sort-dir-icon-svg"></span>
-                </button>
-                <div class="residence-sort-pill" id="residence-sort-pill-custom" tabindex="0">
-                    <span class="residence-sort-selected" id="residence-sort-selected">Sort by Name</span>
-                    <span class="residence-sort-arrow"></span>
-                    <div class="residence-sort-dropdown" id="residence-sort-dropdown" style="display:none;">
-                        <div class="residence-sort-option" data-value="name">Alphabetical</div>
-                        <div class="residence-sort-option" data-value="date">Recently Added</div>
-                        <div class="residence-sort-option" data-value="apartments">Capacity</div>
-                    </div>
-                </div>
-                <div class="residence-search-pill">
-                    <input type="text" class="residence-search-input" placeholder="Search portfolio..." />
-                    <i class="bx bx-search residence-search-icon"></i>
-                </div>
-            </div>
-        </div>
-        <div class="liquid-glass-table-scroll">
-            <table class="liquid-glass-table" id="residence-table">
-                <thead>
-                    <tr>
-                        <th>Property</th>
-                        <th>Location</th>
-                        <th>Created At</th>
-                        <th>Units</th>
-                        <th>Levels</th>
-                        <th>Section</th>
-                        <th>Details</th>
-                    </tr>
-                </thead>
-                <tbody id="residence-table-body">
-                    <!-- Dynamic Rows -->
-                </tbody>
-            </table>
-        </div>
-        <div class="table-pagination-bar">
-            <button class="residence-table-arrow" id="residence-table-prev"><i class="bx bx-chevron-left"></i></button>
-            <div class="residence-table-pages" id="residence-table-pages"></div>
-            <button class="residence-table-arrow" id="residence-table-next"><i class="bx bx-chevron-right"></i></button>
-        </div>
-        </div>
-    </div>
-        </div>
-        <div class="residence-page-content" data-page="2" style="display: none;">
-            <div class="liquid-glass-table-container">
-                <h3 style="margin-bottom:1.5rem;">Apartments Directory</h3>
-                <div class="residence-table-toolbar">
-                    <div style="display: flex; align-items: center;">
-                        <button class="residence-btn-add-db" id="btn-show-add-app-modal" title="Add Apartment"><i class="bx bx-plus-circle"></i> New Apartment</button>
-                    </div>
-                    <div style="display: flex; gap: 0.75rem; align-items: center;">
-                        <button class="residence-sort-dir-pill" id="app-sort-dir-pill" title="Toggle Sort Direction">
-                            <span id="app-sort-dir-icon-svg"></span>
+        <div class="glass-table-container">
+            <div id="residenceGlassSwitcher" class="glass-switcher style-slide">
+                <div class="glass-switcher-face glass-switcher-face-main">
+                    <div class="glass-toolbar">
+                        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Residences</h3>
+                        <div style="flex: 1;"></div>
+                        <button type="button" class="glass-btn-save" id="res-btn-add" style="padding: 0.6rem 1.5rem; font-size: 0.9rem;">
+                            <i class="bx bx-plus"></i> Add Residence
                         </button>
-                        <div class="residence-sort-pill" id="app-sort-pill-custom" tabindex="0">
-                            <span class="residence-sort-selected" id="app-sort-selected">Sort by Type</span>
-                            <span class="residence-sort-arrow"></span>
-                            <div class="residence-sort-dropdown" id="app-sort-dropdown" style="display:none;">
-                                <div class="residence-sort-option" data-value="type">Type</div>
-                                <div class="residence-sort-option" data-value="residence">Residence</div>
-                                <div class="residence-sort-option" data-value="status">Status</div>
-                            </div>
-                        </div>
-                        <div class="residence-search-pill">
-                            <input type="text" class="residence-search-input" id="app-search-input" placeholder="Search apartments..." />
-                            <i class="bx bx-search residence-search-icon"></i>
-                        </div>
                     </div>
-                </div>
-                <div class="liquid-glass-table-scroll">
-                    <table class="liquid-glass-table" id="app-table">
-                        <thead>
-                            <tr>
-                                <th>Listing</th>
-                                <th>Residence</th>
-                                <th>Type</th>
-                                <th>Parking</th>
-                                <th>Status</th>
-                                <th>Owner</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="app-table-body">
-                            <!-- Dynamic Rows -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="table-pagination-bar">
-                    <button class="residence-table-arrow" id="app-table-prev"><i class="bx bx-chevron-left"></i></button>
-                    <div class="residence-table-pages" id="app-table-pages"></div>
-                    <button class="residence-table-arrow" id="app-table-next"><i class="bx bx-chevron-right"></i></button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Add Residence Modal -->
-<div id="residence-add-modal" class="users-edit-modal" style="display: none;">
-    <div class="users-edit-modal-backdrop" onclick="closeModal('residence-add-modal')"></div>
-    <div class="users-edit-modal-card">
-        <div class="users-edit-modal-header">
-            <div>
-                <h3>Add New Residence</h3>
-                <p class="users-edit-modal-subtitle">Register a high-end property to the Horizon administrative network</p>
-            </div>
-            <button type="button" class="users-edit-modal-close" onclick="closeModal('residence-add-modal')">&times;</button>
-        </div>
-        {{ form_start(residenceAddForm, {'attr': {'class': 'users-edit-modal-body', 'enctype': 'multipart/form-data', 'id': 'residence-add-form', 'novalidate': 'novalidate', 'data-ajax': 'true'}}) }}
-            <div class="residence-form-group">
-                <label class="residence-edit-label">Residence Title</label>
-                {{ form_widget(residenceAddForm.nomR, {'attr': {'class': 'residence-edit-input', 'placeholder': 'Enter property name'}}) }}
-            </div>
-            <div class="residence-form-group">
-                <label class="residence-edit-label">Geographic Location</label>
-                {{ form_widget(residenceAddForm.adresse, {'attr': {'class': 'residence-edit-input', 'placeholder': 'Enter full street address'}}) }}
-            </div>
-            
-            <div class="modal-grid-3">
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Apartments Per Floor</label>
-                    {{ form_widget(residenceAddForm.nAppartements, {'attr': {'class': 'hidden-select'}}) }}
-                    <div class="custom-glass-dropdown" data-target="residence_nAppartements">
-                        <div class="custom-glass-dropdown-trigger">
-                            <span class="selected-text">1</span>
-                            <i class="bx bx-chevron-down custom-glass-dropdown-arrow"></i>
+                    <div class="glass-toolbar" style="margin-bottom: 1.5rem;">
+                        <div class="glass-search-container">
+                            <i class="bx bx-search glass-search-icon"></i>
+                            <input type="text" class="glass-search-input res-search-input" placeholder="Search residences...">
                         </div>
-                        <div class="custom-glass-dropdown-menu">
-                            {% for i in 1..10 %}<div class="custom-glass-dropdown-option {{ i==1 ? 'selected' : '' }}" data-value="{{ i }}">{{ i }} Apartment{{ i > 1 ? 's' : '' }}</div>{% endfor %}
-                        </div>
-                    </div>
-                </div>
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Building Levels</label>
-                    {{ form_widget(residenceAddForm.nEtages, {'attr': {'class': 'hidden-select'}}) }}
-                    <div class="custom-glass-dropdown" data-target="residence_nEtages">
-                        <div class="custom-glass-dropdown-trigger">
-                            <span class="selected-text">0</span>
-                            <i class="bx bx-chevron-down custom-glass-dropdown-arrow"></i>
-                        </div>
-                        <div class="custom-glass-dropdown-menu">
-                            {% for i in 0..5 %}<div class="custom-glass-dropdown-option {{ i==0 ? 'selected' : '' }}" data-value="{{ i }}">{{ i }} Floor{{ i != 1 ? 's' : '' }}</div>{% endfor %}
-                        </div>
-                    </div>
-                </div>
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Blocs (Select Multiple)</label>
-                    <div class="blocs-checkbox-container">
-                        {{ form_widget(residenceAddForm.nBlocs, {'attr': {'class': 'blocs-checkboxes'}}) }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="residence-form-group" style="margin-bottom: 2.5rem;">
-                <label class="residence-edit-label">Visual Representation</label>
-                <div class="custom-file-wrapper">
-                    {{ form_widget(residenceAddForm.imageR, {'attr': {'class': 'hidden-select residence-image-input'}}) }}
-                    <div class="custom-file-trigger" onclick="document.querySelector('#residence-add-modal .residence-image-input').click()">
-                        <div class="custom-file-icon"><i class="bx bx-image-add"></i></div>
-                        <div class="custom-file-text">Click to upload property image...</div>
-                        <div class="custom-file-btn">Browse</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="users-edit-modal-actions">
-                <button type="button" class="users-btn-cancel" onclick="closeModal('residence-add-modal')">Discard</button>
-                <span class="users-edit-modal-actions-spacer"></span>
-                <button type="submit" class="users-btn-modify">Register Property</button>
-            </div>
-        {{ form_end(residenceAddForm) }}
-    </div>
-</div>
-
-<!-- View Residence Modal -->
-<div id="residence-view-modal" class="users-edit-modal" style="display: none;">
-    <div class="users-edit-modal-backdrop" onclick="closeModal('residence-view-modal')"></div>
-    <div class="users-edit-modal-card">
-        <div class="users-edit-modal-header">
-            <div>
-                <h3 id="view-residence-title-h">Property Overview</h3>
-                <p class="users-edit-modal-subtitle">Detailed records from the central residence database</p>
-            </div>
-            <button type="button" class="users-edit-modal-close" onclick="closeModal('residence-view-modal')">&times;</button>
-        </div>
-        <div class="users-edit-modal-body">
-            <div style="text-align: center; margin-bottom: 2.25rem;">
-                <img id="view-residence-image" src="" alt="Residence" style="max-width: 100%; height: 260px; object-fit: cover; border-radius: 20px; border: 2px solid rgba(255,255,255,0.15); box-shadow: 0 15px 40px rgba(0,0,0,0.5);">
-            </div>
-            <div class="forum-view-row">
-                <div class="forum-view-label">Property</div>
-                <div class="forum-view-value" id="view-residence-name" style="font-weight: 700;">—</div>
-            </div>
-            <div class="forum-view-row">
-                <div class="forum-view-label">Location</div>
-                <div class="forum-view-value" id="view-residence-address">—</div>
-            </div>
-            <div class="forum-view-row">
-                <div class="forum-view-label">Admission</div>
-                <div class="forum-view-value" id="view-residence-date" style="opacity: 0.8;">—</div>
-            </div>
-            <div class="forum-view-row">
-                <div class="forum-view-label">Capacity</div>
-                <div class="forum-view-value" id="view-residence-capacity">—</div>
-            </div>
-            <div class="users-edit-modal-actions">
-                <button type="button" class="users-btn-cancel" onclick="closeModal('residence-view-modal')">Close</button>
-                <span class="users-edit-modal-actions-spacer"></span>
-                <button type="button" class="users-btn-modify" id="btn-trigger-edit">
-                    <i class="bx bx-edit-alt"></i> Edit Record
-                </button>
-                <form method="post" id="view-residence-delete-form" style="display: inline;" data-ajax="true">
-                    <input type="hidden" name="_token" id="view-residence-delete-token">
-                    <button type="submit" class="users-btn-delete">
-                        <i class="bx bx-trash-alt"></i> Delete
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Residence Modal -->
-<div id="residence-edit-modal" class="users-edit-modal" style="display: none; z-index: 10001;">
-    <div class="users-edit-modal-backdrop" onclick="closeModal('residence-edit-modal')"></div>
-    <div class="users-edit-modal-card">
-        <div class="users-edit-modal-header">
-            <div>
-                <h3>Edit Property</h3>
-                <p class="users-edit-modal-subtitle">Update and synchronize residence information</p>
-            </div>
-            <button type="button" class="users-edit-modal-close" onclick="closeModal('residence-edit-modal')">&times;</button>
-        </div>
-        {{ form_start(residenceEditForm, {'attr': {'id': 'residence-edit-form', 'class': 'users-edit-modal-body', 'enctype': 'multipart/form-data', 'novalidate': 'novalidate', 'data-ajax': 'true'}}) }}
-            <div class="residence-form-group">
-                <label class="residence-edit-label">Residence Title</label>
-                {{ form_widget(residenceEditForm.nomR, {'id': 'edit-residence-nom', 'attr': {'class': 'residence-edit-input'}}) }}
-            </div>
-            <div class="residence-form-group">
-                <label class="residence-edit-label">Geographic Location</label>
-                {{ form_widget(residenceEditForm.adresse, {'id': 'edit-residence-adresse', 'attr': {'class': 'residence-edit-input'}}) }}
-            </div>
-            <div class="modal-grid-3">
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Apartments Per Floor</label>
-                    {{ form_widget(residenceEditForm.nAppartements, {'id': 'edit-residence-n-app', 'attr': {'class': 'hidden-select'}}) }}
-                    <div class="custom-glass-dropdown" data-target="edit-residence-n-app">
-                        <div class="custom-glass-dropdown-trigger">
-                            <span class="selected-text">1</span>
-                            <i class="bx bx-chevron-down custom-glass-dropdown-arrow"></i>
-                        </div>
-                        <div class="custom-glass-dropdown-menu">
-                            {% for i in 1..24 %}<div class="custom-glass-dropdown-option" data-value="{{ i }}">{{ i }} Apartments</div>{% endfor %}
-                        </div>
-                    </div>
-                </div>
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Building Levels</label>
-                    {{ form_widget(residenceEditForm.nEtages, {'id': 'edit-residence-n-etages', 'attr': {'class': 'hidden-select'}}) }}
-                    <div class="custom-glass-dropdown" data-target="edit-residence-n-etages">
-                        <div class="custom-glass-dropdown-trigger">
-                            <span class="selected-text">0</span>
-                            <i class="bx bx-chevron-down custom-glass-dropdown-arrow"></i>
-                        </div>
-                        <div class="custom-glass-dropdown-menu">
-                            {% for i in 0..12 %}<div class="custom-glass-dropdown-option" data-value="{{ i }}">{{ i }} Floors</div>{% endfor %}
-                        </div>
-                    </div>
-                </div>
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Blocs (Select Multiple)</label>
-                    <div class="blocs-checkbox-container">
-                        {{ form_widget(residenceEditForm.nBlocs, {'id': 'edit-residence-n-blocs', 'attr': {'class': 'blocs-checkboxes'}}) }}
-                    </div>
-                </div>
-            </div>
-            <div class="residence-form-group" style="margin-bottom: 2.25rem;">
-                <label class="residence-edit-label">Update Visual Representation (Optional)</label>
-                <div class="custom-file-wrapper">
-                    {{ form_widget(residenceEditForm.imageR, {'attr': {'class': 'hidden-select edit-image-input'}}) }}
-                    <div class="custom-file-trigger" onclick="document.querySelector('#residence-edit-modal .edit-image-input').click()">
-                        <div class="custom-file-icon"><i class="bx bx-cloud-upload"></i></div>
-                        <div class="custom-file-text">Click to replace property image...</div>
-                        <div class="custom-file-btn">Browse</div>
-                    </div>
-                </div>
-            </div>
-            <div class="users-edit-modal-actions">
-                <button type="button" class="users-btn-cancel" onclick="closeModal('residence-edit-modal')">Discard</button>
-                <span class="users-edit-modal-actions-spacer"></span>
-                <button type="submit" class="users-btn-modify">Update Portfolio</button>
-            </div>
-        {{ form_end(residenceEditForm) }}
-    </div>
-</div>
-
-<!-- Custom Confirmation Modal -->
-<div id="custom-confirm-modal" class="users-edit-modal" style="display: none;">
-    <div class="users-edit-modal-backdrop" onclick="closeModal('custom-confirm-modal')"></div>
-    <div class="users-edit-modal-card" style="max-width: 480px;">
-        <div class="users-edit-modal-body" style="text-align: center; padding: 3rem 2.5rem;">
-            <div style="width: 80px; height: 80px; background: rgba(255,59,48,0.13); color:#ff3b30; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:3rem; margin:0 auto 1.75rem auto; box-shadow: 0 0 30px rgba(255, 59, 48, 0.2);">
-                <i class="bx bx-trash-alt"></i>
-            </div>
-            <h3 style="color:#fff; margin-bottom:1rem; font-size: 1.6rem; font-weight: 800;">Permanent Deletion?</h3>
-            <p style="color:rgba(191,201,216,0.85); font-size:1.05rem; margin-bottom:2.5rem; line-height: 1.6;">Are you absolutely certain? Removing this residence will irrevocably delete all associated records from the Horizon network.</p>
-            <div style="display: flex; gap: 1.5rem;">
-                <button type="button" class="users-btn-cancel" style="flex:1; justify-content: center;" onclick="closeModal('custom-confirm-modal')">Keep Property</button>
-                <button type="button" id="confirm-delete-btn" class="users-btn-delete" style="flex:1; justify-content:center;">Confirm Delete</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    /* Table & Pagination CSS */
-    .liquid-glass-table-container { background: rgba(30, 34, 44, 0.7); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); backdrop-filter: blur(18px); padding: 2.5rem 3rem 2rem 3rem; border: 1.5px solid rgba(255,255,255,0.08); }
-    .liquid-glass-table-scroll { overflow-x: auto; margin-top: 1.75rem; }
-    .liquid-glass-table { width: 100%; border-collapse: separate; border-spacing: 0; background: rgba(255,255,255,0.04); border-radius: 20px; overflow: hidden; color:#e3e8f7; border: 1px solid rgba(255,255,255,0.06); }
-    .liquid-glass-table th { background: rgba(255,255,255,0.12); padding: 1.4rem; font-weight: 800; color:#fff; text-align: center; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    .liquid-glass-table td { padding: 1.4rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: middle; }
-    .residence-btn-add-db { background: linear-gradient(135deg, #00e676 0%, #00bfae 100%); color:#fff; border:none; border-radius:999px; padding:0.85rem 2rem; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:0.75rem; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 8px 20px rgba(0, 230, 118, 0.25); }
-    .residence-btn-add-db:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 30px rgba(0, 230, 118, 0.35); }
-    .table-pagination-bar { display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-top: 3rem; }
-    .residence-table-arrow { width: 48px; height: 48px; border-radius: 50%; border: none; background: rgba(255,255,255,0.07); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 1.8rem; border: 1px solid rgba(255,255,255,0.1); }
-    .residence-table-arrow:hover:not(:disabled) { background: #0072ff; transform: scale(1.1); box-shadow: 0 0 20px rgba(0, 114, 255, 0.5); }
-    .residence-table-arrow:disabled { opacity: 0.2; cursor: not-allowed; }
-    .residence-table-page-btn { padding: 0.6rem 1.4rem; border-radius: 999px; border: none; background: transparent; color: #bfc9d8; cursor: pointer; transition: all 0.25s; font-weight: 700; font-size: 1rem; }
-    .residence-table-page-btn.active { background: #0072ff; color: #fff; box-shadow: 0 6px 15px rgba(0, 114, 255, 0.4); }
-</style>
-
-
-<!-- Add Apartment Modal -->
-<div id="app-add-modal" class="users-edit-modal" style="display: none;">
-    <div class="users-edit-modal-backdrop" onclick="closeModal('app-add-modal')"></div>
-    <div class="users-edit-modal-card">
-        <div class="users-edit-modal-header">
-            <div>
-                <h3>Add New Apartment</h3>
-                <p class="users-edit-modal-subtitle">Register a new unit to a residence</p>
-            </div>
-            <button type="button" class="users-edit-modal-close" onclick="closeModal('app-add-modal')">&times;</button>
-        </div>
-        {{ form_start(appartementAddForm, {'attr': {'class': 'users-edit-modal-body', 'enctype': 'multipart/form-data', 'id': 'app-add-form', 'data-ajax': 'true'}}) }}
-            <div class="residence-form-group">
-                <label class="residence-edit-label">Residence</label>
-                {{ form_widget(appartementAddForm.residence, {'attr': {'class': 'residence-edit-input residence-select'}}) }}
-            </div>
-
-            <div class="modal-grid-3">
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Building Block</label>
-                    <select name="{{ appartementAddForm.bloc.vars.full_name }}" id="{{ appartementAddForm.bloc.vars.id }}" class="residence-edit-input bloc-input" required>
-                        <option value="">Select...</option>
-                    </select>
-                </div>
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Floor Level</label>
-                    <select name="{{ appartementAddForm.floor.vars.full_name }}" id="{{ appartementAddForm.floor.vars.id }}" class="residence-edit-input floor-input" required>
-                         <option value="">Select...</option>
-                    </select>
-                </div>
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Apartment No.</label>
-                    <select name="{{ appartementAddForm.number.vars.full_name }}" id="{{ appartementAddForm.number.vars.id }}" class="residence-edit-input number-input" required>
-                         <option value="">Select...</option>
-                    </select>
-                </div>
-                {% do appartementAddForm.bloc.setRendered %}
-                {% do appartementAddForm.floor.setRendered %}
-                {% do appartementAddForm.number.setRendered %}
-            </div>
-            
-            <div class="modal-grid-3">
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Unit Type</label>
-                    {{ form_widget(appartementAddForm.typeA, {'attr': {'class': 'residence-edit-input'}}) }}
-                </div>
-                <!-- Owner selection -->
-                <div class="residence-form-group" style="grid-column: span 2;">
-                    <label class="residence-edit-label">Owner (User)</label>
-                    {{ form_widget(appartementAddForm.user, {'attr': {'class': 'residence-edit-input'}}) }}
-                </div>
-            </div>
-
-            <div class="modal-grid-3">
-               <div class="residence-form-group">
-                    <label class="residence-edit-label">Features</label>
-                    <div class="blocs-checkbox-container">
-                        <div class="blocs-checkboxes">
-                             <div style="display:flex; gap:1.5rem; align-items:center;">
-                                <div class="checkbox-wrapper" style="display:flex; align-items:center; gap:0.5rem; color:#fff;">
-                                    {{ form_widget(appartementAddForm.parking) }}
-                                    <label for="{{ appartementAddForm.parking.vars.id }}" style="cursor:pointer; font-size:0.95rem;">Parking</label>
-                                </div>
-                                <div class="checkbox-wrapper" style="display:flex; align-items:center; gap:0.5rem; color:#fff;">
-                                    {{ form_widget(appartementAddForm.disponible) }}
-                                    <label for="{{ appartementAddForm.disponible.vars.id }}" style="cursor:pointer; font-size:0.95rem;">Available</label>
-                                </div>
-                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="residence-form-group" style="margin-bottom: 2.5rem;">
-                <label class="residence-edit-label">Unit Image</label>
-                <div class="custom-file-wrapper">
-                    {{ form_widget(appartementAddForm.imageA, {'attr': {'class': 'hidden-select app-image-input'}}) }}
-                    <div class="custom-file-trigger" onclick="document.querySelector('#app-add-modal .app-image-input').click()">
-                        <div class="custom-file-icon"><i class="bx bx-image-add"></i></div>
-                        <div class="custom-file-text">Click to upload unit image...</div>
-                        <div class="custom-file-btn">Browse</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="users-edit-modal-actions">
-                <button type="button" class="users-btn-cancel" onclick="closeModal('app-add-modal')">Discard</button>
-                <span class="users-edit-modal-actions-spacer"></span>
-                <button type="submit" class="users-btn-modify">Register Unit</button>
-            </div>
-        {{ form_end(appartementAddForm) }}
-    </div>
-</div>
-
-<!-- View Apartment Modal -->
-<div id="app-view-modal" class="users-edit-modal" style="display: none;">
-    <div class="users-edit-modal-backdrop" onclick="closeModal('app-view-modal')"></div>
-    <div class="users-edit-modal-card">
-        <div class="users-edit-modal-header">
-            <div>
-                <h3>Apartment Details</h3>
-                <p class="users-edit-modal-subtitle">View unit specifications and status</p>
-            </div>
-            <button type="button" class="users-edit-modal-close" onclick="closeModal('app-view-modal')">&times;</button>
-        </div>
-        <div class="users-edit-modal-body">
-            <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 2rem;">
-                <div class="view-residence-image-container" style="width: 100%; height: 200px; border-radius: 16px; overflow: hidden; margin-bottom: 1.5rem; position: relative;">
-                    <img id="view-app-image" src="" alt="Apartment Image" style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-                <h2 id="view-app-type" style="margin: 0; font-size: 1.8rem; color: #fff;"></h2>
-                <div id="view-app-residence" style="color: #00c6ff; font-weight: 600; font-size: 1.1rem; margin-top: 0.5rem;"></div>
-            </div>
-
-            <div class="forum-view-row">
-                <div class="forum-view-label">Owner</div>
-                <div class="forum-view-value" id="view-app-owner"></div>
-            </div>
-            <div class="forum-view-row">
-                <div class="forum-view-label">Features</div>
-                <div class="forum-view-value">
-                     <span id="view-app-parking" class="badge" style="margin-right:0.5rem;"></span>
-                     <span id="view-app-status" class="badge"></span>
-                </div>
-            </div>
-            
-            <div class="users-edit-modal-actions">
-                <button type="button" class="users-btn-modify" id="btn-trigger-app-edit">
-                    <i class="bx bx-edit-alt"></i> Edit Record
-                </button>
-                <form method="post" id="view-app-delete-form" style="display: inline;" data-ajax="true">
-                    <input type="hidden" name="_token" id="view-app-delete-token">
-                    <button type="submit" class="users-btn-delete">
-                        <i class="bx bx-trash-alt"></i> Delete
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Apartment Modal -->
-<div id="app-edit-modal" class="users-edit-modal" style="display: none;">
-    <div class="users-edit-modal-backdrop" onclick="closeModal('app-edit-modal')"></div>
-    <div class="users-edit-modal-card">
-        <div class="users-edit-modal-header">
-            <div>
-                <h3>Edit Apartment</h3>
-                <p class="users-edit-modal-subtitle">Modify unit details</p>
-            </div>
-            <button type="button" class="users-edit-modal-close" onclick="closeModal('app-edit-modal')">&times;</button>
-        </div>
-        {{ form_start(appartementEditForm, {'attr': {'class': 'users-edit-modal-body', 'enctype': 'multipart/form-data', 'id': 'app-edit-form', 'data-ajax': 'true'}}) }}
-            <div class="residence-form-group">
-                <label class="residence-edit-label">Residence</label>
-                {{ form_widget(appartementEditForm.residence, {'attr': {'class': 'residence-edit-input residence-select'}}) }}
-            </div>
-
-            <div class="modal-grid-3">
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Building Block</label>
-                    <select name="{{ appartementEditForm.bloc.vars.full_name }}" id="{{ appartementEditForm.bloc.vars.id }}" class="residence-edit-input bloc-input" required>
-                        <option value="">Select...</option>
-                    </select>
-                </div>
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Floor Level</label>
-                    <select name="{{ appartementEditForm.floor.vars.full_name }}" id="{{ appartementEditForm.floor.vars.id }}" class="residence-edit-input floor-input" required>
-                         <option value="">Select...</option>
-                    </select>
-                </div>
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Apartment No.</label>
-                    <select name="{{ appartementEditForm.number.vars.full_name }}" id="{{ appartementEditForm.number.vars.id }}" class="residence-edit-input number-input" required>
-                         <option value="">Select...</option>
-                    </select>
-                </div>
-                {% do appartementEditForm.bloc.setRendered %}
-                {% do appartementEditForm.floor.setRendered %}
-                {% do appartementEditForm.number.setRendered %}
-            </div>
-            
-            <div class="modal-grid-3">
-                <div class="residence-form-group">
-                    <label class="residence-edit-label">Unit Type</label>
-                    {{ form_widget(appartementEditForm.typeA, {'attr': {'class': 'residence-edit-input'}}) }}
-                </div>
-                <div class="residence-form-group" style="grid-column: span 2;">
-                    <label class="residence-edit-label">Owner (User)</label>
-                    {{ form_widget(appartementEditForm.user, {'attr': {'class': 'residence-edit-input'}}) }}
-                </div>
-            </div>
-
-            <div class="modal-grid-3">
-               <div class="residence-form-group">
-                    <label class="residence-edit-label">Features</label>
-                     <div class="blocs-checkbox-container">
-                        <div class="blocs-checkboxes">
-                             <div style="display:flex; gap:1.5rem; align-items:center;">
-                                <div class="checkbox-wrapper" style="display:flex; align-items:center; gap:0.5rem; color:#fff;">
-                                    {{ form_widget(appartementEditForm.parking) }}
-                                    <label for="{{ appartementEditForm.parking.vars.id }}" style="cursor:pointer; font-size:0.95rem;">Parking</label>
-                                </div>
-                                <div class="checkbox-wrapper" style="display:flex; align-items:center; gap:0.5rem; color:#fff;">
-                                    {{ form_widget(appartementEditForm.disponible) }}
-                                    <label for="{{ appartementEditForm.disponible.vars.id }}" style="cursor:pointer; font-size:0.95rem;">Available</label>
-                                </div>
-                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="residence-form-group" style="margin-bottom: 2.5rem;">
-                <label class="residence-edit-label">Unit Image</label>
-                <div class="custom-file-wrapper">
-                    {{ form_widget(appartementEditForm.imageA, {'attr': {'class': 'hidden-select app-edit-image-input'}}) }}
-                    <div class="custom-file-trigger" onclick="document.querySelector('#app-edit-modal .app-edit-image-input').click()">
-                        <div class="custom-file-icon"><i class="bx bx-image-add"></i></div>
-                        <div class="custom-file-text">Click to update image...</div>
-                        <div class="custom-file-btn">Browse</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="users-edit-modal-actions">
-                <button type="button" class="users-btn-cancel" onclick="closeModal('app-edit-modal')">Discard</button>
-                <span class="users-edit-modal-actions-spacer"></span>
-                <button type="submit" class="users-btn-modify">Save Changes</button>
-            </div>
-        {{ form_end(appartementEditForm) }}
-    </div>
-</div>
-
-<!-- SICK UI COOL POPUP HTML -->
-<div id="cool-popup-wrapper">
-    <div class="cool-popup-backdrop"></div>
-    <div class="cool-popup-card">
-        <div id="cool-popup-icon" class="cool-popup-icon success">
-            <i class="bx bxs-check-circle"></i>
-        </div>
-        <h3 id="cool-popup-title" class="cool-popup-title">Success!</h3>
-        <p id="cool-popup-message" class="cool-popup-message">Action completed successfully.</p>
-        <div id="cool-popup-actions" class="cool-popup-actions">
-            <!-- Dynamic Buttons -->
-        </div>
-    </div>
-</div>
-
-{% endblock %}
-
-{% block javascripts %}
-{{ parent() }}
-<script>
-    /* --- SICK UI COOL POPUP UTILITY --- */
-    function showCoolPopup(title, message, type = 'success', onConfirm = null) {
-        const wrapper = document.getElementById('cool-popup-wrapper');
-        const icon = document.getElementById('cool-popup-icon');
-        const titleEl = document.getElementById('cool-popup-title');
-        const messageEl = document.getElementById('cool-popup-message');
-        const actions = document.getElementById('cool-popup-actions');
-
-        titleEl.textContent = title;
-        messageEl.textContent = message;
-        icon.className = `cool-popup-icon ${type}`;
-        
-        let iconHtml = '';
-        if (type === 'success') iconHtml = '<i class="bx bxs-check-circle"></i>';
-        else if (type === 'error') iconHtml = '<i class="bx bxs-x-circle"></i>';
-        else if (type === 'confirm') iconHtml = '<i class="bx bxs-help-circle"></i>';
-        icon.innerHTML = iconHtml;
-
-        actions.innerHTML = '';
-        if (type === 'confirm') {
-            const cancelBtn = document.createElement('button');
-            cancelBtn.className = 'cool-btn cool-btn-secondary';
-            cancelBtn.textContent = 'Cancel';
-            cancelBtn.onclick = () => {
-                wrapper.classList.remove('active');
-                setTimeout(() => wrapper.style.display = 'none', 400);
-            };
-            
-            const confirmBtn = document.createElement('button');
-            confirmBtn.className = 'cool-btn cool-btn-danger';
-            confirmBtn.textContent = 'Proceed';
-            confirmBtn.onclick = () => {
-                wrapper.classList.remove('active');
-                setTimeout(() => wrapper.style.display = 'none', 400);
-                if (onConfirm) onConfirm();
-            };
-            
-            actions.appendChild(cancelBtn);
-            actions.appendChild(confirmBtn);
-        } else {
-            const okBtn = document.createElement('button');
-            okBtn.className = 'cool-btn cool-btn-primary';
-            okBtn.textContent = 'Got it';
-            okBtn.onclick = () => {
-                wrapper.classList.remove('active');
-                setTimeout(() => wrapper.style.display = 'none', 400);
-            };
-            actions.appendChild(okBtn);
-        }
-
-        wrapper.style.display = 'flex';
-        setTimeout(() => wrapper.classList.add('active'), 10);
-    }
-
-    window.residenceData = [
-        {% for r in residences %}
-        {
-            id: "{{ r.idResidence }}",
-            name: "{{ r.nomR|e('js') }}",
-            address: "{{ r.adresse|e('js') }}",
-            date: "{{ r.dateAjout|date('Y-m-d H:i') }}",
-            apartments: "{{ r.nAppartements|e('js') }}",
-            floors: "{{ r.nEtages|e('js') }}",
-            blocs: "{{ r.nBlocs|e('js') }}",
-            image: "{{ r.imageR ? asset('uploads/images/' ~ r.imageR) : asset('frontend/images/property-placeholder.jpg') }}",
-            deleteToken: "{{ csrf_token('residence_delete') }}"
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    ];
-    // Alias for local script compatibility
-    const residenceData = window.residenceData;
-
-    const rowsPerPage = 10;
-    let currentPage = 1;
-    let sortValue = 'name';
-    let sortDirection = 'asc';
-    let filteredData = [...window.residenceData];
-
-    function closeModal(id) {
-        const modal = document.getElementById(id);
-        if(modal) modal.style.display = 'none';
-        // Close any open custom dropdowns when modal closes
-        document.querySelectorAll('.custom-glass-dropdown.open').forEach(d => {
-            d.classList.remove('open');
-            d.querySelector('.custom-glass-dropdown-menu').style.display = 'none';
-        });
-    }
-
-    function openModal(id) {
-        const modal = document.getElementById(id);
-        if(modal) modal.style.display = 'flex';
-    }
-
-    function renderTable() {
-        const tbody = document.getElementById('residence-table-body');
-        tbody.innerHTML = '';
-
-        if (filteredData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="padding: 5rem; opacity: 0.5; font-size: 1.2rem; font-weight: 500;">No properties matches your search criteria.</td></tr>';
-            return;
-        }
-
-        const start = (currentPage - 1) * rowsPerPage;
-        const end = Math.min(start + rowsPerPage, filteredData.length);
-
-        for (let i = start; i < end; i++) {
-            const r = filteredData[i];
-            const tr = document.createElement('tr');
-            // Calculate total units: apartments per floor × number of floors × number of blocs
-            const aptsPerFloor = parseInt(r.apartments);
-            const floors = parseInt(r.floors);
-            // Count blocs by splitting comma-separated string
-            const blocsCount = r.blocs ? r.blocs.split(',').length : 1;
-            const totalUnits = aptsPerFloor * floors * blocsCount;
-            
-            tr.innerHTML = `
-                <td style="font-weight: 800; color: #fff; font-size: 1.05rem;">${r.name}</td>
-                <td style="opacity: 0.9;">${r.address}</td>
-                <td><span style="opacity: 0.7; font-size: 0.9rem;">${r.date}</span></td>
-                <td><span class="badge" style="background:rgba(0,198,255,0.15); color:#00c6ff; padding:0.5rem 1rem; border-radius:12px; border: 1px solid rgba(0,198,255,0.2); font-weight: 700;">${totalUnits} Units</span></td>
-                <td><span style="font-weight: 600;">L${r.floors}</span></td>
-                <td><span style="font-weight: 900; color: #ff2d92; text-shadow: 0 0 12px rgba(255, 45, 146, 0.35); font-size: 1.1rem;">${r.blocs}</span></td>
-                <td>
-                    <button class="users-btn-modify" onclick="viewDetails('${r.id}')" style="padding: 0.5rem 1.25rem; font-size: 0.95rem; border-radius: 12px;">
-                        <i class="bx bxs-file-find"></i> Results
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        }
-        renderPagination();
-    }
-
-    function renderPagination() {
-        const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-        const pagesDiv = document.getElementById('residence-table-pages');
-        pagesDiv.innerHTML = '';
-
-        for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement('button');
-            btn.className = `residence-table-page-btn ${i === currentPage ? 'active' : ''}`;
-            btn.textContent = i;
-            btn.onclick = () => { currentPage = i; renderTable(); };
-            pagesDiv.appendChild(btn);
-        }
-
-        document.getElementById('residence-table-prev').disabled = currentPage === 1;
-        document.getElementById('residence-table-next').disabled = currentPage === totalPages || totalPages === 0;
-    }
-
-    function viewDetails(id) {
-        const r = residenceData.find(item => item.id == id);
-        if (!r) return;
-
-        document.getElementById('view-residence-image').src = r.image;
-        document.getElementById('view-residence-name').textContent = r.name;
-        document.getElementById('view-residence-address').textContent = r.address;
-        document.getElementById('view-residence-date').textContent = r.date;
-        // Calculate and display total units breakdown
-        const aptsPerFloor = parseInt(r.apartments);
-        const floors = parseInt(r.floors);
-        const blocsCount = r.blocs ? r.blocs.split(',').length : 1;
-        const totalUnits = aptsPerFloor * floors * blocsCount;
-        
-        document.getElementById('view-residence-capacity').textContent = `${aptsPerFloor} apts/floor × ${floors} levels × ${blocsCount} blocs = ${totalUnits} Total Units | Blocs: ${r.blocs}`;
-        
-        document.getElementById('btn-trigger-edit').onclick = () => openEditModal(r);
-        
-        const deleteForm = document.getElementById('view-residence-delete-form');
-        document.getElementById('view-residence-delete-token').value = r.deleteToken;
-        
-        // Remove existing listeners to avoid duplicates
-        const newDeleteForm = deleteForm.cloneNode(true);
-        deleteForm.parentNode.replaceChild(newDeleteForm, deleteForm);
-        
-        newDeleteForm.onsubmit = (e) => {
-            e.preventDefault();
-            openModal('custom-confirm-modal');
-            
-            const confirmBtn = document.getElementById('confirm-delete-btn');
-            // Remove old listeners
-            const newConfirmBtn = confirmBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-            
-        newConfirmBtn.onclick = () => {
-                // Show loading state on button
-                const originalText = newConfirmBtn.innerHTML;
-                newConfirmBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Processing...';
-                newConfirmBtn.disabled = true;
-                
-                const formData = new FormData(newDeleteForm);
-                fetch(`/admin/residence/${r.id}/delete`, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Remove from local data and re-render
-                        window.residenceData = window.residenceData.filter(item => item.id != r.id);
-                        filteredData = [...window.residenceData];
-                        renderTable();
-                        closeModal('residence-view-modal');
-                        closeModal('custom-confirm-modal');
-                        showCoolPopup('Success', data.message, 'success');
-                    } else {
-                        showCoolPopup('Error', data.message, 'error');
-                        newConfirmBtn.innerHTML = originalText;
-                        newConfirmBtn.disabled = false;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showCoolPopup('Error', 'An unexpected error occurred.', 'error');
-                    newConfirmBtn.innerHTML = originalText;
-                    newConfirmBtn.disabled = false;
-                });
-            };
-        };
-
-        openModal('residence-view-modal');
-    }
-
-    function openEditModal(r) {
-        closeModal('residence-view-modal');
-        document.getElementById('edit-residence-nom').value = r.name;
-        document.getElementById('edit-residence-adresse').value = r.address;
-        
-        // Reset file trigger text
-        document.querySelector('#residence-edit-modal .custom-file-text').textContent = "Current image maintained...";
-        
-        // Update hidden selects and custom dropdowns
-        updateCustomDropdown('edit-residence-n-app', r.apartments);
-        updateCustomDropdown('edit-residence-n-etages', r.floors);
-        
-        // Update Blocs Checkboxes
-        // Find the container first to be sure
-        const blocContainer = document.getElementById('edit-residence-n-blocs');
-        if (blocContainer) {
-            // Note: With named form 'residence_edit', inputs will have name="residence_edit[nBlocs][]"
-            const blocCheckboxes = blocContainer.querySelectorAll('input[type="checkbox"]');
-            
-            // 1. Uncheck all first
-            blocCheckboxes.forEach(cb => cb.checked = false);
-            
-            // 2. Check based on data
-            if (r.blocs) {
-                const selectedBlocs = r.blocs.split(',').map(s => s.trim()); // Trim to be safe
-                blocCheckboxes.forEach(cb => {
-                    // Check matches against value (A, B, etc.)
-                   if (selectedBlocs.includes(cb.value)) {
-                       cb.checked = true;
-                   } 
-                });
-            }
-        }
-        
-        const form = document.getElementById('residence-edit-form');
-        form.onsubmit = function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            fetch(`/admin/residence/${r.id}/edit`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    // Update local data
-                    const idx = window.residenceData.findIndex(item => item.id == r.id);
-                    if (idx !== -1) {
-                        // We need to fetch the updated data or just update known fields
-                        // For now, let's update title/address which we know changed
-                        window.residenceData[idx].name = formData.get('residence_edit[nomR]');
-                        window.residenceData[idx].address = formData.get('residence_edit[adresse]');
-                        window.residenceData[idx].apartments = formData.get('residence_edit[nAppartements]');
-                        window.residenceData[idx].floors = formData.get('residence_edit[nEtages]');
-                        
-                        // Blocs are tricky since it's a multi-select, let's just reload for now or manually handle
-                        const blocsArray = [];
-                        this.querySelectorAll('input[name="residence_edit[nBlocs][]"]:checked').forEach(cb => blocsArray.push(cb.value));
-                        window.residenceData[idx].blocs = blocsArray.join(',');
-                        
-                        filteredData = [...window.residenceData];
-                        renderTable();
-                    }
-                    closeModal('residence-edit-modal');
-                    showCoolPopup('Success', 'Residence updated successfully.', 'success');
-                } else {
-                    showCoolPopup('Error', data.message, 'error');
-                }
-            });
-        };
-
-        openModal('residence-edit-modal');
-    }
-
-    function updateCustomDropdown(targetId, value) {
-        const select = document.getElementById(targetId);
-        if(select) select.value = value;
-        
-        const dropdown = document.querySelector(`.custom-glass-dropdown[data-target="${targetId}"]`);
-        if(dropdown) {
-            dropdown.querySelector('.selected-text').textContent = dropdown.querySelector(`.custom-glass-dropdown-option[data-value="${value}"]`)?.textContent || value;
-            dropdown.querySelectorAll('.custom-glass-dropdown-option').forEach(opt => {
-                opt.classList.toggle('selected', opt.dataset.value == value);
-            });
-        }
-    }
-
-    function filterAndSort() {
-        const search = document.querySelector('.residence-search-input').value.toLowerCase();
-        filteredData = residenceData.filter(r => 
-            r.name.toLowerCase().includes(search) || 
-            r.address.toLowerCase().includes(search)
-        );
-
-        filteredData.sort((a, b) => {
-            let valA = a[sortValue].toLowerCase();
-            let valB = b[sortValue].toLowerCase();
-            if (sortValue === 'date' || sortValue === 'apartments') {
-                valA = a[sortValue];
-                valB = b[sortValue];
-            }
-            if (sortValue === 'apartments') {
-                valA = parseInt(a[sortValue]);
-                valB = parseInt(b[sortValue]);
-            }
-            if (sortDirection === 'asc') return valA > valB ? 1 : -1;
-            return valA < valB ? 1 : -1;
-        });
-
-        currentPage = 1;
-        renderTable();
-    }
-
-    // Initialize Custom Dropdowns
-    function initCustomDropdowns() {
-        document.querySelectorAll('.custom-glass-dropdown').forEach(dropdown => {
-            const trigger = dropdown.querySelector('.custom-glass-dropdown-trigger');
-            const menu = dropdown.querySelector('.custom-glass-dropdown-menu');
-            const options = dropdown.querySelectorAll('.custom-glass-dropdown-option');
-            const targetId = dropdown.dataset.target;
-            const hiddenSelect = document.getElementById(targetId);
-
-            trigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isOpen = dropdown.classList.contains('open');
-                
-                // Close others
-                document.querySelectorAll('.custom-glass-dropdown.open').forEach(d => {
-                    if(d !== dropdown) {
-                        d.classList.remove('open');
-                        d.querySelector('.custom-glass-dropdown-menu').style.display = 'none';
-                    }
-                });
-
-                dropdown.classList.toggle('open');
-                menu.style.display = isOpen ? 'none' : 'flex';
-            });
-
-            options.forEach(opt => {
-                opt.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const val = opt.dataset.value;
-                    const text = opt.textContent;
-                    
-                    // Update trigger text
-                    dropdown.querySelector('.selected-text').textContent = text;
-                    
-                    // Update hidden select
-                    if(hiddenSelect) {
-                        hiddenSelect.value = val;
-                        hiddenSelect.dispatchEvent(new Event('change'));
-                    }
-
-                    // Handle selection UI
-                    options.forEach(o => o.classList.remove('selected'));
-                    opt.classList.add('selected');
-
-                    // Close menu
-                    dropdown.classList.remove('open');
-                    menu.style.display = 'none';
-                });
-            });
-        });
-
-        // Global click handler to close dropdowns
-        document.addEventListener('click', () => {
-            document.querySelectorAll('.custom-glass-dropdown.open').forEach(d => {
-                d.classList.remove('open');
-                d.querySelector('.custom-glass-dropdown-menu').style.display = 'none';
-            });
-        });
-    }
-
-    function initFileInputs() {
-        document.querySelectorAll('.hidden-select[type="file"]').forEach(input => {
-            input.addEventListener('change', function() {
-                const wrapper = this.closest('.residence-form-group');
-                const textElem = wrapper.querySelector('.custom-file-text');
-                if (this.files && this.files.length > 0) {
-                    textElem.textContent = this.files[0].name;
-                    textElem.style.color = "#00c6ff";
-                    textElem.style.fontWeight = "700";
-                } else {
-                    textElem.textContent = "Click to upload property image...";
-                    textElem.style.color = "";
-                    textElem.style.fontWeight = "";
-                }
-            });
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        // Pill Tab Navigation Logic
-        const pillTabs = document.querySelectorAll('.pill-tab');
-        const pageContents = document.querySelectorAll('.residence-page-content');
-
-        function switchPage(pageNumber) {
-            // Update tabs
-            pillTabs.forEach(tab => {
-                tab.classList.toggle('active', tab.dataset.page === String(pageNumber));
-            });
-
-            // Update page content
-            pageContents.forEach(content => {
-                content.style.display = content.dataset.page === String(pageNumber) ? 'block' : 'none';
-            });
-        }
-
-        pillTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const pageNum = parseInt(tab.dataset.page);
-                switchPage(pageNum);
-            });
-        });
-
-        // Initialize other features
-        renderTable();
-        initCustomDropdowns();
-        initFileInputs();
-
-        document.getElementById('btn-show-add-modal').onclick = () => openModal('residence-add-modal');
-        
-        const addForm = document.getElementById('residence-add-form');
-        if (addForm) {
-            addForm.onsubmit = function(e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        // Add to local data
-                        window.residenceData.push(data.residence);
-                        filteredData = [...window.residenceData];
-                        renderTable();
-                        closeModal('residence-add-modal');
-                        this.reset();
-                        // Reset image text
-                        const imgText = this.querySelector('.custom-file-text');
-                        if(imgText) imgText.textContent = "Click to upload property image...";
-                        
-                        showCoolPopup('Success', 'Residence registered successfully.', 'success');
-                    } else {
-                        showCoolPopup('Error', data.message, 'error');
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    showCoolPopup('Error', 'An unexpected error occurred.', 'error');
-                });
-            };
-        }
-
-        document.querySelector('.residence-search-input').oninput = filterAndSort;
-
-        document.getElementById('residence-sort-pill-custom').onclick = function(e) {
-            e.stopPropagation();
-            const drop = document.getElementById('residence-sort-dropdown');
-            drop.style.display = drop.style.display === 'none' ? 'flex' : 'none';
-            // Also close any custom select dropdowns
-            document.querySelectorAll('.custom-glass-dropdown.open').forEach(d => {
-                d.classList.remove('open');
-                d.querySelector('.custom-glass-dropdown-menu').style.display = 'none';
-            });
-        };
-
-        document.querySelectorAll('.residence-sort-option').forEach(opt => {
-            opt.onclick = function() {
-                sortValue = this.dataset.value;
-                document.getElementById('residence-sort-selected').textContent = this.textContent;
-                document.getElementById('residence-sort-dropdown').style.display = 'none';
-                filterAndSort();
-            };
-        });
-
-        const sortDirBtn = document.getElementById('residence-sort-dir-pill');
-        const sortIcon = document.getElementById('residence-sort-dir-icon-svg');
-        const updateIcon = () => {
-            sortIcon.innerHTML = sortDirection === 'asc' 
-                ? '<i class="bx bx-sort-a-z" style="color:#00c6ff; font-size:1.7rem;"></i>'
-                : '<i class="bx bx-sort-z-a" style="color:#00c6ff; font-size:1.7rem;"></i>';
-        };
-        updateIcon();
-        sortDirBtn.onclick = () => {
-            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-            updateIcon();
-            filterAndSort();
-        };
-
-        document.getElementById('residence-table-prev').onclick = () => { if (currentPage > 1) { currentPage--; renderTable(); } };
-        document.getElementById('residence-table-next').onclick = () => { 
-            if (currentPage < Math.ceil(filteredData.length / rowsPerPage)) { currentPage++; renderTable(); } 
-        };
-
-        document.addEventListener('click', (e) => {
-            if (!document.getElementById('residence-sort-pill-custom').contains(e.target)) {
-                document.getElementById('residence-sort-dropdown').style.display = 'none';
-            }
-        });
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-    // --- Appartement Logic ---
-    const appartementData = [
-        {% for a in appartements %}
-        {
-            id: {{ a.idApp }},
-            type: "{{ a.typeA|e('js') }}",
-            residence: "{{ a.residence ? a.residence.nomR|e('js') : 'N/A' }}",
-            resId: "{{ a.residence ? a.residence.idResidence : '' }}",
-            owner: "{{ a.user ? a.user.emailUser|e('js') : 'N/A' }}",
-            ownerId: "{{ a.user ? a.user.idUser : '' }}",
-            {# Use a.appartementInfo.key OR a.appartementInfo['key'] safely #}
-            parking: "{{ attribute(a.appartementInfo, 'parking')|default(a.parking) ? 'Yes' : 'No' }}",
-            isParking: {{ attribute(a.appartementInfo, 'parking')|default(a.parking) ? 'true' : 'false' }},
-            status: "{{ attribute(a.appartementInfo, 'disponible')|default(a.disponible) ? 'Available' : 'Occupied' }}",
-            isAvailable: {{ attribute(a.appartementInfo, 'disponible')|default(a.disponible) ? 'true' : 'false' }},
-            bloc: "{{ attribute(a.appartementInfo, 'bloc')|default('')|e('js') }}",
-            floor: "{{ attribute(a.appartementInfo, 'floor')|default('')|e('js') }}",
-            number: "{{ attribute(a.appartementInfo, 'number')|default('')|e('js') }}",
-            image: "{{ a.imageA ? asset('appartement_images/' ~ a.imageA) : asset('frontend/images/property-placeholder.jpg') }}",
-            {# Deletion token must include the specific apartment ID #}
-            deleteToken: "{{ csrf_token('appartement_delete') }}" 
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    ];
-    // Globalize for accessibility
-    window.appartementData = appartementData;
-
-    const appRowsPerPage = 10;
-    let appCurrentPage = 1;
-    let appSortValue = 'type';
-    let appSortDirection = 'asc';
-    let appFilteredData = [...appartementData];
-
-    // Dynamic Dropdown Logic for Apartment Form
-    function updateAppFormData(residenceId, formScope) {
-        // Find residence
-        const r = window.residenceData ? window.residenceData.find(item => item.id == residenceId) : null;
-        if(!r) return;
-
-        // Helper to update select options
-        const updateField = (selector, options) => {
-             const select = document.querySelector(`${formScope} ${selector}`);
-             if(!select) return;
-             
-             // Clear existing options (keep default)
-             select.innerHTML = '';
-             
-             // Styling (Ensure it stays styled)
-             select.style.appearance = 'none';
-             select.style.backgroundImage = "url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e\")";
-             select.style.backgroundRepeat = "no-repeat";
-             select.style.backgroundPosition = "right 1rem center";
-             select.style.backgroundSize = "1em";
-             select.style.backgroundColor = "rgba(255, 255, 255, 0.03)";
-             select.style.border = "1px solid rgba(255, 255, 255, 0.1)";
-             select.style.color = "#fff";
-             select.style.borderRadius = "12px";
-             select.style.padding = "0.75rem 1rem";
-             select.style.width = "100%";
-             select.style.marginBottom = "0.5rem";
-             select.style.cursor = 'pointer';
-
-             // Add default option
-             const def = document.createElement('option');
-             def.text = 'Select...';
-             def.value = '';
-             // def.style.color = "#000"; // Avoid potential styling issues
-             select.add(def);
-
-             options.forEach(opt => {
-                 const o = document.createElement('option');
-                 o.text = opt;
-                 o.value = opt;
-                 o.style.color = "#000";
-                 select.add(o);
-             });
-        };
-
-        const blocs = r.blocs ? r.blocs.split(',').map(s => s.trim()) : [];
-        updateField('.bloc-input', blocs);
-
-        const floors = [];
-        const floorCount = parseInt(r.floors) || 0;
-        for(let i=0; i<= floorCount; i++) floors.push(i);
-        updateField('.floor-input', floors);
-
-        const nums = [];
-        const aptCount = parseInt(r.apartments) || 0;
-        for(let i=1; i<= aptCount; i++) nums.push(i);
-        updateField('.number-input', nums);
-    }
-
-    // Attach listeners
-    // Attach listeners
-     const attach = (name, scope) => {
-         const el = document.querySelector(`select[name="${name}"]`);
-         if(el) {
-             console.log('Attaching listener to:', name);
-             el.addEventListener('change', function() {
-                 console.log('Change detected on:', name, 'Value:', this.value);
-                 updateAppFormData(this.value, scope);
-             });
-             // Trigger if value exists (e.g. browser autofill or edit mode)
-             if(el.value) {
-                 console.log('Initial value found for:', name, 'Value:', el.value);
-                 updateAppFormData(el.value, scope);
-             }
-         } else {
-             console.warn('Could not find select with name:', name);
-         }
-     };
-     
-     attach('appartement_add[residence]', '#app-add-form');
-     attach('appartement_edit[residence]', '#app-edit-form');
-
-    function renderAppartementTable() {
-        const tbody = document.getElementById('app-table-body');
-        if(!tbody) return;
-        tbody.innerHTML = '';
-
-        const start = (appCurrentPage - 1) * appRowsPerPage;
-        const end = start + appRowsPerPage;
-        const pageData = appFilteredData.slice(start, end);
-
-        if (pageData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2rem;">No apartments found</td></tr>`;
-        } else {
-            pageData.forEach(a => {
-                const tr = document.createElement('tr');
-                tr.onclick = (e) => {
-                     // Don't trigger if clicked on action buttons
-                    if(!e.target.closest('.residence-action-btn')) {
-                         openViewAppModal(a.id);
-                    }
-                };
-                tr.style.cursor = 'pointer';
-
-                tr.innerHTML = `
-                    <td>
-                        <div class="residence-info">
-                            <img src="${a.image}" alt="Unit" class="residence-img" style="width: 45px; height: 45px; object-fit: cover; border-radius: 10px;">
-                            <div>
-                                <div class="residence-name">Unit #${a.id}</div>
-                                <div class="residence-address">${a.type}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>${a.residence}</td>
-                    <td><span class="badge badge-blue">${a.type}</span></td>
-                    <td>${a.parking}</td>
-                    <td>
-                        <span class="badge ${a.status === 'Available' ? 'badge-green' : 'badge-red'}">
-                            ${a.status}
-                        </span>
-                    </td>
-                    <td>${a.owner}</td>
-                    <td>
-                        <div class="residence-actions">
-                            <button class="users-btn-modify view-app-btn" data-id="${a.id}" style="padding: 0.5rem 1.25rem; font-size: 0.95rem; border-radius: 12px;">
-                                <i class="bx bxs-file-find"></i> Results
+                        <div style="display: flex; gap: 0.5rem;">
+                            <div class="glass-pill glass-pill-active res-sort-option" data-value="name" onclick="selectResSortPill(this)">Name</div>
+                            <div class="glass-pill res-sort-option" data-value="address" onclick="selectResSortPill(this)">Address</div>
+                            <button class="glass-pagination-btn" id="res-sort-dir-pill" style="width: 38px; height: 38px;">
+                                <span id="res-sort-dir-icon-svg"></span>
                             </button>
                         </div>
-                    </td>
-                `;
+                    </div>
 
-                // Attach button listener
-                const btn = tr.querySelector('.view-app-btn');
-                if(btn) {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        openViewAppModal(a.id);
-                    });
-                }
+                    <div class="glass-table-scroll">
+                        <table class="glass-table" id="res-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Address</th>
+                                    <th>Type</th>
+                                    <th style="text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="res-table-body"><!-- Rendered by JS --></tbody>
+                        </table>
+                    </div>
+                    <div class="glass-pagination-bar" id="res-pagination">
+                        <button class="glass-pagination-btn" id="res-table-prev"><i class="bx bx-chevron-left"></i></button>
+                        <div id="res-table-pages" style="display: flex; gap: 0.5rem;"></div>
+                        <button class="glass-pagination-btn" id="res-table-next"><i class="bx bx-chevron-right"></i></button>
+                    </div>
+                </div>
 
-                tbody.appendChild(tr);
-            });
-        }
-        renderAppPagination();
+                <div class="glass-switcher-face glass-switcher-face-details" id="res-view-face">
+                    <div id="res-view-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div><h3>Residence Details</h3><p class="users-edit-modal-subtitle">Full information overview</p></div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('res-view-modal')">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                <div class="glass-view-details">
+                                    <div class="glass-view-row"><div class="glass-view-label">Name</div><div class="glass-view-value" id="view-res-name">-</div></div>
+                                    <div class="glass-view-row"><div class="glass-view-label">Address</div><div class="glass-view-value" id="view-res-address">-</div></div>
+                                    <div class="glass-view-row" id="view-res-image-row" style="display: none; flex-direction: column;">
+                                        <img id="view-res-image" src="" style="max-width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                </div>
+                                <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
+                                    <button type="button" class="users-btn-modify" id="view-res-modify-btn"><i class="bx bx-edit"></i> Modify Residence</button>
+                                    <form id="view-res-delete-form" method="post" style="display: inline-block; margin-left: 1rem;" data-ajax="true" data-refresh="softRefresh">
+                                        <input type="hidden" name="_token" id="view-res-delete-token" value="">
+                                        <button type="submit" class="users-btn-delete" data-delete-title="Delete Residence"><i class="bx bx-trash"></i> Delete Residence</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-switcher-face glass-switcher-face-edit" id="res-edit-face">
+                    <div id="res-edit-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div><h3>Edit Residence</h3><p class="users-edit-modal-subtitle">Update residence properties</p></div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('res-edit-modal')">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                {% if residenceEditForm is defined %}
+                                {{ form_start(residenceEditForm, { 'attr': { 'id': 'res-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
+                                
+                                {{ form_row(residenceEditForm.nomR, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                {{ form_row(residenceEditForm.adresse, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                
+                                <div class="row">
+                                    <div class="col-md-4">{{ form_row(residenceEditForm.nAppartements, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-4">{{ form_row(residenceEditForm.nEtages, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-4">{{ form_row(residenceEditForm.nBlocs, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                </div>
+                                {{ form_row(residenceEditForm.imageR, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                
+                                <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
+                                    <button type="button" class="users-btn-cancel" onclick="closeModal('res-edit-modal')"><i class="bx bx-x"></i> Discard</button>
+                                    <span class="users-edit-modal-actions-spacer"></span>
+                                    <button type="submit" class="users-btn-modify"><i class="bx bx-check"></i> Update Residence</button>
+                                </div>
+                                {{ form_end(residenceEditForm) }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-switcher-face glass-switcher-face-extra" id="res-add-face">
+                    <div id="res-add-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div><h3>Add Residence</h3><p class="users-edit-modal-subtitle">Create a new entry</p></div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('res-add-modal')">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                {% if residenceAddForm is defined %}
+                                {{ form_start(residenceAddForm, { 'attr': { 'id': 'res-add-form', 'method': 'post', 'action': path('admin_residence_add'), 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
+                                
+                                {{ form_row(residenceAddForm.nomR, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                {{ form_row(residenceAddForm.adresse, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                
+                                <div class="row">
+                                    <div class="col-md-4">{{ form_row(residenceAddForm.nAppartements, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-4">{{ form_row(residenceAddForm.nEtages, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-4">{{ form_row(residenceAddForm.nBlocs, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                </div>
+                                {{ form_row(residenceAddForm.imageR, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                
+                                <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
+                                    <button type="button" class="users-btn-cancel" onclick="closeModal('res-add-modal')"><i class="bx bx-x"></i> Discard</button>
+                                    <span class="users-edit-modal-actions-spacer"></span>
+                                    <button type="submit" class="users-btn-modify"><i class="bx bx-plus"></i> Create Residence</button>
+                                </div>
+                                {{ form_end(residenceAddForm) }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 2: Appartements -->
+    <div class="residence-page-content" data-page="2" style="display: none;">
+        <div class="glass-table-container">
+            <div id="appartementGlassSwitcher" class="glass-switcher style-slide">
+                <div class="glass-switcher-face glass-switcher-face-main">
+                    <div class="glass-toolbar">
+                        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Appartements</h3>
+                        <div style="flex: 1;"></div>
+                        <button type="button" class="glass-btn-save" id="app-btn-add" style="padding: 0.6rem 1.5rem; font-size: 0.9rem;">
+                            <i class="bx bx-plus"></i> Add Appartement
+                        </button>
+                    </div>
+                    <div class="glass-toolbar" style="margin-bottom: 1.5rem;">
+                        <div class="glass-search-container">
+                            <i class="bx bx-search glass-search-icon"></i>
+                            <input type="text" class="glass-search-input app-search-input" placeholder="Search appartements...">
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.5rem;">
+                            <div class="glass-pill glass-pill-active app-sort-option" data-value="number" onclick="selectAppSortPill(this)">Number</div>
+                            <div class="glass-pill app-sort-option" data-value="residence" onclick="selectAppSortPill(this)">Residence</div>
+                            <div class="glass-pill app-sort-option" data-value="status" onclick="selectAppSortPill(this)">Status</div>
+                            <button class="glass-pagination-btn" id="app-sort-dir-pill" style="width: 38px; height: 38px;">
+                                <span id="app-sort-dir-icon-svg"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="glass-table-scroll">
+                        <table class="glass-table" id="app-table">
+                            <thead>
+                                <tr>
+                                    <th>Number</th>
+                                    <th>Residence</th>
+                                    <th>Status</th>
+                                    <th style="text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="app-table-body"><!-- Rendered by JS --></tbody>
+                        </table>
+                    </div>
+                    <div class="glass-pagination-bar" id="app-pagination">
+                        <button class="glass-pagination-btn" id="app-table-prev"><i class="bx bx-chevron-left"></i></button>
+                        <div id="app-table-pages" style="display: flex; gap: 0.5rem;"></div>
+                        <button class="glass-pagination-btn" id="app-table-next"><i class="bx bx-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <div class="glass-switcher-face glass-switcher-face-details" id="app-view-face">
+                    <div id="app-view-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div><h3>Appartement Details</h3><p class="users-edit-modal-subtitle">Information overview</p></div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('app-view-modal')">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                <div class="glass-view-details">
+                                    <div class="glass-view-row"><div class="glass-view-label">Number</div><div class="glass-view-value" id="view-app-num">-</div></div>
+                                    <div class="glass-view-row"><div class="glass-view-label">Residence</div><div class="glass-view-value" id="view-app-res">-</div></div>
+                                    <div class="glass-view-row"><div class="glass-view-label">Status</div><div class="glass-view-value" id="view-app-status">-</div></div>
+                                </div>
+                                <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
+                                    <button type="button" class="users-btn-modify" id="view-app-modify-btn"><i class="bx bx-edit"></i> Modify Appartement</button>
+                                    <form id="view-app-delete-form" method="post" style="display: inline-block; margin-left: 1rem;" data-ajax="true" data-refresh="softRefresh">
+                                        <input type="hidden" name="_token" id="view-app-delete-token" value="">
+                                        <button type="submit" class="users-btn-delete" data-delete-title="Delete Appartement"><i class="bx bx-trash"></i> Delete Appartement</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-switcher-face glass-switcher-face-edit" id="app-edit-face">
+                    <div id="app-edit-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div><h3>Edit Appartement</h3><p class="users-edit-modal-subtitle">Update details</p></div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('app-edit-modal')">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                {% if appartementEditForm is defined %}
+                                {{ form_start(appartementEditForm, { 'attr': { 'id': 'app-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
+                                
+                                {{ form_row(appartementEditForm.residence, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                
+                                <div class="row">
+                                    <div class="col-md-4">{{ form_row(appartementEditForm.bloc, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-4">{{ form_row(appartementEditForm.floor, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-4">{{ form_row(appartementEditForm.number, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">{{ form_row(appartementEditForm.typeA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-6">{{ form_row(appartementEditForm.user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">{{ form_row(appartementEditForm.parking, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
+                                    <div class="col-md-6">{{ form_row(appartementEditForm.disponible, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
+                                </div>
+                                {{ form_row(appartementEditForm.imageA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                
+                                <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
+                                    <button type="button" class="users-btn-cancel" onclick="closeModal('app-edit-modal')"><i class="bx bx-x"></i> Discard</button>
+                                    <span class="users-edit-modal-actions-spacer"></span>
+                                    <button type="submit" class="users-btn-modify"><i class="bx bx-check"></i> Update Appartement</button>
+                                </div>
+                                {{ form_end(appartementEditForm) }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-switcher-face glass-switcher-face-extra" id="app-add-face">
+                    <div id="app-add-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div><h3>Add Appartement</h3><p class="users-edit-modal-subtitle">Add to inventory</p></div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('app-add-modal')">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                {% if appartementAddForm is defined %}
+                                {{ form_start(appartementAddForm, { 'attr': { 'id': 'app-add-form', 'method': 'post', 'action': path('app_appartement_new'), 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
+                                
+                                {{ form_row(appartementAddForm.residence, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'id': 'app-residence-select' } }) }}
+                                
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="glass-form-group">
+                                            <label class="glass-label">Building Block</label>
+                                            <select class="glass-input" id="app-bloc-select">
+                                                <option value="">Select Bloc</option>
+                                            </select>
+                                            {{ form_widget(appartementAddForm.bloc, { 'attr': { 'style': 'display:none;', 'id': 'app-bloc-field' } }) }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="glass-form-group">
+                                            <label class="glass-label">Floor Level</label>
+                                            <select class="glass-input" id="app-floor-select">
+                                                <option value="">Select Floor</option>
+                                            </select>
+                                            {{ form_widget(appartementAddForm.floor, { 'attr': { 'style': 'display:none;', 'id': 'app-floor-field' } }) }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="glass-form-group">
+                                            <label class="glass-label">Apartment Number</label>
+                                            <select class="glass-input" id="app-number-select">
+                                                <option value="">Select Apartment</option>
+                                            </select>
+                                            {{ form_widget(appartementAddForm.number, { 'attr': { 'style': 'display:none;', 'id': 'app-number-field' } }) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">{{ form_row(appartementAddForm.typeA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-6">{{ form_row(appartementAddForm.user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">{{ form_row(appartementAddForm.parking, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
+                                    <div class="col-md-6">{{ form_row(appartementAddForm.disponible, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
+                                </div>
+                                {{ form_row(appartementAddForm.imageA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                
+                                <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
+                                    <button type="button" class="users-btn-cancel" onclick="closeModal('app-add-modal')"><i class="bx bx-x"></i> Discard</button>
+                                    <span class="users-edit-modal-actions-spacer"></span>
+                                    <button type="submit" class="users-btn-modify"><i class="bx bx-plus"></i> Create Appartement</button>
+                                </div>
+                                {{ form_end(appartementAddForm) }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+
+    const residencesData = [{% for r in residences|default([]) %} [ "{{ r.nomR|e('js') }}", "{{ r.adresse|e('js') }}", "{{ r.imageR|e('js') }}", "{{ r.idResidence }}", "{{ r.nAppartements }}", "{{ r.nEtages }}", "{{ r.nBlocs }}", "{{ csrf_token('delete' ~ r.idResidence)|e('js') }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
+    const appartementsData = [{% for a in appartements|default([]) %} [ "{{ a.appartementInfo.number|default('—')|e('js') }}", "{{ a.residence ? a.residence.nomR|e('js') : '—' }}", "{{ a.disponible ? 'Available' : 'Occupied' }}", "{{ a.idApp }}", "{{ a.residence ? a.residence.idResidence : '' }}", "{{ a.user ? a.user.idUser : '' }}", "{{ a.typeA|e('js') }}", "{{ a.parking ? 'true' : 'false' }}", "{{ a.appartementInfo.bloc|default('')|e('js') }}", "{{ a.appartementInfo.floor|default('')|e('js') }}", "{{ a.imageA|e('js') }}", "{{ csrf_token('delete' ~ a.idApp)|e('js') }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
+    
+    const editResUrlTemplate = "{{ path('admin_residence_edit', {id: 'ID_PLACEHOLDER'}) }}";
+    const deleteResUrlTemplate = "{{ path('admin_residence_delete', {id: 'ID_PLACEHOLDER'}) }}";
+    const editAppUrlTemplate = "{{ path('app_appartement_edit', {idApp: 'ID_PLACEHOLDER'}) }}";
+    const deleteAppUrlTemplate = "{{ path('app_appartement_delete', {idApp: 'ID_PLACEHOLDER'}) }}";
+
+    let resPage = 1, appPage = 1, resRows = [...residencesData], appRows = [...appartementsData], rowsPP = 10;
+    let resSortValue = 'name', resSortDir = 'asc';
+    let appSortValue = 'number', appSortDir = 'asc';
+
+    function updateResSortIcon() {
+        const el = document.getElementById('res-sort-dir-icon-svg'); if(!el) return;
+        el.innerHTML = resSortDir === 'asc' ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>` : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
+    }
+    function updateAppSortIcon() {
+        const el = document.getElementById('app-sort-dir-icon-svg'); if(!el) return;
+        el.innerHTML = appSortDir === 'asc' ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>` : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
     }
 
-    function renderAppPagination() {
-        const totalPages = Math.ceil(appFilteredData.length / appRowsPerPage);
-        const pagesContainer = document.getElementById('app-table-pages');
-        if(!pagesContainer) return;
+    window.selectResSortPill = function(pill) {
+        resSortValue = pill.dataset.value;
+        document.querySelectorAll('.res-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
+        pill.classList.add('glass-pill-active');
+        filterSortResidences();
+    };
+
+    window.selectAppSortPill = function(pill) {
+        appSortValue = pill.dataset.value;
+        document.querySelectorAll('.app-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
+        pill.classList.add('glass-pill-active');
+        filterSortAppartements();
+    };
+
+    function filterSortResidences() {
+        const val = document.querySelector('.res-search-input').value.toLowerCase();
+        let rows = residencesData.filter(d => d[0].toLowerCase().includes(val) || d[1].toLowerCase().includes(val));
         
-        pagesContainer.innerHTML = '';
-        
-        // Simple pagination: 1 .. current .. last
-        if(totalPages <= 1) return;
+        let idx = 0; // Name
+        if(resSortValue === 'address') idx = 1;
 
-        for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement('button');
-            btn.className = `residence-table-page-btn ${i === appCurrentPage ? 'active' : ''}`;
-            btn.textContent = i;
-            btn.onclick = () => {
-                appCurrentPage = i;
-                renderAppartementTable();
-            };
-            pagesContainer.appendChild(btn);
-        }
-    }
-
-    function filterAndSortApps() {
-        const searchInput = document.getElementById('app-search-input');
-        if(!searchInput) return;
-        const search = searchInput.value.toLowerCase();
-        
-        appFilteredData = appartementData.filter(a => 
-            a.type.toLowerCase().includes(search) || 
-            a.residence.toLowerCase().includes(search) ||
-            a.owner.toLowerCase().includes(search)
-        );
-
-        appFilteredData.sort((a, b) => {
-            let valA = a[appSortValue];
-            let valB = b[appSortValue];
-            
-            // Normalize
-            valA = String(valA).toLowerCase();
-            valB = String(valB).toLowerCase();
-
-            if (appSortDirection === 'asc') return valA > valB ? 1 : -1;
-            return valA < valB ? 1 : -1;
+        rows.sort((a,b) => {
+            let vA = a[idx].toLowerCase(), vB = b[idx].toLowerCase();
+            return resSortDir === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
         });
-
-        appCurrentPage = 1;
-        renderAppartementTable();
-    }
-    
-    // Sort logic
-    const appSortPill = document.getElementById('app-sort-pill-custom');
-    if(appSortPill) {
-        appSortPill.onclick = function(e) {
-            e.stopPropagation();
-            const drop = document.getElementById('app-sort-dropdown');
-            drop.style.display = drop.style.display === 'none' ? 'flex' : 'none';
-        };
+        resRows = rows; resPage = 1; renderResTable();
     }
 
-    document.querySelectorAll('#app-sort-dropdown .residence-sort-option').forEach(opt => {
-        opt.onclick = function() {
-            appSortValue = this.dataset.value;
-            document.getElementById('app-sort-selected').textContent = this.textContent;
-            document.getElementById('app-sort-dropdown').style.display = 'none';
-            filterAndSortApps();
-        };
-    });
+    function filterSortAppartements() {
+        const val = document.querySelector('.app-search-input').value.toLowerCase();
+        let rows = appartementsData.filter(d => d[0].toLowerCase().includes(val) || d[1].toLowerCase().includes(val) || d[2].toLowerCase().includes(val));
+        
+        let idx = 0; // Number
+        if(appSortValue === 'residence') idx = 1;
+        else if(appSortValue === 'status') idx = 2;
 
-    const appSortDirBtn = document.getElementById('app-sort-dir-pill');
-    const appSortIcon = document.getElementById('app-sort-dir-icon-svg');
-    const updateAppIcon = () => {
-        if(!appSortIcon) return;
-        appSortIcon.innerHTML = appSortDirection === 'asc' 
-            ? '<i class="bx bx-sort-a-z" style="color:#00c6ff; font-size:1.7rem;"></i>'
-            : '<i class="bx bx-sort-z-a" style="color:#00c6ff; font-size:1.7rem;"></i>';
+        rows.sort((a,b) => {
+            let vA = a[idx].toLowerCase(), vB = b[idx].toLowerCase();
+            return appSortDir === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
+        });
+        appRows = rows; appPage = 1; renderAppTable();
+    }
+
+    function renderResTable() {
+        const tb = document.getElementById('res-table-body'); tb.innerHTML = '';
+        const start = (resPage-1)*rowsPP, end = Math.min(start+rowsPP, resRows.length);
+        for(let i=start; i<end; i++) {
+            const d = resRows[i]; const r = document.createElement('tr');
+            r.innerHTML = `<td><strong>${d[0]}</strong></td><td>${d[1]}</td><td><span class="glass-pill">Residence</span></td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewRes(${i})"><i class="bx bx-show"></i> Details</button></td>`;
+            tb.appendChild(r);
+        }
+        const total = Math.ceil(resRows.length / rowsPP), cont = document.getElementById('res-table-pages'); cont.innerHTML = '';
+        for(let i=1; i<=total; i++) { const b = document.createElement('button'); b.className = 'glass-pagination-btn' + (i === resPage ? ' active' : ''); b.textContent = i; b.onclick = () => { resPage = i; renderResTable(); }; cont.appendChild(b); }
+    }
+    function renderAppTable() {
+        const tb = document.getElementById('app-table-body'); tb.innerHTML = '';
+        const start = (appPage-1)*rowsPP, end = Math.min(start+rowsPP, appRows.length);
+        for(let i=start; i<end; i++) {
+            const d = appRows[i]; const r = document.createElement('tr');
+            r.innerHTML = `<td><strong>${d[0]}</strong></td><td>${d[1]}</td><td><span class="glass-pill">${d[2]}</span></td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewApp(${i})"><i class="bx bx-show"></i> Details</button></td>`;
+            tb.appendChild(r);
+        }
+        const total = Math.ceil(appRows.length / rowsPP), cont = document.getElementById('app-table-pages'); cont.innerHTML = '';
+        for(let i=1; i<=total; i++) { const b = document.createElement('button'); b.className = 'glass-pagination-btn' + (i === appPage ? ' active' : ''); b.textContent = i; b.onclick = () => { appPage = i; renderAppTable(); }; cont.appendChild(b); }
+    }
+
+    window.viewRes = function(idx) {
+        const d = resRows[idx]; document.getElementById('view-res-name').textContent = d[0]; document.getElementById('view-res-address').textContent = d[1];
+        const ir = document.getElementById('view-res-image-row'); if(d[2]) { document.getElementById('view-res-image').src = '/uploads/images/' + d[2]; ir.style.display = 'flex'; } else ir.style.display = 'none';
+        document.getElementById('view-res-delete-token').value = d[7]; document.getElementById('view-res-delete-form').action = deleteResUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
+        document.getElementById('view-res-modify-btn').onclick = () => {
+            const f = document.getElementById('res-edit-form'); f.action = editResUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
+            f.querySelector('[name*="nomR"]').value = d[0]; f.querySelector('[name*="adresse"]').value = d[1];
+            f.querySelector('[name*="nAppartements"]').value = d[4]; f.querySelector('[name*="nEtages"]').value = d[5];
+            // nBlocs (multiple)
+            const blocs = d[6].split(',');
+            const chks = f.querySelectorAll('[name*="nBlocs"]');
+            chks.forEach(c => c.checked = blocs.includes(c.value));
+            openModal('res-edit-modal');
+        };
+        openModal('res-view-modal');
     };
-    
-    if(appSortDirBtn) {
-        updateAppIcon(); // Init
-        appSortDirBtn.onclick = () => {
-            appSortDirection = appSortDirection === 'asc' ? 'desc' : 'asc';
-            updateAppIcon();
-            filterAndSortApps();
+    window.viewApp = function(idx) {
+        const d = appRows[idx]; document.getElementById('view-app-num').textContent = d[0]; document.getElementById('view-app-res').textContent = d[1]; document.getElementById('view-app-status').textContent = d[2];
+        document.getElementById('view-app-delete-token').value = d[11]; document.getElementById('view-app-delete-form').action = deleteAppUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
+        document.getElementById('view-app-modify-btn').onclick = () => {
+            const f = document.getElementById('app-edit-form'); f.action = editAppUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
+            f.querySelector('[name*="residence"]').value = d[4];
+            f.querySelector('[name*="user"]').value = d[5];
+            f.querySelector('[name*="typeA"]').value = d[6];
+            f.querySelector('[name*="parking"]').checked = d[7] === 'true';
+            f.querySelector('[name*="disponible"]').checked = d[2] === 'Available';
+            f.querySelector('[name*="bloc"]').value = d[8];
+            f.querySelector('[name*="floor"]').value = d[9];
+            f.querySelector('[name*="number"]').value = d[0];
+            openModal('app-edit-modal');
         };
-    }
-
-    if(document.getElementById('app-search-input')) {
-        document.getElementById('app-search-input').oninput = filterAndSortApps;
-    }
-
-     // Globalize modal functions
-     window.openViewAppModal = (id) => {
-        console.log('Opening View Modal for Apartment:', id);
-        const a = window.appartementData.find(item => item.id == id);
-        if(!a) {
-            console.error('Apartment data not found for ID:', id);
-            return;
-        }
-
-        document.getElementById('view-app-type').textContent = a.type;
-        document.getElementById('view-app-residence').textContent = a.residence;
-        document.getElementById('view-app-image').src = a.image;
-        document.getElementById('view-app-owner').textContent = a.owner;
-        document.getElementById('view-app-parking').textContent = a.parking === 'Yes' ? 'Parking Included' : 'No Parking';
-        document.getElementById('view-app-status').textContent = a.status;
-        
-        const deleteForm = document.getElementById('view-app-delete-form');
-        if(deleteForm) {
-            deleteForm.action = `/admin/appartement/${a.id}`;
-            document.getElementById('view-app-delete-token').value = a.deleteToken;
-            
-            // Re-bind AJAX delete logic
-            deleteForm.onsubmit = (e) => {
-                e.preventDefault();
-                showCoolPopup('Confirm Delete', 'Are you sure you want to remove this apartment unit?', 'confirm', () => {
-                    const formData = new FormData(deleteForm);
-                    fetch(deleteForm.action, {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            window.appartementData = window.appartementData.filter(item => item.id != a.id);
-                            appFilteredData = [...window.appartementData];
-                            renderAppartementTable();
-                            closeModal('app-view-modal');
-                            showCoolPopup('Success', 'Apartment deleted successfully.', 'success');
-                        } else {
-                            showCoolPopup('Error', data.message, 'error');
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        showCoolPopup('Error', 'An unexpected error occurred.', 'error');
-                    });
-                });
-            };
-        }
-        
-        const editBtn = document.getElementById('btn-trigger-app-edit');
-        if(editBtn) editBtn.onclick = () => window.openEditAppModal(a.id);
-
         openModal('app-view-modal');
-     };
-
-     window.openEditAppModal = (id) => {
-         console.log('Opening Edit Modal for Apartment:', id);
-         closeModal('app-view-modal'); 
-         const a = window.appartementData.find(item => item.id == id);
-         if(!a) {
-             console.error('Apartment data not found for ID:', id);
-             return;
-         }
-         
-         const form = document.getElementById('app-edit-form');
-         if(form) {
-             form.action = `/admin/appartement/${id}/edit`;
-             console.log('Form Action Set to:', form.action);
-             
-             // 1. Residence & Dropdown population
-             const resSelect = form.querySelector('select[name="appartement_edit[residence]"]');
-             if(resSelect) {
-                 resSelect.value = a.resId;
-                 console.log('Residence Set to:', a.resId);
-                 updateAppFormData(a.resId, '#app-edit-form');
-             }
-
-             // 2. Set dynamic fields (bloc, floor, number)
-             // Short delay to ensure options are added to DOM before selecting
-             setTimeout(() => {
-                const blocEl = form.querySelector('.bloc-input');
-                if(blocEl) {
-                    blocEl.value = a.bloc;
-                    console.log('Bloc Set to:', a.bloc);
-                }
-                
-                const floorEl = form.querySelector('.floor-input');
-                if(floorEl) {
-                    floorEl.value = a.floor;
-                    console.log('Floor Set to:', a.floor);
-                }
-                
-                const numEl = form.querySelector('.number-input');
-                if(numEl) {
-                    numEl.value = a.number;
-                    console.log('Number Set to:', a.number);
-                }
-             }, 100); 
-
-             // 3. Static fields
-             const typeSelect = form.querySelector('select[name="appartement_edit[typeA]"]');
-             if(typeSelect) typeSelect.value = a.type.toUpperCase();
-
-             const userSelect = form.querySelector('select[name="appartement_edit[user]"]');
-             if(userSelect) userSelect.value = a.ownerId;
-
-             // 4. Checkboxes
-             const parkingCb = form.querySelector('input[name="appartement_edit[parking]"]');
-             if(parkingCb) parkingCb.checked = a.isParking;
-
-             const availCb = form.querySelector('input[name="appartement_edit[disponible]"]');
-             if(availCb) availCb.checked = a.isAvailable;
-
-             const imgText = form.querySelector('.custom-file-text');
-             if(imgText) imgText.textContent = "Maintain existing image...";
-
-             form.onsubmit = function(e) {
-                 e.preventDefault();
-                 const formData = new FormData(this);
-                 fetch(this.action, {
-                     method: 'POST',
-                     body: formData
-                 })
-                 .then(res => res.json())
-                 .then(data => {
-                     if(data.success) {
-                         // Update local data
-                         const idx = window.appartementData.findIndex(item => item.id == a.id);
-                         if(idx !== -1) {
-                             window.appartementData[idx] = data.appartement;
-                             appFilteredData = [...window.appartementData];
-                             renderAppartementTable();
-                         }
-                         closeModal('app-edit-modal');
-                         showCoolPopup('Success', 'Apartment updated successfully.', 'success');
-                     } else {
-                         showCoolPopup('Error', data.message, 'error');
-                     }
-                 })
-                 .catch(err => {
-                     console.error(err);
-                     showCoolPopup('Error', 'An unexpected error occurred.', 'error');
-                 });
-             };
-
-             openModal('app-edit-modal');
-         }
-     };
-
-    document.getElementById('btn-show-add-app-modal').onclick = () => openModal('app-add-modal');
-
-    const appAddForm = document.getElementById('app-add-form');
-    if(appAddForm) {
-        appAddForm.onsubmit = function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            fetch(this.action, {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    window.appartementData.push(data.appartement);
-                    appFilteredData = [...window.appartementData];
-                    renderAppartementTable();
-                    closeModal('app-add-modal');
-                    this.reset();
-                    // Reset image text
-                    const imgText = this.querySelector('.custom-file-text');
-                    if(imgText) imgText.textContent = "Click to upload unit image...";
-                    showCoolPopup('Success', 'Apartment registered successfully.', 'success');
-                } else {
-                    showCoolPopup('Error', data.message, 'error');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                showCoolPopup('Error', 'An unexpected error occurred.', 'error');
-            });
-        };
-    }
-
-    // Initial render
-    renderAppartementTable();
-    
-    // Pagination listeners
-    const prevBtn = document.getElementById('app-table-prev');
-    if(prevBtn) prevBtn.onclick = () => { if (appCurrentPage > 1) { appCurrentPage--; renderAppartementTable(); } };
-     const nextBtn = document.getElementById('app-table-next');
-    if(nextBtn) nextBtn.onclick = () => { 
-        if (appCurrentPage < Math.ceil(appFilteredData.length / appRowsPerPage)) { appCurrentPage++; renderAppartementTable(); } 
     };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const sl = document.getElementById('residence-switcher-slider'), ts = document.querySelectorAll('.premium-switcher-tab'), ps = document.querySelectorAll('.residence-page-content');
+        ts.forEach((t, i) => t.addEventListener('click', () => {
+            ts.forEach(x => x.classList.remove('active')); t.classList.add('active'); sl.style.left = (i * 50) + '%'; sl.style.width = '50%';
+            ps.forEach(p => p.style.display = p.dataset.page === t.dataset.page ? 'block' : 'none');
+            const as = document.querySelector(`.residence-page-content[data-page="${t.dataset.page}"] .glass-switcher`); if(as) switchGlassFace('main', as.id);
+        }));
+        sl.style.width = '50%'; 
+        renderResTable(); 
+        renderAppTable(); 
+        updateResSortIcon();
+        updateAppSortIcon();
+        switchGlassFace('main', 'residenceGlassSwitcher');
+
+        document.getElementById('res-sort-dir-pill').onclick = () => { resSortDir = resSortDir === 'asc' ? 'desc' : 'asc'; updateResSortIcon(); filterSortResidences(); };
+        document.getElementById('app-sort-dir-pill').onclick = () => { appSortDir = appSortDir === 'asc' ? 'desc' : 'asc'; updateAppSortIcon(); filterSortAppartements(); };
+
+        document.querySelector('.res-search-input').oninput = () => filterSortResidences();
+        document.querySelector('.app-search-input').oninput = () => filterSortAppartements();
+
+        document.getElementById('res-btn-add').onclick = () => openModal('res-add-modal');
+        
+        // Modified to initialize dropdowns when modal opens
+        document.getElementById('app-btn-add').onclick = () => {
+            openModal('app-add-modal');
+            
+            // Small delay to ensure modal is fully rendered
+            setTimeout(() => {
+                initApartmentDropdowns();
+            }, 150);
+        };
+
+        function initApartmentDropdowns() {
+            // Try multiple selectors to find the residence dropdown
+            const residenceSelect = document.querySelector('#app-add-form select[name*="residence"]') ||
+                                  document.querySelector('select[name*="residence"]') ||
+                                  document.querySelector('#app-add-form select');
+            
+            if (!residenceSelect) {
+                console.error('Could not find residence select!');
+                return;
+            }
+
+            const blocSelect = document.getElementById('app-bloc-select');
+            const floorSelect = document.getElementById('app-floor-select');
+            const numberSelect = document.getElementById('app-number-select');
+            const blocInput = document.getElementById('app-bloc-field');
+            const floorInput = document.getElementById('app-floor-field');
+            const numberInput = document.getElementById('app-number-field');
+
+            console.log('Initializing apartment dropdowns...');
+            console.log('Residence select:', residenceSelect);
+
+            // Sync selects with hidden inputs
+            if (blocSelect && blocInput) {
+                blocSelect.addEventListener('change', () => blocInput.value = blocSelect.value);
+            }
+            if (floorSelect && floorInput) {
+                floorSelect.addEventListener('change', () => floorInput.value = floorSelect.value);
+            }
+            if (numberSelect && numberInput) {
+                numberSelect.addEventListener('change', () => numberInput.value = numberSelect.value);
+            }
+
+            // Remove any existing listener and add new one
+            const newResidenceSelect = residenceSelect.cloneNode(true);
+            residenceSelect.parentNode.replaceChild(newResidenceSelect, residenceSelect);
+
+            // When residence changes, populate dropdowns
+            newResidenceSelect.addEventListener('change', function() {
+                const selectedResId = this.value;
+                console.log('Residence selected:', selectedResId);
+                
+                // Reset all dropdowns
+                if (blocSelect) {
+                    blocSelect.innerHTML = '<option value="">Select Bloc</option>';
+                    if (blocInput) blocInput.value = '';
+                }
+                if (floorSelect) {
+                    floorSelect.innerHTML = '<option value="">Select Floor</option>';
+                    if (floorInput) floorInput.value = '';
+                }
+                if (numberSelect) {
+                    numberSelect.innerHTML = '<option value="">Select Apartment</option>';
+                    if (numberInput) numberInput.value = '';
+                }
+                
+                if (!selectedResId) return;
+
+                // Find residence data
+                const resData = residencesData.find(r => r[3] == selectedResId);
+                console.log('Found residence data:', resData);
+                
+                if (!resData) {
+                    console.error('No data found for residence ID:', selectedResId);
+                    return;
+                }
+
+                // Parse residence data
+                const blocsString = resData[6] || '';
+                const blocsArray = blocsString ? blocsString.split(',').map(b => b.trim()).filter(b => b) : [];
+                const nEtages = parseInt(resData[5]) || 0;
+                const nAppartements = parseInt(resData[4]) || 0;
+
+                console.log('Populating - Blocs:', blocsArray, 'Floors:', nEtages, 'Apartments:', nAppartements);
+
+                // Populate Bloc dropdown
+                if (blocSelect && blocsArray.length > 0) {
+                    blocsArray.forEach(bloc => {
+                        const option = document.createElement('option');
+                        option.value = bloc;
+                        option.textContent = `Bloc ${bloc}`;
+                        blocSelect.appendChild(option);
+                    });
+                    console.log('Populated', blocsArray.length, 'blocs');
+                }
+
+                // Populate Floor dropdown
+                if (floorSelect && nEtages > 0) {
+                    for (let i = 1; i <= nEtages; i++) {
+                        const option = document.createElement('option');
+                        option.value = i;
+                        option.textContent = `Floor ${i}`;
+                        floorSelect.appendChild(option);
+                    }
+                    console.log('Populated', nEtages, 'floors');
+                }
+
+                // Populate Apartment Number dropdown
+                if (numberSelect && nAppartements > 0) {
+                    for (let i = 1; i <= nAppartements; i++) {
+                        const option = document.createElement('option');
+                        option.value = i;
+                        option.textContent = `Apartment ${i}`;
+                        numberSelect.appendChild(option);
+                    }
+                    console.log('Populated', nAppartements, 'apartment numbers');
+                }
+            });
+        }
     });
 </script>
 {% endblock %}
-
-
