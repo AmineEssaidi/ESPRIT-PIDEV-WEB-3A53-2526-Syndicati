@@ -115,6 +115,7 @@ class AdminController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
 
+            // Password Change Logic (same as FrontendController)
             $currentPassword = $form->get('currentPassword')->getData();
             $newPassword = $form->get('newPassword')->getData();
 
@@ -543,6 +544,7 @@ class AdminController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Robust user retrieval (fallback to session if security context is empty)
             $user = $this->getUser();
             if (!$user) {
                 $sessionUser = $request->getSession()->get('user');
@@ -571,6 +573,7 @@ class AdminController extends AbstractController
 
             $publication->setUser($user);
 
+            /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $imageFile */
             $imageFile = $form->get('image_pub')->getData();
 
             if ($imageFile) {
@@ -582,6 +585,7 @@ class AdminController extends AbstractController
                     $imageFile->move($this->getParameter('publications_directory'), $newFilename);
                     $publication->setImagePub($newFilename);
                 } catch (\Exception $e) {
+                    // Fail silently or log error
                 }
             }
 
@@ -662,6 +666,8 @@ class AdminController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Reponse not found'], 404);
         }
 
+        // Use a generic token check for now since there's no specific token in the twig yet
+        // but the JS is already sending a POST request to this URL.
         $entityManager->remove($reponse);
         $entityManager->flush();
 
@@ -674,6 +680,7 @@ class AdminController extends AbstractController
         $evenements = $evenementRepository->findBy([], ['date_event' => 'DESC']);
         $participations = $participationRepository->findBy([], ['date_participation' => 'DESC']);
 
+        // Create edit forms
         $evenementEditForm = $this->createForm(\App\Form\Evenement\EvenementType::class, new \App\Entity\Evenement\Evenement());
         $participationEditForm = $this->createForm(\App\Form\Evenement\ParticipationType::class, new \App\Entity\Evenement\Participation(), ['is_admin' => true]);
 
@@ -724,11 +731,13 @@ class AdminController extends AbstractController
                 return new JsonResponse(['success' => false, 'message' => 'Event not found.'], 404);
             }
 
+            // CSRF check
             $token = $request->request->get('_token');
             if (!$token || !$csrfTokenManager->isTokenValid(new \Symfony\Component\Security\Csrf\CsrfToken('evenement_delete', $token))) {
                 return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
             }
 
+            // Manually delete associated participations to avoid foreign key constraint violations
             $participations = $participationRepository->findBy(['evenement' => $evenement]);
             foreach ($participations as $participation) {
                 $em->remove($participation);
@@ -765,15 +774,20 @@ class AdminController extends AbstractController
             if ($evenement) {
                 $placesToDeduct = 0;
 
+                // Handle status changes affecting seats
                 if ($oldStatus !== 'confirme' && $newStatus === 'confirme') {
+                    // Newly confirmed: deduct 1 (user) + nb_accompagnants
                     $placesToDeduct = 1 + $newGuests;
                 } elseif ($oldStatus === 'confirme' && $newStatus !== 'confirme') {
+                    // Was confirmed, now cancelled/refused: return seats
                     $placesToDeduct = -(1 + $oldGuests);
                 } elseif ($oldStatus === 'confirme' && $newStatus === 'confirme' && $oldGuests !== $newGuests) {
+                    // Stayed confirmed but number of guests changed
                     $placesToDeduct = $newGuests - $oldGuests;
                 }
 
                 if ($placesToDeduct !== 0) {
+                    // Check if enough seats are available
                     if ($placesToDeduct > $evenement->getNbRestants()) {
                         return new JsonResponse([
                             'success' => false,
@@ -803,6 +817,7 @@ class AdminController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Participation not found.'], 404);
         }
 
+        // CSRF check
         $token = $request->request->get('_token');
         if ($token && !$csrfTokenManager->isTokenValid(new \Symfony\Component\Security\Csrf\CsrfToken('participation_delete', $token))) {
             return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
@@ -810,6 +825,7 @@ class AdminController extends AbstractController
 
         $evenement = $participation->getEvenement();
         if ($evenement && $participation->getStatutParticipation() === 'confirme') {
+            // Return seats: 1 (primary) + guests
             $placesToReclaim = 1 + $participation->getNbAccompagnants();
             $evenement->setNbRestants($evenement->getNbRestants() + $placesToReclaim);
         }
@@ -1014,6 +1030,7 @@ class AdminController extends AbstractController
 
         $pageStatusService->setPageStatus($pageId, $status);
 
+
         return new JsonResponse([
             'success' => true,
             'pageId' => $pageId,
@@ -1117,9 +1134,6 @@ class AdminController extends AbstractController
         return $pageNames[$pageId] ?? 'Page';
     }
 
-    /**
-     * Get default referrer URL for a page (where to go back to)
-     */
     private function getDefaultReferrerForPage(string $pageId): string
     {
         $defaultReferrers = [
