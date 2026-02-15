@@ -1,0 +1,83 @@
+<!-- Global Premium Video Background -->
+<div class="global-video-bg-container">
+    <video id="heroVideoGlobal" autoplay loop muted playsinline class="global-video-element">
+        <source src="{{ asset('videos/syndicati.mp4') }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <div class="global-video-overlay"></div>
+</div>
+
+<style>
+/* Critical styles to ensure video background works everywhere */
+.global-video-bg-container {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1 !important; /* Changed from -9999 to -1 to ensure visibility */
+    overflow: hidden;
+    pointer-events: none;
+    background: transparent; /* Removed black fallback */
+}
+
+.global-video-element {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.global-video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Universal darken overlay for text readability */
+    z-index: 1;
+}
+
+/* Force transparency on documented layout containers to let video show through */
+html, body, 
+.layout-wrapper, .layout-container, .layout-page, .content-wrapper,
+.main-home-layout-wrapper, .main-home-page, .main-home-content-wrapper,
+.container-xxl, .app-brand {
+    background: transparent !important;
+}
+
+/* Ensure navbar doesn't have a solid blocking background if not intended */
+.layout-navbar {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px);
+}
+</style>
+
+<script>
+(function() {
+    if (window.hasGlobalVideo) return;
+    window.hasGlobalVideo = true;
+
+    const video = document.getElementById('heroVideoGlobal');
+    if (video) {
+        video.playbackRate = 0.5;
+        // Force play on low power mode devices if possible
+        video.setAttribute('playsinline', '');
+        video.muted = true;
+        
+        const playVideo = () => {
+            video.play().catch(e => console.log("Global video autoplay blocked:", e));
+        };
+
+        video.addEventListener('ended', playVideo);
+        playVideo();
+        
+        // Refocus play on user interaction if autoplay failed
+        document.addEventListener('click', () => {
+             if (video.paused) playVideo();
+        }, { once: true });
+    }
+})();
+</script>

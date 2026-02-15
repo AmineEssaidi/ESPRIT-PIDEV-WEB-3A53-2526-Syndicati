@@ -4,8 +4,8 @@
    ========================================================================== */
 
 :root {
-    --residence-accent: var(--main-home-accent-color, #6c5ce7);
-    --residence-gradient: var(--main-home-accent-gradient, linear-gradient(135deg, #6c5ce7 0%, #a855f7 100%));
+    --residence-accent: var(--main-home-accent-color);
+    --residence-gradient: var(--main-home-accent-gradient);
     --residence-glass: rgba(255, 255, 255, 0.03);
     --residence-border: rgba(255, 255, 255, 0.08);
 }
@@ -33,7 +33,7 @@
     right: -10%;
     width: 900px;
     height: 900px;
-    background: radial-gradient(circle, rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.2) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(var(--main-home-accent-rgb), 0.2) 0%, transparent 70%);
     filter: blur(120px);
     pointer-events: none;
     z-index: 0;
@@ -49,8 +49,8 @@
     align-items: center;
     gap: 0.6rem;
     padding: 0.7rem 1.4rem;
-    background: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.1);
-    border: 1px solid rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.3);
+    background: rgba(var(--main-home-accent-rgb), 0.1);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.3);
     border-radius: 100px;
     color: #fff;
     font-weight: 700;
@@ -59,7 +59,7 @@
     letter-spacing: 2px;
     margin-bottom: 2.5rem;
     backdrop-filter: blur(10px);
-    box-shadow: 0 0 20px rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.1);
+    box-shadow: 0 0 20px rgba(var(--main-home-accent-rgb), 0.1);
 }
 
 .residence-title {
@@ -87,6 +87,8 @@
 .residence-showcase {
     padding: 6rem 0;
     background: transparent;
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
 .section-label {
@@ -120,12 +122,13 @@
     height: 100%;
     position: relative;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    width: 100%;
 }
 
 .residence-card:hover {
     transform: translateY(-15px) scale(1.02);
-    border-color: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.4);
-    box-shadow: 0 30px 70px rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.15);
+    border-color: rgba(var(--main-home-accent-rgb), 0.4);
+    box-shadow: 0 30px 70px rgba(var(--main-home-accent-rgb), 0.15);
 }
 
 .residence-card-img {
@@ -271,4 +274,503 @@
 [data-theme="light"] .residence-type {
     background: #f1f5f9;
     color: #64748b;
+}
+
+/* RESIDENCE INLINE EXPANSION */
+.residence-card-wrapper {
+    position: relative;
+}
+
+.residence-card {
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.residence-card.expanding {
+    opacity: 0;
+    transform: scale(1.01);
+}
+
+.residence-expanded-view {
+    position: relative;
+    width: 100%;
+    background: #000000;
+    backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.residence-expanded-view.active {
+    max-height: 1000px;
+    opacity: 1;
+    margin-top: 1rem;
+}
+
+@keyframes expandIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.residence-expanded-view.active {
+    animation: expandIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.residence-expanded-view .glass-switcher {
+    position: relative;
+    min-height: 600px;
+}
+
+.residence-expanded-view .glass-switcher-face {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced Close Button */
+.residence-close-btn {
+    position: relative;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.residence-close-btn:hover {
+    background: rgba(255, 50, 50, 0.2);
+    border-color: rgba(255, 50, 50, 0.3);
+    transform: rotate(90deg);
+}
+
+/* Apartment Filter Toggle */
+.residence-filter-toggle {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    padding: 0.3rem;
+    backdrop-filter: blur(10px);
+}
+
+.residence-filter-toggle .btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 50px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.residence-filter-toggle .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(var(--main-home-accent-rgb), 0.1) 0%, rgba(var(--main-home-accent-rgb), 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.residence-filter-toggle .btn:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.residence-filter-toggle .btn-check:checked+.btn {
+    background: linear-gradient(135deg, rgba(var(--main-home-accent-rgb), 0.25) 0%, rgba(var(--main-home-accent-rgb), 0.15) 100%);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.4);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(var(--main-home-accent-rgb), 0.3),
+        0 0 20px rgba(var(--main-home-accent-rgb), 0.1) inset;
+    transform: scale(1.02);
+}
+
+.residence-filter-toggle .btn-check:checked+.btn::before {
+    opacity: 1;
+}
+
+.residence-filter-toggle .badge {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+    font-weight: 700;
+}
+
+/* Premium Details Grid */
+.property-detail-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.property-detail-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--main-home-accent-color);
+    transform: translateY(-3px);
+}
+
+.property-detail-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, rgba(var(--main-home-accent-rgb), 0.15) 0%, rgba(var(--main-home-accent-rgb), 0.05) 100%);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.2);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--main-home-accent-color);
+}
+
+/* Apartment Cards in Expanded View */
+.apartment-mini-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 1.5rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.apartment-mini-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg,
+            var(--main-home-accent-color) 0%,
+            rgba(var(--main-home-accent-rgb), 0.5) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.apartment-mini-card:hover {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+    border-color: rgba(var(--main-home-accent-rgb), 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(var(--main-home-accent-rgb), 0.1) inset;
+}
+
+.apartment-mini-card:hover::before {
+    opacity: 1;
+}
+
+.apartment-type-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.7) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.apartment-info-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    margin-bottom: 0.4rem;
+    transition: all 0.3s ease;
+}
+
+.apartment-info-row:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.apartment-info-row i {
+    font-size: 1.1rem;
+    color: var(--main-home-accent-color);
+    width: 24px;
+    text-align: center;
+}
+
+.apartment-info-row span {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.apartment-status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.apartment-status-badge.available {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.1);
+}
+
+.apartment-status-badge.occupied {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.1);
+}
+
+.apartment-status-badge i {
+    font-size: 1rem;
+}
+
+.apartment-image-container {
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.apartment-image-container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.apartment-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.apartment-feature-tag {
+    padding: 0.4rem 0.8rem;
+    background: rgba(var(--main-home-accent-rgb), 0.1);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.2);
+    border-radius: 8px;
+    color: var(--main-home-accent-color);
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.apartment-feature-tag i {
+    font-size: 0.9rem;
+}
+
+/* Apartments Modal Overlay */
+.apartments-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.apartments-modal-overlay.active {
+    display: flex;
+}
+
+.apartments-modal-content {
+    background: linear-gradient(145deg, rgba(20, 20, 20, 0.98) 0%, rgba(30, 30, 30, 0.95) 100%);
+    backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 30px;
+    max-width: 1200px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+}
+
+.apartments-modal-header {
+    padding: 2rem 2rem 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.apartments-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+.apartments-modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.apartments-modal-body::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.apartments-modal-body::-webkit-scrollbar-thumb {
+    background: rgba(var(--main-home-accent-rgb), 0.5);
+    border-radius: 10px;
+}
+
+.apartments-modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--main-home-accent-color);
+}
+
+/* Premium Residence Badge */
+.premium-residence-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 193, 7, 0.1) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 50px;
+    color: #FFD700;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2),
+        0 0 20px rgba(255, 215, 0, 0.1) inset;
+    transition: all 0.3s ease;
+}
+
+.premium-residence-badge i {
+    font-size: 1.1rem;
+    animation: sparkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(0.9);
+    }
+}
+
+/* Apartments Scroll Container */
+.apartments-scroll-container {
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 0.5rem;
+}
+
+.apartments-scroll-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.apartments-scroll-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.apartments-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(var(--main-home-accent-rgb), 0.5);
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.apartments-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: var(--main-home-accent-color);
+}
+
+/* Pagination Styling */
+.residence-pagination-wrapper {
+    padding: 3rem 0;
+    margin-top: 3rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.residence-pagination {
+    display: flex;
+    gap: 0.75rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    align-items: center;
+}
+
+.residence-page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    height: 48px;
+    padding: 0 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.residence-page-link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--residence-gradient);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.residence-page-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(var(--main-home-accent-rgb), 0.4);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(var(--main-home-accent-rgb), 0.15);
+}
+
+.residence-page-link:hover::before {
+    opacity: 0.1;
+}
+
+.residence-page-link.active {
+    background: var(--residence-gradient);
+    border-color: var(--main-home-accent-color);
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(var(--main-home-accent-rgb), 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    transform: scale(1.05);
+}
+
+.residence-page-link i {
+    font-size: 1.2rem;
 }

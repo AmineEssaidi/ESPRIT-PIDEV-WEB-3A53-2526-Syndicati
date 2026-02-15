@@ -9,7 +9,7 @@ const dashboardData = {
       "trend": "up"
     },
     "sales": {
-      "value": "$4,679", 
+      "value": "$4,679",
       "change": "28.42%",
       "trend": "up"
     },
@@ -20,7 +20,7 @@ const dashboardData = {
     },
     "transactions": {
       "value": "$14,857",
-      "change": "28.14%", 
+      "change": "28.14%",
       "trend": "up"
     }
   },
@@ -34,12 +34,12 @@ const dashboardData = {
     "chart_data": [10, 20, 15, 25, 18, 30, 25]
   },
   "transactions": [
-    {"type": "PayPal", "description": "Send money", "amount": "+$82.6", "currency": "USD", "icon": "paypal"},
-    {"type": "Wallet", "description": "Mac'D", "amount": "+$270.69", "currency": "USD", "icon": "wallet"},
-    {"type": "Transfer", "description": "Refund", "amount": "+$637.91", "currency": "USD", "icon": "transfer"},
-    {"type": "Credit Card", "description": "Ordered Food", "amount": "-$838.71", "currency": "USD", "icon": "credit-card"},
-    {"type": "Wallet", "description": "Starbucks", "amount": "+$203.33", "currency": "USD", "icon": "wallet"},
-    {"type": "Mastercard", "description": "Ordered Food", "amount": "-$92.45", "currency": "USD", "icon": "mastercard"}
+    { "type": "PayPal", "description": "Send money", "amount": "+$82.6", "currency": "USD", "icon": "paypal" },
+    { "type": "Wallet", "description": "Mac'D", "amount": "+$270.69", "currency": "USD", "icon": "wallet" },
+    { "type": "Transfer", "description": "Refund", "amount": "+$637.91", "currency": "USD", "icon": "transfer" },
+    { "type": "Credit Card", "description": "Ordered Food", "amount": "-$838.71", "currency": "USD", "icon": "credit-card" },
+    { "type": "Wallet", "description": "Starbucks", "amount": "+$203.33", "currency": "USD", "icon": "wallet" },
+    { "type": "Mastercard", "description": "Ordered Food", "amount": "-$92.45", "currency": "USD", "icon": "mastercard" }
   ]
 };
 
@@ -49,7 +49,7 @@ let orderChart = null;
 let incomeChart = null;
 
 // DOM Content Loaded Event
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   initializeCharts();
   initializeMobileMenu();
   initializeMenuToggle();
@@ -122,7 +122,7 @@ function initializeRevenueChart() {
             font: {
               size: 12
             },
-            callback: function(value) {
+            callback: function (value) {
               return value + 'k';
             }
           }
@@ -166,7 +166,7 @@ function initializeOrderChart() {
         },
         tooltip: {
           callbacks: {
-            label: function(context) {
+            label: function (context) {
               return context.label + ': ' + context.parsed + 'k';
             }
           }
@@ -236,24 +236,24 @@ function initializeMobileMenu() {
   const mobileToggle = document.querySelector('.mobile-menu-toggle');
   const sidebar = document.querySelector('.layout-menu');
   const overlay = document.createElement('div');
-  
+
   overlay.className = 'layout-overlay';
   document.body.appendChild(overlay);
 
   if (mobileToggle) {
-    mobileToggle.addEventListener('click', function(e) {
+    mobileToggle.addEventListener('click', function (e) {
       e.preventDefault();
       toggleMobileMenu();
     });
   }
 
   // Close menu when clicking overlay
-  overlay.addEventListener('click', function() {
+  overlay.addEventListener('click', function () {
     closeMobileMenu();
   });
 
   // Close menu on window resize if desktop
-  window.addEventListener('resize', function() {
+  window.addEventListener('resize', function () {
     if (window.innerWidth > 991) {
       closeMobileMenu();
     }
@@ -263,7 +263,7 @@ function initializeMobileMenu() {
 function toggleMobileMenu() {
   const sidebar = document.querySelector('.layout-menu');
   const overlay = document.querySelector('.layout-overlay');
-  
+
   sidebar.classList.toggle('show');
   overlay.classList.toggle('show');
   document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
@@ -272,7 +272,7 @@ function toggleMobileMenu() {
 function closeMobileMenu() {
   const sidebar = document.querySelector('.layout-menu');
   const overlay = document.querySelector('.layout-overlay');
-  
+
   sidebar.classList.remove('show');
   overlay.classList.remove('show');
   document.body.style.overflow = '';
@@ -281,9 +281,9 @@ function closeMobileMenu() {
 // Desktop Menu Toggle
 function initializeMenuToggle() {
   const menuToggle = document.querySelector('.layout-menu-toggle:not(.mobile-menu-toggle)');
-  
+
   if (menuToggle) {
-    menuToggle.addEventListener('click', function(e) {
+    menuToggle.addEventListener('click', function (e) {
       e.preventDefault();
       // Add collapsed state functionality here if needed
     });
@@ -300,7 +300,7 @@ function populateTransactions() {
   dashboardData.transactions.forEach(transaction => {
     const listItem = document.createElement('li');
     const isPositive = transaction.amount.startsWith('+');
-    
+
     listItem.innerHTML = `
       <div class="transaction-icon ${transaction.icon}">
         ${getTransactionIcon(transaction.icon)}
@@ -313,7 +313,7 @@ function populateTransactions() {
         ${transaction.amount}
       </div>
     `;
-    
+
     transactionList.appendChild(listItem);
   });
 }
@@ -327,48 +327,48 @@ function getTransactionIcon(iconType) {
     'credit-card': '<i class="fas fa-credit-card"></i>',
     'mastercard': '<i class="fab fa-cc-mastercard"></i>'
   };
-  
+
   return icons[iconType] || '<i class="fas fa-dollar-sign"></i>';
 }
 
 // Menu Interactions
 function initializeMenuInteractions() {
   const menuItems = document.querySelectorAll('.menu-item');
-  
+
   menuItems.forEach(item => {
     const menuLink = item.querySelector('.menu-link');
     const menuSub = item.querySelector('.menu-sub');
-    
+
     if (menuLink && menuSub) {
-      menuLink.addEventListener('click', function(e) {
+      menuLink.addEventListener('click', function (e) {
         e.preventDefault();
-        
+
         // Close other open menus
         menuItems.forEach(otherItem => {
           if (otherItem !== item) {
             otherItem.classList.remove('open');
           }
         });
-        
+
         // Toggle current menu
         item.classList.toggle('open');
       });
     }
-    
+
     // Handle sub-menu item clicks
     const subMenuLinks = item.querySelectorAll('.menu-sub .menu-link');
     subMenuLinks.forEach(subLink => {
-      subLink.addEventListener('click', function(e) {
+      subLink.addEventListener('click', function (e) {
         e.preventDefault();
-        
+
         // Remove active class from all menu items
         document.querySelectorAll('.menu-item').forEach(menuItem => {
           menuItem.classList.remove('active');
         });
-        
+
         // Add active class to parent menu item
         item.classList.add('active');
-        
+
         // Close mobile menu if open
         if (window.innerWidth <= 991) {
           closeMobileMenu();
@@ -397,7 +397,7 @@ function formatCurrency(amount, currency = 'USD') {
 }
 
 // Revenue Chart Year Selector
-document.addEventListener('change', function(e) {
+document.addEventListener('change', function (e) {
   if (e.target.matches('select.form-select')) {
     const selectedYear = e.target.value;
     updateRevenueChart(selectedYear);
@@ -406,7 +406,7 @@ document.addEventListener('change', function(e) {
 
 function updateRevenueChart(year) {
   if (!revenueChart) return;
-  
+
   const data = year === '2023' ? dashboardData.revenue_chart.year_2023 : dashboardData.revenue_chart.year_2024;
   revenueChart.data.datasets[0].data = data;
   revenueChart.data.datasets[0].label = year;
@@ -414,10 +414,13 @@ function updateRevenueChart(year) {
 }
 
 // Smooth scrolling for anchor links
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
   if (e.target.matches('a[href^="#"]')) {
+    const href = e.target.getAttribute('href');
+    if (href === '#') return;
+
     e.preventDefault();
-    const target = document.querySelector(e.target.getAttribute('href'));
+    const target = document.querySelector(href);
     if (target) {
       target.scrollIntoView({
         behavior: 'smooth',
@@ -428,14 +431,14 @@ document.addEventListener('click', function(e) {
 });
 
 // Card hover effects
-document.addEventListener('mouseenter', function(e) {
+document.addEventListener('mouseenter', function (e) {
   if (e.target.matches('.card') || e.target.closest('.card')) {
     const card = e.target.matches('.card') ? e.target : e.target.closest('.card');
     card.style.transform = 'translateY(-2px)';
   }
 }, true);
 
-document.addEventListener('mouseleave', function(e) {
+document.addEventListener('mouseleave', function (e) {
   if (e.target.matches('.card') || e.target.closest('.card')) {
     const card = e.target.matches('.card') ? e.target : e.target.closest('.card');
     card.style.transform = 'translateY(0)';
@@ -451,12 +454,12 @@ function showChartLoader(containerId) {
 }
 
 // Error handling for charts
-Chart.defaults.plugins.legend.onClick = function(e, legendItem) {
+Chart.defaults.plugins.legend.onClick = function (e, legendItem) {
   // Custom legend click handler
 };
 
 // Responsive chart updates
-window.addEventListener('resize', function() {
+window.addEventListener('resize', function () {
   if (revenueChart) revenueChart.resize();
   if (orderChart) orderChart.resize();
   if (incomeChart) incomeChart.resize();
@@ -479,7 +482,7 @@ if ('IntersectionObserver' in window) {
     });
   }, { threshold: 0.1 });
 
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     const charts = document.querySelectorAll('canvas[id$="Chart"]');
     charts.forEach(chart => chartObserver.observe(chart));
   });

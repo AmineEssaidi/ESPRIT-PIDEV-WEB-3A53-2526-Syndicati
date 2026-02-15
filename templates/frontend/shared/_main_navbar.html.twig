@@ -26,10 +26,10 @@
             <div class="main-home-nav-tab {{ active_tab|default('') == 'services' ? 'active' : '' }}">
                 <span class="main-home-tab-text"><a href="#" data-i18n="Services" style="text-decoration: none; color: inherit;">Services</a></span>
                 <div class="main-home-tab-dropdown">
-                    <a href="{{ path('frontend_residence') }}" class="main-home-dropdown-item" data-i18n="Residence">Residence</a>
+                    <a href="{{ path('app_residence_index') }}" class="main-home-dropdown-item" data-i18n="Residence">Residence</a>
                     <a href="{{ path('frontend_forum') }}" class="main-home-dropdown-item" data-i18n="Forum">Forum</a>
                     <a href="{{ path('frontend_syndicat') }}" class="main-home-dropdown-item" data-i18n="Syndicat">Syndicat</a>
-                    <a href="{{ path('frontend_evenement') }}" class="main-home-dropdown-item" data-i18n="Evenement">Evenement</a>
+                    <a href="{{ path('app_evenement_index') }}" class="main-home-dropdown-item" data-i18n="Evenement">Evenement</a>
                 </div>
             </div>
             <div class="main-home-nav-tab {{ active_tab|default('') == 'about' ? 'active' : '' }}">
@@ -116,7 +116,6 @@
                 <a href="{{ path('admin_dashboard') }}" class="main-home-dropdown-item" data-page-loader>
                     <i class="bx bx-grid-alt"></i>
                     <span data-i18n="Dashboard">Tableau de bord</span>
-                </a>
                 <a href="{{ path('frontend_settings') }}" class="main-home-dropdown-item">
                     <i class="bx bx-cog"></i>
                     <span data-i18n="Settings">Paramètres</span>
@@ -135,8 +134,12 @@
         </div>
         {% else %}
         <div class="main-home-auth-buttons">
-            <a href="{{ path('auth_sign_in') }}" class="main-home-btn main-home-btn-auth-secondary {{ active_tab|default('') == 'sign_in' ? 'active' : '' }}" data-i18n="Sign In">Connexion</a>
-            <a href="{{ path('user_signup') }}" class="main-home-btn main-home-btn-auth-primary {{ active_tab|default('') == 'sign_up' ? 'active' : '' }}" data-i18n="Sign Up">Créer un compte</a>
+            <a href="{{ path('auth_sign_in') }}" class="main-home-btn-auth-secondary {{ active_tab|default('') == 'sign_in' ? 'active' : '' }}" title="Connexion">
+                <i class="bx bx-log-in"></i>
+            </a>
+            <a href="{{ path('user_signup') }}" class="main-home-btn-auth-primary {{ active_tab|default('') == 'sign_up' ? 'active' : '' }}" title="Créer un compte">
+                <i class="bx bx-user-plus"></i>
+            </a>
         </div>
         {% endif %}
     </div>

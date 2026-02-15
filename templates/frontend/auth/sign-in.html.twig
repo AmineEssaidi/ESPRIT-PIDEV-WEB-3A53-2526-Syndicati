@@ -14,6 +14,7 @@
     <!-- Preload critical resources -->
     <link rel="preload" href="{{ asset('frontend/css/main-home.css') }}" as="style">
     <link rel="preload" href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" as="style">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     
     <!-- CSS Dependencies -->
     <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
@@ -41,10 +42,11 @@
         <!-- Include Shared Navbar -->
         {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'sign_in'} %}
 
+
         <!-- Auth Content -->
         <div class="main-home-content-wrapper">
             <div class="main-home-auth-container">
-                <div class="main-home-auth-card {{ show_destination_choice|default(false) ? 'main-home-auth-card--destination' : '' }}">
+                <div class="main-home-auth-card {{ show_destination_choice|default(false) ? 'main-home-auth-card--destination' : '' }}" style="max-width: 850px; padding: 1.25rem 3rem;">
                     {% if show_destination_choice|default(false) %}
                         <div class="main-home-auth-destination">
                             <div class="main-home-auth-destination-header">
@@ -65,9 +67,9 @@
                         </div>
                     {% else %}
                         <div class="main-home-auth-form-wrap">
-                            <div class="main-home-auth-header">
-                                <h1 class="main-home-auth-title">Welcome Back</h1>
-                                <p class="main-home-auth-subtitle">Sign in to your account to continue</p>
+                            <div class="main-home-auth-header" style="margin-bottom: 1rem;">
+                                <h1 class="main-home-auth-title" style="font-size: 1.8rem; margin-bottom: 0;">Welcome Back</h1>
+                                <p class="main-home-auth-subtitle" style="font-size: 1rem;">Sign in to continue</p>
                             </div>
 
                             {% if error is defined and error %}
@@ -76,38 +78,40 @@
                                 </div>
                             {% endif %}
 
-                            <form class="main-home-auth-form" action="{{ path('auth_sign_in') }}" method="POST">
-                                <div class="main-home-form-group">
-                                    <label for="email" class="main-home-form-label">Email</label>
-                                    <input 
-                                        type="email" 
-                                        id="email" 
-                                        name="email" 
-                                        class="main-home-form-input" 
-                                        placeholder="Enter your email"
-                                        value="{{ last_email|default('') }}"
-                                        required
-                                    />
-                                </div>
-
-                                <div class="main-home-form-group">
-                                    <label for="password" class="main-home-form-label">Password</label>
-                                    <div class="main-home-password-wrapper">
+                            <form class="main-home-auth-form" action="{{ path('auth_sign_in') }}" method="POST" style="gap: 0.75rem;">
+                                <div class="main-home-form-row">
+                                    <div class="main-home-form-group main-home-form-half">
+                                        <label for="email" class="main-home-form-label">Email</label>
                                         <input 
-                                            type="password" 
-                                            id="password" 
-                                            name="password" 
+                                            type="email" 
+                                            id="email" 
+                                            name="email" 
                                             class="main-home-form-input" 
-                                            placeholder="Enter your password"
+                                            placeholder="Enter your email"
+                                            value="{{ last_email|default('') }}"
                                             required
                                         />
-                                        <button type="button" class="main-home-password-toggle" onclick="togglePassword('password')">
-                                            <span class="main-home-eye-icon">👁️</span>
-                                        </button>
+                                    </div>
+
+                                    <div class="main-home-form-group main-home-form-half">
+                                        <label for="password" class="main-home-form-label">Password</label>
+                                        <div class="main-home-password-wrapper">
+                                            <input 
+                                                type="password" 
+                                                id="password" 
+                                                name="password" 
+                                                class="main-home-form-input" 
+                                                placeholder="Enter your password"
+                                                required
+                                            />
+                                            <button type="button" class="main-home-password-toggle" onclick="togglePassword('password')">
+                                                <span class="main-home-eye-icon">👁️</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="main-home-form-options">
+                                <div class="main-home-form-options" style="margin-top: -0.5rem;">
                                     <label class="main-home-checkbox-wrapper">
                                         <input type="checkbox" name="_remember_me" class="main-home-checkbox"/>
                                         <span class="main-home-checkbox-label">Remember me</span>
@@ -117,40 +121,38 @@
 
                                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
-                                <button type="submit" class="main-home-btn main-home-btn-auth-submit">
-                                    Sign In
-                                </button>
+                                <div class="main-home-auth-submit-row" style="display: flex; gap: 1.5rem; align-items: center; margin-top: 0.5rem;">
+                                    <button type="submit" class="main-home-btn main-home-btn-auth-submit" style="flex: 1; margin: 0;">
+                                        Sign In
+                                    </button>
+                                    
+                                    <div class="main-home-auth-social-compact" style="display: flex; gap: 0.75rem; flex: 1;">
+                                        <button type="button" class="main-home-social-btn main-home-social-google" style="margin: 0; flex: 1; padding: 0.6rem;">
+                                            <span class="main-home-social-icon">G</span>
+                                            <span>Google</span>
+                                        </button>
+                                        <button type="button" class="main-home-social-btn main-home-social-github" style="margin: 0; flex: 1; padding: 0.6rem;">
+                                            <span class="main-home-social-icon">⚡</span>
+                                            <span>GitHub</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </form>
 
-                            <div class="main-home-auth-divider">
-                                <span>or continue with</span>
-                            </div>
-
-                            <div class="main-home-social-auth">
-                                <button class="main-home-social-btn main-home-social-google">
-                                    <span class="main-home-social-icon">G</span>
-                                    <span>Google</span>
-                                </button>
-                                <button class="main-home-social-btn main-home-social-github">
-                                    <span class="main-home-social-icon">⚡</span>
-                                    <span>GitHub</span>
-                                </button>
-                            </div>
-
-                            <p class="main-home-auth-footer">
+                            <p class="main-home-auth-footer" style="margin-top: 1.5rem; text-align: center;">
                                 Don't have an account? 
                                 <a href="{{ path('user_signup') }}" class="main-home-auth-link">Sign Up</a>
                             </p>
-                        </div>
+                        </div> {# auth-form-wrap #}
                     {% endif %}
-                </div>
-            </div>
+                </div> {# auth-card #}
+            </div> {# auth-container #}
+        </div> {# content-wrapper #}
 
-            <!-- Include Shared Footer -->
-            {% include 'frontend/shared/_main_footer.html.twig' %}
-        </div>
-    </div>
-</div>
+        <!-- Include Shared Footer -->
+        {% include 'frontend/shared/_main_footer.html.twig' %}
+    </div> {# main-home-page #}
+</div> {# main-home-layout-wrapper #}
 
 <!-- Scroll pill + JavaScript Dependencies -->
 {% include 'frontend/shared/_scroll_pill.html.twig' %}
@@ -176,5 +178,90 @@
     });
     {% endif %}
 </script>
+
+<!-- Global Video Background -->
+{% include 'frontend/shared/_global_video_background.html.twig' %}
+
+<style>
+/* Surgical transparency for auth pages */
+html, 
+body, 
+.main-home-layout-wrapper, 
+.main-home-page, 
+.main-home-content-wrapper,
+.main-home-auth-container {
+    background: transparent !important;
+}
+
+/* Aggressive vertical compression to eliminate scrolling */
+body {
+    overflow: hidden !important;
+    height: 100vh !important;
+}
+.main-home-layout-wrapper, .main-home-page {
+    height: 100vh !important;
+    min-height: 100vh !important;
+    overflow: hidden !important;
+}
+.main-home-navbar {
+    margin: 10px auto !important;
+    height: 70px !important;
+    padding: 0.75rem 2rem !important;
+}
+.main-home-content-wrapper {
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.main-home-auth-container {
+    min-height: auto !important;
+    padding: 5px 0 !important;
+    flex: 1;
+}
+.main-home-auth-card {
+    background: rgba(10, 10, 10, 0.8) !important;
+    backdrop-filter: blur(12px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 
+        0 30px 60px -12px rgba(0, 0, 0, 0.5),
+        inset 0 0 20px rgba(255, 255, 255, 0.02) !important;
+    border-radius: 32px !important;
+    transform: scale(0.95);
+    margin: 0 auto;
+}
+.main-home-footer-wrapper {
+    margin: 5px auto !important;
+}
+.main-home-footer-island {
+    margin: 5px auto 10px auto !important;
+    padding: 0.6rem 2rem !important;
+}
+.scroll-down-pill-wrapper, .scroll-down-pill, .scroll-pill-container, .scroll-indicator, #scrollIndicator, .main-home-scroll-pill {
+    display: none !important;
+}
+
+.main-home-hero-bg-fixed {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    overflow: hidden;
+    pointer-events: none;
+    background: #000;
+    transform: translateZ(0);
+}
+.main-home-hero-bg-img {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    filter: brightness(0.7);
+    display: block;
+}
+[data-theme="light"] .main-home-hero-bg-img {
+    filter: brightness(0.9);
+}
+</style>
 </body>
 </html>

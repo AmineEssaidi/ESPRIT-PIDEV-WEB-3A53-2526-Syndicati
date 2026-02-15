@@ -19,6 +19,24 @@ class EvenementType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $imageConstraints = [
+            new File([
+                'maxSize' => '5M',
+                'mimeTypes' => [
+                    'image/jpeg',
+                    'image/png',
+                    'image/webp',
+                ],
+                'mimeTypesMessage' => 'Please upload a valid image (JPEG, PNG, WEBP)',
+            ])
+        ];
+
+        if (!$options['is_edit']) {
+            $imageConstraints[] = new NotBlank([
+                'message' => 'Please upload an event banner.',
+            ]);
+        }
+
         $builder
             ->add('titre_event', TextType::class, [
                 'label' => 'Event Title',
@@ -65,20 +83,7 @@ class EvenementType extends AbstractType
                 'label' => 'Event Image',
                 'mapped' => false,
                 'required' => false,
-                'constraints' => [
-                    new NotBlank([
-                        'message' => 'Please upload an event banner.',
-                    ]),
-                    new File([
-                        'maxSize' => '5M',
-                        'mimeTypes' => [
-                            'image/jpeg',
-                            'image/png',
-                            'image/webp',
-                        ],
-                        'mimeTypesMessage' => 'Please upload a valid image (JPEG, PNG, WEBP)',
-                    ])
-                ],
+                'constraints' => $imageConstraints,
                 'attr' => ['class' => 'form-control'],
             ])
         ;
@@ -88,6 +93,7 @@ class EvenementType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Evenement::class,
+            'is_edit' => false,
         ]);
     }
 }

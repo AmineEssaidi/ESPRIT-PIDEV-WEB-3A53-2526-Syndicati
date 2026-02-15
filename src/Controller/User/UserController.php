@@ -1,21 +1,39 @@
 <?php
 namespace App\Controller\User;
 
+use App\Entity\Onboarding\Onboarding;
 use App\Entity\Profile\Profile;
 use App\Entity\User\User;
+use App\Form\Onboarding\OnboardingType;
+use App\Form\Profile\ProfileType;
 use App\Form\User\UserType;
+use App\Repository\Onboarding\OnboardingRepository;
+use App\Repository\Profile\ProfileRepository;
+use App\Repository\User\UserRepository;
+use App\Repository\Syndicat\ReclamationRepository;
+use App\Service\PageStatusService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 class UserController extends AbstractController
 {
-    /**
-     * @Route("/signup", name="user_signup")
-     */
+    public function __construct(
+        private readonly CacheInterface $cache
+    ) {
+    }
+
+    #[Route('/signup', name: 'user_signup', methods: ['GET', 'POST'])]
     public function signup(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $user = new User();
@@ -25,21 +43,17 @@ class UserController extends AbstractController
         ]);
         $form->handleRequest($request);
 
-
         if ($form->isSubmitted()) {
             $isAjax = $request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
 
             if ($form->isValid()) {
-                // Check if email already exists
                 $existingUser = $em->getRepository(User::class)->findOneBy(['email_user' => $user->getEmailUser()]);
                 if ($existingUser) {
                     if ($isAjax) {
                         return $this->json(['success' => false, 'message' => 'This email is already registered.'], 400);
                     }
-                    $form->get('email_user')->addError(new \Symfony\Component\Form\FormError('This email is already registered.'));
                     $this->addFlash('danger', 'This email is already registered.');
                 } else {
-                    // Hash password
                     $plainPassword = $user->getPlainPassword();
                     $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
                     $user->setPasswordUser($hashedPassword);
@@ -52,7 +66,6 @@ class UserController extends AbstractController
                     $em->persist($user);
                     $em->flush();
 
-                    // Create profile for the new user
                     $profile = new Profile();
                     $profile->setUser($user);
                     $em->persist($profile);
@@ -66,10 +79,8 @@ class UserController extends AbstractController
                     return $this->redirectToRoute('auth_sign_in');
                 }
             } else {
-                // Collect all errors recursively
                 $errorMessages = [];
-                $formErrors = $form->getErrors(true);
-                foreach ($formErrors as $error) {
+                foreach ($form->getErrors(true) as $error) {
                     $errorMessages[] = $error->getMessage();
                 }
 
@@ -77,8 +88,7 @@ class UserController extends AbstractController
                     return $this->json(['success' => false, 'errors' => $errorMessages], 400);
                 }
 
-                $joinedErrors = implode('|', $errorMessages);
-                $this->addFlash('error_popup', $joinedErrors);
+                $this->addFlash('error_popup', implode('|', $errorMessages));
                 $this->addFlash('danger', 'Please correct the errors in the form.');
             }
         }
@@ -88,11 +98,472 @@ class UserController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/signup/success", name="user_signup_success")
-     */
-    public function signupSuccess(): Response
+    #[Route('/sign-up', name: 'auth_sign_up', methods: ['GET', 'POST'])]
+    public function signUpRedirect(Request $request): Response
     {
-        return $this->render('frontend/signup_success.html.twig');
+        return $this->redirectToRoute('user_signup');
+    }
+
+    #[Route('/sign-in', name: 'auth_sign_in', methods: ['GET', 'POST'])]
+    public function signIn(Request $request, UserRepository $userRepository, ProfileRepository $profileRepository, OnboardingRepository $onboardingRepository, UserPasswordHasherInterface $passwordHasher): Response
+    {
+        $session = $request->getSession();
+        $error = null;
+        $lastEmail = '';
+
+        if ($session->get('is_logged_in')) {
+            return $this->redirectToRoute('main_home');
+        }
+
+        if ($request->isMethod('POST')) {
+            $email = trim((string) $request->request->get('email'));
+            $password = $request->request->get('password');
+            $lastEmail = $email;
+
+            if ($email !== '' && $password !== null) {
+                $user = $userRepository->findOneBy(['email_user' => $email]);
+                if ($user !== null && $passwordHasher->isPasswordValid($user, $password)) {
+                    if (!$user->getIsVerified()) {
+                        $error = 'Your account is not yet verified by an administrator. You cannot log in until your account is verified.';
+                    } else {
+                        $profile = $profileRepository->findOneByUser($user);
+                        $avatar = $profile?->getAvatar();
+
+                        $defaults = [
+                            'theme' => 'dark',
+                            'accent-gradient' => 'linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)',
+                            'accent-color' => '#6c5ce7',
+                            'lang' => 'fr'
+                        ];
+                        $userSettings = $profile ? array_merge($defaults, $profile->getSettings()) : $defaults;
+
+                        $session->set('is_logged_in', true);
+                        $session->set('user', [
+                            'id' => $user->getIdUser(),
+                            'name' => trim($user->getFirstName() . ' ' . $user->getLastName()),
+                            'email' => $user->getEmailUser(),
+                            'role' => $user->getRoleUser(),
+                            'avatar' => $avatar,
+                            'settings' => $userSettings,
+                        ]);
+                        $onboarding = $onboardingRepository->findOneByUser($user);
+                        if ($onboarding === null || !$onboarding->isCompleted()) {
+                            return $this->redirectToRoute('onboarding');
+                        }
+                        $adminRoles = ['OWNER', 'ADMIN', 'SYNDIC', 'SUPERADMIN'];
+                        if (in_array($user->getRoleUser(), $adminRoles, true)) {
+                            return $this->render('frontend/auth/sign-in.html.twig', [
+                                'error' => null,
+                                'last_email' => $lastEmail,
+                                'show_destination_choice' => true,
+                            ]);
+                        }
+                        return $this->redirectToRoute('main_home');
+                    }
+                } else {
+                    $error = 'Invalid email or password.';
+                }
+            } else {
+                $error = 'Please enter your email and password.';
+            }
+        }
+
+        return $this->render('frontend/auth/sign-in.html.twig', [
+            'error' => $error,
+            'last_email' => $lastEmail,
+        ]);
+    }
+
+    #[Route('/logout', name: 'auth_logout')]
+    public function logout(Request $request): Response
+    {
+        $session = $request->getSession();
+        $session->remove('is_logged_in');
+        $session->remove('user');
+        return $this->redirectToRoute('main_home', ['logout' => 'success']);
+    }
+
+    #[Route('/admin/logout', name: 'admin_logout')]
+    public function adminLogout(Request $request): Response
+    {
+        $session = $request->getSession();
+        $session->remove('is_logged_in');
+        $session->remove('user');
+        return $this->redirectToRoute('auth_sign_in');
+    }
+
+    #[Route('/profile', name: 'frontend_profile', methods: ['GET', 'POST'])]
+    public function profile(
+        PageStatusService $pageStatusService,
+        Request $request,
+        UserRepository $userRepository,
+        ProfileRepository $profileRepository,
+        OnboardingRepository $onboardingRepository,
+        ReclamationRepository $reclamationRepository,
+        \App\Repository\Forum\PublicationRepository $publicationRepository,
+        \App\Repository\Evenement\EvenementRepository $evenementRepository,
+        \App\Repository\Residence\AppartementRepository $appartementRepository,
+        UserPasswordHasherInterface $passwordHasher,
+        EntityManagerInterface $em,
+        SluggerInterface $slugger
+    ): Response {
+        if (!$pageStatusService->isPageOnline('profile')) {
+            return $this->redirectToRoute('maintenance_with_page', ['pageId' => 'profile']);
+        }
+
+        $session = $request->getSession();
+        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+            $this->addFlash('danger', 'Please sign in to view your profile.');
+            return $this->redirectToRoute('auth_sign_in');
+        }
+
+        $userId = (int) $session->get('user')['id'];
+        $user = $userRepository->find($userId);
+        if (!$user) {
+            $session->remove('is_logged_in');
+            $session->remove('user');
+            $this->addFlash('danger', 'User not found.');
+            return $this->redirectToRoute('auth_sign_in');
+        }
+
+        $profile = $profileRepository->findOneByUser($user);
+        if (!$profile) {
+            $profile = new Profile();
+            $profile->setUser($user);
+            $em->persist($profile);
+            $em->flush();
+        }
+
+        $onboarding = $onboardingRepository->findOneByUser($user);
+        if ($onboarding !== null) {
+            $needsFlush = false;
+            if ($profile->getLocale() === null || $profile->getLocale() === '') {
+                $profile->setLocale($onboarding->getSelectedLocale());
+                $needsFlush = true;
+            }
+            if ($profile->getTheme() === null) {
+                $profile->setTheme($onboarding->getSelectedTheme() === 'light' ? 1 : 0);
+                $needsFlush = true;
+            }
+            if ($needsFlush) {
+                $em->flush();
+            }
+        }
+
+        $profileForm = $this->createForm(ProfileType::class, $profile);
+        $profileForm->handleRequest($request);
+        if ($profileForm->isSubmitted() && $profileForm->isValid()) {
+            /** @var UploadedFile|null $avatarFile */
+            $avatarFile = $profileForm->get('avatarFile')->getData();
+            if ($avatarFile) {
+                $originalFilename = pathinfo($avatarFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = 'avatar_' . $userId . '_' . uniqid() . '.' . $avatarFile->guessExtension();
+                $targetDir = $this->getParameter('kernel.project_dir') . '/public/profile_images';
+
+                try {
+                    $avatarFile->move($targetDir, $newFilename);
+                    $profile->setAvatar('profile_images/' . $newFilename);
+                    $userData = $session->get('user', []);
+                    $userData['avatar'] = 'profile_images/' . $newFilename;
+                    $session->set('user', $userData);
+                } catch (FileException $e) {
+                    $this->addFlash('danger', 'Failed to upload avatar.');
+                }
+            }
+
+            $currentPassword = $profileForm->get('currentPassword')->getData();
+            $newPassword = $profileForm->get('newPassword')->getData();
+
+            if ($newPassword) {
+                if (!$currentPassword) {
+                    $this->addFlash('danger', 'You must provide your current password to change it.');
+                } else {
+                    if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
+                        $this->addFlash('danger', 'Current password is invalid.');
+                    } else {
+                        $hashedPassword = $passwordHasher->hashPassword($user, $newPassword);
+                        $user->setPasswordUser($hashedPassword);
+                        $this->addFlash('success', 'Password updated successfully.');
+                    }
+                }
+            }
+
+            $em->flush();
+
+            if ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest') {
+                return $this->json(['success' => true, 'message' => 'Profile updated successfully.']);
+            }
+
+            $this->addFlash('success', 'Profile updated.');
+            return $this->redirectToRoute('frontend_profile');
+        }
+
+        if (($profileForm->isSubmitted() && !$profileForm->isValid()) && ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest')) {
+            $errors = [];
+            foreach ($profileForm->getErrors(true) as $error) {
+                $errors[] = $error->getMessage();
+            }
+            return $this->json(['success' => false, 'message' => 'Validation failed.', 'errors' => $errors], 400);
+        }
+
+        $onboardingFormView = null;
+        if ($onboarding !== null) {
+            $onboardingFormView = $this->createForm(OnboardingType::class, $onboarding, ['admin_edit' => false, 'profile_edit' => true])->createView();
+        }
+
+        $isAdmin = in_array($user->getRoleUser(), ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC']);
+        if ($isAdmin) {
+            $reclamations = $reclamationRepository->findBy([], ['created_at' => 'DESC']);
+        } else {
+            $reclamations = $reclamationRepository->findBy(['user' => $user], ['created_at' => 'DESC']);
+        }
+
+        $publicDir = $this->getParameter('kernel.project_dir') . '/public/reclamation_images/';
+        foreach ($reclamations as $rec) {
+            $updatedAt = $rec->getUpdatedAt() ? $rec->getUpdatedAt()->getTimestamp() : 0;
+            $cacheKey = 'rec_images_' . $rec->getId() . '_' . $updatedAt;
+
+            $rec->decodedImages = $this->cache->get($cacheKey, function (ItemInterface $item) use ($rec, $publicDir) {
+                $item->expiresAfter(604800);
+                $imgStr = $rec->getImagereclamation();
+                $detectedFolders = [];
+                if ($imgStr) {
+                    $jsonDecoded = json_decode($imgStr, true);
+                    if (is_array($jsonDecoded) && !empty($jsonDecoded)) {
+                        foreach ($jsonDecoded as $path) {
+                            $parts = explode('/', str_replace('\\', '/', $path));
+                            if (count($parts) > 1) {
+                                $detectedFolders[] = $parts[0];
+                            }
+                        }
+                    }
+                    preg_match_all('/([a-zA-Z0-9_\-\.]+_[0-9\-\_]{10,20})/', $imgStr, $matches);
+                    if (!empty($matches[0])) {
+                        $detectedFolders = array_merge($detectedFolders, $matches[0]);
+                    }
+                    if (empty($detectedFolders)) {
+                        $raw = trim($imgStr, '[]"');
+                        $segments = preg_split('/["\s]*,["\s]*/', $raw);
+                        foreach ($segments as $seg) {
+                            $seg = trim($seg, '"/ ');
+                            if (str_contains($seg, '/')) {
+                                $parts = explode('/', $seg);
+                                $detectedFolders[] = $parts[0];
+                            } elseif (str_contains($seg, '_202')) {
+                                $detectedFolders[] = $seg;
+                            }
+                        }
+                    }
+                }
+
+                $finalImages = [];
+                foreach (array_unique($detectedFolders) as $folder) {
+                    $folderPath = $publicDir . $folder;
+                    if (is_dir($folderPath)) {
+                        $files = scandir($folderPath);
+                        foreach ($files as $f) {
+                            if ($f !== '.' && $f !== '..' && is_file($folderPath . '/' . $f)) {
+                                $finalImages[] = $folder . '/' . $f;
+                            }
+                        }
+                    }
+                }
+                return array_unique($finalImages);
+            });
+
+            foreach ($rec->getReponses() as $reponse) {
+                $respImgStr = $reponse->getImagereponse();
+                $respDecodedImages = [];
+                if ($respImgStr) {
+                    $jsonDecoded = json_decode($respImgStr, true);
+                    if (is_array($jsonDecoded) && !empty($jsonDecoded)) {
+                        $respDecodedImages = $jsonDecoded;
+                    } elseif (!str_contains($respImgStr, '.')) {
+                    } else {
+                        $respDecodedImages[] = $respImgStr;
+                    }
+                }
+                $reponse->decodedImages = $respDecodedImages;
+            }
+        }
+
+        if ($isAdmin) {
+            $publications = $publicationRepository->findAllLatest();
+            $events = $evenementRepository->findAllWithUser();
+            $appartements = $appartementRepository->findAll();
+        } else {
+            $publications = $publicationRepository->findBy(['user' => $user], ['date_creation_pub' => 'DESC']);
+            $events = $evenementRepository->findBy(['user' => $user], ['date_event' => 'DESC']);
+            $appartements = $appartementRepository->findBy(['user' => $user]);
+        }
+
+        $response = $this->render('frontend/profile/profile.html.twig', [
+            'user' => $user,
+            'profile' => $profile,
+            'profileForm' => $profileForm->createView(),
+            'onboarding' => $onboarding,
+            'onboardingForm' => $onboardingFormView,
+            'reclamations' => $reclamations,
+            'publications' => $publications,
+            'events' => $events,
+            'appartements' => $appartements,
+            'isAdmin' => $isAdmin,
+        ]);
+        $response->setPrivate();
+        $response->setMaxAge(0);
+        return $response;
+    }
+
+    #[Route('/profile/onboarding-update', name: 'frontend_profile_onboarding_update', methods: ['POST'])]
+    public function profileOnboardingUpdate(Request $request, UserRepository $userRepository, OnboardingRepository $onboardingRepository, EntityManagerInterface $em): Response
+    {
+        $session = $request->getSession();
+        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+            $this->addFlash('danger', 'Please sign in to update onboarding.');
+            return $this->redirectToRoute('auth_sign_in');
+        }
+        $userId = (int) $session->get('user')['id'];
+        $user = $userRepository->find($userId);
+        if (!$user) {
+            return $this->redirectToRoute('auth_sign_in');
+        }
+        $onboarding = $onboardingRepository->findOneByUser($user);
+        if (!$onboarding instanceof Onboarding) {
+            $onboarding = new Onboarding();
+            $onboarding->setUser($user);
+            $onboarding->setStep(1);
+            $onboarding->setStartedAt(new \DateTime());
+            $em->persist($onboarding);
+        }
+        $form = $this->createForm(OnboardingType::class, $onboarding, ['admin_edit' => false, 'profile_edit' => true]);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $prefs = $request->request->all('prefs');
+            $defaults = [
+                'notification_channel' => 'EMAIL',
+                'notification_frequency' => 'DAILY_DIGEST',
+                'property_type' => 'APARTMENT',
+                'occupancy_status' => 'OWNER_OCCUPIED',
+                'parking_type' => 'NONE',
+                'meeting_participation' => 'HYBRID',
+                'document_delivery' => 'DIGITAL',
+                'contact_preference' => 'EMAIL',
+                'maintenance_priority' => 'FLEXIBLE',
+                'community_engagement' => 'MODERATE',
+                'payment_method_preference' => 'ONLINE',
+                'noise_sensitivity' => 'MODERATE',
+                'pets_status' => 'NO_PETS',
+                'accessibility_needs' => 'NONE',
+            ];
+            $prefs = array_merge($defaults, is_array($prefs) ? $prefs : []);
+            $prefs['language_preference'] = match ($onboarding->getSelectedLocale()) {
+                'en' => 'EN', 'ar' => 'AR', 'fr_ar' => 'FR_AR', default => 'FR',
+            };
+            $prefs['theme_preference'] = $onboarding->getSelectedTheme() === 'light' ? 'LIGHT' : 'DARK';
+            $onboarding->setSelectedPreferences($prefs);
+            $onboarding->setUpdatedAt(new \DateTime());
+            $em->flush();
+
+            if ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest') {
+                return $this->json(['success' => true, 'message' => 'Onboarding choices updated.']);
+            }
+
+            $this->addFlash('success', 'Onboarding choices updated.');
+            return $this->redirectToRoute('frontend_profile');
+        }
+
+        if ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest') {
+            return $this->json(['success' => false, 'message' => 'Invalid form submission.'], 400);
+        }
+
+        $this->addFlash('danger', 'Invalid form.');
+        return $this->redirectToRoute('frontend_profile');
+    }
+
+    #[Route('/profile/avatar-upload', name: 'frontend_profile_avatar_upload', methods: ['POST'])]
+    public function profileAvatarUpload(Request $request, UserRepository $userRepository, ProfileRepository $profileRepository, EntityManagerInterface $em, #[Autowire('%kernel.project_dir%')] string $projectDir): Response
+    {
+        $session = $request->getSession();
+        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+            $this->addFlash('danger', 'Please sign in to upload an avatar.');
+            return $this->redirectToRoute('auth_sign_in');
+        }
+
+        $userId = (int) $session->get('user')['id'];
+        $user = $userRepository->find($userId);
+        if (!$user) {
+            $session->remove('is_logged_in');
+            $session->remove('user');
+            $this->addFlash('danger', 'User not found.');
+            return $this->redirectToRoute('auth_sign_in');
+        }
+
+        $profile = $profileRepository->findOneByUser($user);
+        if (!$profile) {
+            $profile = new Profile();
+            $profile->setUser($user);
+            $em->persist($profile);
+            $em->flush();
+        }
+
+        if (!$this->isCsrfTokenValid('profile_avatar_upload', $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid request. Please try again.');
+            return $this->redirectToRoute('frontend_profile');
+        }
+
+        /** @var UploadedFile|null $file */
+        $file = $request->files->get('avatar_file');
+        if (!$file || !$file->isValid()) {
+            $this->addFlash('danger', 'Please choose a valid image file.');
+            return $this->redirectToRoute('frontend_profile');
+        }
+
+        $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!\in_array($file->getMimeType(), $allowed, true)) {
+            $this->addFlash('danger', 'Only JPEG, PNG, GIF and WebP images are allowed.');
+            return $this->redirectToRoute('frontend_profile');
+        }
+
+        $ext = $file->guessExtension() ?: pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION) ?: 'jpg';
+        $safeExt = \in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif', 'webp'], true) ? strtolower($ext) : 'jpg';
+        $filename = 'avatar_' . $userId . '_' . uniqid('', true) . '.' . $safeExt;
+        $dir = $projectDir . '/public/profile_images';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        try {
+            $file->move($dir, $filename);
+        } catch (FileException $e) {
+            $this->addFlash('danger', 'Could not save the image. Please try again.');
+            return $this->redirectToRoute('frontend_profile');
+        }
+
+        $profile->setAvatar('profile_images/' . $filename);
+        $em->flush();
+
+        $userData = $session->get('user', []);
+        $userData['avatar'] = 'profile_images/' . $filename;
+        $session->set('user', $userData);
+
+        if ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest') {
+            return $this->json(['success' => true, 'message' => 'Avatar updated successfully.', 'avatar' => $userData['avatar']]);
+        }
+
+        $this->addFlash('success', 'Avatar updated.');
+        return $this->redirectToRoute('frontend_profile');
+    }
+
+    #[Route('/check-email', name: 'check_email', methods: ['GET'])]
+    public function checkEmail(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $email = $request->query->get('email', '');
+        if (empty($email)) {
+            return new JsonResponse(['exists' => false]);
+        }
+        $existingUser = $em->getRepository(User::class)->findOneBy(['email_user' => $email]);
+        return new JsonResponse(['exists' => $existingUser !== null]);
     }
 }
+

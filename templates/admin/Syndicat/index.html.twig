@@ -1,1274 +1,869 @@
-{% block stylesheets %}
-	<style>
-		/* Match Residence: pill tabs */
-		.users-pagination-wrapper { width: 100%; max-width: 100%; }
-		.users-pagination-pills {
-			position: relative;
-			display: inline-flex;
-			background: linear-gradient(135deg, rgba(28, 32, 42, 0.85) 80%, rgba(22, 26, 34, 0.85) 100%);
-			border-radius: 999px;
-			padding: 0.35rem;
-			box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-			gap: 0.4rem;
-			backdrop-filter: blur(16px);
-			border: 1px solid rgba(255,255,255,0.08);
-		}
-		.pill-tab {
-			position: relative;
-			background: transparent;
-			border: none;
-			color: rgba(191,201,216,0.8);
-			padding: 0.75rem 2rem;
-			border-radius: 999px;
-			cursor: pointer;
-			font-weight: 700;
-			font-size: 1rem;
-			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-			z-index: 2;
-			white-space: nowrap;
-		}
-		.pill-tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
-		.pill-tab.active {
-			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-			color: #fff;
-			text-shadow: none;
-			box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
-		}
-		.residence-page-content { animation: fadeIn 0.4s ease; }
-		@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-		[data-theme="light"] .users-pagination-pills {
-			background: linear-gradient(135deg, #f5f7fa 80%, #e3e8f7 100%);
-			box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-			border-color: #e3e8f7;
-		}
-		[data-theme="light"] .pill-tab { color: #5c6370; }
-		[data-theme="light"] .pill-tab:hover { color: #23272f; background: rgba(0,0,0,0.02); }
-		[data-theme="light"] .pill-tab.active {
-			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-			color: #fff;
-			box-shadow: 0 4px 16px rgba(0,123,255,0.15);
-		}
-
-		/* Residence-style toolbar, search, sort */
-		[data-theme="light"] .residence-sort-dir-pill {
-			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-			color: #23272f;
-		}
-		[data-theme="light"] .residence-sort-pill {
-			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-			color: #fff !important;
-			box-shadow: 0 2px 8px rgba(0,123,255,0.08);
-		}
-		[data-theme="light"] .residence-search-pill {
-			background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-		}
-		[data-theme="light"] .residence-search-input { color: #23272f; }
-		[data-theme="light"] .residence-search-icon { color: #0072ff; }
-
-		.residence-table-toolbar { width: 100%; display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; justify-content: space-between; }
-		.residence-search-pill {
-			display: flex;
-			align-items: center;
-			background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
-			border-radius: 999px;
-			padding: 0.3rem 1.1rem;
-			box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-		}
-		.residence-search-input {
-			background: transparent;
-			border: none;
-			color: #fff;
-			font-size: 1rem;
-			outline: none;
-			width: 160px;
-			padding: 0.2rem 0.5rem 0.2rem 0;
-		}
-		.residence-search-icon { color: #bfc9d8; font-size: 1.2rem; margin-left: 0.3rem; }
-		.residence-sort-dir-pill {
-			background: linear-gradient(90deg, #2a2e39 0%, #23272f 100%);
-			border: none;
-			border-radius: 999px;
-			padding: 0.3rem 0.7rem;
-			box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			cursor: pointer;
-			transition: background 0.18s, color 0.18s;
-			outline: none;
-			font-size: 1.1rem;
-			color: #fff;
-		}
-		.residence-sort-pill {
-			position: relative;
-			z-index: 20;
-			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-			border-radius: 999px;
-			padding: 0.3rem 1.1rem;
-			box-shadow: 0 2px 8px rgba(0,123,255,0.10);
-			display: flex;
-			align-items: center;
-			min-width: 160px;
-			cursor: pointer;
-			user-select: none;
-			color: #fff;
-			transition: background 0.18s, color 0.18s;
-		}
-		.residence-sort-selected { flex: 1; font-size: 1rem; font-weight: 600; padding-right: 1.2rem; }
-		.residence-sort-arrow {
-			display: inline-block;
-			width: 1.1em;
-			height: 1.1em;
-			background: url('data:image/svg+xml;utf8,<svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>') no-repeat center/contain;
-			margin-left: -1.1em;
-		}
-		.residence-sort-dropdown {
-			position: absolute;
-			left: 0;
-			top: 110%;
-			min-width: 100%;
-			background: rgba(30, 60, 120, 0.85);
-			border-radius: 1.2em;
-			box-shadow: 0 8px 32px rgba(0,198,255,0.18);
-			backdrop-filter: blur(16px) saturate(160%);
-			z-index: 10;
-			padding: 0.3em 0;
-			display: flex;
-			flex-direction: column;
-			gap: 0.1em;
-			animation: residence-sort-dropdown-fade 0.18s cubic-bezier(.4,1.4,.6,1) both;
-		}
-		@keyframes residence-sort-dropdown-fade {
-			0% { opacity: 0; transform: translateY(-10px) scale(0.98); }
-			100% { opacity: 1; transform: translateY(0) scale(1); }
-		}
-		.residence-sort-option {
-			padding: 0.7em 1.5em;
-			border-radius: 1em;
-			color: #fff;
-			font-size: 1rem;
-			cursor: pointer;
-			transition: background 0.13s, color 0.13s;
-		}
-		.residence-sort-option:hover, .residence-sort-option.active {
-			background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-		}
-
-		/* Light theme table */
-		[data-theme="light"] .liquid-glass-table-container {
-			background: rgba(255,255,255,0.85);
-			border: 1.5px solid #e3e8f7;
-			box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-		}
-		[data-theme="light"] .liquid-glass-table {
-			background: rgba(255,255,255,0.98);
-			color: #23272f;
-		}
-		[data-theme="light"] .liquid-glass-table th { background: #f5f7fa; color: #23272f; }
-		[data-theme="light"] .liquid-glass-table td { background: transparent; color: #23272f; }
-		[data-theme="light"] .table-pagination-bar { background: transparent; }
-		[data-theme="light"] .residence-table-arrow {
-			background: #fff;
-			color: #0072ff;
-			border: 1px solid #e3e8f7;
-		}
-		[data-theme="light"] .residence-table-page-btn {
-			background: transparent;
-			color: #23272f;
-		}
-		[data-theme="light"] .residence-table-page-btn.active {
-			background: #0072ff;
-			color: #fff;
-		}
-	</style>
-{% endblock %}
 {% extends 'base.html.twig' %}
 
-{% block title %}Syndicat - Horizon Admin{% endblock %}
+{% block title %}Syndicat - Liquid Glass Admin{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
+    <style>
+        .glass-switcher {
+            position: relative;
+            width: 100%;
+            transition: height 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .glass-switcher-face {
+            width: 100%;
+        }
+
+        /* Hide Scrollbar Global */
+        html, body, .admin-shell, .layout-wrapper, .layout-page, .content-wrapper, .container-xxl {
+            scrollbar-width: none !important; /* Firefox */
+            -ms-overflow-style: none !important; /* IE 10+ */
+            overflow-x: hidden !important; /* Force no horizontal scroll */
+        }
+        html::-webkit-scrollbar, body::-webkit-scrollbar,
+        .admin-shell::-webkit-scrollbar, .layout-wrapper::-webkit-scrollbar, 
+        .layout-page::-webkit-scrollbar, .content-wrapper::-webkit-scrollbar, 
+        .container-xxl::-webkit-scrollbar {
+            display: none !important; /* Chrome/Safari/Webkit */
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        /* Ensure box-sizing prevents padding overflow */
+        .users-edit-modal, .users-edit-modal * {
+            box-sizing: border-box !important;
+        }
+
+        /* Premium Modal Face-Lift - Obsidian Edition */
+        /* Premium Modal Face-Lift - Obsidian Edition */
+        .users-edit-modal {
+            display: none;
+            position: relative !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 100%;
+            z-index: 10;
+            padding: 0 !important; /* REMOVED PADDING */
+            align-items: flex-start; 
+            justify-content: flex-start; 
+            background: transparent; 
+        }
+        .users-edit-modal::-webkit-scrollbar { display: none; /* Chrome/Safari/Webkit */ }
+
+        .users-edit-modal.active {
+            display: flex;
+            animation: modalFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(40px) scale(0.97); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        .users-edit-modal-card {
+            background: transparent !important; /* REMOVED BACKGROUND */
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border: none !important; 
+            box-shadow: none !important; 
+            width: 100% !important;
+            max-width: 100% !important; 
+            margin: 0 !important; 
+            
+            /* Vertical Constraints */
+            min-height: auto !important; 
+            display: flex !important;
+            flex-direction: column !important;
+
+            border-radius: 0 !important; 
+            overflow: visible; 
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .users-edit-modal-header {
+            flex-shrink: 0; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            padding: 1.5rem 2rem !important; /* REDUCED PADDING */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: transparent; 
+        }
+        .users-edit-modal-header h3 {
+            font-size: 2rem !important;
+            font-weight: 900 !important;
+            letter-spacing: -0.04em !important;
+            margin: 0 !important;
+            color: #fff !important;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .users-edit-modal-subtitle {
+            font-size: 1rem !important;
+            color: rgba(255, 255, 255, 0.45) !important;
+            margin-top: 0.5rem !important;
+            font-weight: 500;
+        }
+        .users-edit-modal-close {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 50% !important;
+            color: rgba(255, 255, 255, 0.6) !important;
+            font-size: 1.6rem !important;
+            display: flex !important;
+            align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+        .users-edit-modal-close:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            transform: rotate(180deg) scale(1.1);
+            color: #fff !important;
+        }
+        .users-edit-modal-body {
+            padding: 2rem !important; /* REDUCED PADDING */
+            overflow-y: visible !important; 
+            flex-grow: 1; 
+            
+            /* Hide scrollbar completely */
+            scrollbar-width: none; 
+            -ms-overflow-style: none; 
+        }
+        .users-edit-modal-body::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Webkit */
+        }
+
+        /* Obsidian Form Styling */
+        .glass-form-group {
+            margin-bottom: 1.5rem; /* REDUCED MARGIN */
+        }
+        .glass-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.3) !important;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            transition: all 0.3s ease;
+        }
+        .glass-form-group:focus-within .glass-label { color: rgba(255, 255, 255, 0.8) !important; transform: translateX(5px); }
+        .glass-input, .form-control.bg-dark {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            border-radius: 20px !important;
+            padding: 1.2rem 1.6rem !important;
+            color: #fff !important;
+            font-size: 1.1rem !important;
+            font-weight: 500;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5) !important;
+        }
+        .glass-input:focus, .form-control.bg-dark:focus {
+            background: rgba(0, 0, 0, 0.7) !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 20px 40px rgba(0,0,0,0.4) !important;
+            outline: none !important;
+            transform: scale(1.01) translateY(-2px);
+        }
+
+        /* Obsidian View Details */
+        .glass-view-row {
+            display: flex;
+            align-items: flex-start; /* ALIGNED TO TOP FOR LONG TEXT */
+            padding: 1.8rem 2.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 24px;
+            margin-bottom: 1.5rem;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .glass-view-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(12px) scale(1.01);
+            box-shadow: -20px 0 40px rgba(0,0,0,0.3);
+        }
+        .glass-view-label {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.25) !important;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            width: 180px;
+            flex-shrink: 0;
+        }
+        .glass-view-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            flex: 1;
+            word-break: break-all !important; /* PREVENTS OVERFLOW ON LONG STRINGS */
+            white-space: pre-wrap !important; /* PRESERVES LINE BREAKS */
+            line-height: 1.6;
+        }
+
+        /* Obsidian Buttons */
+        .users-btn-modify {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%) !important;
+            color: #fff !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            padding: 1rem 2.5rem !important;
+            border-radius: 100px !important;
+            font-weight: 800 !important;
+            font-size: 1.1rem !important;
+            letter-spacing: 0.04em !important;
+            display: inline-flex !important; align-items: center !important; gap: 1rem !important;
+            cursor: pointer !important; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1) !important;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+        }
+        .users-btn-modify:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            transform: translateY(-4px) scale(1.04);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.1) !important;
+        }
+        .users-btn-delete {
+            background: rgba(255, 59, 48, 0.05) !important;
+            color: #ff3b30 !important;
+            border: 1px solid rgba(255, 59, 48, 0.15) !important;
+            padding: 1rem 2.5rem !important;
+            border-radius: 100px !important;
+            font-weight: 800 !important;
+            font-size: 1.1rem !important;
+            cursor: pointer !important;
+            transition: all 0.4s ease !important;
+            display: inline-flex !important; align-items: center !important; gap: 1rem !important;
+            backdrop-filter: blur(5px);
+        }
+        .users-btn-delete:hover {
+            background: rgba(255, 59, 48, 0.15) !important;
+            border-color: #ff3b30 !important;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 59, 48, 0.2) !important;
+        }
+        .users-btn-cancel, .users-btn-discard {
+            background: rgba(255, 255, 255, 0.02) !important;
+            color: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            padding: 1rem 2.5rem !important;
+            border-radius: 100px !important;
+            font-weight: 700 !important;
+            font-size: 1rem !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+        }
+        .users-btn-cancel:hover { background: rgba(255, 255, 255, 0.08) !important; color: #fff !important; }
+
+        /* Badge Styles Cleanup */
+        .badge-premium-admin { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+    word-break: break-word;
+        }
+
+        /* Premium Buttons */
+        .users-btn-modify {
+            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%) !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 0.9rem 2rem !important;
+            border-radius: 100px !important;
+            font-weight: 700 !important;
+            font-size: 1rem !important;
+            letter-spacing: 0.02em !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+            cursor: pointer !important;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1) !important;
+            box-shadow: 0 10px 25px rgba(0, 114, 255, 0.4) !important;
+        }
+        .users-btn-modify:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 15px 35px rgba(0, 114, 255, 0.5) !important;
+        }
+        .users-btn-delete {
+            background: rgba(255, 59, 48, 0.1) !important;
+            color: #ff3b30 !important;
+            border: 1px solid rgba(255, 59, 48, 0.3) !important;
+            padding: 0.9rem 2rem !important;
+            border-radius: 100px !important;
+            font-weight: 700 !important;
+            font-size: 1rem !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            display: inline-flex !important; align-items: center !important; gap: 0.75rem !important;
+            backdrop-filter: blur(5px);
+        }
+        .users-btn-delete:hover {
+            background: rgba(255, 59, 48, 0.2) !important;
+            border-color: #ff3b30 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 59, 48, 0.3) !important;
+        }
+        .users-btn-cancel, .users-btn-discard {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: rgba(255, 255, 255, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            padding: 0.9rem 2rem !important;
+            border-radius: 100px !important;
+            font-weight: 700 !important;
+            font-size: 1rem !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            backdrop-filter: blur(5px);
+        }
+        .users-btn-cancel:hover { background: rgba(255, 255, 255, 0.1) !important; color: #fff !important; }
+
+        /* Premium Switcher Styles (Unified) */
+        .premium-switcher-container {
+            padding: 4px;
+            background: rgba(10, 10, 10, 0.45);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 100px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            position: relative;
+            z-index: 10;
+            min-width: 400px;
+        }
+        .premium-switcher-pill { display: flex; position: relative; width: 100%; height: 44px; }
+        .premium-switcher-slider {
+            position: absolute; top: 0; left: 0; height: 100%;
+            background: var(--accent-gradient, linear-gradient(90deg, #00c6ff 0%, #0072ff 100%));
+            border-radius: 100px; box-shadow: 0 4px 20px rgba(0, 114, 255, 0.4);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1); z-index: 1; pointer-events: none;
+        }
+        .premium-switcher-tab {
+            flex: 1; position: relative; z-index: 2; background: transparent; border: none;
+            color: rgba(255, 255, 255, 0.55); font-weight: 700; font-size: 0.95rem;
+            letter-spacing: 0.03em; cursor: pointer; transition: all 0.3s ease;
+            white-space: nowrap; outline: none; display: flex; align-items: center; justify-content: center;
+            padding: 0 1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .premium-switcher-tab.active { color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .premium-switcher-tab:hover:not(.active) { color: #fff; background: rgba(255, 255, 255, 0.05); border-radius: 100px; }
+    </style>
+{% endblock %}
 
 {% block content %}
 {% include 'admin/_dashboard_header.html.twig' with { 'title': 'Syndicat' } %}
 
 <div class="users-pagination-wrapper" style="margin-top: 2rem; display: flex; justify-content: center;">
-	<div class="users-pagination-pills pills-animated">
-		<button class="pill-tab active" data-page="1">Reclamations</button>
-		<button class="pill-tab" data-page="2">Responses</button>
-		<button class="pill-tab" data-page="3">Page 3</button>
-		<button class="pill-tab" data-page="4">Page 4</button>
-	</div>
-</div>
-<div id="syndicat-content" class="residence-content" style="margin-top: 1.5rem;">
-	<div class="residence-page-content" data-page="1">
-		<div class="liquid-glass-table-container">
-			<h3 style="margin-bottom:1.5rem;">Reclamations</h3>
-			<div class="residence-table-toolbar">
-				<div style="display: flex; align-items: center;"></div>
-				<div style="display: flex; gap: 0.75rem; align-items: center;">
-					<button class="residence-sort-dir-pill" id="reclamation-sort-dir-pill" title="Toggle Sort Direction">
-						<span id="reclamation-sort-dir-icon-svg"></span>
-					</button>
-					<div class="residence-sort-pill" id="reclamation-sort-pill-custom" tabindex="0">
-						<span class="residence-sort-selected" id="reclamation-sort-selected">Sort by Title</span>
-						<span class="residence-sort-arrow"></span>
-						<div class="residence-sort-dropdown" id="reclamation-sort-dropdown" style="display:none;">
-							<div class="residence-sort-option" data-value="title">Title</div>
-							<div class="residence-sort-option" data-value="date">Date</div>
-							<div class="residence-sort-option" data-value="status">Status</div>
-							<div class="residence-sort-option" data-value="user">User</div>
-						</div>
-					</div>
-					<div class="residence-search-pill">
-						<input type="text" class="residence-search-input" id="reclamation-search-input" placeholder="Search reclamations..." />
-						<i class="bx bx-search residence-search-icon"></i>
-					</div>
-				</div>
-			</div>
-			<div class="liquid-glass-table-scroll">
-				<table class="liquid-glass-table" id="reclamation-table">
-					<thead>
-						<tr>
-							<th>Title</th>
-							<th>Description</th>
-							<th>User</th>
-							<th>Status</th>
-							<th>Date</th>
-							<th>Details</th>
-						</tr>
-					</thead>
-					<tbody id="reclamation-table-body">
-						<!-- Dynamic rows from reclamationData -->
-					</tbody>
-				</table>
-			</div>
-			<div class="table-pagination-bar">
-				<button class="residence-table-arrow" id="reclamation-table-prev"><i class="bx bx-chevron-left"></i></button>
-				<div class="residence-table-pages" id="reclamation-table-pages"></div>
-				<button class="residence-table-arrow" id="reclamation-table-next"><i class="bx bx-chevron-right"></i></button>
-			</div>
-		</div>
-	</div>
-	<div class="residence-page-content" data-page="2" style="display: none;">
-		<div class="liquid-glass-table-container">
-			<h3 style="margin-bottom:1.5rem;">Responses</h3>
-			<div class="residence-table-toolbar">
-				<div style="display: flex; align-items: center;"></div>
-				<div style="display: flex; gap: 0.75rem; align-items: center;">
-					<button class="residence-sort-dir-pill" id="reponse-sort-dir-pill" title="Toggle Sort Direction">
-						<span id="reponse-sort-dir-icon-svg"></span>
-					</button>
-					<div class="residence-sort-pill" id="reponse-sort-pill-custom" tabindex="0">
-						<span class="residence-sort-selected" id="reponse-sort-selected">Sort by Message</span>
-						<span class="residence-sort-arrow"></span>
-						<div class="residence-sort-dropdown" id="reponse-sort-dropdown" style="display:none;">
-							<div class="residence-sort-option" data-value="message">Message</div>
-							<div class="residence-sort-option" data-value="date">Date</div>
-							<div class="residence-sort-option" data-value="user">User</div>
-							<div class="residence-sort-option" data-value="reclamation">Reclamation</div>
-						</div>
-					</div>
-					<div class="residence-search-pill">
-						<input type="text" class="residence-search-input" id="reponse-search-input" placeholder="Search responses..." />
-						<i class="bx bx-search residence-search-icon"></i>
-					</div>
-				</div>
-			</div>
-			<div class="liquid-glass-table-scroll">
-				<table class="liquid-glass-table" id="reponse-table">
-					<thead>
-						<tr>
-							<th>Message</th>
-							<th>User</th>
-							<th>Reclamation</th>
-							<th>Date</th>
-							<th>Details</th>
-						</tr>
-					</thead>
-					<tbody id="reponse-table-body">
-						<!-- Dynamic rows from reponseData -->
-					</tbody>
-				</table>
-			</div>
-			<div class="table-pagination-bar">
-				<button class="residence-table-arrow" id="reponse-table-prev"><i class="bx bx-chevron-left"></i></button>
-				<div class="residence-table-pages" id="reponse-table-pages"></div>
-				<button class="residence-table-arrow" id="reponse-table-next"><i class="bx bx-chevron-right"></i></button>
-			</div>
-		</div>
-	</div>
-	<div class="residence-page-content" data-page="3" style="display: none;">
-		<div class="liquid-glass-table-container">
-			<h3 style="margin-bottom:1.5rem;">Page 3</h3>
-			<p style="color: rgba(191,201,216,0.8);">Content placeholder.</p>
-		</div>
-	</div>
-	<div class="residence-page-content" data-page="4" style="display: none;">
-		<div class="liquid-glass-table-container">
-			<h3 style="margin-bottom:1.5rem;">Page 4</h3>
-			<p style="color: rgba(191,201,216,0.8);">Content placeholder.</p>
-		</div>
-	</div>
+    <div class="premium-switcher-container">
+        <div class="premium-switcher-pill">
+            <div class="premium-switcher-slider" id="syndicat-switcher-slider"></div>
+            <button class="premium-switcher-tab active" data-page="1">Reclamations</button>
+            <button class="premium-switcher-tab" data-page="2">Responses</button>
+        </div>
+    </div>
 </div>
 
-<style>
-	/* Table & pagination – match Residence exactly */
-	.liquid-glass-table-container { background: rgba(30, 34, 44, 0.7); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); backdrop-filter: blur(18px); padding: 2.5rem 3rem 2rem 3rem; border: 1.5px solid rgba(255,255,255,0.08); }
-	.liquid-glass-table-scroll { overflow-x: auto; margin-top: 1.75rem; }
-	.liquid-glass-table { width: 100%; border-collapse: separate; border-spacing: 0; background: rgba(255,255,255,0.04); border-radius: 20px; overflow: hidden; color:#e3e8f7; border: 1px solid rgba(255,255,255,0.06); }
-	.liquid-glass-table th { background: rgba(255,255,255,0.12); padding: 1.4rem; font-weight: 800; color:#fff; text-align: center; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; }
-	.liquid-glass-table td { padding: 1.4rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: middle; }
-	.table-pagination-bar { display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-top: 3rem; }
-	.residence-table-arrow { width: 48px; height: 48px; border-radius: 50%; border: none; background: rgba(255,255,255,0.07); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 1.8rem; border: 1px solid rgba(255,255,255,0.1); }
-	.residence-table-arrow:hover:not(:disabled) { background: #0072ff; transform: scale(1.1); box-shadow: 0 0 20px rgba(0, 114, 255, 0.5); }
-	.residence-table-arrow:disabled { opacity: 0.2; cursor: not-allowed; }
-	.residence-table-page-btn { padding: 0.6rem 1.4rem; border-radius: 999px; border: none; background: transparent; color: #bfc9d8; cursor: pointer; transition: all 0.25s; font-weight: 700; font-size: 1rem; }
-	.residence-table-page-btn.active { background: #0072ff; color: #fff; box-shadow: 0 6px 15px rgba(0, 114, 255, 0.4); }
-	.users-btn-modify { background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); color: #fff; box-shadow: 0 10px 25px rgba(0, 114, 255, 0.3); border: none; border-radius: 14px; padding: 0.9rem 1.75rem; font-size: 1.05rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.75rem; transition: all 0.3s; }
-	.users-btn-modify:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0, 114, 255, 0.45); }
-	.users-btn-cancel { background: rgba(255, 255, 255, 0.08); color: #bfc9d8; border: none; border-radius: 14px; padding: 0.9rem 1.75rem; font-size: 1.05rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.75rem; transition: all 0.3s; }
-	.users-btn-cancel:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: translateY(-2px); }
-	.users-btn-delete { background: linear-gradient(135deg, #ff3b30 0%, #ff2d92 100%); color: #fff; box-shadow: 0 10px 25px rgba(255, 45, 146, 0.25); border: none; border-radius: 14px; padding: 0.9rem 1.75rem; font-size: 1.05rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.75rem; transition: all 0.3s; }
-	.users-btn-delete:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(255, 45, 146, 0.4); }
-	.users-edit-modal { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 2rem; }
-	.users-edit-modal-backdrop { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); cursor: pointer; }
-	.users-edit-modal-card { position: relative; background: linear-gradient(165deg, rgba(32, 38, 52, 0.98) 0%, rgba(20, 24, 32, 0.98) 100%); border-radius: 24px; box-shadow: 0 25px 80px rgba(0,0,0,0.7); max-width: 800px; width: 100%; border: 1px solid rgba(255,255,255,0.12); overflow: visible; max-height: 90vh; display: flex; flex-direction: column; }
-	.users-edit-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.75rem 2.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
-	.users-edit-modal-header h3 { margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff; }
-	.users-edit-modal-subtitle { margin: 0.5rem 0 0 0; font-size: 0.9rem; color: rgba(191,201,216,0.8); }
-	.users-edit-modal-close { background: rgba(255,255,255,0.08); border: none; color: #bfc9d8; width: 2.4rem; height: 2.4rem; border-radius: 50%; font-size: 1.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.25s ease; }
-	.users-edit-modal-close:hover { background: rgba(255,255,255,0.15); color: #fff; transform: rotate(90deg); }
-	.users-edit-modal-body { padding: 2.25rem 2.5rem; overflow-y: auto; scrollbar-width: none; }
-	.users-edit-modal-body::-webkit-scrollbar { display: none; }
-	.users-edit-modal-actions { display: flex; gap: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 1rem; align-items: center; }
-	.users-edit-modal-actions-spacer { flex: 1; }
-	.forum-view-row { display: flex; gap: 1.5rem; padding: 1.25rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
-	.forum-view-label { min-width: 120px; font-size: 0.9rem; font-weight: 700; color: rgba(191,201,216,0.7); text-transform: uppercase; letter-spacing: 0.08em; }
-	.forum-view-value { flex: 1; font-size: 1.05rem; color: #e3e8f7; line-height: 1.6; }
-	.residence-form-group { margin-bottom: 1.75rem; width: 100%; display: flex; flex-direction: column; }
-	.residence-edit-label { display: block; margin-bottom: 0.75rem; color: #bfc9d8; font-weight: 600; font-size: 0.95rem; }
-	.residence-edit-input { width: 100%; border: 1px solid rgba(255, 255, 255, 0.12); padding: 0.95rem 1.25rem; border-radius: 16px; background: rgba(0, 0, 0, 0.3); color: #fff; font-size: 1rem; outline: none; }
-	.residence-edit-input:focus { border-color: rgba(0, 198, 255, 0.5); border-left: 4px solid #00c6ff; }
-</style>
+<div id="syndicat-content" class="syndicat-content" style="margin-top: 1.5rem;">
+    <!-- Page 1: Reclamations -->
+    <div class="syndicat-page-content" data-page="1">
+        <div class="glass-table-container">
+            <div id="syndicatRecGlassSwitcher" class="glass-switcher style-slide">
+                <div class="glass-switcher-face glass-switcher-face-main">
+                    <div class="glass-toolbar">
+                        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Reclamations</h3>
+                        <div style="flex: 1;"></div>
+                    </div>
 
-<!-- View Reclamation Modal (like Residence view modal) -->
-<div id="reclamation-view-modal" class="users-edit-modal" style="display: none;">
-	<div class="users-edit-modal-backdrop" onclick="closeModal('reclamation-view-modal')"></div>
-	<div class="users-edit-modal-card">
-		<div class="users-edit-modal-header">
-			<div>
-				<h3>Reclamation Overview</h3>
-				<p class="users-edit-modal-subtitle">Detailed information from the reclamation database</p>
-			</div>
-			<button type="button" class="users-edit-modal-close" onclick="closeModal('reclamation-view-modal')">&times;</button>
-		</div>
-		<div class="users-edit-modal-body">
-			<div class="forum-view-row">
-				<div class="forum-view-label">Title</div>
-				<div class="forum-view-value" id="view-reclamation-title" style="font-weight: 700;">—</div>
-			</div>
-			<div class="forum-view-row">
-				<div class="forum-view-label">Description</div>
-				<div class="forum-view-value" id="view-reclamation-description">—</div>
-			</div>
-			<div class="forum-view-row">
-				<div class="forum-view-label">User</div>
-				<div class="forum-view-value" id="view-reclamation-user">—</div>
-			</div>
-			<div class="forum-view-row">
-				<div class="forum-view-label">Status</div>
-				<div class="forum-view-value" id="view-reclamation-status">—</div>
-			</div>
-			<div class="forum-view-row">
-				<div class="forum-view-label">Date</div>
-				<div class="forum-view-value" id="view-reclamation-date" style="opacity: 0.8;">—</div>
-			</div>
-            <div class="forum-view-row" id="view-reclamation-images-row" style="display:none;">
-                <div class="forum-view-label">Attachments</div>
-                <div class="forum-view-value">
-                    <div id="view-reclamation-images-container" style="display: flex; gap: 1rem; flex-wrap: wrap;"></div>
+                    <div class="glass-toolbar" style="margin-bottom: 1.5rem;">
+                        <div class="glass-search-container">
+                            <i class="bx bx-search glass-search-icon"></i>
+                            <input type="text" class="glass-search-input syndicat-rec-search-input" placeholder="Search reclamations...">
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.5rem;">
+                            <div class="glass-pill glass-pill-active syndicat-rec-sort-option" data-value="date" onclick="selectRecSortPill(this)">Date</div>
+                            <div class="glass-pill syndicat-rec-sort-option" data-value="title" onclick="selectRecSortPill(this)">Title</div>
+                            <div class="glass-pill syndicat-rec-sort-option" data-value="status" onclick="selectRecSortPill(this)">Status</div>
+                            <button class="glass-pagination-btn" id="syndicat-rec-sort-dir-pill" style="width: 38px; height: 38px;">
+                                <span id="syndicat-rec-sort-dir-icon-svg"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="glass-table-scroll">
+                        <table class="glass-table" id="syndicat-rec-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>User</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th style="text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="syndicat-rec-table-body">
+                                <!-- Table rows rendered by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="glass-pagination-bar" id="syndicat-rec-pagination">
+                        <button class="glass-pagination-btn" id="syndicat-rec-table-prev"><i class="bx bx-chevron-left"></i></button>
+                        <div id="syndicat-rec-table-pages" style="display: flex; gap: 0.5rem;"></div>
+                        <button class="glass-pagination-btn" id="syndicat-rec-table-next"><i class="bx bx-chevron-right"></i></button>
+                    </div>
+                </div><!-- End .glass-switcher-face-main -->
+
+                <div class="glass-switcher-face glass-switcher-face-details" id="rec-view-face">
+                    <div id="rec-view-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div>
+                                    <h3>Reclamation Details</h3>
+                                    <p class="users-edit-modal-subtitle">View complete reclamation information</p>
+                                </div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('rec-view-modal')" aria-label="Close"><i class="bx bx-x"></i></button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                <div class="glass-view-details">
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">Title</div>
+                                        <div class="glass-view-value" id="view-rec-title">-</div>
+                                    </div>
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">User</div>
+                                        <div class="glass-view-value" id="view-rec-user">-</div>
+                                    </div>
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">Status</div>
+                                        <div class="glass-view-value" id="view-rec-status">-</div>
+                                    </div>
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">Date</div>
+                                        <div class="glass-view-value" id="view-rec-date">-</div>
+                                    </div>
+                                    <div class="glass-view-row" style="flex-direction: column; align-items: flex-start;">
+                                        <div class="glass-view-label" style="width: 100%; margin-bottom: 0.5rem;">Description</div>
+                                        <div class="glass-view-value" id="view-rec-description" style="line-height: 1.6; opacity: 0.8;">-</div>
+                                    </div>
+                                </div>
+                                <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
+                                    <button type="button" class="users-btn-modify" id="view-rec-modify-btn">
+                                        <i class="bx bx-edit"></i> Modify Reclamation
+                                    </button>
+                                    <form id="view-rec-delete-form" method="post" style="display: inline-block; margin-left: 1rem;" data-ajax="true" data-refresh="syndicatFilterSortRecs">
+                                        <input type="hidden" name="_token" id="view-rec-delete-token" value="">
+                                        <button type="submit" class="users-btn-delete" data-delete-title="Delete Reclamation">
+                                            <i class="bx bx-trash"></i> Delete Reclamation
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-			<div class="users-edit-modal-actions">
-				<button type="button" class="users-btn-cancel" onclick="closeModal('reclamation-view-modal')">Close</button>
-				<span class="users-edit-modal-actions-spacer"></span>
-				<button type="button" class="users-btn-modify" id="btn-trigger-reclamation-edit">
-					<i class="bx bx-edit-alt"></i> Edit Record
-				</button>
-				<form method="post" id="view-reclamation-delete-form" style="display: inline;" data-ajax="true">
-					<input type="hidden" name="_token" id="view-reclamation-delete-token" value="{{ csrf_token('delete_reclamation') }}">
-					<button type="submit" class="users-btn-delete">
-						<i class="bx bx-trash-alt"></i> Delete
-					</button>
-				</form>
-			</div>
-		</div>
-	</div>
-</div>
 
-<!-- Edit Reclamation Modal (like Residence edit modal) -->
-<div id="reclamation-edit-modal" class="users-edit-modal" style="display: none; z-index: 10001;">
-	<div class="users-edit-modal-backdrop" onclick="closeModal('reclamation-edit-modal')"></div>
-	<div class="users-edit-modal-card">
-		<div class="users-edit-modal-header">
-			<div>
-				<h3>Edit Reclamation</h3>
-				<p class="users-edit-modal-subtitle">Update and synchronize reclamation information</p>
-			</div>
-			<button type="button" class="users-edit-modal-close" onclick="closeModal('reclamation-edit-modal')">&times;</button>
-		</div>
-		<form id="reclamation-edit-form" class="users-edit-modal-body" enctype="multipart/form-data">
-			<div class="residence-form-group">
-				<label class="residence-edit-label">Title</label>
-				<input type="text" name="title" id="edit-reclamation-title" class="residence-edit-input" required>
-			</div>
-			<div class="residence-form-group">
-				<label class="residence-edit-label">Description</label>
-				<textarea name="description" id="edit-reclamation-description" class="residence-edit-input" rows="4" required></textarea>
-			</div>
-			<div class="residence-form-group">
-				<label class="residence-edit-label">Status</label>
-				<select name="status" id="edit-reclamation-status" class="residence-edit-input" required>
-					<option value="active">Active</option>
-					<option value="en_attente">In Progress</option>
-					<option value="refuse">Rejected</option>
-					<option value="termine">Completed</option>
-				</select>
-			</div>
-            
-            <div class="residence-form-group" style="margin-bottom: 2.5rem;">
-                <label class="residence-edit-label">Attachments (Images)</label>
-                <div class="custom-file-wrapper" style="border: 2px dashed rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(0,0,0,0.2);">
-                    <input type="file" name="images[]" id="edit-reclamation-images" class="hidden-select" multiple accept="image/*" style="display: none;">
-                    <div class="custom-file-trigger" onclick="document.getElementById('edit-reclamation-images').click()">
-                        <div class="custom-file-icon" style="font-size: 3rem; color: #00c6ff; margin-bottom: 1rem;"><i class="bx bx-images"></i></div>
-                        <div class="custom-file-text" style="color: #fff; font-weight: 600; font-size: 1.1rem;">Click to upload images...</div>
-                        <div id="edit-reclamation-file-count" style="color: rgba(191,201,216,0.6); margin-top: 0.5rem; font-size: 0.9rem;">No files selected</div>
+                <div class="glass-switcher-face glass-switcher-face-edit" id="rec-edit-face">
+                    <div id="rec-edit-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div>
+                                    <h3>Edit Reclamation</h3>
+                                    <p class="users-edit-modal-subtitle">Modify reclamation status and details.</p>
+                                </div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('rec-edit-modal')" aria-label="Close"><i class="bx bx-x"></i></button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                {% if recEditForm is defined %}
+                                {{ form_start(recEditForm, { 'attr': { 'id': 'rec-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'syndicatFilterSortRecs' } }) }}
+                                
+                                {{ form_row(recEditForm.titrereclamations, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                {{ form_row(recEditForm.descreclamation, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 120px;' } }) }}
+                                {{ form_row(recEditForm.statutreclamation, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                
+                                <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
+                                    <button type="button" class="users-btn-cancel" onclick="closeModal('rec-edit-modal')"><i class="bx bx-x"></i> Discard</button>
+                                    <span class="users-edit-modal-actions-spacer"></span>
+                                    <button type="submit" class="users-btn-modify"><i class="bx bx-check"></i> Update Status</button>
+                                </div>
+                                {{ form_end(recEditForm) }}
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-			<div class="users-edit-modal-actions">
-				<button type="button" class="users-btn-cancel" onclick="closeModal('reclamation-edit-modal')">Discard</button>
-				<span class="users-edit-modal-actions-spacer"></span>
-				<button type="submit" class="users-btn-modify">Update Reclamation</button>
-			</div>
-		</form>
-	</div>
-</div>
+        </div>
+    </div>
 
-<!-- Delete Confirmation Modal (like Residence custom-confirm-modal) -->
-<div id="reclamation-confirm-modal" class="users-edit-modal" style="display: none;">
-	<div class="users-edit-modal-backdrop" onclick="closeModal('reclamation-confirm-modal')"></div>
-	<div class="users-edit-modal-card" style="max-width: 480px;">
-		<div class="users-edit-modal-body" style="text-align: center; padding: 3rem 2.5rem;">
-			<div style="width: 80px; height: 80px; background: rgba(255,59,48,0.13); color:#ff3b30; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:3rem; margin:0 auto 1.75rem auto;">
-				<i class="bx bx-trash-alt"></i>
-			</div>
-			<h3 style="color:#fff; margin-bottom:1rem; font-size: 1.6rem; font-weight: 800;">Permanent Deletion?</h3>
-			<p style="color:rgba(191,201,216,0.85); font-size:1.05rem; margin-bottom:2.5rem; line-height: 1.6;">Are you absolutely certain? Removing this reclamation will irrevocably delete all associated records.</p>
-			<div style="display: flex; gap: 1.5rem;">
-				<button type="button" class="users-btn-cancel" style="flex:1; justify-content: center;" onclick="closeModal('reclamation-confirm-modal')">Keep Reclamation</button>
-				<button type="button" id="confirm-reclamation-delete-btn" class="users-btn-delete" style="flex:1; justify-content:center;">Confirm Delete</button>
-			</div>
-		</div>
-	</div>
-</div>
+    <!-- Page 2: Responses -->
+    <div class="syndicat-page-content" data-page="2" style="display: none;">
+        <div class="glass-table-container">
+            <div id="syndicatRepGlassSwitcher" class="glass-switcher style-slide">
+                <div class="glass-switcher-face glass-switcher-face-main">
+                    <div class="glass-toolbar">
+                        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Responses</h3>
+                    </div>
 
-<!-- ========== RESPONSE MODALS ========== -->
-<!-- View Response Modal -->
-<div id="reponse-view-modal" class="users-edit-modal" style="display: none;">
-	<div class="users-edit-modal-backdrop" onclick="closeModal('reponse-view-modal')"></div>
-	<div class="users-edit-modal-card">
-		<div class="users-edit-modal-header">
-			<div>
-				<h3>Response Overview</h3>
-				<p class="users-edit-modal-subtitle">Detailed information from the response database</p>
-			</div>
-			<button type="button" class="users-edit-modal-close" onclick="closeModal('reponse-view-modal')">&times;</button>
-		</div>
-		<div class="users-edit-modal-body">
-			<div class="forum-view-row">
-				<div class="forum-view-label">Title</div>
-				<div class="forum-view-value" id="view-reponse-title" style="font-weight: 700;">—</div>
-			</div>
-			<div class="forum-view-row">
-				<div class="forum-view-label">Message</div>
-				<div class="forum-view-value" id="view-reponse-message">—</div>
-			</div>
-			<div class="forum-view-row">
-				<div class="forum-view-label">User</div>
-				<div class="forum-view-value" id="view-reponse-user">—</div>
-			</div>
-			<div class="forum-view-row">
-				<div class="forum-view-label">Reclamation</div>
-				<div class="forum-view-value" id="view-reponse-reclamation">—</div>
-			</div>
-			<div class="forum-view-row">
-				<div class="forum-view-label">Date</div>
-				<div class="forum-view-value" id="view-reponse-date" style="opacity: 0.8;">—</div>
-			</div>
-			<div class="forum-view-row" id="view-reponse-images-row" style="display:none;">
-				<div class="forum-view-label">Attachments</div>
-				<div class="forum-view-value">
-					<div id="view-reponse-images-container" style="display: flex; gap: 1rem; flex-wrap: wrap;"></div>
-				</div>
-			</div>
-			<div class="users-edit-modal-actions">
-				<button type="button" class="users-btn-cancel" onclick="closeModal('reponse-view-modal')">Close</button>
-				<span class="users-edit-modal-actions-spacer"></span>
-				<button type="button" class="users-btn-modify" id="btn-trigger-reponse-edit">
-					<i class="bx bx-edit-alt"></i> Edit Record
-				</button>
-				<button type="button" class="users-btn-delete" id="btn-trigger-reponse-delete">
-					<i class="bx bx-trash-alt"></i> Delete
-				</button>
-			</div>
-		</div>
-	</div>
-</div>
+                    <div class="glass-toolbar" style="margin-bottom: 1.5rem;">
+                        <div class="glass-search-container">
+                            <i class="bx bx-search glass-search-icon"></i>
+                            <input type="text" class="glass-search-input syndicat-rep-search-input" placeholder="Search responses...">
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.5rem;">
+                            <div class="glass-pill glass-pill-active syndicat-rep-sort-option" data-value="date" onclick="selectRepSortPill(this)">Date</div>
+                            <div class="glass-pill syndicat-rep-sort-option" data-value="user" onclick="selectRepSortPill(this)">User</div>
+                            <button class="glass-pagination-btn" id="syndicat-rep-sort-dir-pill" style="width: 38px; height: 38px;">
+                                <span id="syndicat-rep-sort-dir-icon-svg"></span>
+                            </button>
+                        </div>
+                    </div>
 
-<!-- Edit Response Modal -->
-<div id="reponse-edit-modal" class="users-edit-modal" style="display: none; z-index: 10001;">
-	<div class="users-edit-modal-backdrop" onclick="closeModal('reponse-edit-modal')"></div>
-	<div class="users-edit-modal-card">
-		<div class="users-edit-modal-header">
-			<div>
-				<h3>Edit Response</h3>
-				<p class="users-edit-modal-subtitle">Update and synchronize response information</p>
-			</div>
-			<button type="button" class="users-edit-modal-close" onclick="closeModal('reponse-edit-modal')">&times;</button>
-		</div>
-		<form id="reponse-edit-form" class="users-edit-modal-body" enctype="multipart/form-data">
-			<div class="residence-form-group">
-				<label class="residence-edit-label">Title</label>
-				<input type="text" name="title" id="edit-reponse-title" class="residence-edit-input" required>
-			</div>
-			<div class="residence-form-group">
-				<label class="residence-edit-label">Message</label>
-				<textarea name="message" id="edit-reponse-message" class="residence-edit-input" rows="4" required></textarea>
-			</div>
-			
-			<div class="residence-form-group" style="margin-bottom: 2.5rem;">
-				<label class="residence-edit-label">Attachments (Images)</label>
-				<div class="custom-file-wrapper" style="border: 2px dashed rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(0,0,0,0.2);">
-					<input type="file" name="images[]" id="edit-reponse-images" class="hidden-select" multiple accept="image/*" style="display: none;">
-					<div class="custom-file-trigger" onclick="document.getElementById('edit-reponse-images').click()">
-						<div class="custom-file-icon" style="font-size: 3rem; color: #00c6ff; margin-bottom: 1rem;"><i class="bx bx-images"></i></div>
-						<div class="custom-file-text" style="color: #fff; font-weight: 600; font-size: 1.1rem;">Click to upload images...</div>
-						<div id="edit-reponse-file-count" style="color: rgba(191,201,216,0.6); margin-top: 0.5rem; font-size: 0.9rem;">No files selected</div>
-					</div>
-				</div>
-			</div>
-			<div class="users-edit-modal-actions">
-				<button type="button" class="users-btn-cancel" onclick="closeModal('reponse-edit-modal')">Discard</button>
-				<span class="users-edit-modal-actions-spacer"></span>
-				<button type="submit" class="users-btn-modify">Update Response</button>
-			</div>
-		</form>
-	</div>
-</div>
+                    <div class="glass-table-scroll">
+                        <table class="glass-table" id="syndicat-rep-table">
+                            <thead>
+                                <tr>
+                                    <th>Message</th>
+                                    <th>User</th>
+                                    <th>Reclamation</th>
+                                    <th>Date</th>
+                                    <th style="text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="syndicat-rep-table-body">
+                                <!-- Table rows rendered by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="glass-pagination-bar" id="syndicat-rep-pagination">
+                        <button class="glass-pagination-btn" id="syndicat-rep-table-prev"><i class="bx bx-chevron-left"></i></button>
+                        <div id="syndicat-rep-table-pages" style="display: flex; gap: 0.5rem;"></div>
+                        <button class="glass-pagination-btn" id="syndicat-rep-table-next"><i class="bx bx-chevron-right"></i></button>
+                    </div>
+                </div>
 
-<!-- Delete Confirmation Modal -->
-<div id="reponse-confirm-modal" class="users-edit-modal" style="display: none;">
-	<div class="users-edit-modal-backdrop" onclick="closeModal('reponse-confirm-modal')"></div>
-	<div class="users-edit-modal-card" style="max-width: 480px;">
-		<div class="users-edit-modal-body" style="text-align: center; padding: 3rem 2.5rem;">
-			<div style="width: 80px; height: 80px; background: rgba(255,59,48,0.13); color:#ff3b30; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:3rem; margin:0 auto 1.75rem auto;">
-				<i class="bx bx-trash-alt"></i>
-			</div>
-			<h3 style="color:#fff; margin-bottom:1rem; font-size: 1.6rem; font-weight: 800;">Permanent Deletion?</h3>
-			<p style="color:rgba(191,201,216,0.85); font-size:1.05rem; margin-bottom:2.5rem; line-height: 1.6;">Are you absolutely certain? Removing this response will irrevocably delete all associated records.</p>
-			<div style="display: flex; gap: 1.5rem;">
-				<button type="button" class="users-btn-cancel" style="flex:1; justify-content: center;" onclick="closeModal('reponse-confirm-modal')">Keep Response</button>
-				<button type="button" id="confirm-reponse-delete-btn" class="users-btn-delete" style="flex:1; justify-content:center;">Confirm Delete</button>
-			</div>
-		</div>
-	</div>
+                <div class="glass-switcher-face glass-switcher-face-details" id="rep-view-face">
+                    <div id="rep-view-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div>
+                                    <h3>Response Details</h3>
+                                    <p class="users-edit-modal-subtitle">View response content and metadata.</p>
+                                </div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('rep-view-modal')" aria-label="Close"><i class="bx bx-x"></i></button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                <div class="glass-view-details">
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">User</div>
+                                        <div class="glass-view-value" id="view-rep-user">-</div>
+                                    </div>
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">Reclamation</div>
+                                        <div class="glass-view-value" id="view-rep-rec">-</div>
+                                    </div>
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">Date</div>
+                                        <div class="glass-view-value" id="view-rep-date">-</div>
+                                    </div>
+                                    <div class="glass-view-row" style="flex-direction: column; align-items: flex-start;">
+                                        <div class="glass-view-label" style="width: 100%; margin-bottom: 0.5rem;">Message</div>
+                                        <div class="glass-view-value" id="view-rep-message" style="line-height: 1.6; opacity: 0.8;">-</div>
+                                    </div>
+                                </div>
+                                <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
+                                    <form id="view-rep-delete-form" method="post" style="display: inline-block;" data-ajax="true" data-refresh="syndicatFilterSortReps">
+                                        <input type="hidden" name="_token" id="view-rep-delete-token" value="">
+                                        <button type="submit" class="users-btn-delete">
+                                            <i class="bx bx-trash"></i> Delete Response
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-	// Reclamation data from backend (no demo data)
-	window.reclamationData = [
-		{% for rec in reclamations %}
-		{
-			id: {{ rec.id }},
-			title: {{ rec.titrereclamations|json_encode|raw }},
-			description: {{ rec.descreclamation|json_encode|raw }},
-			user: {{ (rec.user ? rec.user.emailUser : 'N/A')|json_encode|raw }},
-			status: {{ (rec.statutreclamation|default('en_attente'))|json_encode|raw }},
-			date: "{{ rec.createdAt ? rec.createdAt|date('Y-m-d H:i') : (rec.datereclamation ? rec.datereclamation|date('Y-m-d H:i') : '') }}",
-			images: {{ rec.imagereclamation|json_encode|raw }} // Safer: output as string literal, then parsed in JS
-		}{% if not loop.last %},{% endif %}
-		{% endfor %}
-	];
-	const statusLabels = {
-		'active': 'Active',
-		'en_attente': 'In Progress',
-		'refuse': 'Rejected',
-		'termine': 'Completed'
-	};
+    /**
+     * Standardized Glass Switcher Logic
+     */
 
-	const rowsPerPage = 10;
-	let currentPage = 1;
-	let sortValue = 'title';
-	let sortDirection = 'asc';
-	let filteredData = [...window.reclamationData];
 
-	function renderReclamationTable() {
-		const tbody = document.getElementById('reclamation-table-body');
-		if (!tbody) return;
-		tbody.innerHTML = '';
 
-		if (filteredData.length === 0) {
-			tbody.innerHTML = '<tr><td colspan="6" style="padding: 5rem; opacity: 0.5; font-size: 1.2rem; font-weight: 500;">No reclamations match your search.</td></tr>';
-			renderReclamationPagination();
-			return;
-		}
+    // --- Data Templates ---
+    const reclamationsData = [
+        {% for r in reclamations|default([]) %}
+        [
+            "{{ r.titrereclamations|e('js') }}",
+            "{{ r.user ? r.user.emailUser|e('js') : '—' }}",
+            "{{ r.statutreclamation|e('js') }}",
+            "{{ (r.createdAt ?? r.datereclamation)|date('Y-m-d H:i') }}",
+            "{{ r.id }}",
+            "{{ r.descreclamation|e('js') }}",
+            "{{ csrf_token('delete_reclamation')|e('js') }}"
+        ]{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
 
-		const start = (currentPage - 1) * rowsPerPage;
-		const end = Math.min(start + rowsPerPage, filteredData.length);
+    const reponsesData = [
+        {% for rep in reponses|default([]) %}
+        [
+            "{{ rep.messagereponse|e('js')|slice(0, 50) }}...",
+            "{{ rep.user ? rep.user.emailUser|e('js') : '—' }}",
+            "{{ rep.reclamation ? rep.reclamation.titrereclamations|e('js') : 'Deleted' }}",
+            "{{ rep.createdAt|date('Y-m-d H:i') }}",
+            "{{ rep.id }}",
+            "{{ rep.messagereponse|e('js') }}",
+            "{{ csrf_token('delete' ~ rep.id)|e('js') }}"
+        ]{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
 
-		for (let i = start; i < end; i++) {
-			const r = filteredData[i];
-			const desc = (r.description || '').length > 80 ? (r.description || '').slice(0, 80) + '...' : (r.description || '');
-			const statusLabel = statusLabels[r.status] || r.status;
-			const tr = document.createElement('tr');
-			tr.innerHTML = `
-				<td style="font-weight: 800; color: #fff; font-size: 1.05rem;">${escapeHtml(r.title)}</td>
-				<td style="opacity: 0.9; max-width: 280px; text-align: left;">${escapeHtml(desc)}</td>
-				<td style="opacity: 0.9;">${escapeHtml(r.user)}</td>
-				<td><span class="badge" style="background:rgba(0,198,255,0.15); color:#00c6ff; padding:0.5rem 1rem; border-radius:12px; border: 1px solid rgba(0,198,255,0.2); font-weight: 700;">${escapeHtml(statusLabel)}</span></td>
-				<td><span style="opacity: 0.7; font-size: 0.9rem;">${escapeHtml(r.date)}</span></td>
-				<td>
-					<button class="users-btn-modify" onclick="viewReclamationDetails(${r.id})" style="padding: 0.5rem 1.25rem; font-size: 0.95rem; border-radius: 12px;">
-						<i class="bx bxs-file-find"></i> Results
-					</button>
-				</td>
-			`;
-			tbody.appendChild(tr);
-		}
-		renderReclamationPagination();
-	}
+    const editRecUrlTemplate = "{{ path('admin_reclamation_edit_ajax', {id: 'ID_PLACEHOLDER'}) }}";
+    const deleteRecUrlTemplate = "{{ path('admin_syndicat_reclamation_delete', {id: 'ID_PLACEHOLDER'}) }}";
+    const deleteRepUrlTemplate = "{{ path('admin_reponse_delete', {id: 'ID_PLACEHOLDER'}) }}";
 
-	function escapeHtml(str) {
-		if (str == null) return '';
-		const div = document.createElement('div');
-		div.textContent = str;
-		return div.innerHTML;
-	}
+    let recCurrentPage = 1;
+    let recFilteredRows = [...reclamationsData];
+    let recSortValue = 'date';
+    let recSortDirection = 'desc';
 
-	function closeModal(id) {
-		const modal = document.getElementById(id);
-		if (modal) modal.style.display = 'none';
-	}
-	function openModal(id) {
-		const modal = document.getElementById(id);
-		if (modal) modal.style.display = 'flex';
-	}
-	window.closeModal = closeModal;
-	window.openModal = openModal;
+    let repCurrentPage = 1;
+    let repFilteredRows = [...reponsesData];
+    let repSortValue = 'date';
+    let repSortDirection = 'desc';
 
-	function viewReclamationDetails(id) {
-		const r = window.reclamationData.find(function(item) { return item.id == id; });
-		if (!r) return;
+    const rowsPerPage = 10;
 
-		document.getElementById('view-reclamation-title').textContent = r.title || '—';
-		document.getElementById('view-reclamation-description').textContent = r.description || '—';
-		document.getElementById('view-reclamation-user').textContent = r.user || '—';
-		document.getElementById('view-reclamation-date').textContent = r.date || '—';
-		document.getElementById('view-reclamation-status').textContent = statusLabels[r.status] || r.status || '—';
+    function updateRecSortDirIcon() {
+        const iconEl = document.getElementById('syndicat-rec-sort-dir-icon-svg');
+        if (!iconEl) return;
+        iconEl.innerHTML = recSortDirection === 'asc'
+            ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>`
+            : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
+    }
 
-        // Images Logic
-        const imgRow = document.getElementById('view-reclamation-images-row');
-        const imgContainer = document.getElementById('view-reclamation-images-container');
-        imgContainer.innerHTML = '';
+    function updateRepSortDirIcon() {
+        const iconEl = document.getElementById('syndicat-rep-sort-dir-icon-svg');
+        if (!iconEl) return;
+        iconEl.innerHTML = repSortDirection === 'asc'
+            ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>`
+            : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
+    }
+
+    window.selectRecSortPill = function(pill) {
+        recSortValue = pill.dataset.value;
+        document.querySelectorAll('.syndicat-rec-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
+        pill.classList.add('glass-pill-active');
+        syndicatFilterSortRecs();
+    };
+
+    window.selectRepSortPill = function(pill) {
+        repSortValue = pill.dataset.value;
+        document.querySelectorAll('.syndicat-rep-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
+        pill.classList.add('glass-pill-active');
+        syndicatFilterSortReps();
+    };
+
+    function syndicatFilterSortRecs() {
+        const val = document.querySelector('.syndicat-rec-search-input').value.toLowerCase();
+        let rows = reclamationsData.filter(d => d[0].toLowerCase().includes(val) || d[1].toLowerCase().includes(val) || d[5].toLowerCase().includes(val));
         
-        let images = [];
-        try {
-            if (typeof r.images === 'string') {
-                images = JSON.parse(r.images);
-            } else if (Array.isArray(r.images)) {
-                images = r.images;
-            }
-        } catch(e) { console.error('Error parsing images JSON', e); }
+        let sortIdx = 3; // Date
+        if (recSortValue === 'title') sortIdx = 0;
+        else if (recSortValue === 'status') sortIdx = 2;
 
-        if (images && images.length > 0) {
-            imgRow.style.display = 'flex';
-            images.forEach(img => {
-                const wrapper = document.createElement('div');
-                wrapper.style.width = '100px';
-                wrapper.style.height = '100px';
-                wrapper.style.borderRadius = '12px';
-                wrapper.style.overflow = 'hidden';
-                wrapper.style.border = '1px solid rgba(255,255,255,0.1)';
-                
-                const elem = document.createElement('img');
-                // Assuming backend stores relative path like 'folder/image.jpg' and public access is direct or via /uploads/reclamations/
-                // Adjust base path as needed. Based on controller: $this->getParameter('reclamations_directory')
-                // Usually symfony public access might need '/uploads/reclamations/' prepended if not in db path.
-                // Let's assume DB path is relative to public/uploads/reclamations or similar. 
-                // Wait, Controller stores: $folderName . '/' . $newFilename.
-                // So we need to know the public prefix.
-                // Correct path based on services.yaml: reclamations_directory: '%kernel.project_dir%/public/reclamation_images'
-                // Controller stores 'Folder/File.jpg'
-                // So public URL is '/reclamation_images/Folder/File.jpg'
-                elem.src = '/reclamation_images/' + img; 
-                elem.style.width = '100%';
-                elem.style.height = '100%';
-                elem.style.objectFit = 'cover';
-                elem.style.cursor = 'pointer';
-                elem.onerror = function() { this.style.display = 'none'; }; // Hide if broken
-                elem.onclick = () => window.open(elem.src, '_blank');
-                
-                wrapper.appendChild(elem);
-                imgContainer.appendChild(wrapper);
-            });
-        } else {
-            imgRow.style.display = 'none';
+        rows.sort((a,b) => {
+            let vA = a[sortIdx].toLowerCase(), vB = b[sortIdx].toLowerCase();
+            return recSortDirection === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
+        });
+
+        recFilteredRows = rows;
+        recCurrentPage = 1;
+        renderRecTable();
+    }
+
+    function syndicatFilterSortReps() {
+        const val = document.querySelector('.syndicat-rep-search-input').value.toLowerCase();
+        let rows = reponsesData.filter(d => d[5].toLowerCase().includes(val) || d[1].toLowerCase().includes(val) || d[2].toLowerCase().includes(val));
+        
+        let sortIdx = 3; // Date
+        if (repSortValue === 'user') sortIdx = 1;
+
+        rows.sort((a,b) => {
+            let vA = a[sortIdx].toLowerCase(), vB = b[sortIdx].toLowerCase();
+            return repSortDirection === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
+        });
+
+        repFilteredRows = rows;
+        repCurrentPage = 1;
+        renderRepTable();
+    }
+
+    function renderRecTable() {
+        const tbody = document.getElementById('syndicat-rec-table-body');
+        tbody.innerHTML = '';
+        const start = (recCurrentPage-1)*rowsPerPage;
+        const end = Math.min(start+rowsPerPage, recFilteredRows.length);
+        for(let i=start; i<end; i++) {
+            const data = recFilteredRows[i];
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${data[0]}</strong></td>
+                <td>${data[1]}</td>
+                <td><span class="glass-pill">${data[2]}</span></td>
+                <td>${data[3]}</td>
+                <td style="text-align: right;">
+                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewRec(${i})">
+                        <i class="bx bx-show"></i> Details
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
         }
+        renderRecPagination();
+    }
 
-		document.getElementById('btn-trigger-reclamation-edit').onclick = function() { openEditReclamationModal(r.id); };
+    function renderRepTable() {
+        const tbody = document.getElementById('syndicat-rep-table-body');
+        tbody.innerHTML = '';
+        const start = (repCurrentPage-1)*rowsPerPage;
+        const end = Math.min(start+rowsPerPage, repFilteredRows.length);
+        for(let i=start; i<end; i++) {
+            const data = repFilteredRows[i];
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${data[0]}</td>
+                <td>${data[1]}</td>
+                <td><strong>${data[2]}</strong></td>
+                <td>${data[3]}</td>
+                <td style="text-align: right;">
+                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewRep(${i})">
+                        <i class="bx bx-show"></i> Details
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        }
+        renderRepPagination();
+    }
 
-		var deleteForm = document.getElementById('view-reclamation-delete-form');
-		document.getElementById('view-reclamation-delete-token').value = '{{ csrf_token('delete_reclamation') }}';
-		var newDeleteForm = deleteForm.cloneNode(true);
-		deleteForm.parentNode.replaceChild(newDeleteForm, deleteForm);
+    function renderRecPagination() {
+        const total = Math.ceil(recFilteredRows.length / rowsPerPage);
+        const container = document.getElementById('syndicat-rec-table-pages');
+        container.innerHTML = '';
+        for(let i=1; i<=total; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'glass-pagination-btn' + (i === recCurrentPage ? ' active' : '');
+            btn.textContent = i;
+            btn.onclick = () => { recCurrentPage = i; renderRecTable(); };
+            container.appendChild(btn);
+        }
+    }
 
-		newDeleteForm.onsubmit = function(e) {
-			e.preventDefault();
-			openModal('reclamation-confirm-modal');
-			var confirmBtn = document.getElementById('confirm-reclamation-delete-btn');
-			var newConfirmBtn = confirmBtn.cloneNode(true);
-			confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-			newConfirmBtn.onclick = function() {
-				var originalText = newConfirmBtn.innerHTML;
-				newConfirmBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Processing...';
-				newConfirmBtn.disabled = true;
-				fetch('/admin/syndicat/reclamation/' + r.id + '/delete', {
-					method: 'POST',
-					body: new FormData(newDeleteForm)
-				}).then(function(response) {
-					if (response.redirected) {
-						window.location.href = response.url;
-					} else if (response.ok) {
-						window.location.reload();
-					} else {
-						alert('Failed to delete reclamation.');
-						newConfirmBtn.innerHTML = originalText;
-						newConfirmBtn.disabled = false;
-					}
-				}).catch(function(err) {
-					alert('An error occurred.');
-					newConfirmBtn.innerHTML = originalText;
-					newConfirmBtn.disabled = false;
-				});
-			};
-		};
+    function renderRepPagination() {
+        const total = Math.ceil(repFilteredRows.length / rowsPerPage);
+        const container = document.getElementById('syndicat-rep-table-pages');
+        container.innerHTML = '';
+        for(let i=1; i<=total; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'glass-pagination-btn' + (i === repCurrentPage ? ' active' : '');
+            btn.textContent = i;
+            btn.onclick = () => { repCurrentPage = i; renderRepTable(); };
+            container.appendChild(btn);
+        }
+    }
 
-		openModal('reclamation-view-modal');
-	}
-	window.viewReclamationDetails = viewReclamationDetails;
-
-	function openEditReclamationModal(id) {
-		closeModal('reclamation-view-modal');
-		var r = window.reclamationData.find(function(item) { return item.id == id; });
-		if (!r) return;
-
-		document.getElementById('edit-reclamation-title').value = r.title || '';
-		document.getElementById('edit-reclamation-description').value = r.description || '';
-		document.getElementById('edit-reclamation-status').value = r.status || 'en_attente';
+    window.viewRec = function(index) {
+        const data = recFilteredRows[index];
+        document.getElementById('view-rec-title').textContent = data[0];
+        document.getElementById('view-rec-user').textContent = data[1];
+        document.getElementById('view-rec-status').textContent = data[2];
+        document.getElementById('view-rec-date').textContent = data[3];
+        document.getElementById('view-rec-description').textContent = data[5];
         
-        // Reset file input
-        const fileInput = document.getElementById('edit-reclamation-images');
-        const fileCount = document.getElementById('edit-reclamation-file-count');
-        fileInput.value = '';
-        fileCount.textContent = 'No files selected';
+        document.getElementById('view-rec-delete-token').value = data[6];
+        document.getElementById('view-rec-delete-form').action = deleteRecUrlTemplate.replace('ID_PLACEHOLDER', data[4]);
         
-        fileInput.onchange = function() {
-            if(this.files && this.files.length > 0) {
-                fileCount.textContent = this.files.length + ' file(s) selected';
-                fileCount.style.color = '#00c6ff';
-            } else {
-                fileCount.textContent = 'No files selected';
-                fileCount.style.color = 'rgba(191,201,216,0.6)';
-            }
+        document.getElementById('view-rec-modify-btn').onclick = () => {
+            const form = document.getElementById('rec-edit-form');
+            form.action = editRecUrlTemplate.replace('ID_PLACEHOLDER', data[4]);
+            const titleInput = form.querySelector('[name*="titrereclamations"]');
+            if(titleInput) titleInput.value = data[0];
+            const descInput = form.querySelector('[name*="descreclamation"]');
+            if(descInput) descInput.value = data[5];
+            const statusInput = form.querySelector('[name*="statutreclamation"]');
+            if(statusInput) statusInput.value = data[2];
+            openModal('rec-edit-modal');
         };
+        openModal('rec-view-modal');
+    };
 
-		var form = document.getElementById('reclamation-edit-form');
-		form.onsubmit = function(e) {
-			e.preventDefault();
-			var formData = new FormData(form);
-			var btn = form.querySelector('button[type="submit"]');
-			var originalText = btn.innerHTML;
-			btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Updating...';
-			btn.disabled = true;
-			fetch('/api/syndicat/reclamation/update/' + r.id, { method: 'POST', body: formData })
-				.then(function(res) { return res.json(); })
-				.then(function(data) {
-					if (data.success) {
-						// Reload to reflect changes (especially images) and reset UI state
-						window.location.reload();
-						return; 
-					} else {
-						alert(data.message || 'Update failed.');
-					}
-					btn.innerHTML = originalText;
-					btn.disabled = false;
+    window.viewRep = function(index) {
+        const data = repFilteredRows[index];
+        document.getElementById('view-rep-message').textContent = data[5];
+        document.getElementById('view-rep-user').textContent = data[1];
+        document.getElementById('view-rep-rec').textContent = data[2];
+        document.getElementById('view-rep-date').textContent = data[3];
+        
+        document.getElementById('view-rep-delete-token').value = data[6];
+        document.getElementById('view-rep-delete-form').action = deleteRepUrlTemplate.replace('ID_PLACEHOLDER', data[4]);
+        
+        openModal('rep-view-modal');
+    };
 
-				})
-				.catch(function() {
-					alert('An error occurred.');
-					btn.innerHTML = originalText;
-					btn.disabled = false;
-				});
-		};
-		openModal('reclamation-edit-modal');
-	}
-	window.openEditReclamationModal = openEditReclamationModal;
+    document.addEventListener('DOMContentLoaded', () => {
+        const slider = document.getElementById('syndicat-switcher-slider');
+        const tabs = document.querySelectorAll('.premium-switcher-tab');
+        const pages = document.querySelectorAll('.syndicat-page-content');
+        tabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                slider.style.left = (index * (100 / tabs.length)) + '%';
+                slider.style.width = (100 / tabs.length) + '%';
+                const pageNum = tab.dataset.page;
+                pages.forEach(p => p.style.display = p.dataset.page === pageNum ? 'block' : 'none');
+                const activePage = document.querySelector(`.syndicat-page-content[data-page="${pageNum}"]`);
+                const activeSwitcher = activePage.querySelector('.glass-switcher');
+                if(activeSwitcher) switchGlassFace('main', activeSwitcher.id);
+            });
+        });
+        slider.style.width = (100 / tabs.length) + '%';
+        
+        renderRecTable(); 
+        renderRepTable();
 
-	function renderReclamationPagination() {
-		const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-		const pagesDiv = document.getElementById('reclamation-table-pages');
-		if (!pagesDiv) return;
-		pagesDiv.innerHTML = '';
+        updateRecSortDirIcon();
+        updateRepSortDirIcon();
 
-		for (let i = 1; i <= totalPages; i++) {
-			const btn = document.createElement('button');
-			btn.className = 'residence-table-page-btn' + (i === currentPage ? ' active' : '');
-			btn.textContent = i;
-			btn.onclick = function() { currentPage = i; renderReclamationTable(); };
-			pagesDiv.appendChild(btn);
-		}
+        switchGlassFace('main', 'syndicatRecGlassSwitcher');
 
-		const prevEl = document.getElementById('reclamation-table-prev');
-		const nextEl = document.getElementById('reclamation-table-next');
-		if (prevEl) prevEl.disabled = currentPage === 1;
-		if (nextEl) nextEl.disabled = currentPage === totalPages || totalPages === 0;
-	}
+        // Sort Direction Toggles
+        document.getElementById('syndicat-rec-sort-dir-pill').addEventListener('click', () => {
+            recSortDirection = recSortDirection === 'asc' ? 'desc' : 'asc';
+            updateRecSortDirIcon();
+            syndicatFilterSortRecs();
+        });
 
-	function filterAndSortReclamations() {
-		const searchInput = document.getElementById('reclamation-search-input');
-		const search = (searchInput ? searchInput.value : '').toLowerCase();
-		filteredData = window.reclamationData.filter(r =>
-			(r.title || '').toLowerCase().includes(search) ||
-			(r.description || '').toLowerCase().includes(search) ||
-			(r.user || '').toLowerCase().includes(search) ||
-			(r.status || '').toLowerCase().includes(search)
-		);
+        document.getElementById('syndicat-rep-sort-dir-pill').addEventListener('click', () => {
+            repSortDirection = repSortDirection === 'asc' ? 'desc' : 'asc';
+            updateRepSortDirIcon();
+            syndicatFilterSortReps();
+        });
 
-		filteredData.sort((a, b) => {
-			let valA = a[sortValue];
-			let valB = b[sortValue];
-			if (sortValue === 'date') {
-				valA = (a.date || '').toString();
-				valB = (b.date || '').toString();
-			} else {
-				valA = String(valA || '').toLowerCase();
-				valB = String(valB || '').toLowerCase();
-			}
-			const cmp = valA > valB ? 1 : (valA < valB ? -1 : 0);
-			return sortDirection === 'asc' ? cmp : -cmp;
-		});
+        // Search Inputs
+        document.querySelector('.syndicat-rec-search-input').addEventListener('input', () => {
+            syndicatFilterSortRecs();
+        });
 
-		currentPage = 1;
-		renderReclamationTable();
-	}
-
-	// Pill tab navigation (match Residence)
-	function switchPage(pageNumber) {
-		document.querySelectorAll('.pill-tab').forEach(function(tab) {
-			tab.classList.toggle('active', tab.dataset.page === String(pageNumber));
-		});
-		document.querySelectorAll('#syndicat-content .residence-page-content').forEach(function(content) {
-			content.style.display = content.dataset.page === String(pageNumber) ? 'block' : 'none';
-		});
-	}
-	document.querySelectorAll('.pill-tab').forEach(function(tab) {
-		tab.addEventListener('click', function() {
-			switchPage(parseInt(this.dataset.page, 10));
-		});
-	});
-
-	// Sort dropdown
-	const sortPill = document.getElementById('reclamation-sort-pill-custom');
-	const sortDropdown = document.getElementById('reclamation-sort-dropdown');
-	const sortSelected = document.getElementById('reclamation-sort-selected');
-	if (sortPill && sortDropdown) {
-		sortPill.addEventListener('click', function(e) {
-			e.stopPropagation();
-			sortDropdown.style.display = sortDropdown.style.display === 'flex' ? 'none' : 'flex';
-		});
-		document.querySelectorAll('#reclamation-sort-dropdown .residence-sort-option').forEach(function(opt) {
-			opt.addEventListener('click', function() {
-				sortValue = this.dataset.value;
-				sortSelected.textContent = this.textContent;
-				document.querySelectorAll('#reclamation-sort-dropdown .residence-sort-option').forEach(function(o) { o.classList.remove('active'); });
-				this.classList.add('active');
-				sortDropdown.style.display = 'none';
-				filterAndSortReclamations();
-			});
-		});
-		document.addEventListener('click', function(e) {
-			if (sortPill && !sortPill.contains(e.target)) sortDropdown.style.display = 'none';
-		});
-	}
-
-	// Sort direction icon & toggle
-	const sortDirBtn = document.getElementById('reclamation-sort-dir-pill');
-	const sortDirIcon = document.getElementById('reclamation-sort-dir-icon-svg');
-	function updateSortDirIcon() {
-		if (sortDirIcon) {
-			sortDirIcon.innerHTML = sortDirection === 'asc'
-				? '<i class="bx bx-sort-a-z" style="color:#00c6ff; font-size:1.7rem;"></i>'
-				: '<i class="bx bx-sort-z-a" style="color:#00c6ff; font-size:1.7rem;"></i>';
-		}
-	}
-	updateSortDirIcon();
-	if (sortDirBtn) {
-		sortDirBtn.addEventListener('click', function() {
-			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-			updateSortDirIcon();
-			filterAndSortReclamations();
-		});
-	}
-
-	// Search input
-	const searchInput = document.getElementById('reclamation-search-input');
-	if (searchInput) searchInput.addEventListener('input', filterAndSortReclamations);
-
-	// Pagination arrows
-	const prevBtn = document.getElementById('reclamation-table-prev');
-	const nextBtn = document.getElementById('reclamation-table-next');
-	if (prevBtn) prevBtn.addEventListener('click', function() {
-		if (currentPage > 1) { currentPage--; renderReclamationTable(); }
-	});
-	if (nextBtn) nextBtn.addEventListener('click', function() {
-		const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-		if (currentPage < totalPages) { currentPage++; renderReclamationTable(); }
-	});
-
-	// Initial render
-	filterAndSortReclamations();
-
-	/* ==================== RESPONSES SECTION (Page 2) ==================== */
-	// Response data from backend
-	window.reponseData = [
-		{% if reponses is defined %}
-		{% for rep in reponses %}
-		{
-			id: {{ rep.id }},
-			title: {{ rep.titrereponse|json_encode|raw }},
-			message: {{ rep.messagereponse|json_encode|raw }},
-			user: {{ (rep.user ? rep.user.emailUser : 'N/A')|json_encode|raw }},
-			reclamation: {{ (rep.reclamation ? rep.reclamation.titrereclamations : 'N/A')|json_encode|raw }},
-			date: "{{ rep.createdAt ? rep.createdAt|date('Y-m-d H:i') : '' }}",
-			images: {{ rep.imagereponse|json_encode|raw }}
-		}{% if not loop.last %},{% endif %}
-		{% endfor %}
-		{% endif %}
-	];
-
-	const repRowsPerPage = 10;
-	let repCurrentPage = 1;
-	let repSortValue = 'message';
-	let repSortDirection = 'asc';
-	let repFilteredData = [...window.reponseData];
-
-	function renderReponseTable() {
-		const tbody = document.getElementById('reponse-table-body');
-		if (!tbody) return;
-		tbody.innerHTML = '';
-		const start = (repCurrentPage - 1) * repRowsPerPage;
-		const end = start + repRowsPerPage;
-		const pageData = repFilteredData.slice(start, end);
-		pageData.forEach(function(r) {
-			const row = document.createElement('tr');
-			row.style.cursor = 'pointer';
-			row.innerHTML = `
-				<td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.message || '—'}</td>
-				<td>${r.user || '—'}</td>
-				<td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.reclamation || '—'}</td>
-				<td>${r.date || '—'}</td>
-				<td>
-					<button class="users-btn-modify" onclick="openViewReponseModal(${r.id})" style="padding: 0.5rem 1.25rem; font-size: 0.95rem; border-radius: 12px;">
-						<i class="bx bxs-file-find"></i> Results
-					</button>
-				</td>
-			`;
-			tbody.appendChild(row);
-		});
-		renderReponsePagination();
-	}
-
-	function renderReponsePagination() {
-		const pagesContainer = document.getElementById('reponse-table-pages');
-		if (!pagesContainer) return;
-		pagesContainer.innerHTML = '';
-		const totalPages = Math.ceil(repFilteredData.length / repRowsPerPage);
-		for (let i = 1; i <= totalPages; i++) {
-			const btn = document.createElement('button');
-			btn.className = 'residence-table-page-btn';
-			if (i === repCurrentPage) btn.classList.add('active');
-			btn.textContent = i;
-			btn.addEventListener('click', function() {
-				repCurrentPage = i;
-				renderReponseTable();
-			});
-			pagesContainer.appendChild(btn);
-		}
-	}
-
-	function filterAndSortReponses() {
-		const searchTerm = document.getElementById('reponse-search-input').value.toLowerCase();
-		repFilteredData = window.reponseData.filter(function(r) {
-			return (r.message && r.message.toLowerCase().includes(searchTerm)) ||
-				   (r.user && r.user.toLowerCase().includes(searchTerm)) ||
-				   (r.reclamation && r.reclamation.toLowerCase().includes(searchTerm));
-		});
-		repFilteredData.sort(function(a, b) {
-			let aVal = a[repSortValue] || '';
-			let bVal = b[repSortValue] || '';
-			if (typeof aVal === 'string') aVal = aVal.toLowerCase();
-			if (typeof bVal === 'string') bVal = bVal.toLowerCase();
-			if (aVal < bVal) return repSortDirection === 'asc' ? -1 : 1;
-			if (aVal > bVal) return repSortDirection === 'asc' ? 1 : -1;
-			return 0;
-		});
-		repCurrentPage = 1;
-		renderReponseTable();
-	}
-
-	// Sort dropdown
-	const repSortPill = document.getElementById('reponse-sort-pill-custom');
-	const repSortDropdown = document.getElementById('reponse-sort-dropdown');
-	const repSortSelected = document.getElementById('reponse-sort-selected');
-	if (repSortPill && repSortDropdown) {
-		repSortPill.addEventListener('click', function(e) {
-			e.stopPropagation();
-			repSortDropdown.style.display = repSortDropdown.style.display === 'flex' ? 'none' : 'flex';
-		});
-		document.querySelectorAll('#reponse-sort-dropdown .residence-sort-option').forEach(function(opt) {
-			opt.addEventListener('click', function() {
-				repSortValue = this.dataset.value;
-				repSortSelected.textContent = this.textContent;
-				document.querySelectorAll('#reponse-sort-dropdown .residence-sort-option').forEach(function(o) { o.classList.remove('active'); });
-				this.classList.add('active');
-				repSortDropdown.style.display = 'none';
-				filterAndSortReponses();
-			});
-		});
-		document.addEventListener('click', function(e) {
-			if (repSortPill && !repSortPill.contains(e.target)) repSortDropdown.style.display = 'none';
-		});
-	}
-
-	// Sort direction
-	const repSortDirBtn = document.getElementById('reponse-sort-dir-pill');
-	const repSortDirIcon = document.getElementById('reponse-sort-dir-icon-svg');
-	function updateRepSortDirIcon() {
-		if (repSortDirIcon) {
-			repSortDirIcon.innerHTML = repSortDirection === 'asc'
-				? '<i class="bx bx-sort-a-z" style="color:#00c6ff; font-size:1.7rem;"></i>'
-				: '<i class="bx bx-sort-z-a" style="color:#00c6ff; font-size:1.7rem;"></i>';
-		}
-	}
-	updateRepSortDirIcon();
-	if (repSortDirBtn) {
-		repSortDirBtn.addEventListener('click', function() {
-			repSortDirection = repSortDirection === 'asc' ? 'desc' : 'asc';
-			updateRepSortDirIcon();
-			filterAndSortReponses();
-		});
-	}
-
-	// Search input
-	const repSearchInput = document.getElementById('reponse-search-input');
-	if (repSearchInput) repSearchInput.addEventListener('input', filterAndSortReponses);
-
-	// Pagination arrows
-	const repPrevBtn = document.getElementById('reponse-table-prev');
-	const repNextBtn = document.getElementById('reponse-table-next');
-	if (repPrevBtn) repPrevBtn.addEventListener('click', function() {
-		if (repCurrentPage > 1) { repCurrentPage--; renderReponseTable(); }
-	});
-	if (repNextBtn) repNextBtn.addEventListener('click', function() {
-		const totalPages = Math.ceil(repFilteredData.length / repRowsPerPage);
-		if (repCurrentPage < totalPages) { repCurrentPage++; renderReponseTable(); }
-	});
-
-	// Initial render for responses
-	filterAndSortReponses();
-
-	// Open View Modal
-	window.openViewReponseModal = function(id) {
-		const rep = window.reponseData.find(r => r.id === id);
-		if (!rep) return;
-		document.getElementById('view-reponse-title').textContent = rep.title || '—';
-		document.getElementById('view-reponse-message').textContent = rep.message || '—';
-		document.getElementById('view-reponse-user').textContent = rep.user || '—';
-		document.getElementById('view-reponse-reclamation').textContent = rep.reclamation || '—';
-		document.getElementById('view-reponse-date').textContent = rep.date || '—';
-		
-		// Handle images
-		const imagesRow = document.getElementById('view-reponse-images-row');
-		const imagesContainer = document.getElementById('view-reponse-images-container');
-		imagesContainer.innerHTML = '';
-		
-		if (rep.images) {
-			let imgArray = [];
-			try {
-				imgArray = typeof rep.images === 'string' ? JSON.parse(rep.images) : rep.images;
-			} catch (e) {
-				console.error('Failed to parse images:', e);
-			}
-			
-		if (Array.isArray(imgArray) && imgArray.length > 0) {
-				imgArray.forEach(function(img) {
-					const wrapper = document.createElement('div');
-					wrapper.style.width = '100px';
-					wrapper.style.height = '100px';
-					wrapper.style.borderRadius = '12px';
-					wrapper.style.overflow = 'hidden';
-					wrapper.style.border = '1px solid rgba(255,255,255,0.1)';
-
-					const elem = document.createElement('img');
-					elem.src = '/reponse_images/' + img;
-					elem.style.width = '100%';
-					elem.style.height = '100%';
-					elem.style.objectFit = 'cover';
-					elem.style.cursor = 'pointer';
-					elem.onerror = function() { this.style.display = 'none'; };
-					elem.onclick = function() { window.open(this.src, '_blank'); };
-					
-					wrapper.appendChild(elem);
-					imagesContainer.appendChild(wrapper);
-				});
-				imagesRow.style.display = 'flex';
-			} else {
-				imagesRow.style.display = 'none';
-			}
-		} else {
-			imagesRow.style.display = 'none';
-		}
-		
-		// Store current ID for Edit/Delete buttons
-		window.currentReponseId = id;
-		
-		// Show modal
-		document.getElementById('reponse-view-modal').style.display = 'flex';
-	};
-
-	// Edit button from View modal
-	document.getElementById('btn-trigger-reponse-edit').addEventListener('click', function() {
-		closeModal('reponse-view-modal');
-		openEditReponseModal(window.currentReponseId);
-	});
-
-	// Delete button from View modal
-	document.getElementById('btn-trigger-reponse-delete').addEventListener('click', function() {
-		closeModal('reponse-view-modal');
-		openDeleteReponseModal(window.currentReponseId);
-	});
-
-	// Open Edit Modal
-	function openEditReponseModal(id) {
-		const rep = window.reponseData.find(r => r.id === id);
-		if (!rep) return;
-		document.getElementById('edit-reponse-title').value = rep.title || '';
-		document.getElementById('edit-reponse-message').value = rep.message || '';
-		
-		// Reset file input
-		const fileInput = document.getElementById('edit-reponse-images');
-		if (fileInput) fileInput.value = '';
-		const fileCount = document.getElementById('edit-reponse-file-count');
-		if (fileCount) fileCount.textContent = 'No files selected';
-		
-		window.currentReponseId = id;
-		document.getElementById('reponse-edit-modal').style.display = 'flex';
-	}
-	
-	// File input change handler for Reponse
-	const repFileInput = document.getElementById('edit-reponse-images');
-	if (repFileInput) {
-		repFileInput.addEventListener('change', function() {
-			const count = this.files ? this.files.length : 0;
-			const label = document.getElementById('edit-reponse-file-count');
-			if (label) label.textContent = count > 0 ? count + ' file(s) selected' : 'No files selected';
-		});
-	}
-
-	// Handle Edit Form Submit
-	const repEditForm = document.getElementById('reponse-edit-form');
-	if (repEditForm) {
-		repEditForm.onsubmit = function(e) {
-			e.preventDefault();
-			const btn = this.querySelector('.users-btn-modify');
-			const originalText = btn.innerHTML;
-			btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Updating...';
-			btn.disabled = true;
-
-			const formData = new FormData(this);
-			
-			fetch('/api/syndicat/reponse/update/' + window.currentReponseId, {
-				method: 'POST',
-				body: formData
-			})
-			.then(res => res.json())
-			.then(data => {
-				if (data.success) {
-					window.location.reload(); 
-				} else {
-					alert(data.message || 'Update failed.');
-					btn.innerHTML = originalText;
-					btn.disabled = false;
-				}
-			})
-			.catch(err => {
-				console.error('Update error:', err);
-				alert('Network error occurred.');
-				btn.innerHTML = originalText;
-				btn.disabled = false;
-			});
-		};
-	}
-
-	// Open Delete Confirmation Modal
-	function openDeleteReponseModal(id) {
-		window.currentReponseId = id;
-		document.getElementById('reponse-confirm-modal').style.display = 'flex';
-	}
-
-	// Confirm Delete button
-	document.getElementById('confirm-reponse-delete-btn').addEventListener('click', function() {
-		const id = window.currentReponseId;
-		if (!id) return;
-		
-		const btn = this;
-		const originalText = btn.innerHTML;
-		btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Deleting...';
-		btn.disabled = true;
-
-		fetch('/admin/syndicat/reponse/' + id + '/delete', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ _token: '{{ csrf_token('delete_reponse') }}' }) 
-		})
-				.then(res => res.json())
-				.then(data => {
-					if (data.success) {
-						window.location.reload(); 
-					} else {
-						alert(data.message || 'Delete failed.');
-						btn.innerHTML = originalText;
-						btn.disabled = false;
-					}
-				})
-				.catch(err => {
-					console.error('Delete error:', err);
-					alert('Network error occurred.');
-					btn.innerHTML = originalText;
-					btn.disabled = false;
-				});
-			});
-});
+        document.querySelector('.syndicat-rep-search-input').addEventListener('input', () => {
+            syndicatFilterSortReps();
+        });
+    });
 </script>
 {% endblock %}

@@ -2,6 +2,301 @@
 
 {% block title %}Users - Liquid Glass Admin{% endblock %}
 
+{% block stylesheets %}
+    <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
+    <style>
+        .glass-switcher {
+            position: relative;
+            width: 100%;
+            transition: height 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .glass-switcher-face {
+            width: 100%;
+        }
+
+        /* Hide Scrollbar Global */
+        /* Hide Scrollbar Global */
+        html, body, .admin-shell, .layout-wrapper, .layout-page, .content-wrapper, .container-xxl {
+            scrollbar-width: none !important; /* Firefox */
+            -ms-overflow-style: none !important; /* IE 10+ */
+            overflow-x: hidden !important; /* Force no horizontal scroll */
+        }
+        html::-webkit-scrollbar, body::-webkit-scrollbar,
+        .admin-shell::-webkit-scrollbar, .layout-wrapper::-webkit-scrollbar, 
+        .layout-page::-webkit-scrollbar, .content-wrapper::-webkit-scrollbar, 
+        .container-xxl::-webkit-scrollbar {
+            display: none !important; /* Chrome/Safari/Webkit */
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        /* Ensure box-sizing prevents padding overflow */
+        .users-edit-modal, .users-edit-modal * {
+            box-sizing: border-box !important;
+        }
+
+        /* Premium Modal Face-Lift - Obsidian Edition */
+        /* Premium Modal Face-Lift - Obsidian Edition */
+        .users-edit-modal {
+            display: none;
+            position: relative !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 100%;
+            z-index: 10;
+            padding: 0 !important; /* REMOVED PADDING to flush with container */
+            align-items: flex-start; 
+            justify-content: flex-start; /* Align left/top */
+            background: transparent; 
+        }
+        .users-edit-modal::-webkit-scrollbar { display: none; /* Chrome/Safari/Webkit */ }
+        
+        .users-edit-modal.active {
+            display: flex;
+            animation: modalFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(40px) scale(0.97); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        .users-edit-modal-card {
+            background: transparent !important; /* REMOVED BACKGROUND */
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border: none !important; 
+            box-shadow: none !important; 
+            width: 100% !important;
+            max-width: 100% !important; 
+            margin: 0 !important; 
+            
+            /* Vertical Constraints */
+            min-height: auto !important; /* Let it shrink if needed */
+            display: flex !important;
+            flex-direction: column !important;
+
+            border-radius: 0 !important; 
+            overflow: visible; 
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .users-edit-modal-header {
+            flex-shrink: 0; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            padding: 1.5rem 2rem !important; /* REDUCED PADDING */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: transparent; /* Remove gradient */
+        }
+        .users-edit-modal-header h3 {
+            font-size: 2rem !important;
+            font-weight: 900 !important;
+            letter-spacing: -0.04em !important;
+            margin: 0 !important;
+            color: #fff !important;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .users-edit-modal-subtitle {
+            font-size: 1rem !important;
+            color: rgba(255, 255, 255, 0.45) !important;
+            margin-top: 0.5rem !important;
+            font-weight: 500;
+        }
+        .users-edit-modal-close {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 50% !important;
+            color: rgba(255, 255, 255, 0.6) !important;
+            font-size: 1.6rem !important;
+            display: flex !important;
+            align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+        .users-edit-modal-close:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            transform: rotate(180deg) scale(1.1);
+            color: #fff !important;
+        }
+        .users-edit-modal-body {
+            padding: 2rem !important; /* REDUCED PADDING */
+            overflow-y: visible !important; /* Allow natural height */
+            flex-grow: 1; 
+            
+            /* Hide scrollbar completely */
+            scrollbar-width: none; 
+            -ms-overflow-style: none; 
+        }
+        .users-edit-modal-body::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Webkit */
+        }
+
+        /* Obsidian Form Styling */
+        .glass-form-group {
+            margin-bottom: 1.5rem; /* REDUCED MARGIN */
+        }
+        .glass-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.3) !important;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            transition: all 0.3s ease;
+        }
+        .glass-form-group:focus-within .glass-label { color: rgba(255, 255, 255, 0.8) !important; transform: translateX(5px); }
+        .glass-input, .form-control.bg-dark {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            border-radius: 20px !important;
+            padding: 1.2rem 1.6rem !important;
+            color: #fff !important;
+            font-size: 1.1rem !important;
+            font-weight: 500;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5) !important;
+        }
+        .glass-input:focus, .form-control.bg-dark:focus {
+            background: rgba(0, 0, 0, 0.7) !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 20px 40px rgba(0,0,0,0.4) !important;
+            outline: none !important;
+            transform: scale(1.01) translateY(-2px);
+        }
+
+        /* Obsidian View Details */
+        .glass-view-row {
+            display: flex;
+            align-items: flex-start; /* ALIGNED TO TOP FOR LONG TEXT */
+            padding: 1.8rem 2.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 24px;
+            margin-bottom: 1.5rem;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .glass-view-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(12px) scale(1.01);
+            box-shadow: -20px 0 40px rgba(0,0,0,0.3);
+        }
+        .glass-view-label {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.25) !important;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            width: 180px;
+            flex-shrink: 0;
+        }
+        .glass-view-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            flex: 1;
+            word-break: break-all !important; /* PREVENTS OVERFLOW ON LONG STRINGS */
+            white-space: pre-wrap !important; /* PRESERVES LINE BREAKS */
+            line-height: 1.6;
+        }
+
+        /* Obsidian Buttons */
+        .users-btn-modify {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%) !important;
+            color: #fff !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            padding: 1rem 2.5rem !important;
+            border-radius: 100px !important;
+            font-weight: 800 !important;
+            font-size: 1.1rem !important;
+            letter-spacing: 0.04em !important;
+            display: inline-flex !important; align-items: center !important; gap: 1rem !important;
+            cursor: pointer !important; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1) !important;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+        }
+        .users-btn-modify:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            transform: translateY(-4px) scale(1.04);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.1) !important;
+        }
+        .users-btn-delete {
+            background: rgba(255, 59, 48, 0.05) !important;
+            color: #ff3b30 !important;
+            border: 1px solid rgba(255, 59, 48, 0.15) !important;
+            padding: 1rem 2.5rem !important;
+            border-radius: 100px !important;
+            font-weight: 800 !important;
+            font-size: 1.1rem !important;
+            cursor: pointer !important;
+            transition: all 0.4s ease !important;
+            display: inline-flex !important; align-items: center !important; gap: 1rem !important;
+            backdrop-filter: blur(5px);
+        }
+        .users-btn-delete:hover {
+            background: rgba(255, 59, 48, 0.15) !important;
+            border-color: #ff3b30 !important;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 59, 48, 0.2) !important;
+        }
+        .users-btn-cancel, .users-btn-discard {
+            background: rgba(255, 255, 255, 0.02) !important;
+            color: rgba(255, 255, 255, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            padding: 1rem 2.5rem !important;
+            border-radius: 100px !important;
+            font-weight: 700 !important;
+            font-size: 1rem !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+        }
+        .users-btn-cancel:hover { background: rgba(255, 255, 255, 0.08) !important; color: #fff !important; }
+
+        /* Badge Styles Cleanup */
+        .badge-premium-admin { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+
+        /* Profile Avatar Styles */
+        .profile-avatar-container {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        .profile-avatar-container:hover {
+            transform: scale(1.1);
+            border-color: #00c6ff;
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.3);
+        }
+        .profile-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+    </style>
+{% endblock %}
+
 {% block content %}
 {% include 'admin/_dashboard_header.html.twig' with { 'title': 'Users' } %}
 {% for label, messages in app.flashes %}
@@ -10,947 +305,366 @@
     {% endfor %}
 {% endfor %}
 <div class="users-pagination-wrapper" style="margin-top: 2rem; display: flex; justify-content: center;">
-    <div class="users-pagination-pills pills-animated">
-        <button class="pill-tab active" data-page="1">Users</button>
-        <button class="pill-tab" data-page="2">Profile</button>
-        <button class="pill-tab" data-page="3">Onboarding</button>
+    <div class="premium-switcher-container">
+        <div class="premium-switcher-pill">
+            <div class="premium-switcher-slider" id="switcher-slider"></div>
+            <button class="premium-switcher-tab active" data-page="1">Users</button>
+            <button class="premium-switcher-tab" data-page="2">Profile</button>
+            <button class="premium-switcher-tab" data-page="3">Onboarding</button>
+        </div>
     </div>
 </div>
+
+<style>
+    .premium-switcher-container {
+        padding: 4px;
+        background: rgba(10, 10, 10, 0.45);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 100px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        position: relative;
+        z-index: 10;
+        min-width: 400px;
+    }
+
+    .premium-switcher-pill {
+        display: flex;
+        position: relative;
+        width: 100%;
+        height: 44px; /* Fixed height for consistent centering */
+    }
+
+    .premium-switcher-slider {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background: var(--accent-gradient, linear-gradient(90deg, #00c6ff 0%, #0072ff 100%));
+        border-radius: 100px;
+        box-shadow: 0 4px 20px rgba(0, 114, 255, 0.4);
+        transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .premium-switcher-tab {
+        flex: 1;
+        position: relative;
+        z-index: 2;
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.55);
+        font-weight: 700;
+        font-size: 0.95rem;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        outline: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 1rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .premium-switcher-tab.active {
+        color: #fff;
+        text-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+
+    .premium-switcher-tab:hover:not(.active) {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 100px;
+    }
+</style>
 <div id="users-content" class="users-content" style="margin-top: 1.5rem;">
         <div class="users-page-content" data-page="1">
-            <div class="liquid-glass-table-container">
-                <h3 style="margin-bottom:1.5rem;">Users</h3>
-                <div class="users-table-toolbar" style="display: flex; align-items: center; margin-bottom: 1.2rem; gap: 1.2rem; flex-wrap: wrap; width: 100%; justify-content: space-between;">
-                    <div style="display: flex; align-items: center;">
-                        <button type="button" class="users-btn-add-db" id="users-btn-add-user" title="Add User"><i class="bx bx-plus"></i> Add User</button>
-                    </div>
-                    <div style="display: flex; gap: 0.7rem; align-items: center;">
-                        <button class="users-sort-dir-pill" id="users-sort-dir-pill" title="Toggle Sort Direction" aria-label="Toggle Sort Direction">
-                            <span id="users-sort-dir-icon-svg"></span>
-                        </button>
-                        <div class="users-sort-pill" id="users-sort-pill-custom" tabindex="0">
-                            <span class="users-sort-selected" id="users-sort-selected">Sort by Name</span>
-                            <span class="users-sort-arrow"></span>
-                            <div class="users-sort-dropdown" id="users-sort-dropdown" style="display:none;">
-                                <div class="users-sort-option" data-value="name">Sort by Name</div>
-                                <div class="users-sort-option" data-value="email">Sort by Email</div>
-                                <div class="users-sort-option" data-value="role">Sort by Role</div>
-                                <div class="users-sort-option" data-value="status">Sort by Status</div>
-                            </div>
-                        </div>
-                        <div class="users-search-pill">
-                            <input type="text" class="users-search-input" placeholder="Search users..." title="Search users..." />
-                            <i class="bx bx-search users-search-icon"></i>
-                        </div>
-                    </div>
-                </div>
-                <style>
-                /* === RESIDENCE-STYLE MODAL & UI COMPONENTS === */
-                /* Global Modal Reset & Box Sizing */
-                .users-edit-modal *, .users-edit-modal *::before, .users-edit-modal *::after {
-                    box-sizing: border-box !important;
-                }
-
-                /* Modal Styles */
-                .users-edit-modal { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 2rem; }
-                .users-edit-modal-backdrop { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); cursor: pointer; }
-                .users-edit-modal-card { position: relative; background: linear-gradient(165deg, rgba(32, 38, 52, 0.98) 0%, rgba(20, 24, 32, 0.98) 100%); border-radius: 24px; box-shadow: 0 25px 80px rgba(0,0,0,0.7); max-width: 800px; width: 100%; border: 1px solid rgba(255,255,255,0.12); overflow: visible; max-height: 90vh; display: flex; flex-direction: column; }
-                .users-edit-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.75rem 2.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
-                .users-edit-modal-header h3 { margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
-                .users-edit-modal-subtitle { margin: 0.5rem 0 0 0; font-size: 0.9rem; color: rgba(191,201,216,0.8); font-weight: 400; }
-                .users-edit-modal-close { background: rgba(255,255,255,0.08); border: none; color: #bfc9d8; width: 2.4rem; height: 2.4rem; border-radius: 50%; font-size: 1.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.25s ease; }
-                .users-edit-modal-close:hover { background: rgba(255,255,255,0.15); color: #fff; transform: rotate(90deg); }
-                .users-edit-modal-body { padding: 2.25rem 2.5rem; display: flex; flex-direction: column; align-items: stretch; overflow-y: auto; scrollbar-width: none; overflow-x: visible; }
-                .users-edit-modal-body::-webkit-scrollbar { display: none; }
-
-                /* Modal Actions Grid */
-                .users-edit-modal-actions { display: flex; gap: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 1rem; align-items: center; }
-                .users-edit-modal-actions-spacer { flex: 1; }
-
-                /* Custom Form Groups & Inputs (Residence-style) */
-                .residence-form-group { margin-bottom: 1.75rem; width: 100%; display: flex; flex-direction: column; }
-                .residence-edit-label { display: block; margin-bottom: 0.75rem; color: #bfc9d8; font-weight: 600; font-size: 0.95rem; letter-spacing: 0.02em; }
-                .residence-edit-input { width: 100%; border: 1px solid rgba(255, 255, 255, 0.12); padding: 0.95rem 1.25rem; border-radius: 16px; background: rgba(0, 0, 0, 0.3); color: #fff; font-size: 1rem; outline: none; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); border-left: 4px solid transparent; }
-                .residence-edit-input:focus { border-color: rgba(0, 198, 255, 0.5); border-left-color: #00c6ff; background: rgba(0, 0, 0, 0.45); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-                
-                /* Apply Residence input styling to modal inputs */
-                .users-edit-modal-body input[type="text"],
-                .users-edit-modal-body input[type="email"],
-                .users-edit-modal-body input[type="password"],
-                .users-edit-modal-body input[type="number"],
-                .users-edit-modal-body textarea,
-                .users-edit-modal-body select {
-                    width: 100%;
-                    border: 1px solid rgba(255, 255, 255, 0.12);
-                    padding: 0.95rem 1.25rem;
-                    border-radius: 16px;
-                    background: rgba(0, 0, 0, 0.3);
-                    color: #fff;
-                    font-size: 1rem;
-                    outline: none;
-                    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-                    border-left: 4px solid transparent;
-                }
-                .users-edit-modal-body input[type="text"]:focus,
-                .users-edit-modal-body input[type="email"]:focus,
-                .users-edit-modal-body input[type="password"]:focus,
-                .users-edit-modal-body input[type="number"]:focus,
-                .users-edit-modal-body textarea:focus,
-                .users-edit-modal-body select:focus {
-                    border-color: rgba(0, 198, 255, 0.5);
-                    border-left-color: #00c6ff;
-                    background: rgba(0, 0, 0, 0.45);
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-                }
-                .users-edit-modal-body label {
-                    display: block;
-                    margin-bottom: 0.75rem;
-                    color: #bfc9d8;
-                    font-weight: 600;
-                    font-size: 0.95rem;
-                    letter-spacing: 0.02em;
-                }
-
-                [data-theme="light"] .residence-edit-input { background: #f0f4f8; border-color: #dce2e8; color: #1c202a; }
-                [data-theme="light"] .residence-edit-input:focus { background: #fff; border-color: #0072ff; border-left-color: #00c6ff; }
-                [data-theme="light"] .residence-edit-label { color: #4a5568; }
-                [data-theme="light"] .users-edit-modal-body input[type="text"],
-                [data-theme="light"] .users-edit-modal-body input[type="email"],
-                [data-theme="light"] .users-edit-modal-body input[type="password"],
-                [data-theme="light"] .users-edit-modal-body input[type="number"],
-                [data-theme="light"] .users-edit-modal-body textarea,
-                [data-theme="light"] .users-edit-modal-body select {
-                    background: #f0f4f8;
-                    border-color: #dce2e8;
-                    color: #1c202a;
-                }
-                [data-theme="light"] .users-edit-modal-body input:focus,
-                [data-theme="light"] .users-edit-modal-body textarea:focus,
-                [data-theme="light"] .users-edit-modal-body select:focus {
-                    background: #fff;
-                    border-color: #0072ff;
-                    border-left-color: #00c6ff;
-                }
-                [data-theme="light"] .users-edit-modal-body label {
-                    color: #4a5568;
-                }
-
-                /* Custom Dropdown UI Styles */
-                .custom-glass-dropdown {
-                    position: relative;
-                    width: 100%;
-                    user-select: none;
-                }
-                .custom-glass-dropdown-trigger {
-                    width: 100%;
-                    background: rgba(0, 0, 0, 0.3);
-                    border: 1px solid rgba(255, 255, 255, 0.12);
-                    border-radius: 16px;
-                    padding: 0 1.25rem;
-                    color: #fff;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    cursor: pointer;
-                    transition: all 0.25s ease;
-                    font-size: 1rem;
-                    height: 56px;
-                    border-left: 4px solid transparent;
-                }
-                .custom-glass-dropdown-trigger:hover {
-                    border-color: rgba(0, 198, 255, 0.45);
-                    background: rgba(0, 0, 0, 0.4);
-                }
-                .custom-glass-dropdown.open .custom-glass-dropdown-trigger {
-                    border-color: #0072ff;
-                    border-left-color: #00c6ff;
-                    box-shadow: 0 10px 30px rgba(0, 114, 255, 0.15);
-                }
-                .custom-glass-dropdown-arrow {
-                    font-size: 1.4rem;
-                    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                    color: #00c6ff;
-                }
-                .custom-glass-dropdown.open .custom-glass-dropdown-arrow {
-                    transform: rotate(180deg);
-                }
-                .custom-glass-dropdown-menu {
-                    position: absolute;
-                    top: 115%;
-                    left: 0;
-                    width: 100%;
-                    background: rgba(26, 30, 40, 0.98);
-                    backdrop-filter: blur(35px) saturate(210%);
-                    border: 1px solid rgba(255, 255, 255, 0.18);
-                    border-radius: 16px;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-                    z-index: 1000;
-                    display: none;
-                    flex-direction: column;
-                    padding: 0.75rem;
-                    max-height: 250px;
-                    overflow-y: auto;
-                    scrollbar-width: thin;
-                    animation: dropdown-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
-                }
-                @keyframes dropdown-pop {
-                    0% { opacity: 0; transform: translateY(-10px) scale(0.95); }
-                    100% { opacity: 1; transform: translateY(0) scale(1); }
-                }
-                .custom-glass-dropdown-menu::-webkit-scrollbar { width: 5px; }
-                .custom-glass-dropdown-menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
-
-                .custom-glass-dropdown-option {
-                    padding: 0.9rem 1.25rem;
-                    border-radius: 12px;
-                    color: rgba(191, 201, 216, 0.9);
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    font-size: 1rem;
-                    margin-bottom: 4px;
-                }
-                .custom-glass-dropdown-option:hover {
-                    background: rgba(255, 255, 255, 0.12);
-                    color: #fff;
-                    transform: scale(1.02);
-                    padding-left: 1.5rem;
-                }
-                .custom-glass-dropdown-option.selected {
-                    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-                    color: #fff;
-                    font-weight: 700;
-                    box-shadow: 0 4px 15px rgba(0, 114, 255, 0.3);
-                }
-
-                /* Essential Fix for Overlapping boxes */
-                .hidden-select {
-                    display: none !important;
-                    visibility: hidden !important;
-                    height: 0 !important;
-                    width: 0 !important;
-                    position: absolute !important;
-                    opacity: 0 !important;
-                    overflow: hidden !important;
-                }
-
-                /* Responsive Grid System */
-                .modal-grid-3 {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 2rem;
-                    width: 100%;
-                    margin-bottom: 1.75rem;
-                }
-
-                /* Custom File Input UI */
-                .custom-file-wrapper { position: relative; width: 100%; }
-                .custom-file-trigger { 
-                    width: 100%; 
-                    background: rgba(0, 0, 0, 0.3); 
-                    border: 1px dashed rgba(255, 255, 255, 0.2); 
-                    border-radius: 16px; 
-                    padding: 1rem 1.5rem; 
-                    display: flex; 
-                    align-items: center; 
-                    gap: 1rem; 
-                    cursor: pointer; 
-                    transition: all 0.3s ease; 
-                }
-                .custom-file-trigger:hover { background: rgba(0, 198, 255, 0.05); border-color: #00c6ff; }
-                .custom-file-icon { font-size: 1.8rem; color: #00c6ff; }
-                .custom-file-text { flex: 1; color: rgba(191, 201, 216, 0.8); font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-                .custom-file-btn { background: rgba(255, 255, 255, 0.1); color: #fff; padding: 0.5rem 1rem; border-radius: 10px; font-weight: 600; font-size: 0.85rem; }
-
-                /* Legacy Compatibility Row */
-                .forum-view-row { display: flex; gap: 1.5rem; padding: 1.25rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
-                .forum-view-label { min-width: 120px; font-size: 0.9rem; font-weight: 700; color: rgba(191,201,216,0.7); text-transform: uppercase; letter-spacing: 0.08em; }
-                .forum-view-value { flex: 1; font-size: 1.05rem; color: #e3e8f7; line-height: 1.6; }
-
-                /* General Buttons Enhancements */
-                .users-btn-cancel, .users-btn-modify, .users-btn-delete { 
-                    border: none; border-radius: 14px; padding: 0.9rem 1.75rem; 
-                    font-size: 1.05rem; font-weight: 700; cursor: pointer; 
-                    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-                    display: inline-flex; align-items: center; gap: 0.75rem; 
-                }
-                .users-btn-cancel { background: rgba(255, 255, 255, 0.08); color: #bfc9d8; }
-                .users-btn-cancel:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: translateY(-2px); }
-                .users-btn-modify { background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); color: #fff; box-shadow: 0 10px 25px rgba(0, 114, 255, 0.3); }
-                .users-btn-modify:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0, 114, 255, 0.45); }
-                .users-btn-delete { background: linear-gradient(135deg, #ff3b30 0%, #ff2d92 100%); color: #fff; box-shadow: 0 10px 25px rgba(255, 45, 146, 0.25); }
-                .users-btn-delete:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(255, 45, 146, 0.4); }
-
-                [data-theme="light"] .custom-glass-dropdown-trigger { background: #f0f4f8; border-color: #dce2e8; color: #1c202a; }
-                [data-theme="light"] .custom-glass-dropdown-menu { background: #fff; border-color: #dce2e8; }
-                [data-theme="light"] .custom-file-trigger { background: #f0f4f8; border-color: #dce2e8; }
-                /* === END RESIDENCE-STYLE COMPONENTS === */
-
-                /* === LIQUID GLASS TABLE & PAGINATION (Added for Consistency) === */
-                .liquid-glass-table-container { background: rgba(30, 34, 44, 0.7); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); backdrop-filter: blur(18px); padding: 2.5rem 3rem 2rem 3rem; border: 1.5px solid rgba(255,255,255,0.08); position: relative; }
-                .liquid-glass-table-scroll { overflow-x: auto; margin-top: 1.75rem; }
-                .liquid-glass-table { width: 100%; min-width: 1000px; border-collapse: separate; border-spacing: 0; background: rgba(255,255,255,0.04); border-radius: 20px; overflow: hidden; color:#e3e8f7; border: 1px solid rgba(255,255,255,0.06); }
-                .liquid-glass-table th { background: rgba(255,255,255,0.12); padding: 1.4rem; font-weight: 800; color:#fff; text-align: center; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; border-top: none; }
-                .liquid-glass-table td { padding: 1.4rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: middle; }
-                .liquid-glass-table tr:last-child td { border-bottom: none; }
-                
-                .table-pagination-bar { display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-top: 3rem; }
-                .table-arrow { width: 48px; height: 48px; border-radius: 50%; border: none; background: rgba(255,255,255,0.07); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 1.8rem; border: 1px solid rgba(255,255,255,0.1); }
-                .table-arrow:hover:not(:disabled) { background: #0072ff; transform: scale(1.1); box-shadow: 0 0 20px rgba(0, 114, 255, 0.5); }
-                .table-arrow:disabled { opacity: 0.2; cursor: not-allowed; }
-                .table-page-btn { padding: 0.6rem 1.4rem; border-radius: 999px; border: none; background: transparent; color: #bfc9d8; cursor: pointer; transition: all 0.25s; font-weight: 700; font-size: 1rem; }
-                .table-page-btn.active { background: #0072ff; color: #fff; box-shadow: 0 6px 15px rgba(0, 114, 255, 0.4); }
-
-                /* Users Action Buttons (Ensure they match) */
-                .users-btn-add-db { background: linear-gradient(135deg, #00e676 0%, #00bfae 100%); color:#fff; border:none; border-radius:999px; padding:0.85rem 2rem; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:0.75rem; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 8px 20px rgba(0, 230, 118, 0.25); height: fit-content; text-decoration: none; }
-                .users-btn-add-db:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 30px rgba(0, 230, 118, 0.35); color: #fff; }
-
-                .users-btn-view-details { background: linear-gradient(135deg, #00e676 0%, #00bfae 100%); color:#fff; border:none; border-radius:999px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 15px rgba(0, 230, 118, 0.25); text-decoration: none; }
-                .users-btn-view-details:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 230, 118, 0.35); color: #fff; }
-
-                /* Light theme improvements */
-                [data-theme="light"] .liquid-glass-table-container {
-                    background: rgba(255,255,255,0.85);
-                    border: 1.5px solid #e3e8f7;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-                }
-                [data-theme="light"] .table-pagination-bar {
-                    background: transparent;
-                }
-                [data-theme="light"] .table-arrow {
-                    background: #fff;
-                    color: #0072ff;
-                    border: 1px solid #e3e8f7;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                }
-                [data-theme="light"] .table-arrow:hover {
-                    box-shadow: 0 4px 12px rgba(0,114,255,0.25);
-                }
-                [data-theme="light"] .table-page-btn {
-                    background: transparent;
-                    color: #5c6370;
-                    border: none;
-                }
-                [data-theme="light"] .table-page-btn:hover {
-                    background: rgba(0,0,0,0.05);
-                    color: #23272f;
-                }
-                [data-theme="light"] .table-page-btn.active {
-                    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-                    color: #fff;
-                    box-shadow: 0 4px 16px rgba(0,114,255,0.3);
-                }
-                [data-theme="light"] .liquid-glass-table {
-                    background: rgba(255,255,255,0.98);
-                    color: #23272f;
-                    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-                }
-                [data-theme="light"] .liquid-glass-table th {
-                    background: #f5f7fa;
-                    color: #23272f;
-                }
-                [data-theme="light"] .liquid-glass-table td {
-                    background: transparent;
-                    color: #23272f;
-                }
-                [data-theme="light"] .table-pagination-bar {
-                    background: transparent;
-                }
-                [data-theme="light"] .users-btn-modify {
-                    background: var(--accent-gradient, linear-gradient(90deg, #6c5ce7 0%, #8b5cf6 100%));
-                    color: #fff;
-                    box-shadow: 0 2px 8px var(--accent-glow, rgba(108,92,231,0.2));
-                }
-                [data-theme="light"] .users-btn-delete {
-                    background: linear-gradient(90deg, #ff2d92 0%, #ff3b30 100%);
-                    color: #fff;
-                }
-                [data-theme="light"] .users-pagination-pills {
-                    background: linear-gradient(135deg, #f5f7fa 80%, #e3e8f7 100%);
-                    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-                }
-                [data-theme="light"] .pill-tab {
-                    color: #5c6370;
-                }
-                [data-theme="light"] .pill-tab:hover {
-                    color: #23272f;
-                    background: rgba(0,0,0,0.02);
-                }
-                [data-theme="light"] .pill-tab.active, [data-theme="light"] .pill-tab:focus {
-                    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-                    color: #fff;
-                    text-shadow: none;
-                    box-shadow: 0 4px 16px rgba(0,123,255,0.15);
-                }
-                [data-theme="light"] .users-sort-dir-pill {
-                    background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-                    color: #23272f;
-                }
-                [data-theme="light"] .users-sort-dir-icon svg polyline {
-                    stroke: var(--accent-color, #6c5ce7);
-                }
-                [data-theme="light"] .users-sort-pill {
-                    background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-                }
-                [data-theme="light"] .users-search-pill {
-                    background: linear-gradient(90deg, #e3e8f7 0%, #f5f7fa 100%);
-                }
-                [data-theme="light"] .users-search-input {
-                    color: #23272f;
-                }
-                [data-theme="light"] .users-search-icon {
-                    color: var(--accent-color, #6c5ce7);
-                }
-                    .users-sort-dir-pill {
-                        background: linear-gradient(90deg, #2a2e39 0%, #23272f 100%);
-                        border: none;
-                        border-radius: 999px;
-                        padding: 0.3rem 0.7rem;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        cursor: pointer;
-                        transition: background 0.18s, color 0.18s;
-                        outline: none;
-                        font-size: 1.1rem;
-                        color: #fff;
-                    }
-                    .users-sort-dir-pill:active, .users-sort-dir-pill:focus {
-                        background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
-                    }
-                    .users-sort-dir-icon {
-                        font-size: 1.2rem;
-                        color: #bfc9d8;
-                    }
-                </style>
-
-                            <style>
-                                .users-table-toolbar {
-                                    width: 100%;
-                                }
-                                .users-search-pill {
-                                    display: flex;
-                                    align-items: center;
-                                    background: linear-gradient(90deg, #23272f 0%, #2a2e39 100%);
-                                    border-radius: 999px;
-                                    padding: 0.3rem 1.1rem 0.3rem 1.1rem;
-                                    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-                                    position: relative;
-                                }
-                                .users-search-input {
-                                    background: transparent;
-                                    border: none;
-                                    color: #fff;
-                                    font-size: 1rem;
-                                    outline: none;
-                                    width: 160px;
-                                    padding: 0.2rem 0.5rem 0.2rem 0;
-                                }
-                                .users-search-icon {
-                                    color: #bfc9d8;
-                                    font-size: 1.2rem;
-                                    margin-left: 0.3rem;
-                                }
-                                .users-sort-pill {
-                                    position: relative;
-                                    z-index: 20;
-                                    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-                                    border-radius: 999px;
-                                    padding: 0.3rem 1.1rem;
-                                    box-shadow: 0 2px 8px rgba(0,123,255,0.10);
-                                    display: flex;
-                                    align-items: center;
-                                    min-width: 160px;
-                                    cursor: pointer;
-                                    user-select: none;
-                                    color: #fff;
-                                    transition: background 0.18s, color 0.18s;
-                                    overflow: visible;
-                                }
-                                [data-theme="light"] .users-sort-pill {
-                                    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-                                    color: #fff !important;
-                                    box-shadow: 0 2px 8px rgba(0,123,255,0.08);
-                                }
-                                [data-theme="light"] .users-sort-pill .users-sort-select {
-                                    color: #fff !important;
-                                }
-                                [data-theme="light"] .users-sort-select {
-                                    color: #23272f;
-                                }
-                                [data-theme="light"] .users-sort-select option {
-                                    color: #23272f;
-                                }
-                                /* (removed duplicate block) */
-                                [data-theme="light"] .users-sort-pill {
-                                    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-                                    color: #fff;
-                                }
-                                .users-sort-selected {
-                                    flex: 1;
-                                    font-size: 1rem;
-                                    font-weight: 600;
-                                    padding-right: 1.2rem;
-                                }
-                                .users-sort-arrow {
-                                    display: inline-block;
-                                    width: 1.1em;
-                                    height: 1.1em;
-                                    background: url('data:image/svg+xml;utf8,<svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>') no-repeat center/contain;
-                                    margin-left: -1.1em;
-                                    pointer-events: none;
-                                }
-                                /* Remove any extra arrow from ::after */
-                                .users-sort-pill::after { display: none !important; }
-                                .users-sort-dropdown {
-                                    position: absolute;
-                                    left: 0;
-                                    top: 110%;
-                                    min-width: 100%;
-                                    background: rgba(30, 60, 120, 0.85);
-                                    border-radius: 1.2em;
-                                    box-shadow: 0 8px 32px rgba(0,198,255,0.18);
-                                    backdrop-filter: blur(16px) saturate(160%);
-                                    -webkit-backdrop-filter: blur(16px) saturate(160%);
-                                    z-index: 10;
-                                    padding: 0.3em 0;
-                                    display: flex;
-                                    flex-direction: column;
-                                    gap: 0.1em;
-                                    animation: users-sort-dropdown-fade 0.18s cubic-bezier(.4,1.4,.6,1) both;
-                                }
-                                @keyframes users-sort-dropdown-fade {
-                                    0% { opacity: 0; transform: translateY(-10px) scale(0.98); }
-                                    100% { opacity: 1; transform: translateY(0) scale(1); }
-                                }
-                                .users-sort-option {
-                                    padding: 0.7em 1.5em;
-                                    border-radius: 1em;
-                                    color: #fff;
-                                    font-size: 1rem;
-                                    cursor: pointer;
-                                    transition: background 0.13s, color 0.13s;
-                                }
-                                .users-sort-option:hover, .users-sort-option.active {
-                                    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-                                    color: #fff;
-                                }
-                                [data-theme="light"] .users-sort-dropdown {
-                                    background: rgba(255,255,255,0.95);
-                                    box-shadow: 0 8px 32px rgba(0,198,255,0.13);
-                                }
-                                [data-theme="light"] .users-sort-option {
-                                    color: #0072ff;
-                                }
-                                [data-theme="light"] .users-sort-option:hover, [data-theme="light"] .users-sort-option.active {
-                                    background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-                                    color: #fff;
-                                }
-                                                <!-- Move custom dropdown JS to end of body for correct DOM access -->
-
-                                .users-sort-pill {
-                                    position: relative;
-                                }
-                                /* Remove legacy ::after arrow for custom dropdown */
-                                .users-sort-pill::after { display: none !important; }
-                                .users-sort-pill {
-                                    overflow: visible;
-                                }
-                                /* Remove all legacy .users-sort-select styles for custom dropdown */
-                            </style>
-                <div class="liquid-glass-table-scroll">
-                    <table class="liquid-glass-table" id="users-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="users-table-body">
-                            <!-- Table rows rendered by JS from database users -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="table-pagination-bar">
-                    <button class="table-arrow" id="users-table-prev" title="Previous Page"><i class="bx bx-chevron-left"></i></button>
-                    <div class="table-pages" id="users-table-pages"></div>
-                    <button class="table-arrow" id="users-table-next" title="Next Page"><i class="bx bx-chevron-right"></i></button>
-                </div>
-            </div>
-
-            <div id="user-edit-modal" class="users-edit-modal" style="display: none;">
-                <div class="users-edit-modal-backdrop"></div>
-                <div class="users-edit-modal-card">
-                    <div class="users-edit-modal-header">
-                        <div>
-                            <h3>Edit User</h3>
-                            <p class="users-edit-modal-subtitle">Current data is pre-filled. Edit and save.</p>
-                        </div>
-                        <button type="button" class="users-edit-modal-close" id="user-edit-modal-close" aria-label="Close">&times;</button>
-                    </div>
-                    <div class="users-edit-modal-body">
-                        {% if editForm is defined %}
-                        {{ form_start(editForm, { 'attr': {
-                            'id': 'user-edit-form',
-                            'method': 'post',
-                            'action': '',
-                            'class': 'users-edit-form',
-                            'data-form-name': editForm.vars.name,
-                            'data-id-first': editForm.first_name.vars.id,
-                            'data-id-last': editForm.last_name.vars.id,
-                            'data-id-email': editForm.email_user.vars.id,
-                            'data-id-role': editForm.role_user.vars.id,
-                            'data-id-verified': editForm.is_verified.vars.id
-                        } }) }}
-                        {{ form_row(editForm.first_name, { 'row_attr': { 'class': 'mb-3' } }) }}
-                        {{ form_row(editForm.last_name, { 'row_attr': { 'class': 'mb-3' } }) }}
-                        {{ form_row(editForm.email_user, { 'row_attr': { 'class': 'mb-3' } }) }}
-                        {{ form_row(editForm.role_user, { 'row_attr': { 'class': 'mb-3' } }) }}
-                        
-                        {% if editForm.plainPassword is defined %}
-                        {# Add mode: plainPassword #}
-                        <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
-                        <h5 class="mb-3" style="color: rgba(255,255,255,0.95); font-size: 1.1rem; font-weight: 600;"><i class="bx bx-shield-quarter"></i> Password</h5>
-                        <div class="mb-3">
-                            {{ form_label(editForm.plainPassword.first) }}
-                            {{ form_widget(editForm.plainPassword.first, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'Enter password' } }) }}
-                            {{ form_errors(editForm.plainPassword.first) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_label(editForm.plainPassword.second) }}
-                            {{ form_widget(editForm.plainPassword.second, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'Confirm password' } }) }}
-                            {{ form_errors(editForm.plainPassword.second) }}
-                        </div>
-                        {% elseif editForm.currentPassword is defined and editForm.newPassword is defined %}
-                        {# Edit mode: currentPassword + newPassword #}
-                        <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
-                        <h5 class="mb-3" style="color: rgba(255,255,255,0.95); font-size: 1.1rem; font-weight: 600;"><i class="bx bx-shield-quarter"></i> Security</h5>
-                        <div class="mb-3">
-                            {{ form_label(editForm.currentPassword) }}
-                            {{ form_widget(editForm.currentPassword, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'Enter current password to change' } }) }}
-                            {{ form_errors(editForm.currentPassword) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_label(editForm.newPassword.first) }}
-                            {{ form_widget(editForm.newPassword.first, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'New password (min 6 chars)' } }) }}
-                            {{ form_errors(editForm.newPassword.first) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_label(editForm.newPassword.second) }}
-                            {{ form_widget(editForm.newPassword.second, { 'attr': { 'class': 'form-control bg-dark border-secondary border-opacity-25 text-white', 'placeholder': 'Repeat new password' } }) }}
-                            {{ form_errors(editForm.newPassword.second) }}
-                        </div>
-                        {% endif %}
-                        <div class="mb-3 users-edit-modal-verified-wrap">
-                            {{ form_row(editForm.is_verified, { 'attr': { 'class': 'users-edit-verified-cb' }, 'label_attr': { 'class': 'users-edit-verified-label' } }) }}
-                        </div>
-                        <div class="users-edit-modal-actions">
-                            <button type="button" class="users-btn-cancel" id="user-edit-modal-cancel">Cancel</button>
-                            <span class="users-edit-modal-actions-spacer"></span>
-                            <button type="submit" class="users-btn-modify">Save changes</button>
-                        </div>
-                        {{ form_end(editForm) }}
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Add User modal (same style as edit) -->
-            <div id="user-add-modal" class="users-edit-modal" style="display: none;">
-                <div class="users-edit-modal-backdrop"></div>
-                <div class="users-edit-modal-card">
-                    <div class="users-edit-modal-header">
-                        <div>
-                            <h3>Add User</h3>
-                            <p class="users-edit-modal-subtitle">Create a new user. Same fields as sign up, plus role and verified.</p>
-                        </div>
-                        <button type="button" class="users-edit-modal-close" id="user-add-modal-close" aria-label="Close">&times;</button>
-                    </div>
-                    <div class="users-edit-modal-body">
-                        {% if addForm is defined %}
-                        {{ form_start(addForm, { 'attr': { 'id': 'user-add-form', 'method': 'post', 'action': path('admin_users_add'), 'class': 'users-edit-form' } }) }}
-                        {{ form_row(addForm.first_name, { 'row_attr': { 'class': 'mb-3' } }) }}
-                        {{ form_row(addForm.last_name, { 'row_attr': { 'class': 'mb-3' } }) }}
-                        {{ form_row(addForm.email_user, { 'row_attr': { 'class': 'mb-3' } }) }}
-                        {{ form_row(addForm.plainPassword.first, { 'row_attr': { 'class': 'mb-3' } }) }}
-                        {{ form_row(addForm.plainPassword.second, { 'row_attr': { 'class': 'mb-3' } }) }}
-                        {{ form_row(addForm.role_user, { 'row_attr': { 'class': 'mb-3' } }) }}
-                        <div class="mb-3 users-edit-modal-verified-wrap">
-                            {{ form_row(addForm.is_verified, { 'attr': { 'class': 'users-edit-verified-cb' }, 'label_attr': { 'class': 'users-edit-verified-label' } }) }}
-                        </div>
-                        <div class="users-edit-modal-actions">
-                            <button type="button" class="users-btn-cancel" id="user-add-modal-cancel">Cancel</button>
-                            <span class="users-edit-modal-actions-spacer"></span>
-                            <button type="submit" class="users-btn-modify">Add User</button>
-                        </div>
-                        {{ form_end(addForm) }}
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- View User Details modal (read-only display with Modify/Delete actions) -->
-            <div id="user-view-modal" class="users-edit-modal" style="display: none;">
-                <div class="users-edit-modal-backdrop"></div>
-                <div class="users-edit-modal-card">
-                    <div class="users-edit-modal-header">
-                        <div>
-                            <h3>User Details</h3>
-                            <p class="users-edit-modal-subtitle">View complete user information</p>
-                        </div>
-                        <button type="button" class="users-edit-modal-close" id="user-view-modal-close" aria-label="Close">&times;</button>
-                    </div>
-                    <div class="users-edit-modal-body">
-                        <div class="users-view-details">
-                            <div class="users-view-row">
-                                <div class="users-view-label">Name</div>
-                                <div class="users-view-value" id="view-user-name">-</div>
-                            </div>
-                            <div class="users-view-row">
-                                <div class="users-view-label">Email</div>
-                                <div class="users-view-value" id="view-user-email">-</div>
-                            </div>
-                            <div class="users-view-row">
-                                <div class="users-view-label">Status</div>
-                                <div class="users-view-value">
-                                    <span class="users-view-status-badge" id="view-user-status">-</span>
-                                </div>
-                            </div>
-                            <div class="users-view-row">
-                                <div class="users-view-label">Role</div>
-                                <div class="users-view-value">
-                                    <span class="users-view-role-badge" id="view-user-role">-</span>
-                                </div>
-                            </div>
-                            <div class="users-view-row">
-                                <div class="users-view-label">Created</div>
-                                <div class="users-view-value" id="view-user-created">-</div>
-                            </div>
-                            <div class="users-view-row">
-                                <div class="users-view-label">Updated</div>
-                                <div class="users-view-value" id="view-user-updated">-</div>
-                            </div>
-                        </div>
-                        <div class="users-view-modal-actions">
-                            <button type="button" class="users-btn-modify" id="view-user-modify-btn">
-                                <i class="bx bx-edit"></i> Modify
+            <div class="glass-table-container">
+                <div id="usersGlassSwitcher" class="glass-switcher style-slide">
+                    <div class="glass-switcher-face glass-switcher-face-main">
+                        <div class="glass-toolbar">
+                            <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Users</h3>
+                            <div style="flex: 1;"></div>
+                            <button type="button" class="glass-btn-save" id="users-btn-add-user" style="padding: 0.6rem 1.5rem; font-size: 0.9rem;">
+                                <i class="bx bx-plus"></i> Add User
                             </button>
-                            <form id="view-user-delete-form" method="post" style="display: inline-block; margin-left: 0.75rem;">
-                                <input type="hidden" name="_token" value="{{ csrf_token('user_delete')|e('html_attr') }}">
-                                <button type="submit" class="users-btn-delete">
-                                    <i class="bx bx-trash"></i> Delete
+                        </div>
+
+                        <div class="glass-toolbar" style="margin-bottom: 1.5rem;">
+                            <div class="glass-search-container">
+                                <i class="bx bx-search glass-search-icon"></i>
+                                <input type="text" class="glass-search-input users-search-input" placeholder="Search users...">
+                            </div>
+                            
+                            <div style="display: flex; gap: 0.5rem;">
+                                <div class="glass-pill glass-pill-active users-sort-option" data-value="name" onclick="selectSortPill(this)">Name</div>
+                                <div class="glass-pill users-sort-option" data-value="email" onclick="selectSortPill(this)">Email</div>
+                                <div class="glass-pill users-sort-option" data-value="role" onclick="selectSortPill(this)">Role</div>
+                                <button class="glass-pagination-btn" id="users-sort-dir-pill" style="width: 38px; height: 38px;">
+                                    <span id="users-sort-dir-icon-svg"></span>
                                 </button>
-                            </form>
+                            </div>
+                        </div>
+
+                        <div class="glass-table-scroll">
+                            <table class="glass-table" id="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th style="text-align: right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body">
+                                    <!-- Table rows rendered by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="glass-pagination-bar" id="users-pagination">
+                            <button class="glass-pagination-btn" id="users-table-prev"><i class="bx bx-chevron-left"></i></button>
+                            <div id="users-table-pages" style="display: flex; gap: 0.5rem;"></div>
+                            <button class="glass-pagination-btn" id="users-table-next"><i class="bx bx-chevron-right"></i></button>
+                        </div>
+                    </div><!-- End .glass-switcher-face-main -->
+
+            <div class="glass-switcher-face glass-switcher-face-details" id="user-view-face">
+                <div id="user-view-modal" class="users-edit-modal">
+                    <div class="users-edit-modal-card">
+                        <div class="users-edit-modal-header">
+                            <div>
+                                <h3>User Details</h3>
+                                <p class="users-edit-modal-subtitle">View complete user information</p>
+                            </div>
+                            <button type="button" class="users-edit-modal-close" onclick="closeModal('user-view-modal')" aria-label="Close"><i class="bx bx-x"></i></button>
+                        </div>
+                        <div class="users-edit-modal-body">
+                            <div class="glass-view-details">
+                                <div class="glass-view-row">
+                                    <div class="glass-view-label">Name</div>
+                                    <div class="glass-view-value" id="view-user-name">-</div>
+                                </div>
+                                <div class="glass-view-row">
+                                    <div class="glass-view-label">Email</div>
+                                    <div class="glass-view-value" id="view-user-email">-</div>
+                                </div>
+                                <div class="glass-view-row">
+                                    <div class="glass-view-label">Status</div>
+                                    <div class="glass-view-value">
+                                        <span class="users-view-status-badge" id="view-user-status">-</span>
+                                    </div>
+                                </div>
+                                <div class="glass-view-row">
+                                    <div class="glass-view-label">Role</div>
+                                    <div class="glass-view-value">
+                                        <span class="users-view-role-badge" id="view-user-role">-</span>
+                                    </div>
+                                </div>
+                                <div class="glass-view-row">
+                                    <div class="glass-view-label">Created</div>
+                                    <div class="glass-view-value" id="view-user-created">-</div>
+                                </div>
+                                <div class="glass-view-row">
+                                    <div class="glass-view-label">Updated</div>
+                                    <div class="glass-view-value" id="view-user-updated">-</div>
+                                </div>
+                            </div>
+                            <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
+                                <button type="button" class="users-btn-modify" id="view-user-modify-btn">
+                                    <i class="bx bx-edit"></i> Modify User
+                                </button>
+                                <form id="view-user-delete-form" method="post" style="display: inline-block; margin-left: 1rem;" data-ajax="true" data-refresh="softRefresh">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('user_delete')|e('html_attr') }}">
+                                    <button type="submit" class="users-btn-delete" data-delete-title="Delete User">
+                                        <i class="bx bx-trash"></i> Delete User
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="glass-switcher-face glass-switcher-face-edit" id="user-edit-face">
+                <div id="user-edit-modal" class="users-edit-modal">
+                    <div class="users-edit-modal-card">
+                        <div class="users-edit-modal-header">
+                            <div>
+                                <h3>Edit User</h3>
+                                <p class="users-edit-modal-subtitle">Current data is pre-filled. Edit and save.</p>
+                            </div>
+                            <button type="button" class="users-edit-modal-close" onclick="closeModal('user-edit-modal')" aria-label="Close"><i class="bx bx-x"></i></button>
+                        </div>
+                        <div class="users-edit-modal-body">
+                            {% if editForm is defined %}
+                            {{ form_start(editForm, { 'attr': {
+                                'id': 'user-edit-form',
+                                'method': 'post',
+                                'action': '',
+                                'class': 'users-edit-form',
+                                'data-form-name': editForm.vars.name,
+                                'data-ajax': 'true',
+                                'data-id-first': editForm.first_name.vars.id,
+                                'data-id-last': editForm.last_name.vars.id,
+                                'data-id-email': editForm.email_user.vars.id,
+                                'data-id-role': editForm.role_user.vars.id,
+                                'data-id-verified': editForm.is_verified.vars.id
+                            } }) }}
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form_row(editForm.first_name, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(editForm.last_name, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                </div>
+                            </div>
 
-            <style>
-                /* Profile Avatar Styling */
-                .profile-avatar-container {
-                    width: 45px;
-                    height: 45px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                .profile-avatar-img {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    object-fit: cover;
-                    border: 2px solid rgba(255, 255, 255, 0.2);
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                    transition: transform 0.3s ease;
-                }
-                .profile-avatar-img:hover {
-                    transform: scale(1.1);
-                }
-                .profile-avatar-placeholder {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.1);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1.5rem;
-                    color: rgba(255, 255, 255, 0.5);
-                    border: 2px dashed rgba(255, 255, 255, 0.2);
-                }
+                            <div class="row">
+                                <div class="col-md-8">
+                                    {{ form_row(editForm.email_user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form_row(editForm.role_user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                </div>
+                            </div>
+                            
+                            {% if editForm.plainPassword is defined %}
+                            {# Add mode: plainPassword #}
+                            <hr class="my-5" style="border-color: rgba(255,255,255,0.08);">
+                            <h5 class="mb-4" style="color: #fff; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem;">
+                                <i class="bx bx-shield-quarter" style="color: #00c6ff;"></i> Security Credentials
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="glass-form-group">
+                                        {{ form_label(editForm.plainPassword.first, null, { 'label_attr': { 'class': 'glass-label' } }) }}
+                                        {{ form_widget(editForm.plainPassword.first, { 'attr': { 'class': 'glass-input', 'placeholder': 'Enter strong password' } }) }}
+                                        {{ form_errors(editForm.plainPassword.first) }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="glass-form-group">
+                                        {{ form_label(editForm.plainPassword.second, null, { 'label_attr': { 'class': 'glass-label' } }) }}
+                                        {{ form_widget(editForm.plainPassword.second, { 'attr': { 'class': 'glass-input', 'placeholder': 'Repeat password' } }) }}
+                                        {{ form_errors(editForm.plainPassword.second) }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% elseif editForm.currentPassword is defined and editForm.newPassword is defined %}
+                            {# Edit mode: currentPassword + newPassword #}
+                            <hr class="my-5" style="border-color: rgba(255,255,255,0.08);">
+                            <h5 class="mb-4" style="color: #fff; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem;">
+                                <i class="bx bx-shield-quarter" style="color: #00c6ff;"></i> Security Settings
+                            </h5>
+                            <div class="glass-form-group">
+                                {{ form_label(editForm.currentPassword, null, { 'label_attr': { 'class': 'glass-label' } }) }}
+                                {{ form_widget(editForm.currentPassword, { 'attr': { 'class': 'glass-input', 'placeholder': 'Current password required for changes' } }) }}
+                                {{ form_errors(editForm.currentPassword) }}
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="glass-form-group">
+                                        {{ form_label(editForm.newPassword.first, null, { 'label_attr': { 'class': 'glass-label' } }) }}
+                                        {{ form_widget(editForm.newPassword.first, { 'attr': { 'class': 'glass-input', 'placeholder': 'New password (min 6 chars)' } }) }}
+                                        {{ form_errors(editForm.newPassword.first) }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="glass-form-group">
+                                        {{ form_label(editForm.newPassword.second, null, { 'label_attr': { 'class': 'glass-label' } }) }}
+                                        {{ form_widget(editForm.newPassword.second, { 'attr': { 'class': 'glass-input', 'placeholder': 'Repeat new password' } }) }}
+                                        {{ form_errors(editForm.newPassword.second) }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="mb-4 users-edit-modal-verified-wrap" style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                                {{ form_row(editForm.is_verified, { 'attr': { 'class': 'users-edit-verified-cb' }, 'label_attr': { 'class': 'users-edit-verified-label', 'style': 'margin: 0; cursor: pointer;' } }) }}
+                            </div>
 
-                /* View Details Modal Styles */
-                .users-view-details {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1rem;
-                }
-                .users-view-row {
-                    display: flex;
-                    align-items: center;
-                    padding: 0.85rem 1rem;
-                    background: rgba(255,255,255,0.04);
-                    border: 1px solid rgba(255,255,255,0.08);
-                    border-radius: 12px;
-                    gap: 1rem;
-                }
-                .users-view-label {
-                    font-size: 0.9rem;
-                    font-weight: 600;
-                    color: rgba(191,201,216,0.9);
-                    min-width: 90px;
-                    flex-shrink: 0;
-                }
-                .users-view-value {
-                    font-size: 0.95rem;
-                    color: #e3e8f7;
-                    font-weight: 500;
-                    flex: 1;
-                    word-break: break-word;
-                }
-                .users-view-status-badge {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.4rem;
-                    padding: 0.35rem 0.85rem;
-                    border-radius: 999px;
-                    font-size: 0.85rem;
-                    font-weight: 600;
-                    border: 1.5px solid transparent;
-                }
-                .users-view-status-badge.verified {
-                    background: linear-gradient(135deg, rgba(0,230,118,0.15), rgba(0,230,118,0.08));
-                    border-color: rgba(0,230,118,0.3);
-                    color: #00e676;
-                }
-                .users-view-status-badge.pending {
-                    background: linear-gradient(135deg, rgba(255,193,7,0.15), rgba(255,193,7,0.08));
-                    border-color: rgba(255,193,7,0.3);
-                    color: #ffc107;
-                }
-                .users-view-role-badge {
-                    display: inline-flex;
-                    padding: 0.35rem 0.85rem;
-                    border-radius: 999px;
-                    font-size: 0.85rem;
-                    font-weight: 600;
-                    background: linear-gradient(135deg, rgba(0,198,255,0.15), rgba(0,114,255,0.08));
-                    border: 1.5px solid rgba(0,198,255,0.3);
-                    color: #00c6ff;
-                }
-                .users-view-modal-actions {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin-top: 1.75rem;
-                    padding-top: 1.25rem;
-                    border-top: 1px solid rgba(255,255,255,0.08);
-                }
-                .users-view-modal-actions .users-btn-modify,
-                .users-view-modal-actions .users-btn-delete {
-                    padding: 0.7rem 1.5rem;
-                    border-radius: 999px;
-                    font-weight: 600;
-                    font-size: 0.95rem;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    transition: all 0.25s ease;
-                    border: none;
-                    cursor: pointer;
-                }
-                .users-view-modal-actions .users-btn-modify {
-                    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 50%, #0052cc 100%);
-                    color: #fff;
-                    box-shadow: 0 4px 20px rgba(0,198,255,0.3), 0 0 40px rgba(0,114,255,0.15);
-                    position: relative;
-                    overflow: hidden;
-                }
-                .users-view-modal-actions .users-btn-modify::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: -100%;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-                    transition: left 0.5s ease;
-                }
-                .users-view-modal-actions .users-btn-modify:hover::before {
-                    left: 100%;
-                }
-                .users-view-modal-actions .users-btn-modify:hover {
-                    transform: translateY(-3px) scale(1.02);
-                    box-shadow: 0 8px 28px rgba(0,198,255,0.45), 0 0 60px rgba(0,114,255,0.25);
-                }
-                .users-view-modal-actions .users-btn-modify:active {
-                    transform: translateY(-1px) scale(0.98);
-                }
-                .users-view-modal-actions .users-btn-delete {
-                    background: linear-gradient(135deg, #ff2d92 0%, #ff3b30 50%, #d32f2f 100%);
-                    color: #fff;
-                    box-shadow: 0 4px 20px rgba(255,59,48,0.3), 0 0 40px rgba(255,45,146,0.15);
-                    position: relative;
-                    overflow: hidden;
-                }
-                .users-view-modal-actions .users-btn-delete::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: -100%;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-                    transition: left 0.5s ease;
-                }
-                .users-view-modal-actions .users-btn-delete:hover::before {
-                    left: 100%;
-                }
-                .users-view-modal-actions .users-btn-delete:hover {
-                    transform: translateY(-3px) scale(1.02);
-                    box-shadow: 0 8px 28px rgba(255,59,48,0.45), 0 0 60px rgba(255,45,146,0.25);
-                }
-                .users-view-modal-actions .users-btn-delete:active {
-                    transform: translateY(-1px) scale(0.98);
-                }
+                            <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
+                                <button type="button" class="users-btn-cancel" onclick="closeModal('user-edit-modal')">Discard Changes</button>
+                                <span class="users-edit-modal-actions-spacer"></span>
+                                <button type="submit" class="users-btn-modify">Update Account</button>
+                            </div>
+                            {{ form_end(editForm) }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-switcher-face glass-switcher-face-extra" id="user-add-face">
+                <div id="user-add-modal" class="users-edit-modal">
+                    <div class="users-edit-modal-card">
+                        <div class="users-edit-modal-header">
+                            <div>
+                                <h3>Add User</h3>
+                                <p class="users-edit-modal-subtitle">Create a new user. Same fields as sign up, plus role and verified.</p>
+                            </div>
+                            <button type="button" class="users-edit-modal-close" onclick="closeModal('user-add-modal')" aria-label="Close"><i class="bx bx-x"></i></button>
+                        </div>
+                        <div class="users-edit-modal-body">
+                            {% if addForm is defined %}
+                            {{ form_start(addForm, { 'attr': { 'id': 'user-add-form', 'method': 'post', 'action': path('admin_users_add'), 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh' } }) }}
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form_row(addForm.first_name, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(addForm.last_name, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                </div>
+                            </div>
 
-                /* Light theme for View Details */
-                [data-theme="light"] .users-view-row {
-                    background: #f5f7fa;
-                    border-color: #e3e8f7;
-                }
-                [data-theme="light"] .users-view-label {
-                    color: #5c6370;
-                }
-                [data-theme="light"] .users-view-value {
-                    color: #23272f;
-                }
-                [data-theme="light"] .users-view-status-badge.verified {
-                    background: rgba(0,230,118,0.12);
-                    border-color: rgba(0,230,118,0.25);
-                    color: #00a86e;
-                }
-                [data-theme="light"] .users-view-status-badge.pending {
-                    background: rgba(255,193,7,0.12);
-                    border-color: rgba(255,193,7,0.25);
-                    color: #d89e00;
-                }
-                [data-theme="light"] .users-view-role-badge {
-                    background: rgba(0,198,255,0.12);
-                    border-color: rgba(0,198,255,0.25);
-                    color: #0072ff;
-                }
-                [data-theme="light"] .users-view-modal-actions {
-                    border-top-color: #e3e8f7;
-                }
+                            {{ form_row(addForm.email_user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form_row(addForm.plainPassword.first, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(addForm.plainPassword.second, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                </div>
+                            </div>
+
+                            {{ form_row(addForm.role_user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+
+                            <div class="mb-4 users-edit-modal-verified-wrap" style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                                {{ form_row(addForm.is_verified, { 'attr': { 'class': 'users-edit-verified-cb' }, 'label_attr': { 'class': 'users-edit-verified-label', 'style': 'margin: 0; cursor: pointer;' } }) }}
+                            </div>
+
+                            <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
+                                <button type="button" class="users-btn-cancel" onclick="closeModal('user-add-modal')">Discard</button>
+                                <span class="users-edit-modal-actions-spacer"></span>
+                                <button type="submit" class="users-btn-modify">Create Account</button>
+                            </div>
+                            {{ form_end(addForm) }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- End #usersGlassSwitcher -->
+        </div><!-- End .glass-table-container -->
+    </div><!-- End .users-page-content -->
+
             </style>
 
 
             <script>
+                /**
+                 * Robust Glass Switcher Transition Handler
+                 * Manages 3D faces and dynamic height synchronization
+                 */
+                // User data for edit modal (id -> { firstName, lastName, email, role, isVerified })
+
                 // User data for edit modal (id -> { firstName, lastName, email, role, isVerified })
                 const usersData = {
                 {% for u in users|default([]) %}
@@ -1016,11 +730,22 @@
                 const usersSortSelected = document.getElementById('users-sort-selected');
 
                 function updateUsersSortDirIcon() {
-                    if (!usersSortDirIconSvg) return;
-                    usersSortDirIconSvg.innerHTML = usersSortDirection === 'asc'
-                        ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 15 12 9 18 15" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-                        : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9" stroke="#00c6ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+                    const iconEl = document.getElementById('users-sort-dir-icon-svg');
+                    if (!iconEl) return;
+                    iconEl.innerHTML = usersSortDirection === 'asc'
+                        ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>`
+                        : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
                 }
+
+                window.selectSortPill = function(pill) {
+                    const val = pill.getAttribute('data-value');
+                    usersSortValue = val;
+                    
+                    document.querySelectorAll('.users-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
+                    pill.classList.add('glass-pill-active');
+                    
+                    usersFilterAndSortRows();
+                };
 
                 function usersFilterAndSortRows() {
                     let rows = [...demoTableRows];
@@ -1089,14 +814,15 @@
                         // Column 5: Actions - View Details pill
                         const userId = usersFilteredRows[r][5];
                         const tdActions = document.createElement('td');
+                        tdActions.style.textAlign = 'right';
                         const viewBtn = document.createElement('button');
-                        viewBtn.className = 'users-btn-view-details users-btn-add-db';
+                        viewBtn.className = 'glass-btn-save users-btn-view-details';
                         viewBtn.title = 'View Details';
                         viewBtn.type = 'button';
                         viewBtn.dataset.userId = userId;
-                        viewBtn.style.padding = '0.35rem 1.25rem';
-                        viewBtn.style.fontSize = '0.9rem';
-                        viewBtn.innerHTML = '<i class="bx bx-show"></i> View Details';
+                        viewBtn.style.padding = '0.4rem 1.2rem';
+                        viewBtn.style.fontSize = '0.85rem';
+                        viewBtn.innerHTML = '<i class="bx bx-show"></i> Details';
                         tdActions.appendChild(viewBtn);
                         row.appendChild(tdActions);
                         
@@ -1111,7 +837,7 @@
                     pagesDiv.innerHTML = '';
                     for (let i = 1; i <= totalPages; i++) {
                         const btn = document.createElement('button');
-                        btn.className = 'table-page-btn' + (i === usersCurrentPage ? ' active' : '');
+                        btn.className = 'glass-pagination-btn' + (i === usersCurrentPage ? ' active' : '');
                         btn.textContent = i;
                         btn.onclick = () => { usersCurrentPage = i; updateUsersTablePagination(); };
                         pagesDiv.appendChild(btn);
@@ -1123,6 +849,14 @@
                 function updateUsersTablePagination() {
                     renderUsersTablePage(usersCurrentPage);
                     renderUsersTablePagination();
+                    
+                    // Sync height for Users page switcher
+                    const s = document.getElementById('usersGlassSwitcher');
+                    if (s && !s.classList.contains('active-details') && 
+                        !s.classList.contains('active-edit') && 
+                        !s.classList.contains('active-extra')) {
+                        switchGlassFace('main', 'usersGlassSwitcher');
+                    }
                 }
 
                 document.addEventListener('DOMContentLoaded', function() {
@@ -1144,44 +878,7 @@
                         });
                     }
 
-                    function closeUsersSortDropdown() {
-                        if (usersSortDropdown) {
-                            usersSortDropdown.style.display = 'none';
-                            usersSortPill.classList.remove('open');
-                        }
-                    }
-
-                    // Sort Dropdown Toggle
-                    if (usersSortPill && usersSortDropdown) {
-                        usersSortPill.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            if (usersSortDropdown.style.display === 'flex') {
-                                closeUsersSortDropdown();
-                            } else {
-                                usersSortDropdown.style.display = 'flex';
-                                usersSortPill.classList.add('open');
-                            }
-                        });
-
-                        document.addEventListener('click', function(e) {
-                            if (!usersSortPill.contains(e.target)) {
-                                closeUsersSortDropdown();
-                            }
-                        });
-                    }
-
-                    // Sort Options Click
-                    document.querySelectorAll('.users-sort-option').forEach(opt => {
-                        opt.addEventListener('click', function(e) {
-                            e.stopPropagation(); // Prevent bubbling to the pill toggle
-                            usersSortValue = this.getAttribute('data-value');
-                            if (usersSortSelected) usersSortSelected.textContent = this.textContent;
-                            document.querySelectorAll('.users-sort-option').forEach(o => o.classList.remove('active'));
-                            this.classList.add('active');
-                            closeUsersSortDropdown();
-                            usersFilterAndSortRows();
-                        });
-                    });
+                    // Remove legacy dropdown listeners (handled by selectSortPill now)
 
                     // Pagination Buttons (New IDs)
                     if (document.getElementById('users-table-prev')) {
@@ -1217,10 +914,10 @@
                         setVal(byId('data-id-email') || editFormEl.elements[formName + '[email_user]'], data.email);
                         setVal(byId('data-id-role') || editFormEl.elements[formName + '[role_user]'], data.role || 'RESIDENT');
                         setChecked(byId('data-id-verified') || editFormEl.elements[formName + '[is_verified]'], data.isVerified);
-                        if (modal) modal.style.display = 'flex';
+                        openModal('user-edit-modal');
                     }
                     function closeEditModal() {
-                        if (modal) modal.style.display = 'none';
+                        closeModal('user-edit-modal');
                     }
                     if (document.getElementById('user-edit-modal-close')) document.getElementById('user-edit-modal-close').onclick = closeEditModal;
                     if (document.getElementById('user-edit-modal-cancel')) document.getElementById('user-edit-modal-cancel').onclick = closeEditModal;
@@ -1263,11 +960,11 @@
                         viewDeleteForm.action = deleteUserUrlTemplate.replace('__ID__', idKey);
                         viewDeleteForm.onsubmit = function() { return confirm('Are you sure you want to delete this user?'); };
 
-                        if (viewModal) viewModal.style.display = 'flex';
+                        openModal('user-view-modal');
                     }
 
                     function closeViewModal() {
-                        if (viewModal) viewModal.style.display = 'none';
+                        closeModal('user-view-modal');
                     }
 
                     // Wire up View Details button click from table
@@ -1295,10 +992,10 @@
                     // Add User modal: open/close
                     const addModal = document.getElementById('user-add-modal');
                     const addBtn = document.getElementById('users-btn-add-user');
-                    if (addBtn) addBtn.addEventListener('click', function() { if (addModal) addModal.style.display = 'flex'; });
-                    if (document.getElementById('user-add-modal-close')) document.getElementById('user-add-modal-close').onclick = function() { if (addModal) addModal.style.display = 'none'; };
-                    if (document.getElementById('user-add-modal-cancel')) document.getElementById('user-add-modal-cancel').onclick = function() { if (addModal) addModal.style.display = 'none'; };
-                    if (addModal && addModal.querySelector('.users-edit-modal-backdrop')) addModal.querySelector('.users-edit-modal-backdrop').onclick = function() { addModal.style.display = 'none'; };
+                    if (addBtn) addBtn.addEventListener('click', function() { openModal('user-add-modal'); });
+                    if (document.getElementById('user-add-modal-close')) document.getElementById('user-add-modal-close').onclick = function() { closeModal('user-add-modal'); };
+                    if (document.getElementById('user-add-modal-cancel')) document.getElementById('user-add-modal-cancel').onclick = function() { closeModal('user-add-modal'); };
+                    if (addModal && addModal.querySelector('.users-edit-modal-backdrop')) addModal.querySelector('.users-edit-modal-backdrop').onclick = function() { closeModal('user-add-modal'); };
 
                     // Profile View Modal logic
                     const profileViewModal = document.getElementById('profile-view-modal');
@@ -1334,11 +1031,11 @@
                             placeholderEl.style.display = 'flex';
                         }
 
-                        if (profileViewModal) profileViewModal.style.display = 'flex';
+                        openModal('profile-view-modal');
                     }
 
                     function closeProfileViewModal() {
-                        if (profileViewModal) profileViewModal.style.display = 'none';
+                        closeModal('profile-view-modal');
                     }
 
                     // Wire up View Details for Profile
@@ -1354,7 +1051,6 @@
                     if (viewProfileModifyBtn) {
                         viewProfileModifyBtn.onclick = function() {
                             if (currentActiveProfileId) {
-                                closeProfileViewModal();
                                 openProfileEditModal(currentActiveProfileId);
                             }
                         };
@@ -1378,10 +1074,10 @@
                         setVal(profileEditFormEl.elements[formName + '[theme]'], data.theme);
                         setVal(profileEditFormEl.elements[formName + '[locale]'], data.locale);
                         setVal(profileEditFormEl.elements[formName + '[timezone]'], data.timezone);
-                        if (profileEditModal) profileEditModal.style.display = 'flex';
+                        openModal('profile-edit-modal');
                     }
                     function closeProfileEditModal() {
-                        if (profileEditModal) profileEditModal.style.display = 'none';
+                        closeModal('profile-edit-modal');
                     }
                     if (document.getElementById('profile-edit-modal-close')) document.getElementById('profile-edit-modal-close').onclick = closeProfileEditModal;
                     if (document.getElementById('profile-edit-modal-cancel')) document.getElementById('profile-edit-modal-cancel').onclick = closeProfileEditModal;
@@ -1407,6 +1103,11 @@
                         if (prevBtn) prevBtn.style.visibility = step === 1 ? 'hidden' : 'visible';
                         if (nextBtn) nextBtn.style.display = step === 7 ? 'none' : 'inline-flex';
                         if (submitBtn) submitBtn.style.display = step === 7 ? 'inline-flex' : 'none';
+
+                        // Sync height with new step content
+                        if (window.switchGlassFace) {
+                            window.switchGlassFace('edit', 'onboardingGlassSwitcher');
+                        }
                     }
                     function adminObSyncLocaleTheme() {
                         if (!onboardingEditModal || !onboardingEditFormEl) return;
@@ -1455,15 +1156,12 @@
                         setVal(onboardingEditFormEl.elements[formName + '[step]'], data.step != null ? data.step : 1);
                         setChecked(onboardingEditFormEl.elements[formName + '[completed]'], data.completed);
 
-                        if (onboardingEditModal) onboardingEditModal.style.display = 'flex';
+                        openModal('onboarding-edit-modal');
                     }
                     function closeOnboardingEditModal() {
-                        if (onboardingEditModal) onboardingEditModal.style.display = 'none';
+                        closeModal('onboarding-edit-modal');
                     }
-                    document.getElementById('users-content').addEventListener('click', function(e) {
-                        const btn = e.target.closest('.onboarding-modify-btn');
-                        if (btn && btn.dataset.onboardingId) { e.preventDefault(); openOnboardingEditModal(btn.dataset.onboardingId); }
-                    });
+                    
                     if (document.getElementById('onboarding-edit-modal-close')) document.getElementById('onboarding-edit-modal-close').onclick = closeOnboardingEditModal;
                     if (document.getElementById('onboarding-edit-modal-cancel')) document.getElementById('onboarding-edit-modal-cancel').onclick = closeOnboardingEditModal;
                     if (onboardingEditModal && onboardingEditModal.querySelector('.users-edit-modal-backdrop')) onboardingEditModal.querySelector('.users-edit-modal-backdrop').onclick = closeOnboardingEditModal;
@@ -1477,13 +1175,9 @@
                         const idKey = String(obId);
                         const data = onboardingData[idKey];
                         
-                        if (!data) {
-                            console.error('No onboarding data found for ID:', idKey);
-                            return;
-                        }
+                        if (!data) return;
                         
                         currentActiveObId = idKey;
-
                         const setContent = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
                         
                         setContent('view-ob-user-name', data.userName || '—');
@@ -1503,18 +1197,17 @@
                         try {
                             let prefs = data.selectedPreferences;
                             if (typeof prefs === 'string') { try { prefs = JSON.parse(prefs); } catch(e) {} }
-                            
                             if (prefs && typeof prefs === 'object' && Object.keys(prefs).length > 0) {
                                 prefsText = Object.entries(prefs).map(([k, v]) => `${k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${v}`).join('\n');
                             }
-                        } catch(e) { console.error('Error formatting prefs:', e); }
+                        } catch(e) { }
                         setContent('view-ob-prefs', prefsText);
 
-                        if (obViewModal) obViewModal.style.display = 'flex';
+                        openModal('onboarding-view-modal');
                     }
 
                     function closeObViewModal() {
-                        if (obViewModal) obViewModal.style.display = 'none';
+                        closeModal('onboarding-view-modal');
                     }
 
                     // Direct event listener on the table container for better delegation
@@ -1533,7 +1226,6 @@
                     if (viewObModifyBtn) {
                         viewObModifyBtn.onclick = function() {
                             if (currentActiveObId) {
-                                closeObViewModal();
                                 openOnboardingEditModal(currentActiveObId);
                             }
                         };
@@ -1542,374 +1234,485 @@
                     if (document.getElementById('onboarding-view-modal-close')) document.getElementById('onboarding-view-modal-close').onclick = closeObViewModal;
                     if (obViewModal && obViewModal.querySelector('.users-edit-modal-backdrop')) obViewModal.querySelector('.users-edit-modal-backdrop').onclick = closeObViewModal;
 
+                    // AJAX Form Submission Handler
+                    function handleAjaxSubmit(form, onSuccess) {
+                        form.addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            const submitBtn = form.querySelector('button[type="submit"]');
+                            const originalBtnHtml = submitBtn.innerHTML;
+                            submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Processing...';
+                            submitBtn.disabled = true;
+
+                            const formData = new FormData(form);
+                            fetch(form.action, {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    if (typeof showCoolPopup === 'function') {
+                                        showCoolPopup('Success', data.message, 'success');
+                                    } else {
+                                        alert(data.message);
+                                    }
+                                    if (onSuccess) onSuccess(data);
+                                    else window.location.reload();
+                                } else {
+                                    let errorMsg = data.message || 'An error occurred.';
+                                    if (data.errors && Array.isArray(data.errors)) {
+                                        errorMsg += '\n' + data.errors.join('\n');
+                                    }
+                                    if (typeof showCoolPopup === 'function') {
+                                        showCoolPopup('Error', errorMsg, 'error');
+                                    } else {
+                                        alert(errorMsg);
+                                    }
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                if (typeof showCoolPopup === 'function') {
+                                    showCoolPopup('Error', 'A network error occurred.', 'error');
+                                } else {
+                                    alert('A network error occurred.');
+                                }
+                            })
+                            .finally(() => {
+                                submitBtn.innerHTML = originalBtnHtml;
+                                submitBtn.disabled = false;
+                            });
+                        });
+                    }
+
+                    // Attach AJAX handlers
+                    if (document.getElementById('user-add-form')) handleAjaxSubmit(document.getElementById('user-add-form'));
+                    if (document.getElementById('user-edit-form')) handleAjaxSubmit(document.getElementById('user-edit-form'));
+                    if (document.getElementById('profile-edit-form')) handleAjaxSubmit(document.getElementById('profile-edit-form'));
+                    if (document.getElementById('onboarding-edit-form')) handleAjaxSubmit(document.getElementById('onboarding-edit-form'));
+
+                    // Handle Delete via AJAX
+                    if (viewDeleteForm) {
+                        viewDeleteForm.onsubmit = function(e) {
+                            e.preventDefault();
+                            if (!confirm('Are you sure you want to delete this user?')) return;
+
+                            const deleteBtn = viewDeleteForm.querySelector('button[type="submit"]');
+                            const originalBtnHtml = deleteBtn.innerHTML;
+                            deleteBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Deleting...';
+                            deleteBtn.disabled = true;
+
+                            fetch(viewDeleteForm.action, {
+                                method: 'POST',
+                                body: new FormData(viewDeleteForm),
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    if (typeof showCoolPopup === 'function') {
+                                        showCoolPopup('Deleted', data.message, 'success');
+                                    }
+                                    window.location.reload();
+                                } else {
+                                    alert(data.message || 'Delete failed.');
+                                }
+                            })
+                            .catch(error => alert('A network error occurred.'))
+                            .finally(() => {
+                                deleteBtn.innerHTML = originalBtnHtml;
+                                deleteBtn.disabled = false;
+                            });
+                        };
+                    }
                 });
             </script>
             <style>
                 /* Removed legacy/duplicate CSS block to allow Liquid Glass styles to apply correctly */
             </style>
-        </div>
         <div class="users-page-content" data-page="2" style="display:none;">
-            <div class="liquid-glass-table-container">
-                <h3 style="margin-bottom:1.5rem;">Profile</h3>
-                <div class="liquid-glass-table-scroll">
-                    <table class="liquid-glass-table" id="profile-table">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Avatar</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="profile-table-body">
-                            {% for p in profiles|default([]) %}
-                             <tr>
-                                <td>{{ p.user ? (p.user.firstName ~ ' ' ~ p.user.lastName) : '—' }}{% if p.user %} <small style="display: block; opacity: 0.7;">{{ p.user.emailUser }}</small>{% endif %}</td>
-                                <td>
-                                    <div class="profile-avatar-container">
-                                        {% if p.avatar %}
-                                            <img src="{{ asset(p.avatar) }}" alt="Avatar" class="profile-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                            <div class="profile-avatar-placeholder" style="display: none;"><i class="bx bx-user"></i></div>
-                                        {% else %}
-                                            <div class="profile-avatar-placeholder"><i class="bx bx-user"></i></div>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                                <td>
-                                    <button type="button" class="users-btn-view-details profile-view-btn users-btn-add-db" 
-                                            data-profile-id="{{ p.idProfile }}" 
-                                            data-avatar-url="{{ p.avatar ? asset(p.avatar) : '' }}"
-                                            style="padding: 0.35rem 1.25rem; font-size: 0.9rem;" title="View profile details">
-                                        <i class="bx bx-show"></i> View Details
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="users-page-content" data-page="3" style="display:none;">
-            <div class="liquid-glass-table-container">
-                <h3 style="margin-bottom:1.5rem;">Onboarding</h3>
-                <div class="liquid-glass-table-scroll">
-                    <table class="liquid-glass-table" id="onboarding-table">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Status</th>
-                                <th>Locale / Theme</th>
-                                <th>Started</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="onboarding-table-body">
-                            {% for o in onboardings|default([]) %}
-                            <tr>
-                                <td>{{ o.user ? (o.user.firstName ~ ' ' ~ o.user.lastName) : '—' }}{% if o.user %} <small style="display: block; opacity: 0.7;">{{ o.user.emailUser }}</small>{% endif %}</td>
-                                <td>
-                                    {% if o.completed %}
-                                        <span class="users-view-status-badge verified">Completed</span>
-                                    {% else %}
-                                        <span class="users-view-status-badge pending">Step {{ o.step }}/7</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div style="display: flex; flex-direction: column; gap: 0.2rem; align-items: center;">
-                                        <span style="font-size: 0.85rem; opacity: 0.9;">{{ o.selectedLocale|upper }}</span>
-                                        <span style="font-size: 0.8rem; opacity: 0.7;">{{ o.selectedTheme|capitalize }}</span>
-                                    </div>
-                                </td>
-                                <td>{{ o.startedAt ? o.startedAt|date('Y-m-d H:i') : '—' }}</td>
-                                <td>
-                                    <button type="button" class="users-btn-view-details onboarding-view-btn users-btn-add-db" 
-                                            data-onboarding-id="{{ o.idOnboarding }}"
-                                            style="padding: 0.35rem 1.25rem; font-size: 0.9rem;" title="View onboarding details">
-                                        <i class="bx bx-show"></i> View Details
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+            <div class="glass-table-container">
+                <div id="profileGlassSwitcher" class="glass-switcher style-flip">
+                    <div class="glass-switcher-face glass-switcher-face-main">
+                        <div class="glass-toolbar" style="margin-bottom: 1.5rem;">
+                            <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Profile</h3>
+                        </div>
+                        <div class="glass-table-scroll">
+                            <table class="glass-table" id="profile-table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Avatar</th>
+                                        <th style="text-align: right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profile-table-body">
+                                    {% for p in profiles|default([]) %}
+                                     <tr>
+                                        <td>{{ p.user ? (p.user.firstName ~ ' ' ~ p.user.lastName) : '—' }}{% if p.user %} <small style="display: block; opacity: 0.7;">{{ p.user.emailUser }}</small>{% endif %}</td>
+                                        <td>
+                                            <div class="profile-avatar-container">
+                                                {% if p.avatar %}
+                                                    <img src="{{ asset(p.avatar) }}" alt="Avatar" class="profile-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                    <div class="profile-avatar-placeholder" style="display: none;"><i class="bx bx-user"></i></div>
+                                                {% else %}
+                                                    <div class="profile-avatar-placeholder"><i class="bx bx-user"></i></div>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <button type="button" class="glass-btn-save profile-view-btn" 
+                                                    data-profile-id="{{ p.idProfile }}" 
+                                                    data-avatar-url="{{ p.avatar ? asset(p.avatar) : '' }}"
+                                                    style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" title="View profile details">
+                                                <i class="bx bx-show"></i> Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                </div><!-- End Face Main -->
 
-        <!-- View Profile Details modal -->
-        <div id="profile-view-modal" class="users-edit-modal" style="display: none;">
-            <div class="users-edit-modal-backdrop"></div>
-            <div class="users-edit-modal-card">
-                <div class="users-edit-modal-header">
-                    <div>
-                        <h3>Profile Details</h3>
-                        <p class="users-edit-modal-subtitle">Comprehensive profile information</p>
-                    </div>
-                    <button type="button" class="users-edit-modal-close" id="profile-view-modal-close" aria-label="Close">&times;</button>
-                </div>
-                <div class="users-edit-modal-body">
-                    <div class="users-view-details">
-                        <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
-                            <div class="profile-avatar-container" style="width: 80px; height: 80px;">
-                                <img id="view-profile-avatar-img" src="" alt="Avatar" class="profile-avatar-img" style="width: 80px; height: 80px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                <div id="view-profile-avatar-placeholder" class="profile-avatar-placeholder" style="width: 80px; height: 80px; font-size: 2.5rem;"><i class="bx bx-user"></i></div>
+                <div class="glass-switcher-face glass-switcher-face-details">
+                    <!-- View Profile Details modal -->
+                    <div id="profile-view-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div>
+                                    <h3>Profile Details</h3>
+                                    <p class="users-edit-modal-subtitle">Comprehensive profile information</p>
+                                </div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('profile-view-modal')" aria-label="Close">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                <div class="users-view-details">
+                                    <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+                                        <div class="profile-avatar-container" style="width: 80px; height: 80px;">
+                                            <img id="view-profile-avatar-img" src="" alt="Avatar" class="profile-avatar-img" style="width: 80px; height: 80px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div id="view-profile-avatar-placeholder" class="profile-avatar-placeholder" style="width: 80px; height: 80px; font-size: 2.5rem;"><i class="bx bx-user"></i></div>
+                                        </div>
+                                    </div>
+                                    <div class="users-view-row">
+                                        <div class="users-view-label">User</div>
+                                        <div class="users-view-value" id="view-profile-user-name">-</div>
+                                    </div>
+                                    <div class="users-view-row">
+                                        <div class="users-view-label">Email</div>
+                                        <div class="users-view-value" id="view-profile-user-email">-</div>
+                                    </div>
+                                    <div class="users-view-row">
+                                        <div class="users-view-label">Theme</div>
+                                        <div class="users-view-value" id="view-profile-theme">-</div>
+                                    </div>
+                                    <div class="users-view-row">
+                                        <div class="users-view-label">Locale</div>
+                                        <div class="users-view-value" id="view-profile-locale">-</div>
+                                    </div>
+                                    <div class="users-view-row">
+                                        <div class="users-view-label">Timezone</div>
+                                        <div class="users-view-value" id="view-profile-timezone">-</div>
+                                    </div>
+                                    <div class="users-view-row" style="flex-direction: column; align-items: flex-start;">
+                                        <div class="users-view-label" style="margin-bottom: 0.5rem;">Description</div>
+                                        <div class="users-view-value" id="view-profile-description" style="line-height: 1.5; color: rgba(255,255,255,0.7);">—</div>
+                                    </div>
+                                </div>
+                                <div class="users-view-modal-actions" style="margin-top: 2rem;">
+                                    <button type="button" class="users-btn-modify" id="view-profile-modify-btn">
+                                        <i class="bx bx-edit"></i> Modify
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <div class="users-view-row">
-                            <div class="users-view-label">User</div>
-                            <div class="users-view-value" id="view-profile-user-name">-</div>
-                        </div>
-                        <div class="users-view-row">
-                            <div class="users-view-label">Email</div>
-                            <div class="users-view-value" id="view-profile-user-email">-</div>
-                        </div>
-                        <div class="users-view-row">
-                            <div class="users-view-label">Theme</div>
-                            <div class="users-view-value" id="view-profile-theme">-</div>
-                        </div>
-                        <div class="users-view-row">
-                            <div class="users-view-label">Locale</div>
-                            <div class="users-view-value" id="view-profile-locale">-</div>
-                        </div>
-                        <div class="users-view-row">
-                            <div class="users-view-label">Timezone</div>
-                            <div class="users-view-value" id="view-profile-timezone">-</div>
-                        </div>
-                        <div class="users-view-row" style="flex-direction: column; align-items: flex-start;">
-                            <div class="users-view-label" style="margin-bottom: 0.5rem;">Description</div>
-                            <div class="users-view-value" id="view-profile-description" style="line-height: 1.5; color: rgba(255,255,255,0.7);">—</div>
-                        </div>
                     </div>
-                    <div class="users-view-modal-actions" style="margin-top: 2rem;">
-                        <button type="button" class="users-btn-modify" id="view-profile-modify-btn">
-                            <i class="bx bx-edit"></i> Modify
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+                </div><!-- End Face Details -->
 
-        <!-- Onboarding View Modal -->
-        <div id="onboarding-view-modal" class="users-edit-modal" style="display: none;">
-            <div class="users-edit-modal-backdrop"></div>
-            <div class="users-edit-modal-card">
-                <div class="users-edit-modal-header">
-                    <div>
-                        <h3>Onboarding Details</h3>
-                        <p class="users-edit-modal-subtitle">Comprehensive onboarding information</p>
-                    </div>
-                    <button type="button" class="users-edit-modal-close" id="onboarding-view-modal-close" aria-label="Close">&times;</button>
-                </div>
-                <div class="users-edit-modal-body">
-                    <div class="users-view-details">
-                        <div class="users-view-row">
-                            <div class="users-view-label">User</div>
-                            <div class="users-view-value" id="view-ob-user-name">—</div>
-                        </div>
-                        <div class="users-view-row">
-                            <div class="users-view-label">Email</div>
-                            <div class="users-view-value" id="view-ob-user-email">—</div>
-                        </div>
-                        <div class="users-view-row">
-                            <div class="users-view-label">Progress</div>
-                            <div class="users-view-value"><span id="view-ob-status" class="users-view-status-badge pending">—</span></div>
-                        </div>
-                        <div class="users-view-row">
-                            <div class="users-view-label">Locale</div>
-                            <div class="users-view-value" id="view-ob-locale">—</div>
-                        </div>
-                        <div class="users-view-row">
-                            <div class="users-view-label">Theme</div>
-                            <div class="users-view-value" id="view-ob-theme">—</div>
-                        </div>
-                        <div class="users-view-row">
-                            <div class="users-view-label">Suggestions</div>
-                            <div class="users-view-value" id="view-ob-suggestions">—</div>
-                        </div>
-                        <div class="users-view-row" style="flex-direction: column; align-items: flex-start;">
-                            <div class="users-view-label" style="margin-bottom: 0.5rem;">Preferences</div>
-                            <div class="users-view-value" id="view-ob-prefs" style="line-height: 1.5; color: rgba(255,255,255,0.7); white-space: pre-line;">—</div>
+                <div class="glass-switcher-face glass-switcher-face-edit">
+                    <!-- Edit Profile modal -->
+                    <div id="profile-edit-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div>
+                                    <h3>Edit Profile</h3>
+                                    <p class="users-edit-modal-subtitle">Edit profile fields for this user.</p>
+                                </div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('profile-edit-modal')" aria-label="Close">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                {% if profileEditForm is defined %}
+                                {{ form_start(profileEditForm, { 'attr': {
+                                    'id': 'profile-edit-form',
+                                    'method': 'post',
+                                    'action': '',
+                                    'class': 'users-edit-form',
+                                    'data-ajax': 'true',
+                                    'data-form-name': profileEditForm.vars.name
+                                } }) }}
+                                {{ form_row(profileEditForm.avatarFile, { 'row_attr': { 'class': 'mb-3' } }) }}
+                                {{ form_row(profileEditForm.description_profile, { 'row_attr': { 'class': 'mb-3' } }) }}
+                                {{ form_row(profileEditForm.theme, { 'row_attr': { 'class': 'mb-3' } }) }}
+                                {{ form_row(profileEditForm.locale, { 'row_attr': { 'class': 'mb-3' } }) }}
+                                {{ form_row(profileEditForm.timezone, { 'row_attr': { 'class': 'mb-3' } }) }}
+                                <div class="users-edit-modal-actions">
+                                    <button type="button" class="users-btn-cancel" onclick="closeModal('profile-edit-modal')">Cancel</button>
+                                    <span class="users-edit-modal-actions-spacer"></span>
+                                    <button type="submit" class="users-btn-modify">Save changes</button>
+                                </div>
+                                {{ form_end(profileEditForm) }}
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-                    <div class="users-view-modal-actions" style="margin-top: 2rem;">
-                        <button type="button" class="users-btn-modify" id="view-ob-modify-btn">
-                            <i class="bx bx-edit"></i> Modify
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+                </div><!-- End Face Edit -->
+            </div><!-- End #profileGlassSwitcher -->
+        </div><!-- End .glass-table-container -->
+    </div>
 
-        <!-- Edit Profile modal (outside page divs so it's visible when opened from Page 2) -->
-        <div id="profile-edit-modal" class="users-edit-modal" style="display: none;">
-            <div class="users-edit-modal-backdrop"></div>
-            <div class="users-edit-modal-card">
-                <div class="users-edit-modal-header">
-                    <div>
-                        <h3>Edit Profile</h3>
-                        <p class="users-edit-modal-subtitle">Edit profile fields for this user.</p>
+    <div class="users-page-content" data-page="3" style="display:none;">
+        <div class="glass-table-container">
+            <div id="onboardingGlassSwitcher" class="glass-switcher style-flip">
+                <div class="glass-switcher-face glass-switcher-face-main">
+                    <div class="glass-toolbar" style="margin-bottom: 1.5rem;">
+                        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Onboarding</h3>
                     </div>
-                    <button type="button" class="users-edit-modal-close" id="profile-edit-modal-close" aria-label="Close">&times;</button>
-                </div>
-                <div class="users-edit-modal-body">
-                    {% if profileEditForm is defined %}
-                    {{ form_start(profileEditForm, { 'attr': {
-                        'id': 'profile-edit-form',
-                        'method': 'post',
-                        'action': '',
-                        'class': 'users-edit-form',
-                        'data-form-name': profileEditForm.vars.name
-                    } }) }}
-                    {{ form_row(profileEditForm.avatar, { 'row_attr': { 'class': 'mb-3' } }) }}
-                    {{ form_row(profileEditForm.description_profile, { 'row_attr': { 'class': 'mb-3' } }) }}
-                    {{ form_row(profileEditForm.theme, { 'row_attr': { 'class': 'mb-3' } }) }}
-                    {{ form_row(profileEditForm.locale, { 'row_attr': { 'class': 'mb-3' } }) }}
-                    {{ form_row(profileEditForm.timezone, { 'row_attr': { 'class': 'mb-3' } }) }}
-                    <div class="users-edit-modal-actions">
-                        <button type="button" class="users-btn-cancel" id="profile-edit-modal-cancel">Cancel</button>
-                        <span class="users-edit-modal-actions-spacer"></span>
-                        <button type="submit" class="users-btn-modify">Save changes</button>
-                    </div>
-                    {{ form_end(profileEditForm) }}
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Edit Onboarding modal (Page 3) - same 7-step wizard as profile -->
-        <div id="onboarding-edit-modal" class="users-edit-modal" style="display: none;">
-            <div class="users-edit-modal-backdrop"></div>
-            <div class="users-edit-modal-card onboarding-edit-modal-card">
-                <div class="users-edit-modal-header">
-                    <div>
-                        <h3>Modify onboarding choices</h3>
-                        <p class="users-edit-modal-subtitle">Update language, theme, preferences and suggestions.</p>
-                    </div>
-                    <button type="button" class="users-edit-modal-close" id="onboarding-edit-modal-close" aria-label="Close">&times;</button>
-                </div>
-                <div class="users-edit-modal-body">
-                    {% if onboardingEditForm is defined %}
-                    {{ form_start(onboardingEditForm, { 'attr': {
-                        'id': 'onboarding-edit-form',
-                        'method': 'post',
-                        'action': path('admin_onboarding_edit', {id: 0}),
-                        'class': 'users-edit-form',
-                        'data-form-name': onboardingEditForm.vars.name
-                    } }) }}
-                    <div class="ob-progress ob-progress-admin" id="admin-ob-progress">{% for i in 1..7 %}<div class="ob-dot" data-step="{{ i }}"></div>{% endfor %}</div>
-
-                    <div id="admin-ob-step-1" class="ob-step ob-step-visible">
-                        <div class="ob-section"><span class="ob-label">Language</span>
-                            <div class="ob-options"><div class="ob-opt"><input type="radio" name="ob_locale_radio" id="admin_ob_locale_fr" value="fr"><label for="admin_ob_locale_fr">🇫🇷 Français</label></div><div class="ob-opt"><input type="radio" name="ob_locale_radio" id="admin_ob_locale_en" value="en"><label for="admin_ob_locale_en">🇺🇸 English</label></div><div class="ob-opt"><input type="radio" name="ob_locale_radio" id="admin_ob_locale_ar" value="ar"><label for="admin_ob_locale_ar">🇸🇦 العربية</label></div><div class="ob-opt"><input type="radio" name="ob_locale_radio" id="admin_ob_locale_fr_ar" value="fr_ar"><label for="admin_ob_locale_fr_ar">🇫🇷🇸🇦 Bilingue FR/AR</label></div></div>
+                    <div class="glass-table-scroll">
+                            <table class="glass-table" id="onboarding-table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Status</th>
+                                        <th>Locale / Theme</th>
+                                        <th>Started</th>
+                                        <th style="text-align: right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="onboarding-table-body">
+                                    {% for o in onboardings|default([]) %}
+                                    <tr>
+                                        <td>{{ o.user ? (o.user.firstName ~ ' ' ~ o.user.lastName) : '—' }}{% if o.user %} <small style="display: block; opacity: 0.7;">{{ o.user.emailUser }}</small>{% endif %}</td>
+                                        <td>
+                                            {% if o.completed %}
+                                                <span class="users-view-status-badge verified">Completed</span>
+                                            {% else %}
+                                                <span class="users-view-status-badge pending">Step {{ o.step }}/7</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div style="display: flex; flex-direction: column; gap: 0.2rem; align-items: center;">
+                                                <span style="font-size: 0.85rem; opacity: 0.9;">{{ o.selectedLocale|upper }}</span>
+                                                <span style="font-size: 0.8rem; opacity: 0.7;">{{ o.selectedTheme|capitalize }}</span>
+                                            </div>
+                                        </td>
+                                        <td>{{ o.startedAt ? o.startedAt|date('Y-m-d H:i') : '—' }}</td>
+                                        <td style="text-align: right;">
+                                            <button type="button" class="glass-btn-save onboarding-view-btn" 
+                                                    data-onboarding-id="{{ o.idOnboarding }}"
+                                                    style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" title="View onboarding details">
+                                                <i class="bx bx-show"></i> Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="ob-section"><span class="ob-label">Theme</span>
-                            <div class="ob-options"><div class="ob-opt"><input type="radio" name="ob_theme_radio" id="admin_ob_theme_light" value="light"><label for="admin_ob_theme_light">☀️ Light</label></div><div class="ob-opt"><input type="radio" name="ob_theme_radio" id="admin_ob_theme_dark" value="dark"><label for="admin_ob_theme_dark">🌙 Dark</label></div></div>
+                </div><!-- End Face Main -->
+
+                <div class="glass-switcher-face glass-switcher-face-details">
+                    <!-- Onboarding View Modal -->
+                    <div id="onboarding-view-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div>
+                                    <h3>Onboarding Details</h3>
+                                    <p class="users-edit-modal-subtitle">Comprehensive onboarding information</p>
+                                </div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('onboarding-view-modal')" aria-label="Close">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                <div class="users-view-details">
+                                    <div class="users-view-row">
+                                        <div class="users-view-label">User</div>
+                                        <div class="users-view-value" id="view-ob-user-name">—</div>
+                                    </div>
+                                    <div class="users-view-row">
+                                        <div class="users-view-label">Email</div>
+                                        <div class="users-view-value" id="view-ob-user-email">—</div>
+                                    </div>
+                                    <div class="users-view-row">
+                                        <div class="users-view-label">Progress</div>
+                                        <div class="users-view-value"><span id="view-ob-status" class="users-view-status-badge pending">—</span></div>
+                                    </div>
+                                    <div class="users-view-row">
+                                        <div class="users-view-label">Locale</div>
+                                        <div class="users-view-value" id="view-ob-locale">—</div>
+                                    </div>
+                                    <div class="users-view-row">
+                                        <div class="users-view-label">Theme</div>
+                                        <div class="users-view-value" id="view-ob-theme">—</div>
+                                    </div>
+                                    <div class="users-view-row">
+                                        <div class="users-view-label">Suggestions</div>
+                                        <div class="users-view-value" id="view-ob-suggestions">—</div>
+                                    </div>
+                                    <div class="users-view-row" style="flex-direction: column; align-items: flex-start;">
+                                        <div class="users-view-label" style="margin-bottom: 0.5rem;">Preferences</div>
+                                        <div class="users-view-value" id="view-ob-prefs" style="line-height: 1.5; color: rgba(255,255,255,0.7); white-space: pre-line;">—</div>
+                                    </div>
+                                </div>
+                                <div class="users-view-modal-actions" style="margin-top: 2rem;">
+                                    <button type="button" class="users-btn-modify" id="view-ob-modify-btn">
+                                        <i class="bx bx-edit"></i> Modify
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div id="admin-ob-step-2" class="ob-step">
-                        <div class="ob-section"><span class="ob-label">Notification channel</span><div class="ob-options">{% for val, label in {'EMAIL':'📧 Email','SMS':'📱 SMS','IN_APP':'🔔 In app','ALL':'📬 All','NONE':'🔕 None'} %}<div class="ob-opt"><input type="radio" name="prefs[notification_channel]" id="admin_ob_nc_{{ val }}" value="{{ val }}"><label for="admin_ob_nc_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                        <div class="ob-section"><span class="ob-label">Frequency</span><div class="ob-options">{% for val, label in {'INSTANT':'Instant','DAILY_DIGEST':'Daily','WEEKLY_DIGEST':'Weekly','MONTHLY':'Monthly','IMPORTANT_ONLY':'Important only'} %}<div class="ob-opt"><input type="radio" name="prefs[notification_frequency]" id="admin_ob_nf_{{ val }}" value="{{ val }}"><label for="admin_ob_nf_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                    </div>
-                    <div id="admin-ob-step-3" class="ob-step">
-                        <div class="ob-section"><span class="ob-label">Property type</span><div class="ob-options">{% for val, label in {'APARTMENT':'Apartment','STUDIO':'Studio','DUPLEX':'Duplex'} %}<div class="ob-opt"><input type="radio" name="prefs[property_type]" id="admin_ob_pt_{{ val }}" value="{{ val }}"><label for="admin_ob_pt_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                        <div class="ob-section"><span class="ob-label">Occupancy</span><div class="ob-options">{% for val, label in {'OWNER_OCCUPIED':'Owner','OWNER_RENTING':'Landlord','TENANT':'Tenant','TEMPORARY':'Temporary'} %}<div class="ob-opt"><input type="radio" name="prefs[occupancy_status]" id="admin_ob_os_{{ val }}" value="{{ val }}"><label for="admin_ob_os_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                        <div class="ob-section"><span class="ob-label">Parking</span><div class="ob-options">{% for val, label in {'NONE':'None','OUTDOOR':'Outdoor','COVERED':'Covered','UNDERGROUND':'Underground','MULTIPLE':'Multiple'} %}<div class="ob-opt"><input type="radio" name="prefs[parking_type]" id="admin_ob_pk_{{ val }}" value="{{ val }}"><label for="admin_ob_pk_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                    </div>
-                    <div id="admin-ob-step-4" class="ob-step">
-                        <div class="ob-section"><span class="ob-label">Meeting participation</span><div class="ob-options">{% for val, label in {'IN_PERSON':'In person','ONLINE':'Online','HYBRID':'Hybrid','PROXY_ONLY':'Proxy only'} %}<div class="ob-opt"><input type="radio" name="prefs[meeting_participation]" id="admin_ob_mp_{{ val }}" value="{{ val }}"><label for="admin_ob_mp_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                        <div class="ob-section"><span class="ob-label">Documents</span><div class="ob-options">{% for val, label in {'DIGITAL':'Digital','PAPER':'Paper','BOTH':'Both','ECO_FRIENDLY':'Eco-friendly'} %}<div class="ob-opt"><input type="radio" name="prefs[document_delivery]" id="admin_ob_dd_{{ val }}" value="{{ val }}"><label for="admin_ob_dd_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                        <div class="ob-section"><span class="ob-label">Contact preference</span><div class="ob-options">{% for val, label in {'EMAIL':'Email','PHONE':'Phone','WHATSAPP':'WhatsApp','IN_PERSON':'In person','NO_CONTACT':'Urgency only'} %}<div class="ob-opt"><input type="radio" name="prefs[contact_preference]" id="admin_ob_cp_{{ val }}" value="{{ val }}"><label for="admin_ob_cp_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                    </div>
-                    <div id="admin-ob-step-5" class="ob-step">
-                        <div class="ob-section"><span class="ob-label">Maintenance</span><div class="ob-options">{% for val, label in {'URGENT_ONLY':'Urgent only','PREVENTIVE':'Preventive','SCHEDULED':'Scheduled','FLEXIBLE':'Flexible'} %}<div class="ob-opt"><input type="radio" name="prefs[maintenance_priority]" id="admin_ob_mt_{{ val }}" value="{{ val }}"><label for="admin_ob_mt_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                        <div class="ob-section"><span class="ob-label">Community engagement</span><div class="ob-options">{% for val, label in {'VERY_ACTIVE':'Very active','ACTIVE':'Active','MODERATE':'Moderate','OBSERVER':'Observer','MINIMAL':'Minimal'} %}<div class="ob-opt"><input type="radio" name="prefs[community_engagement]" id="admin_ob_ce_{{ val }}" value="{{ val }}"><label for="admin_ob_ce_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                    </div>
-                    <div id="admin-ob-step-6" class="ob-step">
-                        <div class="ob-section"><span class="ob-label">Payment</span><div class="ob-options">{% for val, label in {'BANK_TRANSFER':'Transfer','CASH':'Cash','CHECK':'Check','ONLINE':'Online','AUTO_DEBIT':'Auto debit'} %}<div class="ob-opt"><input type="radio" name="prefs[payment_method_preference]" id="admin_ob_pm_{{ val }}" value="{{ val }}"><label for="admin_ob_pm_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                        <div class="ob-section"><span class="ob-label">Noise sensitivity</span><div class="ob-options">{% for val, label in {'HIGH':'High','MODERATE':'Moderate','LOW':'Low','NOT_CONCERNED':'Not concerned'} %}<div class="ob-opt"><input type="radio" name="prefs[noise_sensitivity]" id="admin_ob_ns_{{ val }}" value="{{ val }}"><label for="admin_ob_ns_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                        <div class="ob-section"><span class="ob-label">Pets</span><div class="ob-options">{% for val, label in {'NO_PETS':'None','CAT':'Cat','DOG':'Dog','MULTIPLE':'Multiple','OTHER':'Other'} %}<div class="ob-opt"><input type="radio" name="prefs[pets_status]" id="admin_ob_ps_{{ val }}" value="{{ val }}"><label for="admin_ob_ps_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                        <div class="ob-section"><span class="ob-label">Accessibility</span><div class="ob-options">{% for val, label in {'NONE':'None','ELEVATOR_REQUIRED':'Elevator','WHEELCHAIR':'Wheelchair','VISUAL_IMPAIRMENT':'Visual','OTHER':'Other'} %}<div class="ob-opt"><input type="radio" name="prefs[accessibility_needs]" id="admin_ob_an_{{ val }}" value="{{ val }}"><label for="admin_ob_an_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
-                    </div>
-                    <div id="admin-ob-step-7" class="ob-step">
-                        <div class="ob-section"><span class="ob-label">Suggestions (optional)</span>{{ form_widget(onboardingEditForm.suggestions, { 'attr': { 'class': 'ob-textarea' } }) }}</div>
-                        <div class="ob-section"><span class="ob-label">Step</span>{{ form_widget(onboardingEditForm.step) }}</div>
-                        <div class="ob-section"><span class="ob-label">Completed</span>{{ form_widget(onboardingEditForm.completed) }}</div>
-                    </div>
+                </div><!-- End Face Details -->
 
-                    <div class="ob-select-hidden" aria-hidden="true">{{ form_widget(onboardingEditForm.selectedLocale) }}{{ form_widget(onboardingEditForm.selectedTheme) }}</div>
+                <div class="glass-switcher-face glass-switcher-face-edit">
+                    <!-- Edit Onboarding modal -->
+                    <div id="onboarding-edit-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card onboarding-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div>
+                                    <h3>Modify onboarding choices</h3>
+                                    <p class="users-edit-modal-subtitle">Update language, theme, preferences and suggestions.</p>
+                                </div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('onboarding-edit-modal')" aria-label="Close">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                {% if onboardingEditForm is defined %}
+                                {{ form_start(onboardingEditForm, { 'attr': {
+                                    'id': 'onboarding-edit-form',
+                                    'method': 'post',
+                                    'action': path('admin_onboarding_edit', {id: 0}),
+                                    'class': 'users-edit-form',
+                                    'data-form-name': onboardingEditForm.vars.name
+                                } }) }}
+                                <div class="ob-progress ob-progress-admin" id="admin-ob-progress">{% for i in 1..7 %}<div class="ob-dot" data-step="{{ i }}"></div>{% endfor %}</div>
 
-                    <div class="ob-actions">
-                        <button type="button" class="ob-btn ob-btn-prev" id="admin-ob-prev" style="visibility:hidden;"><i class="bx bx-chevron-left"></i> Previous</button>
-                        <div style="flex:1;"></div>
-                        <button type="button" class="ob-btn ob-btn-next" id="admin-ob-next">Next <i class="bx bx-chevron-right"></i></button>
-                        <button type="submit" class="ob-btn ob-btn-next" id="admin-ob-submit" style="display:none;">Save changes <i class="bx bx-check"></i></button>
+                                <div id="admin-ob-step-1" class="ob-step ob-step-visible">
+                                    <div class="ob-section"><span class="ob-label">Language</span>
+                                        <div class="ob-options"><div class="ob-opt"><input type="radio" name="ob_locale_radio" id="admin_ob_locale_fr" value="fr"><label for="admin_ob_locale_fr">🇫🇷 Français</label></div><div class="ob-opt"><input type="radio" name="ob_locale_radio" id="admin_ob_locale_en" value="en"><label for="admin_ob_locale_en">🇺🇸 English</label></div><div class="ob-opt"><input type="radio" name="ob_locale_radio" id="admin_ob_locale_ar" value="ar"><label for="admin_ob_locale_ar">🇸🇦 العربية</label></div><div class="ob-opt"><input type="radio" name="ob_locale_radio" id="admin_ob_locale_fr_ar" value="fr_ar"><label for="admin_ob_locale_fr_ar">🇫🇷🇸🇦 Bilingue FR/AR</label></div></div>
+                                    </div>
+                                    <div class="ob-section"><span class="ob-label">Theme</span>
+                                        <div class="ob-options"><div class="ob-opt"><input type="radio" name="ob_theme_radio" id="admin_ob_theme_light" value="light"><label for="admin_ob_theme_light">☀️ Light</label></div><div class="ob-opt"><input type="radio" name="ob_theme_radio" id="admin_ob_theme_dark" value="dark"><label for="admin_ob_theme_dark">🌙 Dark</label></div></div>
+                                    </div>
+                                </div>
+                                <div id="admin-ob-step-2" class="ob-step">
+                                    <div class="ob-section"><span class="ob-label">Notification channel</span><div class="ob-options">{% for val, label in {'EMAIL':'📧 Email','SMS':'📱 SMS','IN_APP':'🔔 In app','ALL':'📬 All','NONE':'🔕 None'} %}<div class="ob-opt"><input type="radio" name="prefs[notification_channel]" id="admin_ob_nc_{{ val }}" value="{{ val }}"><label for="admin_ob_nc_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                    <div class="ob-section"><span class="ob-label">Frequency</span><div class="ob-options">{% for val, label in {'INSTANT':'Instant','DAILY_DIGEST':'Daily','WEEKLY_DIGEST':'Weekly','MONTHLY':'Monthly','IMPORTANT_ONLY':'Important only'} %}<div class="ob-opt"><input type="radio" name="prefs[notification_frequency]" id="admin_ob_nf_{{ val }}" value="{{ val }}"><label for="admin_ob_nf_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                </div>
+                                <div id="admin-ob-step-3" class="ob-step">
+                                    <div class="ob-section"><span class="ob-label">Property type</span><div class="ob-options">{% for val, label in {'APARTMENT':'Apartment','STUDIO':'Studio','DUPLEX':'Duplex'} %}<div class="ob-opt"><input type="radio" name="prefs[property_type]" id="admin_ob_pt_{{ val }}" value="{{ val }}"><label for="admin_ob_pt_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                    <div class="ob-section"><span class="ob-label">Occupancy</span><div class="ob-options">{% for val, label in {'OWNER_OCCUPIED':'Owner','OWNER_RENTING':'Landlord','TENANT':'Tenant','TEMPORARY':'Temporary'} %}<div class="ob-opt"><input type="radio" name="prefs[occupancy_status]" id="admin_ob_os_{{ val }}" value="{{ val }}"><label for="admin_ob_os_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                    <div class="ob-section"><span class="ob-label">Parking</span><div class="ob-options">{% for val, label in {'NONE':'None','OUTDOOR':'Outdoor','COVERED':'Covered','UNDERGROUND':'Underground','MULTIPLE':'Multiple'} %}<div class="ob-opt"><input type="radio" name="prefs[parking_type]" id="admin_ob_pk_{{ val }}" value="{{ val }}"><label for="admin_ob_pk_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                </div>
+                                <div id="admin-ob-step-4" class="ob-step">
+                                    <div class="ob-section"><span class="ob-label">Meeting participation</span><div class="ob-options">{% for val, label in {'IN_PERSON':'In person','ONLINE':'Online','HYBRID':'Hybrid','PROXY_ONLY':'Proxy only'} %}<div class="ob-opt"><input type="radio" name="prefs[meeting_participation]" id="admin_ob_mp_{{ val }}" value="{{ val }}"><label for="admin_ob_mp_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                    <div class="ob-section"><span class="ob-label">Documents</span><div class="ob-options">{% for val, label in {'DIGITAL':'Digital','PAPER':'Paper','BOTH':'Both','ECO_FRIENDLY':'Eco-friendly'} %}<div class="ob-opt"><input type="radio" name="prefs[document_delivery]" id="admin_ob_dd_{{ val }}" value="{{ val }}"><label for="admin_ob_dd_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                    <div class="ob-section"><span class="ob-label">Contact preference</span><div class="ob-options">{% for val, label in {'EMAIL':'Email','PHONE':'Phone','WHATSAPP':'WhatsApp','IN_PERSON':'In person','NO_CONTACT':'Urgency only'} %}<div class="ob-opt"><input type="radio" name="prefs[contact_preference]" id="admin_ob_cp_{{ val }}" value="{{ val }}"><label for="admin_ob_cp_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                </div>
+                                <div id="admin-ob-step-5" class="ob-step">
+                                    <div class="ob-section"><span class="ob-label">Maintenance</span><div class="ob-options">{% for val, label in {'URGENT_ONLY':'Urgent only','PREVENTIVE':'Preventive','SCHEDULED':'Scheduled','FLEXIBLE':'Flexible'} %}<div class="ob-opt"><input type="radio" name="prefs[maintenance_priority]" id="admin_ob_mt_{{ val }}" value="{{ val }}"><label for="admin_ob_mt_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                    <div class="ob-section"><span class="ob-label">Community engagement</span><div class="ob-options">{% for val, label in {'VERY_ACTIVE':'Very active','ACTIVE':'Active','MODERATE':'Moderate','OBSERVER':'Observer','MINIMAL':'Minimal'} %}<div class="ob-opt"><input type="radio" name="prefs[community_engagement]" id="admin_ob_ce_{{ val }}" value="{{ val }}"><label for="admin_ob_ce_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                </div>
+                                <div id="admin-ob-step-6" class="ob-step">
+                                    <div class="ob-section"><span class="ob-label">Payment</span><div class="ob-options">{% for val, label in {' BANK_TRANSFER':'Transfer','CASH':'Cash','CHECK':'Check','ONLINE':'Online','AUTO_DEBIT':'Auto debit'} %}<div class="ob-opt"><input type="radio" name="prefs[payment_method_preference]" id="admin_ob_pm_{{ val }}" value="{{ val }}"><label for="admin_ob_pm_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                    <div class="ob-section"><span class="ob-label">Noise sensitivity</span><div class="ob-options">{% for val, label in {'HIGH':'High','MODERATE':'Moderate','LOW':'Low','NOT_CONCERNED':'Not concerned'} %}<div class="ob-opt"><input type="radio" name="prefs[noise_sensitivity]" id="admin_ob_ns_{{ val }}" value="{{ val }}"><label for="admin_ob_ns_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                    <div class="ob-section"><span class="ob-label">Pets</span><div class="ob-options">{% for val, label in {'NO_PETS':'None','CAT':'Cat','DOG':'Dog','MULTIPLE':'Multiple','OTHER':'Other'} %}<div class="ob-opt"><input type="radio" name="prefs[pets_status]" id="admin_ob_ps_{{ val }}" value="{{ val }}"><label for="admin_ob_ps_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                    <div class="ob-section"><span class="ob-label">Accessibility</span><div class="ob-options">{% for val, label in {'NONE':'None','ELEVATOR_REQUIRED':'Elevator','WHEELCHAIR':'Wheelchair','VISUAL_IMPAIRMENT':'Visual','OTHER':'Other'} %}<div class="ob-opt"><input type="radio" name="prefs[accessibility_needs]" id="admin_ob_an_{{ val }}" value="{{ val }}"><label for="admin_ob_an_{{ val }}">{{ label }}</label></div>{% endfor %}</div></div>
+                                </div>
+                                <div id="admin-ob-step-7" class="ob-step">
+                                    <div class="ob-section"><span class="ob-label">Suggestions (optional)</span>{{ form_widget(onboardingEditForm.suggestions, { 'attr': { 'class': 'ob-textarea' } }) }}</div>
+                                    <div class="ob-section"><span class="ob-label">Step</span>{{ form_widget(onboardingEditForm.step) }}</div>
+                                    <div class="ob-section"><span class="ob-label">Completed</span>{{ form_widget(onboardingEditForm.completed) }}</div>
+                                </div>
+
+                                <div class="ob-select-hidden" aria-hidden="true">{{ form_widget(onboardingEditForm.selectedLocale) }}{{ form_widget(onboardingEditForm.selectedTheme) }}</div>
+
+                                <div class="ob-actions">
+                                    <button type="button" class="ob-btn ob-btn-prev" id="admin-ob-prev" style="visibility:hidden;"><i class="bx bx-chevron-left"></i> Previous</button>
+                                    <div style="flex:1;"></div>
+                                    <button type="button" class="ob-btn ob-btn-next" id="admin-ob-next">Next <i class="bx bx-chevron-right"></i></button>
+                                    <button type="submit" class="ob-btn ob-btn-next" id="admin-ob-submit" style="display:none;">Save changes <i class="bx bx-check"></i></button>
+                                </div>
+                                {{ form_end(onboardingEditForm) }}
+                                {% endif %}
+                            </div>
+                            <div class="users-edit-modal-actions" style="border-top:none; margin-top:0; padding-bottom:2rem; justify-content:center;">
+                                <button type="button" class="users-btn-cancel" onclick="closeModal('onboarding-edit-modal')">Close Wizard</button>
+                            </div>
+                        </div>
                     </div>
-                    {{ form_end(onboardingEditForm) }}
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+            </div><!-- End #onboardingGlassSwitcher -->
+        </div><!-- End .glass-table-container -->
     </div>
 </div>
-<style>
-                .users-pagination-pills {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-        margin: 0 auto;
-        padding: 0.25rem 0.5rem;
-        background: linear-gradient(135deg, #23272f 80%, #2a2e39 100%);
-        border-radius: 999px;
-        min-width: 340px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        width: fit-content;
-    }
 
-    .pill-tab {
-        background: transparent;
-        color: rgba(191,201,216,0.8);
-        border: none;
-        border-radius: 999px;
-        padding: 0.75rem 2rem;
-        font-size: 1rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        outline: none;
-        position: relative;
-        z-index: 2;
-        white-space: nowrap;
-    }
-    .pill-tab:hover {
-        color: #fff;
-        background: rgba(255,255,255,0.05);
-    }
-    .pill-tab.active, .pill-tab:focus {
-        background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-        color: #fff;
-        text-shadow: none;
-        box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
-    }
-</style>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        /**
+         * Page Switcher for Users/Profile/Onboarding
+         * Ensures visibility and triggers height synchronization
+         */
         function showUsersPage(page) {
             document.querySelectorAll('.users-page-content').forEach(div => {
-                div.style.display = (div.dataset.page == page) ? '' : 'none';
+                const isMatch = div.dataset.page == page;
+                div.style.display = isMatch ? 'block' : 'none';
+                
+                if (isMatch) {
+                    // Find the switcher in this page
+                    const switcher = div.querySelector('.glass-switcher');
+                    if (switcher && window.switchGlassFace) {
+                        // Force a sync to 'main' face to ensure height is calculated correctly for the new content
+                        setTimeout(() => {
+                            window.switchGlassFace('main', switcher.id);
+                        }, 50);
+                    }
+                }
             });
         }
 
-        // Pills animation logic
-        document.querySelectorAll('.pill-tab').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+        const slider = document.getElementById('switcher-slider');
+        const tabs = document.querySelectorAll('.premium-switcher-tab');
+
+        function updateSlider(activeTab) {
+            slider.style.width = activeTab.offsetWidth + 'px';
+            slider.style.left = activeTab.offsetLeft + 'px';
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
+                updateSlider(this);
                 showUsersPage(this.dataset.page);
             });
         });
 
-        // Initial load
+        // Initialize positioning
+        const initialActive = document.querySelector('.premium-switcher-tab.active');
+        if (initialActive) {
+            // Delay slightly to allow layout to settle
+            setTimeout(() => updateSlider(initialActive), 50);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const active = document.querySelector('.premium-switcher-tab.active');
+            if (active) updateSlider(active);
+        });
+
+        // Initial load sync
         showUsersPage(1);
     });
 </script>

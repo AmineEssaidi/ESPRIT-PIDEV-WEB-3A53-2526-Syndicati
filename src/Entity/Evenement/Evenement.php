@@ -26,7 +26,7 @@ class Evenement
 
     #[ORM\Column(type: 'string', length: 500)]
     #[Assert\NotBlank]
-    #[Assert\Length(min: 50, max: 500, minMessage: "The description must be at least 50 characters long.")]
+    #[Assert\Length(min: 10, max: 500, minMessage: "The description must be at least 10 characters long.")]
     private $description_event;
 
     #[ORM\Column(type: 'datetime')]

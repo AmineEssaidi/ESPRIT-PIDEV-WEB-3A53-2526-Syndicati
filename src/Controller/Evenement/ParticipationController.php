@@ -8,6 +8,7 @@ use App\Form\Evenement\ParticipationType;
 use App\Repository\User\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -18,6 +19,8 @@ class ParticipationController extends AbstractController
     #[Route('/new/{id}', name: 'app_participation_new', methods: ['POST'])]
     public function new(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, UserRepository $userRepository): Response
     {
+        $isAjax = $request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
+
         // Get user from Security or Session fallback
         $user = $this->getUser();
         if (!$user) {
@@ -41,6 +44,9 @@ class ParticipationController extends AbstractController
         }
 
         if (!$user) {
+            if ($isAjax) {
+                return new JsonResponse(['success' => false, 'message' => 'You must be logged in to participate.'], 403);
+            }
             $this->addFlash('error', 'You must be logged in to participate.');
             return $this->redirectToRoute('app_evenement_index');
         }
@@ -56,7 +62,6 @@ class ParticipationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
             // Fill formulaire_data
             $formulaireData = [
                 'user_name' => $user->getFirstName() . ' ' . $user->getLastName(),
@@ -70,13 +75,25 @@ class ParticipationController extends AbstractController
             $participation->setFormulaireData($formulaireData);
 
             $entityManager->persist($participation);
-
-
             $entityManager->flush();
-        } else {
-            foreach ($form->getErrors(true) as $error) {
-                $this->addFlash('error', $error->getMessage());
+
+            if ($isAjax) {
+                return new JsonResponse(['success' => true, 'message' => 'Your participation request has been sent!']);
             }
+            return $this->redirectToRoute('app_evenement_index');
+        }
+
+        $errors = [];
+        foreach ($form->getErrors(true) as $error) {
+            $errors[] = $error->getMessage();
+        }
+
+        if ($isAjax) {
+            return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+        }
+
+        foreach ($errors as $error) {
+            $this->addFlash('error', $error);
         }
 
         return $this->redirectToRoute('app_evenement_index');

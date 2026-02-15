@@ -1,0 +1,141 @@
+<div class="residence-modal-container" style="background: rgba(20,20,20,0.95); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; overflow: hidden;">
+    <div id="residenceGlassSwitcher" class="glass-switcher style-slide" style="height: 600px; overflow: hidden;">
+    
+    {# FACE 1: DETAILS VIEW (Main) #}
+    <div class="glass-switcher-face glass-switcher-face-main">
+        <div class="modal-header border-0 pb-0">
+            <div class="d-flex align-items-center justify-content-between w-100">
+                <div>
+                    <h3 class="modal-title fs-4 fw-bold text-white mb-1">{{ residence.nomR }}</h3>
+                    <p class="text-white-50 small mb-0"><i class="bx bx-map me-1"></i> {{ residence.adresse }}</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+        </div>
+
+        <div class="modal-body p-4" style="height: calc(600px - 180px); overflow-y: auto;">
+            <div class="row g-4">
+                <div class="col-lg-12">
+                    <div class="position-relative rounded-4 overflow-hidden mb-4" style="height: 300px; border: 1px solid rgba(255,255,255,0.1);">
+                        {% if residence.imageR %}
+                            <img src="{{ asset('uploads/images/' ~ residence.imageR) }}" alt="{{ residence.nomR }}" class="w-100 h-100 object-fit-cover">
+                        {% else %}
+                            <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" alt="Default Image" class="w-100 h-100 object-fit-cover">
+                        {% endif %}
+                        <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 100%);">
+                            <span class="badge bg-primary rounded-pill px-3 py-2">Luxury Residence</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="glass-card p-4 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                        <h4 class="fs-5 fw-bold text-white mb-4">Property Specifications</h4>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="icon-box" style="width: 45px; height: 45px; background: rgba(var(--syndicat-accent-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bx bx-layer fs-4 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-white-50 small">Floors</div>
+                                        <div class="text-white fw-bold">{{ residence.nEtages }} Levels</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="icon-box" style="width: 45px; height: 45px; background: rgba(var(--syndicat-accent-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bx bx-building-house fs-4 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-white-50 small">Total Units</div>
+                                        <div class="text-white fw-bold">{{ residence.totalAppartements ?? 'N/A' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="icon-box" style="width: 45px; height: 45px; background: rgba(var(--syndicat-accent-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bx bx-grid-alt fs-4 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-white-50 small">Blocs</div>
+                                        <div class="text-white fw-bold">{{ residence.nBlocs }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="glass-card p-4 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                        <h4 class="fs-5 fw-bold text-white mb-3">Amenities & Features</h4>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-3 py-2 fw-normal"><i class="bx bx-check-circle me-1 text-primary"></i> 24/7 Security</span>
+                            <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-3 py-2 fw-normal"><i class="bx bx-check-circle me-1 text-primary"></i> Underground Parking</span>
+                            <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-3 py-2 fw-normal"><i class="bx bx-check-circle me-1 text-primary"></i> Concierge Service</span>
+                            <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-3 py-2 fw-normal"><i class="bx bx-check-circle me-1 text-primary"></i> Panoramic Views</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer border-0 px-4 pb-4">
+            <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary rounded-pill px-4" onclick="switchResidenceFace('apartments')">
+                <i class='bx bx-building'></i> View Apartments
+            </button>
+        </div>
+    </div>
+
+    {# FACE 2: APARTMENTS LIST #}
+    <div class="glass-switcher-face glass-switcher-face-extra">
+        <div class="h-100 d-flex flex-column p-4">
+            <div class="card-header-actions mb-4">
+                <button type="button" class="btn-switcher-back" onclick="switchResidenceFace('main')">
+                    <i class='bx bx-arrow-back'></i> Back to Details
+                </button>
+                <h4 class="text-white m-0">Apartments in {{ residence.nomR }}</h4>
+            </div>
+            <div class="flex-1" style="overflow-y: auto; height: calc(600px - 120px);">
+                {% if residence.appartements is not empty %}
+                    <div class="row g-3">
+                        {% for apt in residence.appartements %}
+                            <div class="col-md-6">
+                                <div class="glass-card p-3 rounded-3" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h5 class="text-white mb-1">{{ apt.typeA }}</h5>
+                                            <p class="text-white-50 small mb-0">Bloc {{ apt.appartementInfo.bloc ?? 'N/A' }} - Floor {{ apt.appartementInfo.floor ?? 'N/A' }}</p>
+                                        </div>
+                                        <span class="badge {{ apt.disponible ? 'bg-success' : 'bg-danger' }} rounded-pill">
+                                            {{ apt.disponible ? 'Available' : 'Occupied' }}
+                                        </span>
+                                    </div>
+                                    {% if apt.imageA %}
+                                        <img src="{{ asset('uploads/images/' ~ apt.imageA) }}" class="w-100 rounded-3 mb-2" style="height: 150px; object-fit: cover;">
+                                    {% endif %}
+                                    <div class="d-flex gap-2 text-white-50 small">
+                                        <span><i class='bx bx-car'></i> {{ apt.parking ? 'Parking' : 'No Parking' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-white-50 p-5">
+                        <i class='bx bx-building fs-1 mb-3'></i>
+                        <p>No apartments registered for this residence yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+</div>
+</div>
