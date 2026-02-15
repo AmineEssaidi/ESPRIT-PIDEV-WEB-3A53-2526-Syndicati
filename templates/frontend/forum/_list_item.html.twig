@@ -1,0 +1,49 @@
+{% set catClass = 'cat-default' %}
+{% if publication.categoriePub == 'Announcement' %}
+    {% set catClass = 'cat-announcement' %}
+{% elseif publication.categoriePub == 'Suggestion' %}
+    {% set catClass = 'cat-suggestion' %}
+{% elseif publication.categoriePub in ['Jeux Video', 'Jeux Vidéo'] %}
+    {% set catClass = 'cat-jeux-video' %}
+{% elseif publication.categoriePub == 'Informatique' %}
+    {% set catClass = 'cat-informatique' %}
+{% elseif publication.categoriePub == 'Nouveauté' %}
+    {% set catClass = 'cat-nouveaute' %}
+{% elseif publication.categoriePub == 'Discussion General' %}
+    {% set catClass = 'cat-discussion' %}
+{% elseif publication.categoriePub == 'Culture' %}
+    {% set catClass = 'cat-culture' %}
+{% elseif publication.categoriePub == 'Sport' %}
+    {% set catClass = 'cat-sport' %}
+{% endif %}
+
+<div class="forum-list-item" 
+     data-id="{{ publication.id }}"
+     data-author-id="{{ publication.user.idUser }}"
+     data-title="{{ publication.titrePub }}"
+     data-description="{{ publication.descriptionPub }}"
+     data-categorie-pub="{{ publication.categoriePub }}"
+     data-cat-class="{{ catClass }}"
+     data-date="{{ publication.dateCreationPub|date('M d, Y H:i') }}"
+     data-user="{{ publication.user.firstName }} {{ publication.user.lastName }}"
+     data-user-initial="{{ publication.user.firstName|first|upper }}"
+     data-avatar="{% if author_profile and author_profile.avatar %}{{ author_profile.avatar starts with 'http' ? author_profile.avatar : asset(author_profile.avatar) }}{% endif %}"
+     data-image="{% if publication.imagePub %}{{ asset('forum_images/' ~ publication.imagePub) }}{% endif %}"
+     data-token="{{ csrf_token('delete' ~ publication.id) }}">
+    
+    <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+        <span class="forum-list-category {{ catClass }}">{{ publication.categoriePub }}</span>
+        <small class="text-white-50">{{ publication.dateCreationPub|date('M d') }}</small>
+    </div>
+    <h5 class="forum-list-title mb-1 text-white">{{ publication.titrePub|slice(0, 50) ~ (publication.titrePub|length > 50 ? '...' : '') }}</h5>
+    <div class="d-flex align-items-center mt-2">
+        <div class="forum-list-avatar me-2">
+            {% if author_profile and author_profile.avatar %}
+                <img src="{{ author_profile.avatar starts with 'http' ? author_profile.avatar : asset(author_profile.avatar) }}" alt="User">
+            {% else %}
+                <span>{{ publication.user.firstName|first|upper }}</span>
+            {% endif %}
+        </div>
+        <small class="text-white-50">{{ publication.user.firstName }} {{ publication.user.lastName }}</small>
+    </div>
+</div>

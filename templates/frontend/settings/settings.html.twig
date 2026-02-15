@@ -102,6 +102,7 @@
                                                 <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #f39c12, #e74c3c, #e67e22)" data-name="Amber" data-i18n="Amber" style="background: linear-gradient(135deg, #f39c12, #e74c3c, #e67e22);"><span class="settings-accent-check">✓</span></button>
                                                 <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #a29bfe, #6c5ce7, #fd79a8)" data-name="Lavender" data-i18n="Lavender" style="background: linear-gradient(135deg, #a29bfe, #6c5ce7, #fd79a8);"><span class="settings-accent-check">✓</span></button>
                                                 <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #00b894, #00cec9, #81ecec)" data-name="Mint" data-i18n="Mint" style="background: linear-gradient(135deg, #00b894, #00cec9, #81ecec);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)" data-name="Sky High" data-i18n="Sky High" style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);"><span class="settings-accent-check">✓</span></button>
                                             </div>
                                             
                                             <div class="settings-custom-color">
@@ -129,6 +130,22 @@
                                                     <option value="en">🇺🇸 English</option>
                                                     <option value="ar">🇸🇦 العربية</option>
                                                 </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="settings-section">
+                                        <div class="settings-section-icon">✨</div>
+                                        <div class="settings-section-content">
+                                            <h3 class="settings-section-title" data-i18n="Animations">Animations</h3>
+                                            <p class="settings-section-desc" data-i18n="Display animated accent borders">Activer les bordures accentuées animées</p>
+                                            
+                                            <div class="settings-toggle-wrapper">
+                                                <label class="settings-toggle">
+                                                    <input type="checkbox" id="animatedAccentsToggle">
+                                                    <span class="settings-toggle-slider"></span>
+                                                </label>
+                                                <span class="settings-toggle-label" data-i18n="Bordures Animées">Bordures Animées</span>
                                             </div>
                                         </div>
                                     </div>
@@ -161,6 +178,12 @@
                                     -webkit-text-fill-color: transparent;
                                     background-clip: text;
                                     color: var(--main-home-accent-color, #6c5ce7);
+                                    background-size: 300% 300%;
+                                    transition: background-position 0.4s ease;
+                                }
+
+                                html.accents-animated .settings-page .main-home-hero-subtitle {
+                                    animation: gradientBorderFlow 8s ease infinite;
                                 }
 
                                 .settings-container {
@@ -216,6 +239,12 @@
                                     -webkit-background-clip: text;
                                     -webkit-text-fill-color: transparent;
                                     background-clip: text;
+                                    background-size: 300% 300%;
+                                    transition: background-position 0.4s ease;
+                                }
+
+                                html.accents-animated .settings-section-title {
+                                    animation: gradientBorderFlow 8s ease infinite;
                                 }
 
                                 .settings-section-desc {
@@ -476,6 +505,82 @@
                                     padding: 0.8rem;
                                 }
 
+                                .settings-toggle-wrapper {
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 1rem;
+                                }
+
+                                .settings-toggle {
+                                    position: relative;
+                                    display: inline-block;
+                                    width: 52px;
+                                    height: 28px;
+                                }
+
+                                .settings-toggle input {
+                                    opacity: 0;
+                                    width: 0;
+                                    height: 0;
+                                }
+
+                                .settings-toggle-slider {
+                                    position: absolute;
+                                    cursor: pointer;
+                                    top: 0;
+                                    left: 0;
+                                    right: 0;
+                                    bottom: 0;
+                                    background-color: rgba(255, 255, 255, 0.1);
+                                    background-size: 300% 300%;
+                                    transition: all 0.4s ease, background-position 0.4s ease;
+                                    border-radius: 34px;
+                                    border: 1px solid rgba(255, 255, 255, 0.1);
+                                }
+
+                                .settings-toggle-slider:before {
+                                    position: absolute;
+                                    content: "";
+                                    height: 20px;
+                                    width: 20px;
+                                    left: 4px;
+                                    bottom: 3px;
+                                    background-color: white;
+                                    transition: .4s;
+                                    border-radius: 50%;
+                                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                }
+
+                                input:checked + .settings-toggle-slider {
+                                    background: var(--main-home-accent-gradient);
+                                }
+
+                                input:focus + .settings-toggle-slider {
+                                    box-shadow: 0 0 0 3px rgba(var(--main-home-accent-rgb), 0.2);
+                                }
+
+                                input:checked + .settings-toggle-slider:before {
+                                    transform: translateX(24px);
+                                }
+
+                                html.accents-animated .settings-toggle-slider {
+                                    animation: gradientBorderFlow 8s ease infinite;
+                                }
+
+                                .settings-toggle-label {
+                                    font-weight: 600;
+                                    color: #fff;
+                                }
+
+                                [data-theme="light"] .settings-toggle-label {
+                                    color: #1a1a2e;
+                                }
+
+                                [data-theme="light"] .settings-toggle-slider {
+                                    background-color: rgba(0, 0, 0, 0.05);
+                                    border-color: rgba(0, 0, 0, 0.1);
+                                }
+
                                 @media (max-width: 768px) {
                                     .settings-section {
                                         flex-direction: column;
@@ -635,6 +740,24 @@
                                             syncSettings({ theme: this.value });
                                         }));
 
+                                        // Animated Accents Toggle
+                                        const animatedAccentsToggle = document.getElementById('animatedAccentsToggle');
+                                        let animatedAccents = localStorage.getItem('animated-accents') !== 'false'; // Default to true
+                                        
+                                        if (animatedAccentsToggle) {
+                                            animatedAccentsToggle.checked = animatedAccents;
+                                            animatedAccentsToggle.addEventListener('change', function() {
+                                                const isEnabled = this.checked;
+                                                localStorage.setItem('animated-accents', isEnabled);
+                                                if (isEnabled) {
+                                                    document.documentElement.classList.add('accents-animated');
+                                                } else {
+                                                    document.documentElement.classList.remove('accents-animated');
+                                                }
+                                                syncSettings({ 'animated-accents': isEnabled });
+                                            });
+                                        }
+
                                         const accentChoices = document.querySelectorAll('.accent-choice');
                                         const customAccentColor = document.getElementById('customAccentColor');
                                         const customAccentHex = document.getElementById('customAccentHex');
@@ -719,7 +842,7 @@
                                         function updateSelectArrowColor() {
                                             const sel = document.getElementById('languageSelect');
                                             if (!sel) return;
-                                            const accent = getComputedStyle(document.documentElement).getPropertyValue('--main-home-accent-color').trim() || '#6c5ce7';
+                                            const accent = getComputedStyle(document.documentElement).getPropertyValue('--main-home-accent-color').trim() || 'transparent';
                                             const hex = accent.replace('#', '%23');
                                             sel.style.backgroundImage = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='${hex}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`;
                                         }

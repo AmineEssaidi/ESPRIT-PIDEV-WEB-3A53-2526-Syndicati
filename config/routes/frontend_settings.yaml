@@ -1,8 +1,0 @@
-frontend_settings:
-    path: /settings
-    controller: App\Controller\Frontend\SettingsController::index
-
-frontend_settings_update:
-    path: /settings/update
-    controller: App\Controller\Frontend\SettingsController::update
-    methods: [POST]

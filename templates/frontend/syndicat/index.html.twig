@@ -42,7 +42,7 @@
         {{ form_start(form, {'attr': {'class': 'syndicat-form', 'id': 'reclamationForm', 'data-ajax': 'true'}}) }}
             <div class="syndicat-form-group">
                 <label class="syndicat-form-label">Subject</label>
-                {{ form_widget(form.titrereclamations, {'attr': {'class': 'syndicat-form-input', 'placeholder': 'What is this regarding?'}}) }}
+                {{ form_widget(form.titrereclamations, {'attr': {'class': 'syndicat-form-input', 'placeholder': 'What is this regarding?', 'data-min-length': '5', 'required': 'required'}}) }}
                 <div class="text-danger small mt-1">{{ form_errors(form.titrereclamations) }}</div>
             </div>
 
@@ -51,7 +51,7 @@
                 <div class="col-12">
                     <div class="syndicat-form-group">
                         <label class="syndicat-form-label">Date of Incident</label>
-                        {{ form_widget(form.datereclamation, {'attr': {'class': 'syndicat-form-input flatpickr-input'}}) }}
+                        {{ form_widget(form.datereclamation, {'attr': {'class': 'syndicat-form-input flatpickr-input', 'required': 'required'}}) }}
                         <div class="text-danger small mt-1">{{ form_errors(form.datereclamation) }}</div>
                     </div>
                 </div>
@@ -59,7 +59,7 @@
 
             <div class="syndicat-form-group">
                 <label class="syndicat-form-label">Description</label>
-                {{ form_widget(form.descreclamation, {'attr': {'class': 'syndicat-form-input', 'rows': '5', 'placeholder': 'Please provide detailed information...'}}) }}
+                {{ form_widget(form.descreclamation, {'attr': {'class': 'syndicat-form-input', 'rows': '5', 'placeholder': 'Please provide detailed information...', 'data-min-length': '10', 'required': 'required'}}) }}
                 <div class="text-danger small mt-1">{{ form_errors(form.descreclamation) }}</div>
             </div>
 
@@ -100,14 +100,15 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 10000;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .cool-popup-overlay.show {
@@ -116,16 +117,18 @@
         }
 
         .cool-popup-content {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 3rem;
-            border-radius: 30px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 3.5rem 3rem;
+            border-radius: 32px;
             text-align: center;
             max-width: 450px;
             width: 90%;
-            transform: scale(0.8);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
         }
 
         .cool-popup-overlay.show .cool-popup-content {
@@ -203,6 +206,14 @@
 {% block javascripts %}
 {{ parent() }}
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{{ asset('frontend/js/form-validation.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.getElementById('reclamationForm')) {
+            document.getElementById('reclamationForm').validator = new FormValidator('reclamationForm');
+        }
+    });
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Flatpickr
@@ -458,8 +469,19 @@ function createCustomDropdown(selectElement) {
                         const previewContainer = document.getElementById('imagePreviewContainer');
                         if (previewContainer) previewContainer.innerHTML = '';
                     } else {
-                        const errorMsg = data.message || (data.errors ? data.errors.join('<br>') : 'Something went wrong. Please check your inputs.');
-                        showCoolPopup('Review your details', errorMsg, 'error');
+                        if (data.errors && typeof data.errors === 'object' && !Array.isArray(data.errors)) {
+                            if (form.validator) {
+                                form.validator.mapErrors(data.errors);
+                                showCoolPopup('Review your details', 'Please check the highlighted fields.', 'error');
+                            } else {
+                                let msg = "Validation failed:<br>";
+                                for(let key in data.errors) { msg += `- ${data.errors[key]}<br>`; }
+                                showCoolPopup('Review your details', msg, 'error');
+                            }
+                        } else {
+                            const errorMsg = data.message || (Array.isArray(data.errors) ? data.errors.join('<br>') : 'Something went wrong. Please check your inputs.');
+                            showCoolPopup('Review your details', errorMsg, 'error');
+                        }
                     }
                 })
                 .catch(error => {

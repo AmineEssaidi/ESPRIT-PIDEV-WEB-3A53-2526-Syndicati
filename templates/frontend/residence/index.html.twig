@@ -37,7 +37,7 @@
             </div>
 
             <!-- Residences Showcase -->
-            <div id="showcase" class="residence-showcase container">
+            <div id="showcase" class="residence-showcase container-fluid px-5">
                 <div class="section-label" data-aos="fade-up">
                     <h2>Our Residences</h2>
                     <p>Discover the perfect space that suits your lifestyle.</p>
@@ -83,52 +83,278 @@
                     {% else %}
                         {% for res in residences %}
                             <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 100 }}">
-                                <div class="residence-card">
-                                    <div class="position-relative overflow-hidden">
-                                        {% if res.imageR %}
-                                            <img src="{{ asset('residence_images/' ~ res.imageR) }}" alt="{{ res.nomR }}" class="residence-card-img">
-                                        {% else %}
-                                            <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" alt="Residence" class="residence-card-img">
-                                        {% endif %}
-                                        <div class="residence-card-overlay">
-                                            <span class="residence-price-tag">{{ res.dateAjout|date('Y') }}</span>
+                                <div class="residence-card-wrapper">
+                                    {# Collapsed Card View #}
+                                    <div class="residence-card" onclick="toggleResidenceCard({{ res.idResidence }})" id="residenceCard_{{ res.idResidence }}">
+                                        <div class="position-relative overflow-hidden">
+                                            {% if res.imageR %}
+                                                <img src="{{ asset('uploads/images/' ~ res.imageR) }}" alt="{{ res.nomR }}" class="residence-card-img">
+                                            {% else %}
+                                                <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" alt="Residence" class="residence-card-img">
+                                            {% endif %}
+                                            <div class="residence-card-overlay">
+                                                <span class="residence-price-tag">{{ res.dateAjout|date('Y') }}</span>
+                                            </div>
                                         </div>
+                                        <div class="residence-card-body">
+                                            <span class="residence-type">Residence</span>
+                                            <h3 class="residence-card-title">{{ res.nomR }}</h3>
+                                            <div class="residence-location">
+                                                <i class='bx bx-map'></i> {{ res.adresse }}
+                                            </div>
+                                        </div>
+                                        <div class="residence-card-bar"></div>
                                     </div>
-                                    <div class="residence-card-body">
-                                        <span class="residence-type">Residence</span>
-                                        <h3 class="residence-card-title">{{ res.nomR }}</h3>
-                                        <div class="residence-location">
-                                            <i class='bx bx-map'></i> {{ res.adresse }}
-                                        </div>
-                                        <div class="residence-stats">
-                                            <div class="residence-stat-item">
-                                                <span class="residence-stat-value">{{ res.nEtages }}</span>
-                                                <span class="residence-stat-label">Floors</span>
+                                    
+                                    {# Expanded View - Details/Apartments Toggle #}
+                                    <div class="residence-expanded-view" id="residenceExpanded_{{ res.idResidence }}">
+                                        <div class="p-4">
+                                            {# Details View #}
+                                            <div class="residence-details-view" id="detailsView_{{ res.idResidence }}">
+                                                {# Header with Title and Close #}
+                                                <div class="d-flex justify-content-between align-items-start mb-4">
+                                                    <div>
+                                                        <h2 class="text-white fw-bold mb-2 fs-3">{{ res.nomR }}</h2>
+                                                        <p class="text-white-50 mb-0">
+                                                            <i class='bx bx-map me-2'></i>{{ res.adresse }}
+                                                        </p>
+                                                    </div>
+                                                    <button class="btn residence-close-btn btn-sm rounded-circle" onclick="toggleResidenceCard({{ res.idResidence }})" style="width: 40px; height: 40px;" title="Close">
+                                                        <i class='bx bx-x fs-5'></i>
+                                                    </button>
+                                                </div>
+                                                
+                                                <div class="row g-4">
+                                                    {# Large Hero Image #}
+                                                    <div class="col-12">
+                                                        <div class="position-relative rounded-4 overflow-hidden" style="height: 350px; border: 1px solid rgba(255,255,255,0.1);">
+                                                            {% if res.imageR %}
+                                                                <img src="{{ asset('uploads/images/' ~ res.imageR) }}" alt="{{ res.nomR }}" class="w-100 h-100 object-fit-cover">
+                                                            {% else %}
+                                                                <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80" alt="Default" class="w-100 h-100 object-fit-cover">
+                                                            {% endif %}
+                                                            <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 100%);">
+                                                                <span class="premium-residence-badge">
+                                                                    <i class='bx bxs-star me-2'></i>
+                                                                    <span>Premium Residence</span>
+                                                                    <i class='bx bxs-star ms-2'></i>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {# Property Stats Grid #}
+                                                    <div class="col-12">
+                                                        <h5 class="text-white mb-3 fw-bold">Property Specifications</h5>
+                                                        <div class="row g-3">
+                                                            <div class="col-md-3 col-6">
+                                                                <div class="property-detail-item text-center">
+                                                                    <div class="property-detail-icon mx-auto mb-3">
+                                                                        <i class='bx bx-layer'></i>
+                                                                    </div>
+                                                                    <div class="text-white fw-bold fs-4 mb-1">{{ res.nEtages }}</div>
+                                                                    <div class="text-white-50 small">Floors</div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3 col-6">
+                                                                <div class="property-detail-item text-center">
+                                                                    <div class="property-detail-icon mx-auto mb-3">
+                                                                        <i class='bx bx-door-open'></i>
+                                                                    </div>
+                                                                    <div class="text-white fw-bold fs-4 mb-1">{{ res.totalAppartements ?? 'N/A' }}</div>
+                                                                    <div class="text-white-50 small">Total Units</div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3 col-6">
+                                                                <div class="property-detail-item text-center">
+                                                                    <div class="property-detail-icon mx-auto mb-3">
+                                                                        <i class='bx bx-grid-alt'></i>
+                                                                    </div>
+                                                                    <div class="text-white fw-bold fs-4 mb-1">{{ res.nBlocs }}</div>
+                                                                    <div class="text-white-50 small">Blocs</div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3 col-6">
+                                                                <div class="property-detail-item text-center">
+                                                                    <div class="property-detail-icon mx-auto mb-3">
+                                                                        <i class='bx bx-calendar'></i>
+                                                                    </div>
+                                                                    <div class="text-white fw-bold fs-4 mb-1">{{ res.dateAjout|date('Y') }}</div>
+                                                                    <div class="text-white-50 small">Built</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {# View Apartments Button #}
+                                                    <div class="col-12">
+                                                        <button class="btn btn-primary w-100 rounded-pill py-3 fs-5" onclick="showApartments({{ res.idResidence }})">
+                                                            <i class='bx bx-building me-2'></i> View {{ res.totalAppartements ?? 'All' }} Apartments
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="residence-stat-item">
-                                                <span class="residence-stat-value">{{ res.totalAppartements }}</span>
-                                                <span class="residence-stat-label">Number of Appartments</span>
-                                            </div>
-                                            <div class="residence-stat-item">
-                                                <span class="residence-stat-value">{{ res.nBlocs }}</span>
-                                                <span class="residence-stat-label">Bloc</span>
+
+                                            {# Apartments View #}
+                                            <div class="residence-apartments-view" id="apartmentsView_{{ res.idResidence }}" style="display: none;">
+                                                {# Header with Back Button #}
+                                                <div class="mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+                                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                                        <button class="btn residence-close-btn btn-sm rounded-circle" onclick="showDetails({{ res.idResidence }})" style="width: 40px; height: 40px;">
+                                                            <i class='bx bx-arrow-back fs-5'></i>
+                                                        </button>
+                                                        <div>
+                                                            <h4 class="text-white mb-0 fw-bold">Apartments</h4>
+                                                            <small class="text-white-50">{{ res.nomR }}</small>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {# Availability Filter Toggle #}
+                                                    <div class="d-flex justify-content-center">
+                                                        <div class="btn-group residence-filter-toggle" role="group">
+                                                            <input type="radio" class="btn-check" name="aptFilter_{{ res.idResidence }}" id="aptFilterAvail_{{ res.idResidence }}" autocomplete="off" checked 
+                                                                   onchange="filterApartments({{ res.idResidence }}, 'available')">
+                                                            <label class="btn" for="aptFilterAvail_{{ res.idResidence }}">
+                                                                <i class='bx bx-check-circle me-1'></i> Available
+                                                                <span class="badge bg-success rounded-pill ms-2">
+                                                                    {{ res.appartements|filter(apt => apt.disponible)|length }}
+                                                                </span>
+                                                            </label>
+                                                            
+                                                            <input type="radio" class="btn-check" name="aptFilter_{{ res.idResidence }}" id="aptFilterAll_{{ res.idResidence }}" autocomplete="off"
+                                                                   onchange="filterApartments({{ res.idResidence }}, 'all')">
+                                                            <label class="btn" for="aptFilterAll_{{ res.idResidence }}">
+                                                                <i class='bx bx-buildings me-1'></i> All Units
+                                                                <span class="badge bg-primary rounded-pill ms-2">
+                                                                    {{ res.appartements|length }}
+                                                                </span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {# Apartments Grid #}
+                                                <div class="apartments-scroll-container" id="apartmentsList_{{ res.idResidence }}">
+                                                    {% if res.appartements is not empty %}
+                                                        <div class="row g-3">
+                                                            {% for apt in res.appartements %}
+                                                                <div class="col-lg-4 col-md-6 col-12 apartment-item" data-residence="{{ res.idResidence }}" data-available="{{ apt.disponible ? '1' : '0' }}" style="{{ apt.disponible ? '' : 'display: none;' }}">
+                                                                    <div class="apartment-mini-card">
+                                                                        {# Apartment Image #}
+                                                                        {% if apt.imageA %}
+                                                                            <div class="apartment-image-container">
+                                                                                <img src="{{ asset('uploads/images/' ~ apt.imageA) }}" class="w-100" style="height: 160px; object-fit: cover;">
+                                                                            </div>
+                                                                        {% endif %}
+                                                                        
+                                                                        {# Header: Type and Status #}
+                                                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                                                            <h6 class="apartment-type-title mb-0">{{ apt.typeA }}</h6>
+                                                                            <span class="apartment-status-badge {{ apt.disponible ? 'available' : 'occupied' }}">
+                                                                                <i class='bx {{ apt.disponible ? 'bxs-check-circle' : 'bxs-x-circle' }}'></i>
+                                                                                {{ apt.disponible ? 'Available' : 'Occupied' }}
+                                                                            </span>
+                                                                        </div>
+                                                                        
+                                                                        {# Info Rows #}
+                                                                        <div class="apartment-info-row">
+                                                                            <i class='bx bx-buildings'></i>
+                                                                            <span>Bloc {{ apt.appartementInfo.bloc ?? 'N/A' }}</span>
+                                                                        </div>
+                                                                        
+                                                                        <div class="apartment-info-row">
+                                                                            <i class='bx bx-layer'></i>
+                                                                            <span>Floor {{ apt.appartementInfo.floor ?? 'N/A' }}</span>
+                                                                        </div>
+                                                                        
+                                                                        {# Features #}
+                                                                        <div class="apartment-features">
+                                                                            {% if apt.parking %}
+                                                                                <span class="apartment-feature-tag">
+                                                                                    <i class='bx bxs-car'></i> Parking
+                                                                                </span>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="text-center text-white-50 py-5">
+                                                            <i class='bx bx-building fs-1 mb-3 d-block opacity-50'></i>
+                                                            <p class="mb-0">No apartments registered for this residence yet.</p>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
                                             </div>
                                         </div>
                                         <form method="post" action="{{ path('send_sms') }}">
     <button type="submit">Envoyer sms</button>
 </form>
                                     </div>
-                                    <div class="residence-card-bar"></div>
                                 </div>
                             </div>
                         {% endfor %}
                     {% endif %}
+                </div>
+                
+                {# Pagination Controls - Always Visible #}
+                <div class="residence-pagination-wrapper d-flex justify-content-center mt-5">
+                    {% if residences.pageCount > 1 %}
+                    <nav aria-label="Residence pagination">
+                        <ul class="residence-pagination">
+                            {% if residences.currentPageNumber > 1 %}
+                                <li><a href="{{ path('app_residence_index', {page: residences.currentPageNumber - 1}) }}" class="residence-page-link"><i class='bx bx-chevron-left'></i></a></li>
+                            {% endif %}
+                            
+                            {% for page in 1..residences.pageCount %}
+                                <li>
+                                    <a href="{{ path('app_residence_index', {page: page}) }}" 
+                                       class="residence-page-link {{ page == residences.currentPageNumber ? 'active' : '' }}">
+                                        {{ page }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                            
+                            {% if residences.currentPageNumber < residences.pageCount %}
+                                <li><a href="{{ path('app_residence_index', {page: residences.currentPageNumber + 1}) }}" class="residence-page-link"><i class='bx bx-chevron-right'></i></a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                    {# Page Info - Always Show #}
+                    <div class="text-center mt-3">
+                        <p class="text-white-50 mb-0">
+                            <i class='bx bx-buildings me-2'></i>
+                            Showing {{ residences|length }} of {{ residences.getTotalItemCount }} residence{{ residences.getTotalItemCount != 1 ? 's' : '' }}
+                            {% if residences.pageCount > 1 %}
+                                <span class="mx-2">•</span>
+                                Page {{ residences.currentPageNumber }} of {{ residences.pageCount }}
+                            {% endif %}
+                        </p>
+                    </div>
                 </div>
             </div>
 
         </div>
 
         {% include 'frontend/shared/_main_footer.html.twig' %}
+    </div>
+</div>
+
+<!-- Residence Details Modal -->
+<div class="modal fade" id="residenceDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content overflow-hidden border-0" style="background: transparent; border-radius: 30px;">
+            <div id="residence-modal-content">
+                <div class="p-5 text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -146,6 +372,72 @@
                 offset: 100
             });
         }
+
+        // Toggle Residence Card Expansion
+        window.toggleResidenceCard = function(id) {
+            const card = document.getElementById('residenceCard_' + id);
+            const expanded = document.getElementById('residenceExpanded_' + id);
+            
+            if (!expanded.classList.contains('active')) {
+                // Expand: Card fades out, expanded view slides in
+                card.classList.add('expanding');
+                setTimeout(() => {
+                    card.style.display = 'none';
+                    expanded.classList.add('active');
+                    // Reset to details view
+                    showDetails(id);
+                }, 150);
+            } else {
+                // Collapse: Expanded view slides out, card fades in
+                expanded.classList.remove('active');
+                setTimeout(() => {
+                    card.style.display = 'block';
+                    setTimeout(() => card.classList.remove('expanding'), 50);
+                }, 600);
+            }
+        };
+
+        // Show Apartments View
+        window.showApartments = function(id) {
+            const detailsView = document.getElementById('detailsView_' + id);
+            const apartmentsView = document.getElementById('apartmentsView_' + id);
+            
+            if (detailsView && apartmentsView) {
+                detailsView.style.display = 'none';
+                apartmentsView.style.display = 'block';
+                
+                // Reset filter to show only available apartments
+                const availFilter = document.getElementById('aptFilterAvail_' + id);
+                if (availFilter) {
+                    availFilter.checked = true;
+                    filterApartments(id, 'available');
+                }
+            }
+        };
+
+        // Show Details View
+        window.showDetails = function(id) {
+            const detailsView = document.getElementById('detailsView_' + id);
+            const apartmentsView = document.getElementById('apartmentsView_' + id);
+            
+            if (detailsView && apartmentsView) {
+                detailsView.style.display = 'block';
+                apartmentsView.style.display = 'none';
+            }
+        };
+
+        // Filter Apartments by Availability
+        window.filterApartments = function(residenceId, filter) {
+            const apartments = document.querySelectorAll(`.apartment-item[data-residence="${residenceId}"]`);
+            
+            apartments.forEach(apt => {
+                if (filter === 'all') {
+                    apt.style.display = '';
+                } else if (filter === 'available') {
+                    apt.style.display = apt.dataset.available === '1' ? '' : 'none';
+                }
+            });
+        };
     });
 </script>
 {% endblock %}

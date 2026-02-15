@@ -31,19 +31,31 @@ class AppartementType extends AbstractType
                 'mapped' => false,
                 'required' => false,
                 'label' => 'Building Block',
-                'attr' => ['class' => 'bloc-input'],
+                'attr' => [
+                    'class' => 'bloc-input glass-input',
+                    'id' => 'app-bloc-field',
+                    'placeholder' => 'Select Bloc'
+                ],
             ])
             ->add('floor', \Symfony\Component\Form\Extension\Core\Type\TextType::class, [
                 'mapped' => false,
                 'required' => false,
                 'label' => 'Floor Level',
-                'attr' => ['class' => 'floor-input'],
+                'attr' => [
+                    'class' => 'floor-input glass-input',
+                    'id' => 'app-floor-field',
+                    'placeholder' => 'Select Floor'
+                ],
             ])
             ->add('number', \Symfony\Component\Form\Extension\Core\Type\TextType::class, [
                 'mapped' => false,
                 'required' => false,
                 'label' => 'Apartment Number',
-                'attr' => ['class' => 'number-input'],
+                'attr' => [
+                    'class' => 'number-input glass-input',
+                    'id' => 'app-number-field',
+                    'placeholder' => 'Select Apartment'
+                ],
             ])
             ->add('typeA', ChoiceType::class, [
                 'label' => 'Apartment Type',

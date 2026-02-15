@@ -1,0 +1,206 @@
+/* ==========================================================================
+   GLASS SWITCHER SYSTEM
+   Premium In-Place Content Transitions
+   ========================================================================== */
+
+.glass-switcher {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    min-height: 100px;
+    /* Reduced minimum */
+    display: flex;
+    /* Ensure it behaves as a flex container */
+    flex-direction: column;
+    /* Default minimum height */
+    transition: height 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    perspective: 1500px;
+    /* For 3D animations */
+}
+
+.glass-switcher-face {
+    width: 100%;
+    height: 100%;
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+}
+
+/* Chrome/Edge/Safari Scrollbar */
+.glass-switcher-face::-webkit-scrollbar {
+    width: 6px;
+}
+
+.glass-switcher-face::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.glass-switcher-face::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+.glass-switcher-face::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Face positioning */
+.glass-switcher-face-main {
+    position: relative;
+    z-index: 2;
+}
+
+.glass-switcher-face-extra,
+.glass-switcher-face-details,
+.glass-switcher-face-participate,
+.glass-switcher-face-edit {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(30px);
+}
+
+/* State: Active Faces */
+/* State: Active Faces */
+.glass-switcher .glass-switcher-face-main {
+    pointer-events: auto;
+    /* Default: Interactive */
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.glass-switcher[class*="active-"]:not(.active-main) .glass-switcher-face-main {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-30px) scale(0.95);
+    position: absolute;
+    /* Take out of flow to allow others to be clicked/scroll */
+}
+
+/* Specific Active Face reveals */
+/* Specific Active Face reveals */
+.glass-switcher.active-extra .glass-switcher-face-extra,
+.glass-switcher.active-details .glass-switcher-face-details,
+.glass-switcher.active-participate .glass-switcher-face-participate,
+.glass-switcher.active-edit .glass-switcher-face-edit {
+    position: relative;
+    /* Return to flow */
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0) scale(1);
+    z-index: 3;
+    height: 100%;
+    /* Ensure it fills container */
+    overflow-y: auto;
+    /* Enable scrolling for this face */
+}
+
+/* Slide Style Support for multiple faces */
+.glass-switcher.style-slide .glass-switcher-face-extra,
+.glass-switcher.style-slide .glass-switcher-face-details,
+.glass-switcher.style-slide .glass-switcher-face-participate,
+.glass-switcher.style-slide .glass-switcher-face-edit {
+    transform: translateX(100%);
+}
+
+.glass-switcher.style-slide[class*="active-"]:not(.active-main) .glass-switcher-face-main {
+    transform: translateX(-100%);
+}
+
+.glass-switcher.style-slide.active-extra .glass-switcher-face-extra,
+.glass-switcher.style-slide.active-details .glass-switcher-face-details,
+.glass-switcher.style-slide.active-participate .glass-switcher-face-participate,
+.glass-switcher.style-slide.active-edit .glass-switcher-face-edit {
+    transform: translateX(0);
+}
+
+/* Specific Face Animations (Optional overrides) */
+
+/* Slide Fade Animation (Default) */
+.glass-switcher.style-slide .glass-switcher-face-main {
+    transform: translateX(0);
+}
+
+.glass-switcher.style-slide .glass-switcher-face-extra {
+    transform: translateX(100%);
+}
+
+.glass-switcher.style-slide.active-extra .glass-switcher-face-main {
+    transform: translateX(-100%);
+}
+
+.glass-switcher.style-slide.active-extra .glass-switcher-face-extra {
+    transform: translateX(0);
+}
+
+/* Premium Flip Animation */
+.glass-switcher.style-flip {
+    transform-style: preserve-3d;
+}
+
+.glass-switcher.style-flip .glass-switcher-face-main {
+    transform: rotateY(0deg);
+}
+
+.glass-switcher.style-flip .glass-switcher-face-details,
+.glass-switcher.style-flip .glass-switcher-face-edit,
+.glass-switcher.style-flip .glass-switcher-face-extra {
+    transform: rotateY(180deg);
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.glass-switcher.style-flip[class*="active-"]:not(.active-main) .glass-switcher-face-main {
+    transform: rotateY(-180deg);
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+.glass-switcher.style-flip.active-details .glass-switcher-face-details,
+.glass-switcher.style-flip.active-edit .glass-switcher-face-edit,
+.glass-switcher.style-flip.active-extra .glass-switcher-face-extra {
+    transform: rotateY(0deg);
+    position: relative;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 3;
+}
+
+/* Utilities for cards inside faces */
+.glass-switcher-face .card-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.btn-switcher-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.btn-switcher-back:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transform: translateX(-3px);
+}
+
+/* Custom Scrollbars handled globally in glass-modal.css for consistency */

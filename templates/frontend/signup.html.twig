@@ -15,8 +15,9 @@
     <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
     <link href="{{ asset('frontend/css/scroll-pill.css') }}" rel="stylesheet">
     <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
-<body>
+<body style="background: transparent !important;">
 <!-- Page Loader -->
 <div class="page-loader" id="pageLoader">
     <div class="loader-content">
@@ -28,6 +29,109 @@
     </div>
 </div>
 
+<!-- Premium Video Background -->
+<div class="main-home-hero-bg-fixed" style="background: transparent !important;">
+    <video id="heroVideoSignUpMain" autoplay loop muted playsinline class="main-home-hero-bg-img" style="background: transparent !important;">
+        <source src="{{ asset('videos/syndicati.mp4') }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <script>
+    (function() {
+        const video = document.getElementById('heroVideoSignUpMain');
+        if (video) {
+            video.playbackRate = 0.5;
+            video.addEventListener('ended', function() {
+                video.play();
+            }, false);
+            video.play().catch(e => console.log("Autoplay blocked:", e));
+        }
+    })();
+    </script>
+</div>
+
+<style>
+/* Surgical transparency for auth pages */
+html {
+    background: transparent !important;
+}
+body, 
+.main-home-layout-wrapper, 
+.main-home-page, 
+.main-home-content-wrapper,
+.main-home-auth-container {
+    background: transparent !important;
+}
+
+/* Aggressive vertical compression to eliminate scrolling */
+body {
+    overflow: hidden !important;
+    height: 100vh !important;
+}
+.main-home-layout-wrapper, .main-home-page {
+    height: 100vh !important;
+    min-height: 100vh !important;
+    overflow: hidden !important;
+}
+.main-home-navbar {
+    margin: 10px auto !important;
+    height: 80px !important;
+    padding: 0.75rem 2rem !important;
+}
+.main-home-content-wrapper {
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.main-home-auth-container {
+    min-height: auto !important;
+    padding: 5px 0 !important;
+    flex: 1;
+}
+.main-home-auth-card {
+    background: rgba(10, 10, 10, 0.8) !important;
+    backdrop-filter: blur(12px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 
+        0 30px 60px -12px rgba(0, 0, 0, 0.5),
+        inset 0 0 20px rgba(255, 255, 255, 0.02) !important;
+    border-radius: 32px !important;
+    transform: scale(0.92); /* Slightly more aggressive for signup as it's taller */
+    margin: 0 auto;
+}
+.main-home-footer-wrapper {
+    margin: 5px auto !important;
+}
+.main-home-footer-island {
+    margin: 5px auto 10px auto !important;
+    padding: 0.6rem 2rem !important;
+}
+.scroll-down-pill-wrapper, .scroll-down-pill, .scroll-pill-container, .scroll-indicator, #scrollIndicator, .main-home-scroll-pill {
+    display: none !important;
+}
+
+.main-home-hero-bg-fixed {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    overflow: hidden;
+    pointer-events: none;
+    transform: translateZ(0);
+}
+.main-home-hero-bg-img {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    filter: brightness(0.7);
+    display: block;
+}
+[data-theme="light"] .main-home-hero-bg-img {
+    filter: brightness(0.9);
+}
+</style>
+
 <!-- Layout Wrapper -->
 <div class="main-home-layout-wrapper">
     <div class="main-home-page">
@@ -35,10 +139,10 @@
 
         <div class="main-home-content-wrapper">
             <div class="main-home-auth-container">
-                <div class="main-home-auth-card">
-                    <div class="main-home-auth-header">
-                        <h1 class="main-home-auth-title">Create Account</h1>
-                        <p class="main-home-auth-subtitle">Join us and start your journey today</p>
+                <div class="main-home-auth-card" style="max-width: 900px; padding: 1.25rem 3rem;">
+                    <div class="main-home-auth-header" style="margin-bottom: 0.75rem;">
+                        <h1 class="main-home-auth-title" style="font-size: 1.8rem; margin-bottom: 0;">Create Account</h1>
+                        <p class="main-home-auth-subtitle" style="font-size: 1rem;">Join us today</p>
                     </div>
 
                     {% for message in app.flashes('error_popup') %}
@@ -59,7 +163,7 @@
                         </div>
                     {% endif %}
 
-                    {{ form_start(form, {'method': 'POST', 'attr': {'class': 'main-home-auth-form', 'novalidate': 'novalidate', 'data-ajax': 'true'}}) }}
+                    {{ form_start(form, {'method': 'POST', 'attr': {'class': 'main-home-auth-form', 'novalidate': 'novalidate', 'data-ajax': 'true', 'style': 'gap: 0.7rem;'}}) }}
                         <div class="main-home-form-row">
                             <div class="main-home-form-group main-home-form-half">
                                 {{ form_label(form.first_name, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
@@ -75,73 +179,78 @@
                             </div>
                         </div>
 
-                        <div class="main-home-form-group">
-                            {{ form_label(form.email_user, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
-                            {{ form_widget(form.email_user, {'attr': {'class': 'main-home-form-input', 'placeholder': 'john.doe@example.com'}}) }}
-                            <div class="main-home-validation-message" id="email-validation"></div>
-                            {{ form_errors(form.email_user) }}
+                        <div class="main-home-form-row">
+                            <div class="main-home-form-group main-home-form-half">
+                                {{ form_label(form.email_user, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
+                                {{ form_widget(form.email_user, {'attr': {'class': 'main-home-form-input', 'placeholder': 'john.doe@example.com'}}) }}
+                                <div class="main-home-validation-message" id="email-validation"></div>
+                                {{ form_errors(form.email_user) }}
+                            </div>
+                            <div class="main-home-form-group main-home-form-half">
+                                <!-- Place holder or other field if needed, otherwise horizontal space is used -->
+                            </div>
                         </div>
 
-                        <div class="main-home-form-group">
-                            {{ form_label(form.plainPassword.first, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
-                            <div class="main-home-password-wrapper">
-                                {{ form_widget(form.plainPassword.first, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Create a strong password'}}) }}
-                                <button type="button" class="main-home-password-toggle" onclick="togglePassword('{{ form.plainPassword.first.vars.id }}')">
-                                    <span class="main-home-eye-icon">👁️</span>
+                        <div class="main-home-form-row">
+                            <div class="main-home-form-group main-home-form-half">
+                                {{ form_label(form.plainPassword.first, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
+                                <div class="main-home-password-wrapper">
+                                    {{ form_widget(form.plainPassword.first, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Create a strong password'}}) }}
+                                    <button type="button" class="main-home-password-toggle" onclick="togglePassword('{{ form.plainPassword.first.vars.id }}')">
+                                        <span class="main-home-eye-icon">👁️</span>
+                                    </button>
+                                </div>
+                                <div class="password-requirements" id="password-requirements" style="flex-direction: row; gap: 1rem; flex-wrap: wrap; margin-top: 0.25rem;">
+                                    <div class="password-req-item invalid" id="req-length" style="font-size: 0.75rem;">
+                                        <span class="req-icon"></span>
+                                        <span class="req-text">8+ chars</span>
+                                    </div>
+                                    <div class="password-req-item invalid" id="req-uppercase" style="font-size: 0.75rem;">
+                                        <span class="req-icon"></span>
+                                        <span class="req-text">Uppercase</span>
+                                    </div>
+                                    <div class="password-req-item invalid" id="req-special" style="font-size: 0.75rem;">
+                                        <span class="req-icon"></span>
+                                        <span class="req-text">Special char</span>
+                                    </div>
+                                </div>
+                                <div class="main-home-validation-message" id="password-validation"></div>
+                                {{ form_errors(form.plainPassword.first) }}
+                            </div>
+
+                            <div class="main-home-form-group main-home-form-half">
+                                {{ form_label(form.plainPassword.second, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
+                                <div class="main-home-password-wrapper">
+                                    {{ form_widget(form.plainPassword.second, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Confirm password'}}) }}
+                                    <button type="button" class="main-home-password-toggle" onclick="togglePassword('{{ form.plainPassword.second.vars.id }}')">
+                                        <span class="main-home-eye-icon">👁️</span>
+                                    </button>
+                                </div>
+                                <div class="main-home-validation-message" id="confirm-password-validation"></div>
+                                {{ form_errors(form.plainPassword.second) }}
+                            </div>
+                        </div>
+
+                        <div class="main-home-auth-submit-row" style="display: flex; gap: 2rem; align-items: center; margin-top: 1rem;">
+                            <button type="submit" class="main-home-btn main-home-btn-auth-submit" style="flex: 1.2; margin: 0;">
+                                Create Account
+                            </button>
+                            
+                            <div class="main-home-auth-social-compact" style="display: flex; gap: 1rem; flex: 1;">
+                                <button type="button" class="main-home-social-btn main-home-social-google" style="margin: 0; flex: 1; padding: 0.5rem; height: 38px;">
+                                    <span class="main-home-social-icon">G</span>
+                                    <span>Google</span>
+                                </button>
+                                <button type="button" class="main-home-social-btn main-home-social-github" style="margin: 0; flex: 1; padding: 0.5rem; height: 38px;">
+                                    <span class="main-home-social-icon">⚡</span>
+                                    <span>GitHub</span>
                                 </button>
                             </div>
-                            <div class="password-requirements" id="password-requirements">
-                                <div class="password-req-item invalid" id="req-length">
-                                    <span class="req-icon"></span>
-                                    <span class="req-text">At least 8 characters</span>
-                                </div>
-                                <div class="password-req-item invalid" id="req-uppercase">
-                                    <span class="req-icon"></span>
-                                    <span class="req-text">One uppercase letter</span>
-                                </div>
-                                <div class="password-req-item invalid" id="req-special">
-                                    <span class="req-icon"></span>
-                                    <span class="req-text">One special character (@, #, $, etc.)</span>
-                                </div>
-                            </div>
-                            <div class="main-home-validation-message" id="password-validation"></div>
-                            {{ form_errors(form.plainPassword.first) }}
                         </div>
-
-                        <div class="main-home-form-group">
-                            {{ form_label(form.plainPassword.second, null, {'label_attr': {'class': 'main-home-form-label'}}) }}
-                            <div class="main-home-password-wrapper">
-                                {{ form_widget(form.plainPassword.second, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Confirm your password'}}) }}
-                                <button type="button" class="main-home-password-toggle" onclick="togglePassword('{{ form.plainPassword.second.vars.id }}')">
-                                    <span class="main-home-eye-icon">👁️</span>
-                                </button>
-                            </div>
-                            <div class="main-home-validation-message" id="confirm-password-validation"></div>
-                            {{ form_errors(form.plainPassword.second) }}
-                        </div>
-
-                        <button type="submit" class="main-home-btn main-home-btn-auth-submit">
-                            Create Account
-                        </button>
                     {{ form_end(form) }}
 
-                    <div class="main-home-auth-divider">
-                        <span>or sign up with</span>
-                    </div>
-
-                    <div class="main-home-social-auth">
-                        <button type="button" class="main-home-social-btn main-home-social-google">
-                            <span class="main-home-social-icon">G</span>
-                            <span>Google</span>
-                        </button>
-                        <button type="button" class="main-home-social-btn main-home-social-github">
-                            <span class="main-home-social-icon">⚡</span>
-                            <span>GitHub</span>
-                        </button>
-                    </div>
-
-                    <p class="main-home-auth-footer">
-                        Already have an account?
+                    <p class="main-home-auth-footer" style="margin-top: 1rem; text-align: center; font-size: 0.9rem;">
+                        Already have an account? 
                         <a href="{{ path('auth_sign_in') }}" class="main-home-auth-link">Sign In</a>
                     </p>
                 </div>

@@ -21,12 +21,12 @@ class Publication
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
-    #[Assert\Length(min: 10, minMessage: "The title must be at least 10 characters long.")]
+    #[Assert\Length(min: 5, minMessage: "The title must be at least 5 characters long.")]
     private $titre_pub;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
-    #[Assert\Length(min: 50, minMessage: "The description must be at least 50 characters long.")]
+    #[Assert\Length(min: 10, minMessage: "The description must be at least 10 characters long.")]
     private $description_pub;
 
     #[ORM\Column(type: 'datetime')]

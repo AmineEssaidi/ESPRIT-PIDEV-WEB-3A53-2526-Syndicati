@@ -20,9 +20,22 @@ class ProfileType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('avatar', TextType::class, [
-                'label' => 'Avatar URL',
+            ->add('avatarFile', \Symfony\Component\Form\Extension\Core\Type\FileType::class, [
+                'label' => 'Upload Avatar',
+                'mapped' => false,
                 'required' => false,
+                'constraints' => [
+                    new \Symfony\Component\Validator\Constraints\File([
+                        'maxSize' => '5M',
+                        'mimeTypes' => [
+                            'image/jpeg',
+                            'image/png',
+                            'image/gif',
+                            'image/webp',
+                        ],
+                        'mimeTypesMessage' => 'Please upload a valid image (JPEG, PNG, GIF, WebP)',
+                    ])
+                ],
             ])
             ->add('theme', ChoiceType::class, [
                 'label' => 'Theme',
