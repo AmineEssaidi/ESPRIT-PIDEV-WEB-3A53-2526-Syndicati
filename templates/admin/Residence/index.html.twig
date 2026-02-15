@@ -601,36 +601,12 @@
                                     <span class="users-edit-modal-actions-spacer"></span>
                                     <button type="submit" class="users-btn-modify"><i class="bx bx-plus"></i> Create Appartement</button>
                                 </div>
-                                <div class="checkbox-wrapper" style="display:flex; align-items:center; gap:0.5rem; color:#fff;">
-                                    {{ form_widget(appartementEditForm.disponible) }}
-                                    <label for="{{ appartementEditForm.disponible.vars.id }}" style="cursor:pointer; font-size:0.95rem;">Available</label>
-                                </div>
                              </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-grid-3">
-                <div class="residence-form-group" style="grid-column: span 1;">
-                    <label class="residence-edit-label">Surface</label>
-                    {{ form_widget(appartementEditForm.superficie, {'attr': {'class': 'residence-edit-input'}}) }}
-                </div>
-                <div class="residence-form-group" style="grid-column: span 2;">
-                    <label class="residence-edit-label">Rent Price</label>
-                    {{ form_widget(appartementEditForm.prixLocation, {'attr': {'class': 'residence-edit-input'}}) }}
-                </div>
-            </div>
-            <div class="residence-form-group" style="margin-bottom: 2.5rem;">
-                <label class="residence-edit-label">Unit Image</label>
-                <div class="custom-file-wrapper">
-                    {{ form_widget(appartementEditForm.imageA, {'attr': {'class': 'hidden-select app-edit-image-input'}}) }}
-                    <div class="custom-file-trigger" onclick="document.querySelector('#app-edit-modal .app-edit-image-input').click()">
-                        <div class="custom-file-icon"><i class="bx bx-image-add"></i></div>
-                        <div class="custom-file-text">Click to update image...</div>
-                        <div class="custom-file-btn">Browse</div>
-                    </div>
-                </div>
-            </div>
+
                                 {{ form_end(appartementAddForm) }}
                                 {% endif %}
                             </div>

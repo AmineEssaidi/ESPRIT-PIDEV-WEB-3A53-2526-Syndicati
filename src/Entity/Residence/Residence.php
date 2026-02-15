@@ -9,7 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Endroid\QrCode\Builder\BuilderInterface;
-
+use Endroid\QrCodeBundle\Response\QrCodeResponse;
 
 #[ORM\Entity(repositoryClass: ResidenceRepository::class)]
 #[ORM\Table(name: 'residence')]
@@ -54,15 +54,10 @@ class Residence
 
 
 
-    public function __construct(BuilderInterface $customQrCodeBuilder)
+    public function __construct()
     {
         $this->appartements = new ArrayCollection();
-        $this->dateAjout = new \DateTime();
-
-        $result = $customQrCodeBuilder->build(
-        size: 500,
-        margin: 20
-    );
+        $this->dateAjout = new \DateTime();    
     }
 
     public function getIdResidence(): ?int

@@ -85,11 +85,19 @@
                                                 <span class="residence-stat-label">Bloc</span>
                                             </div>
                                         </div>
-                                        <img src="{{ qr_code_url('My QR Code') }}" />
-                                         <a href="{{ path('residence_apartments_frame', {'id': res.IdResidence}) }}" 
-                                        data-turbo-frame="apartments-container">
-                                            See All Apartments
-                                        </a>
+                                        <!-- <img src="{{ qr_code_url('My QR Code') }}" /> -->
+                                         <div class="row">
+                                            <hr>
+                                         <div class="col-6">
+                                            <a class=" main-home-btn main-home-btn-primary" href="{{ path('residence_apartments_frame', {'id': res.IdResidence}) }}" 
+                                            data-turbo-frame="apartments-container">
+                                                See Apartments
+                                            </a>
+                                        </div>
+                                        <div class="col-6">
+                                        <a class="main-home-btn main-home-btn-primary" href=" {{ path('pdf_residence', {'id': res.IdResidence})}}">Export as a PDF</a>
+                                        </div>
+                                        </div>
                                         
                 <div class="container">
                         <turbo-frame id="appartements">

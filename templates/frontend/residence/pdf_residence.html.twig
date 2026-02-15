@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Residence {{ residence.nomR }}</title>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Liste des appartements disponibles dans la résidence {{ residence.nomR }}</h1>
+    <table border="3">
+    <tr>
+        <td>Type</td>
+        <td>Bloc</td>
+        <td>Etage</td>
+        <td>Numéro</td>
+        <td>Parking Disponible?</td>
+        <td>Email du propriétaire</td>
+        <td>Prix Location</td>
+    </tr>
+{% for a in appartements %}
+    <tr>  
+        <td>{{ a.typeA }}</td>
+        <td>{{ a.appartementInfo.bloc }}</td>
+        <td>{{ a.appartementInfo.floor }}</td>
+        <td>{{ a.appartementInfo.number }}</td>
+        <td>{{ a.parking ? 'Disponible' : 'Non Disponible' }}</td>
+        <td>{{ a.user.EmailUser }}</td>
+        <td>{{ a.prixLocation }} TND</td>
+    </tr>
+    {% endfor %}
+</table>
+    </div>
+    
+</body>
+</html>

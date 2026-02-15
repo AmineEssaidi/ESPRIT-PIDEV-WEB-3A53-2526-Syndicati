@@ -2,6 +2,8 @@
 
 namespace App\Controller\Residence;
 
+use App\Entity\Residence\Residence;
+use App\Form\Residence\ResidenceType;
 use App\Service\SmsGenerator;
 use App\Repository\Residence\ResidenceRepository;
 use App\Repository\User\UserRepository;
@@ -20,6 +22,7 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use App\Entity\User\User;
+use Sensiolabs\GotenbergBundle\GotenbergPdfInterface;
 
 
 #[Route('/residence')]
@@ -374,7 +377,7 @@ class ResidenceController extends AbstractController
             ]);
         }
 
-#[Route('/{id}/sendSms', name: 'send_sms', methods: ['POST'])]
+#[Route('/{id}/sendSms', name: 'send_sms', methods: ['GET', 'POST'])]
 public function sendSms(SmsGenerator $smsGenerator, Request $request, UserRepository $userRep, ResidenceRepository $residenceRepository, \Knp\Component\Pager\PaginatorInterface $paginator): Response
 {
     $session = $request->getSession();
@@ -402,5 +405,19 @@ public function sendSms(SmsGenerator $smsGenerator, Request $request, UserReposi
         'residences' => $pagination,
     ]);
 }
+
+
+    #[Route('/pdf/{id}', 'pdf_residence')]
+    public function GenererPDFResidence($id, Request $request, GotenbergPdfInterface $gotenbergPdf, ResidenceRepository $residenceRepository): Response
+    {
+        $residence = $residenceRepository->find($id);
+        return $gotenbergPdf->html()->content('frontend/residence/pdf_residence.html.twig', [
+            'appartements' => $residence->getAppartements(),
+           'residence' => $residence,
+       ])
+        ->generate()
+        ->stream()
+    ;
+    }
 }
 

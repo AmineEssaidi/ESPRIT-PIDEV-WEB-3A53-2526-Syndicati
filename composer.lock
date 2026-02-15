@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7fb60d90672e99add895ae272eea80a0",
+    "content-hash": "0026e104eb71381f27d4d38f4be67639",
     "packages": [
         {
             "name": "amphp/amp",
@@ -3288,6 +3288,99 @@
                 }
             ],
             "time": "2024-03-15T19:43:50+00:00"
+        },
+        {
+            "name": "sensiolabs/gotenberg-bundle",
+            "version": "v1.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sensiolabs/GotenbergBundle.git",
+                "reference": "4672b4755374518d029acf7763c1afe1241de62a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sensiolabs/GotenbergBundle/zipball/4672b4755374518d029acf7763c1afe1241de62a",
+                "reference": "4672b4755374518d029acf7763c1afe1241de62a",
+                "shasum": ""
+            },
+            "require": {
+                "ext-filter": "*",
+                "ext-json": "*",
+                "php": ">=8.1",
+                "psr/container": "^2.0",
+                "psr/log": "^3.0",
+                "symfony/config": "^6.4 || ^7.0 || ^8.0",
+                "symfony/dependency-injection": "^6.4 || ^7.0 || ^8.0",
+                "symfony/filesystem": "^6.4 || ^7.0 || ^8.0",
+                "symfony/http-client-contracts": "^3.5",
+                "symfony/http-foundation": "^6.4 || ^7.0 || ^8.0",
+                "symfony/http-kernel": "^6.4 || ^7.0 || ^8.0",
+                "symfony/mime": "^6.4 || ^7.0 || ^8.0",
+                "symfony/service-contracts": "^3.6"
+            },
+            "require-dev": {
+                "async-aws/s3": "^2.6",
+                "ext-mbstring": "*",
+                "league/flysystem": "^3.29",
+                "phpstan/extension-installer": "^1.3",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-symfony": "^2.0",
+                "phpunit/phpunit": "^10.5.46",
+                "shipmonk/composer-dependency-analyser": "^1.8",
+                "symfony/asset": "^6.4 || ^7.0 || ^8.0",
+                "symfony/console": "^6.4 || ^7.0 || ^8.0",
+                "symfony/css-selector": "^6.4 || ^7.0 || ^8.0",
+                "symfony/dom-crawler": "^6.4 || ^7.0 || ^8.0",
+                "symfony/error-handler": "^6.4 || ^7.0 || ^8.0",
+                "symfony/framework-bundle": "^6.4 || ^7.0 || ^8.0",
+                "symfony/http-client": "^6.4 || ^7.0 || ^8.0",
+                "symfony/monolog-bundle": "^3.10 || ^4.0",
+                "symfony/routing": "^6.4 || ^7.0 || ^8.0",
+                "symfony/stopwatch": "^6.4 || ^7.0 || ^8.0",
+                "symfony/twig-bundle": "^6.4 || ^7.0 || ^8.0",
+                "symfony/var-dumper": "^6.4 || ^7.0 || ^8.0",
+                "symfony/yaml": "^6.4 || ^7.0 || ^8.0",
+                "twig/twig": "^3.14"
+            },
+            "suggest": {
+                "async-aws/s3": "Upload any file to aws s3 compatible endpoints supporting multi part upload without memory overhead.",
+                "league/flysystem-bundle": "Upload any file using this filesystem abstraction package.",
+                "monolog/monolog": "Enables logging througout the generating process.",
+                "symfony/monolog-bundle": "Enables logging througout the generating process.",
+                "symfony/routing": "Allows you to use webhook to generate URL or route.",
+                "symfony/twig-bundle": "Allows you to use Twig to render templates into PDF."
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-4": {
+                    "Sensiolabs\\GotenbergBundle\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Steven Renaux",
+                    "email": "steven.renaux@sensiolabs.com"
+                }
+            ],
+            "description": "Gotenberg support for Symfony",
+            "keywords": [
+                "Gotenberg",
+                "bundle",
+                "office",
+                "pdf",
+                "screenshot",
+                "symfony"
+            ],
+            "support": {
+                "issues": "https://github.com/sensiolabs/GotenbergBundle/issues",
+                "source": "https://github.com/sensiolabs/GotenbergBundle/tree/v1.1.1"
+            },
+            "time": "2025-12-15T15:05:05+00:00"
         },
         {
             "name": "symfony/asset",
