@@ -1,115 +1,253 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Sneat - Dashboard{% endblock %}</title>
+{% extends 'base_symfony.html.twig' %}
 
-    <!-- Preload critical resources -->
-    {% if app.request.get('_route') starts with 'admin_' %}
-        <link rel="preload" href="{{ asset('css/admin.css') }}" as="style">
-        <link rel="stylesheet" href="{{ asset('frontend/css/syndicat.css') }}">
-        <link rel="stylesheet" href="{{ asset('frontend/css/glass-modal.css') }}">
-        <link rel="preconnect" href="https://demos.themeselection.com">
-        <!-- CSS Dependencies -->
-        <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
-        <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-        <link href="{{ asset('css/admin.css') }}" rel="stylesheet">
-        <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
-    {% else %}
-        <link rel="preload" href="{{ asset('css/app.css') }}" as="style">
-        <link rel="preconnect" href="https://demos.themeselection.com">
-        <!-- CSS Dependencies -->
-        <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
-        <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-        <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
-    {% endif %}
+{% block title %}Residences - Horizon{% endblock %}
 
-    {% block stylesheets %}{% endblock %}
-</head>
-</head>
-{% set is_admin = app.request.get('_route') starts with 'admin_' %}
+{% block stylesheets %}
+    <link href="{{ asset('frontend/css/residence.css') }}" rel="stylesheet">
+{% endblock %}
 
-<body class="{{ is_admin ? 'admin-body' : 'layout-menu-fixed' }}">
-    {% include 'frontend/shared/_global_video_background.html.twig' %}
-    <!-- Page Loader -->
-    <div class="page-loader" id="pageLoader">
-        <div class="loader-content">
-            <div class="loader-dots">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-            </div>
-        </div>
-    </div>
-
-    {% include 'shared/_access_denied_popup.html.twig' %}
-
-    {% if is_admin %}
-        <div class="admin-shell">
-            {% include 'admin/_sidebar.html.twig' %}
-
-            <main class="admin-main">
-                <div class="admin-main-surface">
-    {% else %}
-        <div class="layout-wrapper layout-content-navbar">
-            <div class="layout-page">
-                <div class="content-wrapper">
-                    <div class="container-xxl flex-grow-1 container-p-y">
-    {% endif %}
-
-                        {% block content %}{% endblock %}
-
-    {% if is_admin %}
+{% block body %}
+<div class="main-home-layout-wrapper">
+    <div class="main-home-page">
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'residence'} %}
+        
+        <div class="main-home-page-content" style="padding: 0; padding-bottom: 5rem;">
+           {% if smsSent %}
+           <div class="alert alert-success" role="alert">
+                Votre SMS a été envoyé avec succès!
                 </div>
-            </main>
+           {% endif %}
+            <div class=""
+            
+            <!-- Hero Section -->
+            <div class="residence-hero">
+                <div class="residence-hero-glow"></div>
+                
+                <div class="container residence-hero-content">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8" data-aos="fade-up">
+                            <span class="residence-badge">
+                                <i class='bx bx-home-alt-2'></i> Premium Living
+                            </span>
+                            <h1 class="residence-title">Luxury Living<br>Redefined.</h1>
+                            <p class="residence-subtitle">Explore our curated selection of high-end residences and apartments. Experience a new standard of comfort and elegance with Horizon.</p>
+                            
+                            <div class="d-flex gap-3">
+                                <a href="#showcase" class="syndicat-btn-submit" style="width: auto; padding: 1rem 3rem; margin-top: 0; text-decoration: none;">
+                                    View Residences <i class='bx bx-chevron-down' style="margin-left: 0.5rem;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Residences Showcase -->
+            <div id="showcase" class="residence-showcase container-fluid px-5">
+                <div class="section-label" data-aos="fade-up">
+                    <h2>Our Residences</h2>
+                    <p>Discover the perfect space that suits your lifestyle.</p>
+                </div>
+  <div class="row g-4">
+                    {% if residences is empty %}                    
+                            <h1>Aucune résidence disponible</h1>
+                    {% else %}
+                        {% for res in residences %}
+                            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 100 }}">
+                                <div class="residence-card">
+                                    <div class="position-relative overflow-hidden">
+                                        {% if res.imageR %}
+                                            <img src="{{ asset('residence_images/' ~ res.imageR) }}" alt="{{ res.nomR }}" class="residence-card-img">
+                                        {% else %}
+                                            <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" alt="Residence" class="residence-card-img">
+                                        {% endif %}
+                                        <div class="residence-card-overlay">
+                                            <span class="residence-price-tag">{{ res.dateAjout|date('Y') }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="residence-card-body">
+                                        <span class="residence-type">Residence</span>
+                                        <h3 class="residence-card-title">{{ res.nomR }}</h3>
+                                        <div class="residence-location">
+                                            <i class='bx bx-map'></i> {{ res.adresse }}
+                                        </div>
+                                        <div class="residence-stats">
+                                            <div class="residence-stat-item">
+                                                <span class="residence-stat-value">{{ res.nEtages }}</span>
+                                                <span class="residence-stat-label">Floors</span>
+                                            </div>
+                                            <div class="residence-stat-item">
+                                                <span class="residence-stat-value">{{ res.totalAppartements }}</span>
+                                                <span class="residence-stat-label">Number of Appartments</span>
+                                            </div>
+                                            <div class="residence-stat-item">
+                                                <span class="residence-stat-value">{{ res.nBlocs }}</span>
+                                                <span class="residence-stat-label">Bloc</span>
+                                            </div>
+                                        </div>
+                                        <img src="{{ qr_code_url('My QR Code') }}" />
+                                         <a href="{{ path('residence_apartments_frame', {'id': res.IdResidence}) }}" 
+                                        data-turbo-frame="apartments-container">
+                                            See All Apartments
+                                        </a>
+                                        
+                <div class="container">
+                        <turbo-frame id="appartements">
+                    <!-- Apartments will be loaded here -->
+                </turbo-frame>
+</div>
+
+                                    </div>
+                                    <div class="residence-card-bar"></div>
+                                </div>
+                            </div>
+                           
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+            </div>
+
         </div>
-    {% else %}
+
+<div class="residence-pagination-wrapper d-flex justify-content-center mt-5">
+                    {% if residences.pageCount > 1 %}
+                    <nav aria-label="Residence pagination">
+                        <ul class="residence-pagination">
+                            {% if residences.currentPageNumber > 1 %}
+                                <li><a href="{{ path('app_residence_index', {page: residences.currentPageNumber - 1}) }}" class="residence-page-link"><i class='bx bx-chevron-left'></i></a></li>
+                            {% endif %}
+                            
+                            {% for page in 1..residences.pageCount %}
+                                <li>
+                                    <a href="{{ path('app_residence_index', {page: page}) }}" 
+                                       class="residence-page-link {{ page == residences.currentPageNumber ? 'active' : '' }}">
+                                        {{ page }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                            
+                            {% if residences.currentPageNumber < residences.pageCount %}
+                                <li><a href="{{ path('app_residence_index', {page: residences.currentPageNumber + 1}) }}" class="residence-page-link"><i class='bx bx-chevron-right'></i></a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                    {# Page Info - Always Show #}
+                    <div class="text-center mt-3">
+                        <p class="text-white-50 mb-0">
+                            <i class='bx bx-buildings me-2'></i>
+                            Showing {{ residences|length }} of {{ residences.getTotalItemCount }} residence{{ residences.getTotalItemCount != 1 ? 's' : '' }}
+                            {% if residences.pageCount > 1 %}
+                                <span class="mx-2">•</span>
+                                Page {{ residences.currentPageNumber }} of {{ residences.pageCount }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        {% include 'frontend/shared/_main_footer.html.twig' %}
+    </div>
+</div>
+
+<!-- Residence Details Modal -->
+<div class="modal fade" id="residenceDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content overflow-hidden border-0" style="background: transparent; border-radius: 30px;">
+            <div id="residence-modal-content">
+                <div class="p-5 text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
             </div>
         </div>
-    {% endif %}
+    </div>
+</div>
+{% endblock %}
 
-    <!-- JavaScript Dependencies - defer for non-blocking load -->
-    <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}" defer></script>
-    <script src="{{ asset('js/app.js') }}" defer></script>
-    <script src="{{ asset('js/page-loader.js') }}"></script>
-    {% if is_admin %}
-        <script src="{{ asset('js/admin-core.js') }}"></script>
-        <script src="{{ asset('js/admin-sidebar.js') }}" defer></script>
-        <script src="{{ asset('js/admin-delete.js') }}" defer></script>
-        {% include 'admin/_delete_popup.html.twig' %}
-    {% endif %}
-
-    {% block javascripts %}{% endblock %}
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // function to disable validation
-            const disableValidation = (form) => {
-                form.setAttribute('novalidate', 'novalidate');
-            };
-
-            // Disable for existing forms
-            document.querySelectorAll('form').forEach(disableValidation);
-
-            // Observer for dynamic forms
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    mutation.addedNodes.forEach((node) => {
-                        if (node.tagName === 'FORM') {
-                            disableValidation(node);
-                        } else if (node.querySelectorAll) {
-                            node.querySelectorAll('form').forEach(disableValidation);
-                        }
-                    });
-                });
+{% block javascripts %}
+{{ parent() }}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof AOS !== 'undefined') {
+            AOS.init({
+                duration: 1000,
+                once: true,
+                offset: 100
             });
+        }
 
-            observer.observe(document.body, { childList: true, subtree: true });
-        });
-    </script>
-</body>
-</html>
+        // Toggle Residence Card Expansion
+        window.toggleResidenceCard = function(id) {
+            const card = document.getElementById('residenceCard_' + id);
+            const expanded = document.getElementById('residenceExpanded_' + id);
+            
+            if (!expanded.classList.contains('active')) {
+                // Expand: Card fades out, expanded view slides in
+                card.classList.add('expanding');
+                setTimeout(() => {
+                    card.style.display = 'none';
+                    expanded.classList.add('active');
+                    // Reset to details view
+                    showDetails(id);
+                }, 150);
+            } else {
+                // Collapse: Expanded view slides out, card fades in
+                expanded.classList.remove('active');
+                setTimeout(() => {
+                    card.style.display = 'block';
+                    setTimeout(() => card.classList.remove('expanding'), 50);
+                }, 600);
+            }
+        };
+
+        // Show Apartments View
+        window.showApartments = function(id) {
+            const detailsView = document.getElementById('detailsView_' + id);
+            const apartmentsView = document.getElementById('apartmentsView_' + id);
+            
+            if (detailsView && apartmentsView) {
+                detailsView.style.display = 'none';
+                apartmentsView.style.display = 'block';
+                
+                // Reset filter to show only available apartments
+                const availFilter = document.getElementById('aptFilterAvail_' + id);
+                if (availFilter) {
+                    availFilter.checked = true;
+                    filterApartments(id, 'available');
+                }
+            }
+        };
+
+        // Show Details View
+        window.showDetails = function(id) {
+            const detailsView = document.getElementById('detailsView_' + id);
+            const apartmentsView = document.getElementById('apartmentsView_' + id);
+            
+            if (detailsView && apartmentsView) {
+                detailsView.style.display = 'block';
+                apartmentsView.style.display = 'none';
+            }
+        };
+
+        // Filter Apartments by Availability
+        window.filterApartments = function(residenceId, filter) {
+            const apartments = document.querySelectorAll(`.apartment-item[data-residence="${residenceId}"]`);
+            
+            apartments.forEach(apt => {
+                if (filter === 'all') {
+                    apt.style.display = '';
+                } else if (filter === 'available') {
+                    apt.style.display = apt.dataset.available === '1' ? '' : 'none';
+                }
+            });
+        };
+    });
+</script>
+{% endblock %}

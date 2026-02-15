@@ -1,0 +1,109 @@
+
+{% extends 'base_symfony.html.twig' %}
+
+{% block title %}Residences - Horizon{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset('frontend/css/residence.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+<div class="main-home-layout-wrapper">
+    <div class="main-home-page">
+        
+        <div class="main-home-page-content" style="padding: 0; padding-bottom: 5rem;">
+            
+            <!-- Hero Section -->
+            <div class="residence-hero" style=" min-height:200px;
+              
+            background-image:linear-gradient(to right, rgba(0, 0, 0, 0.776) 10%,
+              rgba(0, 0, 0, 0)), url({{ asset('residence_images/' ~ residence.imageR) }}); background-size:cover;">
+                <div class="residence-hero-glow"></div>
+                
+                <div class="container residence-hero-content">
+                    <div class="row align-items-center">
+                        <div class=" row" data-aos="fade-up">
+                            <div class="col">
+                            <h1 class="residence-title">{{ residence.nomR }}</h1>
+                            </div>
+                            <div class="col-auto">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                        <div id="showcase" class="residence-showcase container-fluid px-5">
+                <div class="section-label" data-aos="fade-up">
+                              <h2>Apartments in {{ residence.nomR }}</h2>
+
+                                    </div>
+                    <div class="row g-4">
+                            
+                            {% for apartment in appartements %}
+                                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 100 }}">
+                                <div class="residence-card">
+                                    <div class="position-relative overflow-hidden">
+                                        {% if apartment.imageA %}
+                                            <img src="{{ asset('appartement_images/' ~ apartment.imageA) }}" class="residence-card-img">
+                                        {% else %}
+                                        <img src="{{ asset('residence_images/' ~ residence.imageR) }}" class="residence-card-img" style="filter:brightness(10%) blur(5px)">
+
+                                            {% endif %}
+                                        <div class="residence-card-overlay">
+                                            <span class="residence-price-tag">{{ apartment.disponible ? 'Appartment à louer' : 'Appartement loué'}}</span>
+                                        </div>
+                                    </div>
+                                    <div class="residence-card-body">
+                                        <h3>Apartment {{ apartment.typeA }}</h3>
+
+                                        <div>
+                                             <div class="apartment-info-row">
+                                                                            <i class='bx bx-buildings'></i>
+                                                                            <span>Bloc {{ apartment.appartementInfo.bloc ?? 'N/A' }}</span>
+                                                                        </div>
+                                                                        
+                                                                        <div class="apartment-info-row">
+                                                                            <i class='bx bx-layer'></i>
+                                                                            <span>Floor {{ apartment.appartementInfo.floor ?? 'N/A' }}</span>
+                                                                        </div>
+                                                                        
+                                                                        {# Features #}
+                                                                        <div class="apartment-features">
+                                                                            <div class="col-auto">
+                                                                            {% if apartment.parking %}
+                                                                                <span class="apartment-feature-tag">
+                                                                                    <i class='bx bxs-car'></i> Parking Place Available
+                                                                                </span>
+                                                                            {% endif %}
+                                                                            </div>
+                                                                            <div class="col-auto">
+                                                                            {% if apartment.disponible %}
+                                                                                <span class="apartment-feature-tag">
+                                                                                    <i class='bx bx-money'></i> Price: {{ apartment.prixLocation }} TND
+                                                                                </span>
+                                                                            {% endif %}
+                                                                            </div>
+                                                                            {% if apartment.disponible %}
+                                                                        <div class="col-12 text-center">
+                                                                            <hr>
+                                                                        <form method="post" action="{{ path('send_sms', {'id': residence.IdResidence}) }}">
+                                                                                <button class="main-home-btn main-home-btn-primary col-sm-12" type="submit">Send SMS to owner</button>
+                                                                            </form>
+                                                                            </div>
+                                                                        {% endif %}
+                                                                        </div>
+                                                                        
+                                        </div>
+                                </div>
+                                </div>
+                                </div>
+                            {% else %}
+                                <p>No apartments found.</p>
+                            {% endfor %}
+
+                               
+                            <a href="{{ path('app_residence_index') }}" data-turbo-frame="_top">
+                                Back to Residences
+                            </a>
+
+{% endblock %}

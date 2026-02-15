@@ -8,6 +8,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Endroid\QrCode\Builder\BuilderInterface;
+
 
 #[ORM\Entity(repositoryClass: ResidenceRepository::class)]
 #[ORM\Table(name: 'residence')]
@@ -50,10 +52,17 @@ class Residence
     #[ORM\OneToMany(mappedBy: 'residence', targetEntity: Appartement::class, cascade: ['remove'], orphanRemoval: true)]
     private Collection $appartements;
 
-    public function __construct()
+
+
+    public function __construct(BuilderInterface $customQrCodeBuilder)
     {
         $this->appartements = new ArrayCollection();
         $this->dateAjout = new \DateTime();
+
+        $result = $customQrCodeBuilder->build(
+        size: 500,
+        margin: 20
+    );
     }
 
     public function getIdResidence(): ?int

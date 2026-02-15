@@ -4,6 +4,7 @@ namespace App\Controller\Residence;
 
 use App\Service\SmsGenerator;
 use App\Repository\Residence\ResidenceRepository;
+use App\Repository\User\UserRepository;
 use App\Entity\Residence\Appartement;
 use App\Form\Residence\AppartementType;
 use App\Repository\Residence\AppartementRepository;
@@ -18,6 +19,8 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Form\FormFactoryInterface;
+use App\Entity\User\User;
+
 
 #[Route('/residence')]
 class ResidenceController extends AbstractController
@@ -360,18 +363,43 @@ class ResidenceController extends AbstractController
 ]);
     }
 
-#[Route('/sendSms', name: 'send_sms', methods: ['POST'])]
-public function sendSms(SmsGenerator $smsGenerator, ResidenceRepository $residenceRepository): Response
+        #[Route('/{id}', name: 'residence_apartments_frame')]
+        public function AfficherAppartements($id, ResidenceRepository $residenceRepository): Response
+        {
+            $residence = $residenceRepository->find($id);
+            
+            return $this->render('frontend/residence/appartements.html.twig', [
+                'appartements' => $residence->getAppartements(),
+                'residence' => $residence,
+            ]);
+        }
+
+#[Route('/{id}/sendSms', name: 'send_sms', methods: ['POST'])]
+public function sendSms(SmsGenerator $smsGenerator, Request $request, UserRepository $userRep, ResidenceRepository $residenceRepository, \Knp\Component\Pager\PaginatorInterface $paginator): Response
 {
-    $name = $this->getUser() ? $this->getUser()->getFirstName() : '';
-    $text = "Bonjour";
+    $session = $request->getSession();
+    $userId = (int) $session->get('user')['id'];
+    $user = $userRep->find($userId);
+    $name = $user->getFirstName();
+    $text =$user->getEmailUser();
     $number_test = $_ENV['twilio_to_number'];
     
     $smsGenerator->sendSms($number_test, $name, $text);
+
+            $query = $residenceRepository->createQueryBuilder('r')
+            ->orderBy('r.dateAjout', 'DESC')
+            ->getQuery();
+
+        $pagination = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            3 // 3 residences per page
+        );
+
     
     return $this->render('frontend/residence/index.html.twig', [
         'smsSent' => true,
-        'residences' => $residenceRepository->findAll()
+        'residences' => $pagination,
     ]);
 }
 }

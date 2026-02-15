@@ -14,7 +14,7 @@ class SmsGenerator
         $fromNumber = $_ENV['twilio_from_number']; 
 
         $toNumber = $number; 
-        $message = ''.$name.' vous a envoyé le message suivant:'.' '.$text.''; 
+        $message = ''.$name.' veut louer votre appartement \n'.' '.$text.''; 
 
         $client = new Client($accountSid, $authToken);
 
