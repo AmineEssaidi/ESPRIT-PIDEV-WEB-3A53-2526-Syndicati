@@ -1,0 +1,19 @@
+# Please see the following page for more information: https://webauthn-doc.spomky-labs.com/the-webauthn-server/the-symfony-way#configuration
+
+webauthn:
+    credential_repository: 'App\Repository\WebAuthn\WebAuthnCredentialRepository'
+    user_repository: 'App\Repository\WebAuthn\WebAuthnUserRepository'
+    secured_rp_ids: ['localhost', '127.0.0.1'] # Allow HTTP for localhost and 127.0.0.1 in development
+    # Explicitly allow both origins so assertion/attestation validation accepts them
+    allowed_origins:
+        - 'http://localhost'
+        - 'http://127.0.0.1'
+    allow_subdomains: false
+    creation_profiles:
+        default:
+            rp:
+                name: '%env(RELYING_PARTY_NAME)%'
+                id: '%env(RELYING_PARTY_ID)%'
+    request_profiles:
+        default:
+            rp_id: '%env(RELYING_PARTY_ID)%'

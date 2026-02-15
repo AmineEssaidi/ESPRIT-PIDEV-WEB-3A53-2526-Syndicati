@@ -1,0 +1,5 @@
+# hCaptcha: get your keys at https://dashboard.hcaptcha.com/
+# Add to .env: HCAPTCHA_SITE_KEY=... and HCAPTCHA_SECRET_KEY=...
+parameters:
+    hcaptcha_site_key: '%env(HCAPTCHA_SITE_KEY)%'
+    hcaptcha_secret_key: '%env(HCAPTCHA_SECRET_KEY)%'

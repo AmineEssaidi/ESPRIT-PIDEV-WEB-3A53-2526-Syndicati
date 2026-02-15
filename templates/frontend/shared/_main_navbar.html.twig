@@ -103,7 +103,7 @@
                     <div class="main-home-user-profile">
                         <img src="{{ _avatar_url }}" alt="Profile" class="main-home-profile-img" loading="lazy" decoding="async"/>
                         <div class="main-home-profile-info">
-                            <div class="main-home-profile-name">{{ _user.name|default('User') }}</div>
+                            <div class="main-home-profile-name">{{ _user.name|default((_user.first_name|default('')) ~ ' ' ~ (_user.last_name|default('')))|trim|default('User') }}</div>
                             <div class="main-home-profile-email">{{ _user.email|default('user@example.com') }}</div>
                         </div>
                     </div>

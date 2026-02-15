@@ -25,6 +25,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class UserController extends AbstractController
 {
@@ -105,8 +106,18 @@ class UserController extends AbstractController
     }
 
     #[Route('/sign-in', name: 'auth_sign_in', methods: ['GET', 'POST'])]
-    public function signIn(Request $request, UserRepository $userRepository, ProfileRepository $profileRepository, OnboardingRepository $onboardingRepository, UserPasswordHasherInterface $passwordHasher): Response
-    {
+    public function signIn(
+        Request $request,
+        UserRepository $userRepository,
+        ProfileRepository $profileRepository,
+        OnboardingRepository $onboardingRepository,
+        UserPasswordHasherInterface $passwordHasher,
+        HttpClientInterface $httpClient,
+        #[Autowire(param: 'hcaptcha_site_key')]
+        string $hcaptchaSiteKey = '',
+        #[Autowire(param: 'hcaptcha_secret_key')]
+        string $hcaptchaSecretKey = '',
+    ): Response {
         $session = $request->getSession();
         $error = null;
         $lastEmail = '';
@@ -115,12 +126,46 @@ class UserController extends AbstractController
             return $this->redirectToRoute('main_home');
         }
 
+        // After POST with error we redirect to GET (PRG) so refresh doesn't resubmit and cause reload loop
+        if ($request->isMethod('GET') && $session->has('signin_error')) {
+            $error = $session->get('signin_error');
+            $lastEmail = (string) $session->get('signin_last_email', '');
+            $session->remove('signin_error');
+            $session->remove('signin_last_email');
+            return $this->render('frontend/auth/sign-in.html.twig', [
+                'error' => $error,
+                'last_email' => $lastEmail,
+                'hcaptcha_site_key' => $hcaptchaSiteKey,
+            ]);
+        }
+
+        // Redirect 127.0.0.1 → localhost so WebAuthn works (browsers often reject "This is an invalid domain" on 127.0.0.1)
+        if ($request->getHost() === '127.0.0.1' && $request->isMethod('GET')) {
+            $port = $request->getPort();
+            $scheme = $request->getScheme();
+            $url = $scheme . '://localhost' . ($port && $port !== 80 && $port !== 443 ? ':' . $port : '') . $request->getRequestUri();
+            return $this->redirect($url, Response::HTTP_MOVED_PERMANENTLY);
+        }
+
         if ($request->isMethod('POST')) {
             $email = trim((string) $request->request->get('email'));
             $password = $request->request->get('password');
             $lastEmail = $email;
 
-            if ($email !== '' && $password !== null) {
+            // Require hCaptcha verification when keys are configured
+            if ($hcaptchaSecretKey !== '' && $hcaptchaSiteKey !== '') {
+                $captchaResponse = $request->request->get('h-captcha-response');
+                if ($captchaResponse === null || trim((string) $captchaResponse) === '') {
+                    $error = 'Please complete the security verification (captcha) before signing in.';
+                } else {
+                    $verified = $this->verifyHcaptcha($httpClient, $hcaptchaSecretKey, (string) $captchaResponse);
+                    if (!$verified) {
+                        $error = 'Security verification failed. Please try again.';
+                    }
+                }
+            }
+
+            if ($error === null && $email !== '' && $password !== null) {
                 $user = $userRepository->findOneBy(['email_user' => $email]);
                 if ($user !== null && $passwordHasher->isPasswordValid($user, $password)) {
                     if (!$user->getIsVerified()) {
@@ -156,6 +201,7 @@ class UserController extends AbstractController
                                 'error' => null,
                                 'last_email' => $lastEmail,
                                 'show_destination_choice' => true,
+                                'hcaptcha_site_key' => $hcaptchaSiteKey,
                             ]);
                         }
                         return $this->redirectToRoute('main_home');
@@ -163,15 +209,40 @@ class UserController extends AbstractController
                 } else {
                     $error = 'Invalid email or password.';
                 }
-            } else {
+            } elseif ($error === null) {
                 $error = 'Please enter your email and password.';
             }
+
+            // PRG: redirect to GET with error in session so browser doesn't resubmit POST on refresh
+            $session->set('signin_error', $error);
+            $session->set('signin_last_email', $lastEmail);
+            return $this->redirectToRoute('auth_sign_in', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('frontend/auth/sign-in.html.twig', [
             'error' => $error,
             'last_email' => $lastEmail,
+            'hcaptcha_site_key' => $hcaptchaSiteKey,
         ]);
+    }
+
+    private function verifyHcaptcha(HttpClientInterface $httpClient, string $secret, string $response): bool
+    {
+        if ($secret === '' || $response === '') {
+            return false;
+        }
+        try {
+            $result = $httpClient->request('POST', 'https://hcaptcha.com/siteverify', [
+                'body' => [
+                    'secret' => $secret,
+                    'response' => $response,
+                ],
+            ]);
+            $data = $result->toArray();
+            return isset($data['success']) && $data['success'] === true;
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     #[Route('/logout', name: 'auth_logout')]

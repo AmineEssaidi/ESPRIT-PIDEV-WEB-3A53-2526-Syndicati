@@ -11,6 +11,7 @@
     <link href="{{ asset('frontend/css/scroll-pill.css') }}" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+    
     <style>
         /* Clickable avatar upload */
         .profile-avatar-form { display: block; margin: 0; padding: 0; }
@@ -383,11 +384,17 @@
                                             <span class="main-home-stat-number">{{ user.isVerified ? 'Verified' : 'Pending verification' }}</span>
                                         </div>
                                     </div>
-                                    <div class="main-home-profile-actions" style="margin-top: 1rem;">
-                                        <button type="button" class="main-home-btn main-home-btn-primary" id="profile-settings-open" title="Profile settings">
-                                            <i class="bx bx-cog"></i> Profile settings
-                                        </button>
-                                    </div>
+                                    <div class="main-home-profile-actions" style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+        <button type="button" class="main-home-btn main-home-btn-primary" id="webauthn-settings-open" title="Biometric Security" style="background: rgba(var(--syndicat-accent-rgb), 0.2); border-color: rgba(var(--syndicat-accent-rgb), 0.3);">
+            <i class="bx bx-fingerprint"></i> Biometrics
+        </button>
+        <button type="button" class="main-home-btn main-home-btn-primary" id="faceid-enroll-open" title="Face Recognition" style="background: rgba(var(--syndicat-accent-rgb), 0.2); border-color: rgba(var(--syndicat-accent-rgb), 0.3);">
+            <i class="bx bx-camera-home"></i> Face ID
+        </button>
+        <button type="button" class="main-home-btn main-home-btn-primary" id="profile-settings-open" title="Profile settings">
+            <i class="bx bx-cog"></i> Profile settings
+        </button>
+    </div>
                                 </div>
                             </div>
                         </div>
@@ -1240,6 +1247,12 @@
                         </div>
                     </div>
                 </div>
+                    </div>
+                </div>
+
+                    </button>
+                </div>
+            </div>
             </div>
 
             <div class="glass-modal-footer">
@@ -1254,6 +1267,169 @@
     </div>
 </div>
 
+    <!-- Face ID Enrollment Modal -->
+    <div id="faceid-enroll-modal" class="glass-modal-overlay">
+        <div class="glass-modal-container" style="max-width: 500px;">
+            <div class="glass-modal-header">
+                <h2 class="glass-modal-title"><i class="bx bx-camera"></i> Enroll Face ID</h2>
+                <button class="glass-modal-close" id="faceid-enroll-modal-close">&times;</button>
+            </div>
+            <div class="glass-modal-body text-center">
+                <div id="faceid-enroll-step-1">
+                    <p class="text-white-50 mb-4">Protect your account with local Face ID. This only works on this PC.</p>
+                    <div class="mb-4">
+                        <input type="password" id="faceid-pin" class="form-control bg-dark text-white border-secondary" placeholder="Enter a local PIN for encryption" style="border-radius: 12px; padding: 0.75rem;">
+                        <small class="text-muted mt-2 d-block">This PIN is used to encrypt your Face ID locally.</small>
+                    </div>
+                    <button class="main-home-btn main-home-btn-primary w-100" id="faceid-start-capture">
+                        Start Enrollment
+                    </button>
+                </div>
+
+                <div id="faceid-enroll-step-2" style="display: none;">
+                    <div class="position-relative mb-3" style="width: 100%; aspect-ratio: 4/3; background: #000; border-radius: 16px; overflow: hidden;">
+                        <video id="faceid-video" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                        <canvas id="faceid-canvas" class="position-absolute top-0 start-0" style="width: 100%; height: 100%;"></canvas>
+                        <div id="faceid-liveness-hint" class="position-absolute bottom-0 start-0 e-100 p-2 text-white" style="background: rgba(0,0,0,0.5); font-size: 0.8rem; width: 100%;">
+                            Looking for face...
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 d-flex flex-column align-items-center">
+                        <select id="faceid-camera-select" class="form-select bg-dark text-white border-secondary mb-2" style="border-radius: 12px; font-size: 0.85rem; max-width: 300px; display: none;">
+                            <option value="">Default Camera</option>
+                        </select>
+                        <button type="button" id="faceid-switch-camera" class="btn btn-sm btn-outline-light" style="font-size: 0.75rem; border-radius: 100px; padding: 0.4rem 1rem; display: none;">
+                            <i class="bx bx-sync"></i> Switch Camera
+                        </button>
+                    </div>
+
+                    <div class="progress mb-3" style="height: 10px; background: rgba(255,255,255,0.1); border-radius: 100px;">
+                        <div id="faceid-progress" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 0%; border-radius: 100px;"></div>
+                    </div>
+                    <p id="faceid-instruction" class="text-white small">Look straight at the camera, then turn slightly.</p>
+                </div>
+            </div>
+            <div class="glass-modal-footer">
+                <button type="button" class="glass-btn-cancel" id="faceid-enroll-modal-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+<!-- WebAuthn Modal -->
+<div id="webauthn-settings-modal" class="glass-modal-overlay">
+    <div class="glass-modal-container" style="max-width: 500px;">
+        <div class="glass-modal-header">
+            <div>
+                <h3 class="glass-modal-title"><i class="bx bx-fingerprint"></i> Biometric Security</h3>
+                <p class="glass-modal-subtitle">Manage your passkeys and biometric methods.</p>
+            </div>
+            <button type="button" class="glass-modal-close" id="webauthn-settings-modal-close" title="Close">
+                <i class="bx bx-x"></i>
+            </button>
+        </div>
+        
+        <div class="glass-modal-body">
+            <div class="glass-form-group">
+                <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem;" class="mb-3">
+                    Use your device's biometrics (FaceID, TouchID, Windows Hello) to log in faster.
+                </p>
+                
+                <div id="webauthn-credential-list" class="mb-3">
+                    <!-- Populated by JS -->
+                    <div class="text-center py-2"><i class="bx bx-loader-alt bx-spin"></i> Loading methods...</div>
+                </div>
+
+                <button type="button" class="btn btn-outline-light w-100 d-flex align-items-center justify-content-center gap-2" id="webauthn-register-btn" style="border: 1px dashed rgba(255,255,255,0.3); padding: 0.8rem; border-radius: 12px; transition: all 0.2s;">
+                    <i class="bx bx-plus"></i> Register New Device
+                </button>
+            </div>
+        </div>
+
+        <div class="glass-modal-footer">
+            <button type="button" class="glass-btn-cancel" id="webauthn-settings-modal-cancel">Close</button>
+        </div>
+    </div>
+</div>
+
+<script src="{{ asset('frontend/js/webauthn.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- WebAuthn Modal Logic ---
+        const waModal = document.getElementById('webauthn-settings-modal');
+        const waOpenBtn = document.getElementById('webauthn-settings-open');
+        const waCloseBtn = document.getElementById('webauthn-settings-modal-close');
+        const waCancelBtn = document.getElementById('webauthn-settings-modal-cancel');
+        const listContainerId = 'webauthn-credential-list';
+        let isLoaded = false;
+
+        function openWaModal() {
+            if (waModal) {
+                waModal.style.display = 'flex';
+                waModal.offsetHeight;
+                waModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                if (!isLoaded) loadWebAuthn();
+            }
+        }
+
+        function closeWaModal() {
+            if (waModal) {
+                waModal.classList.remove('active');
+                setTimeout(() => {
+                    waModal.style.display = 'none';
+                    document.body.style.overflow = '';
+                }, 400);
+            }
+        }
+
+        function loadWebAuthn() {
+            if (typeof WebAuthnManager !== 'undefined') {
+                WebAuthnManager.listCredentials().then(list => {
+                    WebAuthnManager.renderCredentialList(listContainerId, list);
+                    isLoaded = true;
+                });
+            }
+        }
+
+        if (waOpenBtn) waOpenBtn.addEventListener('click', openWaModal);
+        if (waCloseBtn) waCloseBtn.addEventListener('click', closeWaModal);
+        if (waCancelBtn) waCancelBtn.addEventListener('click', closeWaModal);
+        if (waModal) {
+             waModal.addEventListener('click', function(e) {
+                if (e.target === waModal) closeWaModal();
+            });
+        }
+        
+        // Also allow manual refresh
+        const registerBtn = document.getElementById('webauthn-register-btn');
+        if (registerBtn && typeof WebAuthnManager !== 'undefined') {
+            registerBtn.addEventListener('click', async function() {
+                const originalHtml = registerBtn.innerHTML;
+                registerBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Registering...';
+                registerBtn.disabled = true;
+
+                try {
+                    const result = await WebAuthnManager.register();
+                    if (result.success) {
+                        if (typeof showCoolPopup === 'function') showCoolPopup('Success', 'Device registered successfully', 'success');
+                        
+                        // Reload list
+                        const list = await WebAuthnManager.listCredentials();
+                        WebAuthnManager.renderCredentialList(listContainerId, list);
+                    } else {
+                        if (typeof showCoolPopup === 'function') showCoolPopup('Error', result.message, 'error');
+                    }
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    registerBtn.innerHTML = originalHtml;
+                    registerBtn.disabled = false;
+                }
+            });
+        }
+    });
+</script>
 <script>
 
 // 1. Profile Settings Modal Logic
@@ -2861,12 +3037,156 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Safety: Hide page loader if it's still spinning
+    });
+    </script>
+
+    <!-- Face ID Scripts: load from local first so faceapi is always defined (CDN can fail or return HTML) -->
+    <script src="{{ asset('vendor/face-api/face-api.min.js') }}"></script>
+    <script src="{{ asset('frontend/js/face-id.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const enrollOpenBtn = document.getElementById('faceid-enroll-open');
+            const enrollModal = document.getElementById('faceid-enroll-modal');
+            const enrollCloseBtn = document.getElementById('faceid-enroll-modal-close');
+            const enrollCancelBtn = document.getElementById('faceid-enroll-modal-cancel');
+            const startCaptureBtn = document.getElementById('faceid-start-capture');
+            const step1 = document.getElementById('faceid-enroll-step-1');
+            const step2 = document.getElementById('faceid-enroll-step-2');
+            const video = document.getElementById('faceid-video');
+            const pinInput = document.getElementById('faceid-pin');
+            const progressBar = document.getElementById('faceid-progress');
+            const instruction = document.getElementById('faceid-instruction');
+            const livenessHint = document.getElementById('faceid-liveness-hint');
+            const cameraSelect = document.getElementById('faceid-camera-select');
+            const switchBtn = document.getElementById('faceid-switch-camera');
+
+            let stream = null;
+            let currentDeviceId = null;
+
+            // Camera handling
+            async function getCameras() {
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                    
+                    if (videoDevices.length > 1) {
+                        cameraSelect.innerHTML = videoDevices.map(d => `<option value="${d.deviceId}">${d.label || 'Camera ' + d.deviceId.slice(0,5)}</option>`).join('');
+                        cameraSelect.style.display = 'block';
+                        switchBtn.style.display = 'block';
+                    } else {
+                        cameraSelect.style.display = 'none';
+                        switchBtn.style.display = 'none';
+                    }
+                } catch (e) {
+                    console.warn('Could not list cameras:', e);
+                }
+            }
+
+            async function startStream(deviceId = null) {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                const constraints = {
+                    video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'user' }
+                };
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                currentDeviceId = deviceId;
+            }
+
+            if (enrollOpenBtn && enrollModal) {
+                enrollOpenBtn.addEventListener('click', () => {
+                    enrollModal.style.display = 'flex';
+                    enrollModal.offsetHeight; 
+                    enrollModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    step1.style.display = 'block';
+                    step2.style.display = 'none';
+                });
+
+                const closeEnrollModal = () => {
+                    enrollModal.classList.remove('active');
+                    setTimeout(() => {
+                        enrollModal.style.display = 'none';
+                        document.body.style.overflow = '';
+                    }, 500);
+                    if (stream) {
+                        stream.getTracks().forEach(track => track.stop());
+                        stream = null;
+                    }
+                };
+
+                enrollCloseBtn?.addEventListener('click', closeEnrollModal);
+                enrollCancelBtn?.addEventListener('click', closeEnrollModal);
+
+                enrollModal.addEventListener('click', (e) => {
+                    if (e.target === enrollModal) closeEnrollModal();
+                });
+
+                startCaptureBtn?.addEventListener('click', async () => {
+                    const pin = pinInput.value;
+                    if (pin.length < 4) {
+                        alert('Please enter at least a 4-digit PIN');
+                        return;
+                    }
+
+                    try {
+                        await startStream();
+                        await getCameras(); // Update labels after permission granted
+                        
+                        step1.style.display = 'none';
+                        step2.style.display = 'block';
+                        livenessHint.textContent = 'Initializing models...';
+
+                        await FaceID.startEnrollment(video, pin, (progress) => {
+                            progressBar.style.width = (progress * 100) + '%';
+                            if (progress < 0.3) instruction.textContent = 'Look straight at the camera...';
+                            else if (progress < 0.6) instruction.textContent = 'Slowly turn your head left and right...';
+                            else if (progress < 0.9) instruction.textContent = 'Now blink a few times...';
+                            else instruction.textContent = 'Great! Almost done...';
+                            livenessHint.textContent = 'Capturing face features...';
+                        }).then(result => {
+                            if (typeof showCoolPopup === 'function') {
+                                showCoolPopup('Success', 'Face ID enrolled successfully!', 'success');
+                            } else {
+                                alert('Face ID enrolled successfully!');
+                            }
+                            closeEnrollModal();
+                        }).catch(err => {
+                            if (err.message !== 'STOP') {
+                                alert(err.message);
+                                closeEnrollModal();
+                            }
+                        });
+
+                    } catch (e) {
+                        console.error(e);
+                        alert('Could not access camera (Check permissions) or load models.');
+                        closeEnrollModal();
+                    }
+                });
+
+                switchBtn?.addEventListener('click', async () => {
+                    const nextId = cameraSelect.value;
+                    if (nextId === currentDeviceId) return;
+                    try {
+                        await startStream(nextId);
+                    } catch (e) {
+                        alert('Could not switch to selected camera.');
+                    }
+                });
+
+                cameraSelect?.addEventListener('change', () => switchBtn.click());
+            }
+        });
+    </script>
+
+    <!-- Safety: Hide page loader if it's still spinning -->
+    <script>
     setTimeout(() => {
         const pageLoader = document.getElementById('pageLoader');
         if (pageLoader) pageLoader.style.display = 'none';
     }, 100);
-});
-</script>
+    </script>
 </body>
 </html>
