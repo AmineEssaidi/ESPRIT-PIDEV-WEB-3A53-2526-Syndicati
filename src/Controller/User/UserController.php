@@ -26,6 +26,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use App\Service\TwoFactor\TwoFactorService;
 
 class UserController extends AbstractController
 {
@@ -113,6 +114,8 @@ class UserController extends AbstractController
         OnboardingRepository $onboardingRepository,
         UserPasswordHasherInterface $passwordHasher,
         HttpClientInterface $httpClient,
+        TwoFactorService $twoFactorService,
+        EntityManagerInterface $em,
         #[Autowire(param: 'hcaptcha_site_key')]
         string $hcaptchaSiteKey = '',
         #[Autowire(param: 'hcaptcha_secret_key')]
@@ -123,6 +126,14 @@ class UserController extends AbstractController
         $lastEmail = '';
 
         if ($session->get('is_logged_in')) {
+            if ($request->query->get('destination') === 'choice') {
+                return $this->render('frontend/auth/sign-in.html.twig', [
+                    'error' => null,
+                    'last_email' => '',
+                    'show_destination_choice' => true,
+                    'hcaptcha_site_key' => $hcaptchaSiteKey,
+                ]);
+            }
             return $this->redirectToRoute('main_home');
         }
 
@@ -146,6 +157,34 @@ class UserController extends AbstractController
             $url = $scheme . '://localhost' . ($port && $port !== 80 && $port !== 443 ? ':' . $port : '') . $request->getRequestUri();
             return $this->redirect($url, Response::HTTP_MOVED_PERMANENTLY);
         }
+
+        // GET with pending 2FA TOTP session: show sign-in with popup so user can enter app code (e.g. after refresh)
+        if ($request->isMethod('GET')) {
+            $pending2faUserId = $session->get('2fa_user_id');
+            $pending2faEmail = $session->get('2fa_email');
+            if ($pending2faUserId && $pending2faEmail) {
+                $conn = $em->getConnection();
+                $twoFaRow = $conn->fetchAssociative(
+                    'SELECT two_factor_enabled, totp_secret FROM user WHERE id_user = :id',
+                    ['id' => $pending2faUserId],
+                    ['id' => \PDO::PARAM_INT]
+                );
+                $totpConfigured = $twoFaRow && isset($twoFaRow['totp_secret']) && $twoFaRow['totp_secret'] !== '' && $twoFaRow['totp_secret'] !== null;
+                if ($totpConfigured) {
+                    $user = $userRepository->find($pending2faUserId);
+                    if ($user && $user->getEmailUser() === $pending2faEmail) {
+                        return $this->render('frontend/auth/sign-in.html.twig', [
+                            'error' => null,
+                            'last_email' => $pending2faEmail,
+                            'show_totp_popup' => true,
+                            'hcaptcha_site_key' => $hcaptchaSiteKey,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        $isAjax = $request->isXmlHttpRequest();
 
         if ($request->isMethod('POST')) {
             $email = trim((string) $request->request->get('email'));
@@ -171,6 +210,42 @@ class UserController extends AbstractController
                     if (!$user->getIsVerified()) {
                         $error = 'Your account is not yet verified by an administrator. You cannot log in until your account is verified.';
                     } else {
+                        // Check 2FA from DB so we always use current state (same as profile / 2fa status)
+                        $conn = $em->getConnection();
+                        $twoFaRow = $conn->fetchAssociative(
+                            'SELECT two_factor_enabled, totp_secret FROM user WHERE id_user = :id',
+                            ['id' => $user->getIdUser()],
+                            ['id' => \PDO::PARAM_INT]
+                        );
+                        $twoFactorEnabled = $twoFaRow ? (bool) ($twoFaRow['two_factor_enabled'] ?? false) : false;
+                        $totpConfigured = $twoFaRow && isset($twoFaRow['totp_secret']) && $twoFaRow['totp_secret'] !== '' && $twoFaRow['totp_secret'] !== null;
+
+                        if ($twoFactorEnabled) {
+                            if ($totpConfigured) {
+                                // Authenticator app: set session and either return JSON (AJAX) or render with popup
+                                $session->set('2fa_user_id', $user->getIdUser());
+                                $session->set('2fa_email', $user->getEmailUser());
+                                if ($isAjax) {
+                                    return $this->json(['success' => true, 'requireTotp' => true]);
+                                }
+                                return $this->render('frontend/auth/sign-in.html.twig', [
+                                    'error' => null,
+                                    'last_email' => $lastEmail,
+                                    'show_totp_popup' => true,
+                                    'hcaptcha_site_key' => $hcaptchaSiteKey,
+                                ]);
+                            }
+                            // Email OTP only: send code (stored in user.authCode), show OTP popup or redirect
+                            $twoFactorService->sendCode($user);
+                            $session->set('2fa_user_id', $user->getIdUser());
+                            $session->set('2fa_email', $user->getEmailUser());
+                            if ($isAjax) {
+                                return $this->json(['success' => true, 'requireEmailOtp' => true]);
+                            }
+                            return $this->redirectToRoute('2fa_verify');
+                        }
+
+                        // No 2FA: proceed with normal login
                         $profile = $profileRepository->findOneByUser($user);
                         $avatar = $profile?->getAvatar();
 
@@ -192,17 +267,28 @@ class UserController extends AbstractController
                             'settings' => $userSettings,
                         ]);
                         $onboarding = $onboardingRepository->findOneByUser($user);
+                        $redirectUrl = $this->generateUrl('main_home');
                         if ($onboarding === null || !$onboarding->isCompleted()) {
-                            return $this->redirectToRoute('onboarding');
+                            $redirectUrl = $this->generateUrl('onboarding');
+                        } else {
+                            $adminRoles = ['OWNER', 'ADMIN', 'SYNDIC', 'SUPERADMIN'];
+                            if (in_array($user->getRoleUser(), $adminRoles, true)) {
+                                $redirectUrl = $this->generateUrl('auth_sign_in', ['destination' => 'choice']);
+                            }
                         }
-                        $adminRoles = ['OWNER', 'ADMIN', 'SYNDIC', 'SUPERADMIN'];
-                        if (in_array($user->getRoleUser(), $adminRoles, true)) {
-                            return $this->render('frontend/auth/sign-in.html.twig', [
-                                'error' => null,
-                                'last_email' => $lastEmail,
-                                'show_destination_choice' => true,
-                                'hcaptcha_site_key' => $hcaptchaSiteKey,
-                            ]);
+                        if ($isAjax) {
+                            return $this->json(['success' => true, 'redirect' => $redirectUrl]);
+                        }
+                        if ($redirectUrl !== $this->generateUrl('main_home')) {
+                            if ($redirectUrl === $this->generateUrl('auth_sign_in', ['destination' => 'choice'])) {
+                                return $this->render('frontend/auth/sign-in.html.twig', [
+                                    'error' => null,
+                                    'last_email' => $lastEmail,
+                                    'show_destination_choice' => true,
+                                    'hcaptcha_site_key' => $hcaptchaSiteKey,
+                                ]);
+                            }
+                            return $this->redirect($redirectUrl);
                         }
                         return $this->redirectToRoute('main_home');
                     }
@@ -213,6 +299,9 @@ class UserController extends AbstractController
                 $error = 'Please enter your email and password.';
             }
 
+            if ($isAjax) {
+                return $this->json(['success' => false, 'error' => $error], 400);
+            }
             // PRG: redirect to GET with error in session so browser doesn't resubmit POST on refresh
             $session->set('signin_error', $error);
             $session->set('signin_last_email', $lastEmail);
@@ -274,9 +363,12 @@ class UserController extends AbstractController
         \App\Repository\Forum\PublicationRepository $publicationRepository,
         \App\Repository\Evenement\EvenementRepository $evenementRepository,
         \App\Repository\Residence\AppartementRepository $appartementRepository,
+        \App\Repository\OAuth\OAuthRepository $oauthRepository,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $em,
-        SluggerInterface $slugger
+        SluggerInterface $slugger,
+        #[\Symfony\Component\DependencyInjection\Attribute\Autowire(param: 'mailer_oauth_user_id')]
+        int $mailerOauthUserId = 0
     ): Response {
         if (!$pageStatusService->isPageOnline('profile')) {
             return $this->redirectToRoute('maintenance_with_page', ['pageId' => 'profile']);
@@ -296,6 +388,19 @@ class UserController extends AbstractController
             $this->addFlash('danger', 'User not found.');
             return $this->redirectToRoute('auth_sign_in');
         }
+
+        // Read 2FA state directly from DB so it stays correct after TOTP verify
+        $conn = $em->getConnection();
+        $twoFaRow = $conn->fetchAssociative(
+            'SELECT two_factor_enabled, totp_secret FROM user WHERE id_user = :id',
+            ['id' => $userId],
+            ['id' => \PDO::PARAM_INT]
+        );
+        $twoFactorEnabled = $twoFaRow ? (bool) ($twoFaRow['two_factor_enabled'] ?? false) : false;
+        $totpConfigured = $twoFaRow && isset($twoFaRow['totp_secret']) && $twoFaRow['totp_secret'] !== '' && $twoFaRow['totp_secret'] !== null;
+
+        $gmailOauthConnected = $oauthRepository->findOneByUserId($userId) !== null;
+        $isMailerOauthUser = $mailerOauthUserId > 0 && $userId === $mailerOauthUserId;
 
         $profile = $profileRepository->findOneByUser($user);
         if (!$profile) {
@@ -480,9 +585,16 @@ class UserController extends AbstractController
             'events' => $events,
             'appartements' => $appartements,
             'isAdmin' => $isAdmin,
+            'two_factor_enabled' => $twoFactorEnabled,
+            'totp_configured' => $totpConfigured,
+            'gmail_oauth_connected' => $gmailOauthConnected,
+            'is_mailer_oauth_user' => $isMailerOauthUser,
         ]);
         $response->setPrivate();
         $response->setMaxAge(0);
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('Expires', '0');
         return $response;
     }
 

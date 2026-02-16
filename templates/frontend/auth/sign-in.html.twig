@@ -39,6 +39,42 @@
 
 {% include 'shared/_access_denied_popup.html.twig' %}
 
+<!-- TOTP 2FA popup (authenticator app code) - matches sign-in card UI -->
+<div id="totp-2fa-overlay" class="totp-2fa-overlay" style="display: {{ show_totp_popup|default(false) ? 'flex' : 'none' }};" aria-hidden="{{ show_totp_popup|default(false) ? 'false' : 'true' }}">
+    <div class="totp-2fa-popup">
+        <div class="totp-2fa-popup-inner">
+            <h2 class="totp-2fa-title">Two-Factor Authentication</h2>
+            <p class="totp-2fa-subtitle">Enter the 6-digit code from your authenticator app</p>
+            <div id="totp-2fa-error" class="totp-2fa-error" style="display: none;"></div>
+            <div class="totp-2fa-form">
+                <input type="text" id="totp-2fa-code" class="totp-2fa-input main-home-form-input" placeholder="000000" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code" />
+                <div class="totp-2fa-actions">
+                    <button type="button" id="totp-2fa-verify-btn" class="main-home-btn main-home-btn-auth-submit totp-2fa-btn">Verify</button>
+                    <button type="button" class="main-home-forgot-btn totp-2fa-cancel" id="totp-2fa-cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email OTP 2FA popup (code sent to user's email, verified against authCode in user table) -->
+<div id="email-otp-2fa-overlay" class="totp-2fa-overlay" style="display: none;">
+    <div class="totp-2fa-popup">
+        <div class="totp-2fa-popup-inner">
+            <h2 class="totp-2fa-title">Check your email</h2>
+            <p class="totp-2fa-subtitle">Enter the 6-digit code we sent to your email address</p>
+            <div id="email-otp-2fa-error" class="totp-2fa-error" style="display: none;"></div>
+            <div class="totp-2fa-form">
+                <input type="text" id="email-otp-2fa-code" class="totp-2fa-input main-home-form-input" placeholder="000000" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code" />
+                <div class="totp-2fa-actions">
+                    <button type="button" id="email-otp-2fa-verify-btn" class="main-home-btn main-home-btn-auth-submit totp-2fa-btn">Verify</button>
+                    <button type="button" class="main-home-forgot-btn totp-2fa-cancel" id="email-otp-2fa-cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Layout Wrapper -->
 <div class="main-home-layout-wrapper">
     <div class="main-home-page">
@@ -76,13 +112,9 @@
                                         <p class="main-home-auth-subtitle" style="font-size: 1rem;">Sign in to continue</p>
                                     </div>
 
-                                    {% if error is defined and error %}
-                                        <div class="main-home-auth-error">
-                                            {{ error }}
-                                        </div>
-                                    {% endif %}
+                                    <div id="signin-ajax-error" class="main-home-auth-error" style="display: {{ (error is defined and error) ? 'block' : 'none' }};">{{ error|default('') }}</div>
 
-                                    <form class="main-home-auth-form" action="{{ path('auth_sign_in') }}" method="POST" novalidate style="gap: 0.75rem;">
+                                    <form id="signin-form" class="main-home-auth-form" action="{{ path('auth_sign_in') }}" method="POST" novalidate data-no-page-loader style="gap: 0.75rem;">
                                         <div class="main-home-form-row">
                                             <div class="main-home-form-group main-home-form-half">
                                                 <label for="email" class="main-home-form-label">Email</label>
@@ -121,12 +153,37 @@
                                         </div>
                                         {% endif %}
 
+                                        <!-- OTP Request Section -->
+                                        <div id="otp-request-section" class="main-home-form-group" style="display: none; margin-top: 0.75rem;">
+                                            <div class="d-flex align-items-center gap-2" style="padding: 0.75rem; background: rgba(var(--syndicat-accent-rgb), 0.1); border-radius: 8px; border: 1px solid rgba(var(--syndicat-accent-rgb), 0.2);">
+                                                <input 
+                                                    type="text" 
+                                                    id="otp-code-input" 
+                                                    name="otp_code" 
+                                                    class="main-home-form-input" 
+                                                    placeholder="Enter 6-digit OTP code"
+                                                    maxlength="6"
+                                                    pattern="[0-9]{6}"
+                                                    style="flex: 1; text-align: center; font-size: 1.25rem; letter-spacing: 0.5rem; font-family: 'Courier New', monospace;"
+                                                />
+                                                <button type="button" class="main-home-btn main-home-btn-primary" id="otp-verify-btn" style="min-width: 100px; padding: 0.6rem 1rem;">
+                                                    Verify
+                                                </button>
+                                            </div>
+                                            <div class="text-center" style="margin-top: 0.5rem;">
+                                                <button type="button" class="main-home-auth-link" id="otp-resend-btn" style="font-size: 0.85rem;">Resend Code</button>
+                                                <span style="color: rgba(255,255,255,0.5); margin: 0 0.5rem;">|</span>
+                                                <button type="button" class="main-home-auth-link" id="otp-cancel-btn" style="font-size: 0.85rem;">Cancel</button>
+                                            </div>
+                                        </div>
+
                                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
                                         <div class="main-home-auth-submit-row">
                                             <div class="main-home-auth-buttons-line">
                                                 <button type="submit" class="main-home-btn main-home-btn-auth-submit" id="signin-submit-btn">Sign In</button>
                                                 <a href="#" class="main-home-forgot-btn">Forgot Password?</a>
+                                                <button type="button" class="main-home-forgot-btn" id="request-otp-btn" style="display: none;">Request OTP Code</button>
                                                 <button type="button" class="main-home-social-btn main-home-social-google">
                                                     <span class="main-home-social-icon">G</span>
                                                     <span>Google</span>
@@ -849,6 +906,441 @@
     align-items: center !important;
     padding: 0 1rem !important;
 }
+
+/* TOTP 2FA popup - matches sign-in card */
+.totp-2fa-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+.totp-2fa-popup {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(10, 10, 10, 0.92);
+    backdrop-filter: blur(30px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 28px;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+    padding: 2rem 2.5rem;
+}
+.totp-2fa-popup-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.totp-2fa-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+.totp-2fa-subtitle {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+}
+.totp-2fa-error {
+    padding: 0.6rem 0.75rem;
+    background: rgba(220, 53, 69, 0.15);
+    border: 1px solid rgba(220, 53, 69, 0.4);
+    border-radius: 10px;
+    color: #f8d7da;
+    font-size: 0.9rem;
+}
+.totp-2fa-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.totp-2fa-input {
+    text-align: center !important;
+    font-size: 1.5rem !important;
+    letter-spacing: 0.5rem !important;
+    font-family: 'Courier New', monospace !important;
+}
+.totp-2fa-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.totp-2fa-btn {
+    flex: 1;
+    min-width: 120px;
+}
+.totp-2fa-cancel {
+    text-decoration: none;
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const requestOtpBtn = document.getElementById('request-otp-btn');
+    const otpRequestSection = document.getElementById('otp-request-section');
+    const otpCodeInput = document.getElementById('otp-code-input');
+    const otpVerifyBtn = document.getElementById('otp-verify-btn');
+    const otpResendBtn = document.getElementById('otp-resend-btn');
+    const otpCancelBtn = document.getElementById('otp-cancel-btn');
+    const emailInput = document.getElementById('email');
+    const signinForm = document.getElementById('signin-form');
+    const signinSubmitBtn = document.getElementById('signin-submit-btn');
+    const authErrorEl = document.getElementById('signin-ajax-error');
+
+    // AJAX sign-in: no full page refresh; show TOTP popup or redirect from JSON response
+    if (signinForm && signinSubmitBtn) {
+        signinForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            if (!email || !password) {
+                if (authErrorEl) { authErrorEl.textContent = 'Please enter your email and password.'; authErrorEl.style.display = 'block'; }
+                return;
+            }
+            {% if hcaptcha_site_key is defined and hcaptcha_site_key %}
+            var captchaInput = document.querySelector('[name="h-captcha-response"]');
+            if (captchaInput && (!captchaInput.value || !captchaInput.value.trim())) {
+                if (authErrorEl) { authErrorEl.textContent = 'Please complete the security verification (captcha) before signing in.'; authErrorEl.style.display = 'block'; }
+                return;
+            }
+            {% endif %}
+            if (authErrorEl) authErrorEl.style.display = 'none';
+            var btnHtml = signinSubmitBtn.innerHTML;
+            signinSubmitBtn.disabled = true;
+            signinSubmitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Signing in...';
+            try {
+                var formData = new FormData(signinForm);
+                var response = await fetch('{{ path("auth_sign_in") }}', {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                });
+                var data = await response.json().catch(function() { return {}; });
+                if (data.requireTotp) {
+                    var overlay = document.getElementById('totp-2fa-overlay');
+                    var codeInput = document.getElementById('totp-2fa-code');
+                    if (overlay) overlay.style.display = 'flex';
+                    if (codeInput) { codeInput.value = ''; codeInput.focus(); }
+                    if (document.getElementById('totp-2fa-error')) document.getElementById('totp-2fa-error').style.display = 'none';
+                } else if (data.requireEmailOtp) {
+                    var overlay = document.getElementById('email-otp-2fa-overlay');
+                    var codeInput = document.getElementById('email-otp-2fa-code');
+                    if (overlay) overlay.style.display = 'flex';
+                    if (codeInput) { codeInput.value = ''; codeInput.focus(); }
+                    if (document.getElementById('email-otp-2fa-error')) document.getElementById('email-otp-2fa-error').style.display = 'none';
+                } else if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                } else if (data.success === false && data.error) {
+                    if (authErrorEl) { authErrorEl.textContent = data.error; authErrorEl.style.display = 'block'; }
+                } else if (!response.ok) {
+                    if (authErrorEl) { authErrorEl.textContent = data.error || 'Something went wrong. Please try again.'; authErrorEl.style.display = 'block'; }
+                }
+            } catch (err) {
+                if (authErrorEl) { authErrorEl.textContent = 'Something went wrong. Please try again.'; authErrorEl.style.display = 'block'; }
+            } finally {
+                signinSubmitBtn.disabled = false;
+                signinSubmitBtn.innerHTML = btnHtml;
+            }
+        });
+    }
+
+    // Show request OTP button when email is entered
+    if (emailInput) {
+        emailInput.addEventListener('input', function() {
+            const email = this.value.trim();
+            if (email && email.includes('@')) {
+                if (requestOtpBtn) requestOtpBtn.style.display = 'inline-flex';
+            } else {
+                if (requestOtpBtn) requestOtpBtn.style.display = 'none';
+            }
+        });
+    }
+
+    // Request OTP code – always read email from the sign-in form's email field
+    if (requestOtpBtn) {
+        requestOtpBtn.addEventListener('click', async function() {
+            const signinForm = document.getElementById('signin-form');
+            const emailField = signinForm ? signinForm.querySelector('input[name="email"]') : emailInput;
+            const email = (emailField ? emailField.value : (emailInput?.value || '')).trim();
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid email address in the Email box first');
+                return;
+            }
+
+            const originalHtml = this.innerHTML;
+            this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Sending...';
+            this.disabled = true;
+
+            try {
+                const response = await fetch('{{ path("2fa_request_otp") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    var emailOtpOverlay = document.getElementById('email-otp-2fa-overlay');
+                    var emailOtpCodeInput = document.getElementById('email-otp-2fa-code');
+                    if (emailOtpOverlay) {
+                        emailOtpOverlay.style.display = 'flex';
+                        if (emailOtpCodeInput) { emailOtpCodeInput.value = ''; emailOtpCodeInput.focus(); }
+                        if (document.getElementById('email-otp-2fa-error')) document.getElementById('email-otp-2fa-error').style.display = 'none';
+                    }
+                    if (typeof showCoolPopup === 'function') {
+                        showCoolPopup('Code sent', 'Enter the 6-digit code we sent to your email', 'success');
+                    }
+                } else {
+                    alert(data.message || 'Failed to send OTP code');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to send OTP code. Please try again.');
+            } finally {
+                this.innerHTML = originalHtml;
+                this.disabled = false;
+            }
+        });
+    }
+
+    // Verify OTP code – use the same email from the sign-in form
+    if (otpVerifyBtn && otpCodeInput) {
+        otpVerifyBtn.addEventListener('click', async function() {
+            const code = otpCodeInput.value.trim();
+            const signinForm = document.getElementById('signin-form');
+            const emailField = signinForm ? signinForm.querySelector('input[name="email"]') : emailInput;
+            const email = (emailField ? emailField.value : (emailInput?.value || '')).trim();
+
+            if (!code || code.length !== 6) {
+                alert('Please enter a valid 6-digit code');
+                return;
+            }
+
+            if (!email) {
+                alert('Email is required');
+                return;
+            }
+
+            const originalHtml = this.innerHTML;
+            this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Verifying...';
+            this.disabled = true;
+
+            try {
+                const response = await fetch('{{ path("2fa_verify_otp_login") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ email: email, code: code })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    // Redirect to the provided URL or reload
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    alert(data.message || 'Invalid code. Please try again.');
+                    if (otpCodeInput) {
+                        otpCodeInput.value = '';
+                        otpCodeInput.focus();
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to verify code. Please try again.');
+            } finally {
+                this.innerHTML = originalHtml;
+                this.disabled = false;
+            }
+        });
+
+        // Allow Enter key to submit
+        otpCodeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                otpVerifyBtn.click();
+            }
+        });
+    }
+
+    // Resend OTP code
+    if (otpResendBtn) {
+        otpResendBtn.addEventListener('click', function() {
+            requestOtpBtn?.click();
+        });
+    }
+
+    // Cancel OTP request
+    if (otpCancelBtn) {
+        otpCancelBtn.addEventListener('click', function() {
+            otpRequestSection.style.display = 'none';
+            if (signinSubmitBtn) signinSubmitBtn.style.display = 'inline-flex';
+            if (requestOtpBtn && emailInput?.value.trim()) {
+                requestOtpBtn.style.display = 'inline-flex';
+            }
+            if (otpCodeInput) otpCodeInput.value = '';
+        });
+    }
+
+    // TOTP 2FA popup (authenticator app at sign-in) – always attach listeners so AJAX flow can show overlay
+    const totpOverlay = document.getElementById('totp-2fa-overlay');
+    const totp2faCodeInput = document.getElementById('totp-2fa-code');
+    const totp2faVerifyBtn = document.getElementById('totp-2fa-verify-btn');
+    const totp2faCancelBtn = document.getElementById('totp-2fa-cancel-btn');
+    const totpErrorEl = document.getElementById('totp-2fa-error');
+    if (totpOverlay && totp2faCodeInput && totp2faVerifyBtn) {
+        if (totpOverlay.style.display === 'flex') totp2faCodeInput.focus();
+        if (totp2faCancelBtn) {
+            totp2faCancelBtn.addEventListener('click', async function() {
+                try {
+                    await fetch('{{ path("2fa_cancel_login") }}', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                } catch (e) {}
+                totpOverlay.style.display = 'none';
+                if (totp2faCodeInput) totp2faCodeInput.value = '';
+                if (totpErrorEl) totpErrorEl.style.display = 'none';
+            });
+        }
+        totp2faCodeInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '').slice(0, 6);
+        });
+        totp2faCodeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                totp2faVerifyBtn.click();
+            }
+        });
+        totp2faVerifyBtn.addEventListener('click', async function() {
+            const code = totp2faCodeInput.value.trim();
+            if (code.length !== 6) {
+                if (totpErrorEl) {
+                    totpErrorEl.textContent = 'Please enter the 6-digit code from your authenticator app.';
+                    totpErrorEl.style.display = 'block';
+                }
+                return;
+            }
+            if (totpErrorEl) totpErrorEl.style.display = 'none';
+            const originalHtml = totp2faVerifyBtn.innerHTML;
+            totp2faVerifyBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Verifying...';
+            totp2faVerifyBtn.disabled = true;
+            try {
+                const response = await fetch('{{ path("2fa_verify_totp_login") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ code: code })
+                });
+                const data = await response.json();
+                if (data.success && data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                if (totpErrorEl) {
+                    totpErrorEl.textContent = data.message || 'Invalid code. Please try again.';
+                    totpErrorEl.style.display = 'block';
+                }
+                totp2faCodeInput.value = '';
+                totp2faCodeInput.focus();
+            } catch (err) {
+                if (totpErrorEl) {
+                    totpErrorEl.textContent = 'Something went wrong. Please try again.';
+                    totpErrorEl.style.display = 'block';
+                }
+            } finally {
+                totp2faVerifyBtn.innerHTML = originalHtml;
+                totp2faVerifyBtn.disabled = false;
+            }
+        });
+    }
+
+    // Email OTP 2FA popup (code sent to user's email; verified against authCode in user table)
+    const emailOtpOverlay = document.getElementById('email-otp-2fa-overlay');
+    const emailOtpCodeInput = document.getElementById('email-otp-2fa-code');
+    const emailOtpVerifyBtn = document.getElementById('email-otp-2fa-verify-btn');
+    const emailOtpCancelBtn = document.getElementById('email-otp-2fa-cancel-btn');
+    const emailOtpErrorEl = document.getElementById('email-otp-2fa-error');
+    if (emailOtpOverlay && emailOtpCodeInput && emailOtpVerifyBtn) {
+        if (emailOtpCancelBtn) {
+            emailOtpCancelBtn.addEventListener('click', async function() {
+                try {
+                    await fetch('{{ path("2fa_cancel_login") }}', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                } catch (e) {}
+                emailOtpOverlay.style.display = 'none';
+                if (emailOtpCodeInput) emailOtpCodeInput.value = '';
+                if (emailOtpErrorEl) emailOtpErrorEl.style.display = 'none';
+            });
+        }
+        emailOtpCodeInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '').slice(0, 6);
+        });
+        emailOtpCodeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                emailOtpVerifyBtn.click();
+            }
+        });
+        emailOtpVerifyBtn.addEventListener('click', async function() {
+            const code = emailOtpCodeInput.value.trim();
+            const email = document.getElementById('email') ? document.getElementById('email').value.trim() : '';
+            if (code.length !== 6) {
+                if (emailOtpErrorEl) {
+                    emailOtpErrorEl.textContent = 'Please enter the 6-digit code we sent to your email.';
+                    emailOtpErrorEl.style.display = 'block';
+                }
+                return;
+            }
+            if (!email) {
+                if (emailOtpErrorEl) {
+                    emailOtpErrorEl.textContent = 'Email is required.';
+                    emailOtpErrorEl.style.display = 'block';
+                }
+                return;
+            }
+            if (emailOtpErrorEl) emailOtpErrorEl.style.display = 'none';
+            const originalHtml = emailOtpVerifyBtn.innerHTML;
+            emailOtpVerifyBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Verifying...';
+            emailOtpVerifyBtn.disabled = true;
+            try {
+                const response = await fetch('{{ path("2fa_verify_otp_login") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ email: email, code: code })
+                });
+                const data = await response.json();
+                if (data.success && data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                if (emailOtpErrorEl) {
+                    emailOtpErrorEl.textContent = data.message || 'Invalid or expired code. Please try again.';
+                    emailOtpErrorEl.style.display = 'block';
+                }
+                emailOtpCodeInput.value = '';
+                emailOtpCodeInput.focus();
+            } catch (err) {
+                if (emailOtpErrorEl) {
+                    emailOtpErrorEl.textContent = 'Something went wrong. Please try again.';
+                    emailOtpErrorEl.style.display = 'block';
+                }
+            } finally {
+                emailOtpVerifyBtn.innerHTML = originalHtml;
+                emailOtpVerifyBtn.disabled = false;
+            }
+        });
+    }
+});
+</script>
 </body>
 </html>

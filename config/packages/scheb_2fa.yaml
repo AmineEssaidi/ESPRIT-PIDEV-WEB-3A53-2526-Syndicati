@@ -1,0 +1,12 @@
+# See the configuration reference at https://symfony.com/bundles/SchebTwoFactorBundle/6.x/configuration.html
+scheb_two_factor:
+    security_tokens:
+        - Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken
+        - Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken
+
+    # TOTP (authenticator app) support - required for 2fa_generate_totp and 2fa_verify_totp
+    totp:
+        enabled: true
+        issuer: Horizon
+        server_name: Horizon
+        leeway: 1

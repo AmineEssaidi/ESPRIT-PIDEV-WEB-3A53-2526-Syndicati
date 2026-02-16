@@ -385,6 +385,9 @@
                                         </div>
                                     </div>
                                     <div class="main-home-profile-actions" style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+        <button type="button" class="main-home-btn main-home-btn-primary" id="twofa-settings-open" title="Two-Factor Authentication" style="background: rgba(var(--syndicat-accent-rgb), 0.2); border-color: rgba(var(--syndicat-accent-rgb), 0.3);">
+            <i class="bx bx-shield-quarter"></i> 2FA
+        </button>
         <button type="button" class="main-home-btn main-home-btn-primary" id="webauthn-settings-open" title="Biometric Security" style="background: rgba(var(--syndicat-accent-rgb), 0.2); border-color: rgba(var(--syndicat-accent-rgb), 0.3);">
             <i class="bx bx-fingerprint"></i> Biometrics
         </button>
@@ -1316,6 +1319,165 @@
         </div>
     </div>
 
+<!-- Two-Factor Authentication Modal -->
+<div id="twofa-settings-modal" class="glass-modal-overlay">
+    <div class="glass-modal-container" style="max-width: 550px;">
+        <div class="glass-modal-header">
+            <div>
+                <h3 class="glass-modal-title"><i class="bx bx-shield-quarter"></i> Two-Factor Authentication</h3>
+                <p class="glass-modal-subtitle">Add an extra layer of security to your account.</p>
+            </div>
+            <button type="button" class="glass-modal-close" id="twofa-settings-modal-close" title="Close">
+                <i class="bx bx-x"></i>
+            </button>
+        </div>
+        
+        <div class="glass-modal-body">
+            <!-- Status Section -->
+            <div class="glass-form-group mb-4">
+                <div class="d-flex align-items-center justify-content-between p-3" style="background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div>
+                        <div style="font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 0.25rem;">Two-Factor Authentication</div>
+                        <div id="twofa-status-text" style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">
+                            {% if two_factor_enabled|default(user.twoFactorEnabled) %}Enabled{% else %}Disabled{% endif %}
+                        </div>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="twofa-toggle" {% if two_factor_enabled|default(user.twoFactorEnabled) %}checked{% endif %} style="width: 3rem; height: 1.5rem; cursor: pointer;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email OTP Section -->
+            <div id="twofa-email-section" class="glass-form-group mb-4" {% if not (two_factor_enabled|default(user.twoFactorEnabled)) %}style="display: none;"{% endif %}>
+                <div class="glass-section-title" style="font-size: 0.9rem; margin-bottom: 0.75rem;">
+                    <i class="bx bx-envelope"></i> Email Verification
+                </div>
+                <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 1rem;">
+                    When enabled, you'll receive a 6-digit code via email each time you sign in.
+                </p>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-light flex-fill" id="twofa-test-email" style="border-radius: 8px;">
+                        <i class="bx bx-send"></i> Send Test Code
+                    </button>
+                </div>
+            </div>
+
+            <!-- TOTP Section -->
+            <div id="twofa-totp-section" class="glass-form-group mb-4" {% if not (two_factor_enabled|default(user.twoFactorEnabled)) %}style="display: none;"{% endif %}>
+                <div class="glass-section-title" style="font-size: 0.9rem; margin-bottom: 0.75rem;">
+                    <i class="bx bx-mobile"></i> Authenticator App (TOTP)
+                </div>
+                <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 1rem;">
+                    Use apps like Google Authenticator, Authy, or Microsoft Authenticator for faster verification.
+                </p>
+                
+                <div id="twofa-totp-configured-block" style="display: {% if totp_configured|default(user.totpSecret) %}block{% else %}none{% endif %};">
+                    <div class="alert alert-success" style="background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: rgba(34,197,94,0.9); border-radius: 8px; padding: 0.75rem;">
+                        <i class="bx bx-check-circle"></i> Authenticator app is already configured.
+                    </div>
+                    <button type="button" class="btn btn-outline-danger w-100" id="twofa-remove-totp" style="border-radius: 8px; margin-top: 0.5rem;">
+                        <i class="bx bx-trash"></i> Remove Authenticator
+                    </button>
+                </div>
+                <div id="twofa-totp-setup-block" style="display: {% if totp_configured|default(user.totpSecret) %}none{% else %}block{% endif %};">
+                    <button type="button" class="btn btn-outline-light w-100" id="twofa-setup-totp-btn" style="border-radius: 8px;">
+                        <i class="bx bx-qr-scan"></i> Setup Authenticator App
+                    </button>
+                </div>
+            </div>
+
+            <!-- Gmail OAuth: connect this account so the app can send OTP and app emails to any user's email -->
+            {% if is_mailer_oauth_user|default(false) %}
+            <div class="glass-form-group mb-4" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.25rem;">
+                <div class="glass-section-title" style="font-size: 0.9rem; margin-bottom: 0.75rem;">
+                    <i class="bx bx-envelope-open"></i> Gmail for sending app emails
+                </div>
+                <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 1rem;">
+                    Connect your Gmail here so the app can <strong>send</strong> emails. Users never connect Gmail—when someone requests an OTP at sign-in, the code is sent to <strong>their account email</strong> (from the user table).
+                </p>
+                <p style="color: rgba(255,255,255,0.6); font-size: 0.8rem; margin-bottom: 0.75rem;">
+                    In Google Cloud Console → APIs &amp; Services → Credentials → your OAuth 2.0 Client → <strong>Authorized redirect URIs</strong>, add this <em>exact</em> URL:
+                </p>
+                <code style="display: block; padding: 0.5rem 0.75rem; background: rgba(0,0,0,0.3); border-radius: 8px; font-size: 0.8rem; word-break: break-all; margin-bottom: 1rem;">{{ app.request.schemeAndHttpHost }}{{ path('oauth_gmail_callback') }}</code>
+                {% if gmail_oauth_connected|default(false) %}
+                    <div class="alert alert-success mb-2" style="background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: rgba(34,197,94,0.9); border-radius: 8px; padding: 0.75rem;">
+                        <i class="bx bx-check-circle"></i> Gmail connected. The app can send OTP and app emails to any user’s email via your Gmail.
+                    </div>
+                    <form action="{{ path('oauth_gmail_disconnect') }}" method="post" class="d-inline" onsubmit="return confirm('Disconnect Gmail? App will fall back to SMTP for sending.');">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('oauth_gmail_disconnect') }}">
+                        <button type="submit" class="btn btn-outline-danger" style="border-radius: 8px;">
+                            <i class="bx bx-link-external"></i> Disconnect Gmail
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{{ path('oauth_gmail_connect') }}" class="btn btn-outline-light" style="border-radius: 8px;">
+                        <i class="bx bx-link"></i> Connect Gmail
+                    </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="glass-modal-footer">
+            <button type="button" class="glass-btn-cancel" id="twofa-settings-modal-cancel">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOTP QR Code Setup Modal -->
+<div id="totp-qr-modal" class="glass-modal-overlay">
+    <div class="glass-modal-container" style="max-width: 500px;">
+        <div class="glass-modal-header">
+            <div>
+                <h3 class="glass-modal-title"><i class="bx bx-qr-scan"></i> Setup Authenticator App</h3>
+                <p class="glass-modal-subtitle">Scan the QR code with your authenticator app.</p>
+            </div>
+            <button type="button" class="glass-modal-close" id="totp-qr-modal-close" title="Close">
+                <i class="bx bx-x"></i>
+            </button>
+        </div>
+        
+        <div class="glass-modal-body">
+            <div class="glass-form-group">
+                <div class="text-center mb-4">
+                    <div id="totp-qr-code-container" style="display: inline-block; padding: 1.5rem; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 1.5rem;">
+                        <div id="totp-qr-code" style="min-width: 200px; min-height: 200px; display: flex; align-items: center; justify-content: center;">
+                            <div class="text-center">
+                                <i class="bx bx-loader-alt bx-spin" style="font-size: 2rem; color: rgba(255,255,255,0.5);"></i>
+                                <div style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-top: 0.5rem;">Generating QR code...</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.6;">
+                        <strong style="color: rgba(255,255,255,0.9);">Step 1:</strong> Open your authenticator app (Google Authenticator, Authy, Microsoft Authenticator, etc.)<br>
+                        <strong style="color: rgba(255,255,255,0.9);">Step 2:</strong> Scan this QR code<br>
+                        <strong style="color: rgba(255,255,255,0.9);">Step 3:</strong> Enter the 6-digit code below to verify
+                    </div>
+
+                    <div id="totp-manual-entry" style="display: none; margin-bottom: 1rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 0.5rem;">Can't scan? Enter this code manually:</div>
+                        <div id="totp-secret-display" style="font-family: 'Courier New', monospace; font-size: 1.1rem; font-weight: 600; color: rgba(255,255,255,0.9); letter-spacing: 0.1em; word-break: break-all;"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <input type="text" id="totp-verify-code-input" class="form-control bg-dark text-white border-secondary" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem; font-family: 'Courier New', monospace; border-radius: 12px; padding: 1rem; font-weight: 600;">
+                        <small class="text-muted mt-2 d-block" style="color: rgba(255,255,255,0.5);">Enter the code from your authenticator app</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-modal-footer">
+            <button type="button" class="glass-btn-cancel" id="totp-qr-modal-cancel">Cancel</button>
+            <button type="button" class="glass-btn-save" id="totp-qr-verify-btn">
+                <i class="bx bx-check"></i> Verify & Save
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- WebAuthn Modal -->
 <div id="webauthn-settings-modal" class="glass-modal-overlay">
     <div class="glass-modal-container" style="max-width: 500px;">
@@ -1353,8 +1515,425 @@
 </div>
 
 <script src="{{ asset('frontend/js/webauthn.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // --- Two-Factor Authentication Modal Logic ---
+        const twofaModal = document.getElementById('twofa-settings-modal');
+        const twofaOpenBtn = document.getElementById('twofa-settings-open');
+        const twofaCloseBtn = document.getElementById('twofa-settings-modal-close');
+        const twofaCancelBtn = document.getElementById('twofa-settings-modal-cancel');
+        const twofaToggle = document.getElementById('twofa-toggle');
+        const twofaStatusText = document.getElementById('twofa-status-text');
+        const twofaEmailSection = document.getElementById('twofa-email-section');
+        const twofaTotpSection = document.getElementById('twofa-totp-section');
+        const twofaTestEmailBtn = document.getElementById('twofa-test-email');
+        const twofaSetupTotpBtn = document.getElementById('twofa-setup-totp-btn');
+        const twofaRemoveTotpBtn = document.getElementById('twofa-remove-totp');
+        const twofaTotpConfiguredBlock = document.getElementById('twofa-totp-configured-block');
+        const twofaTotpSetupBlock = document.getElementById('twofa-totp-setup-block');
+
+        // TOTP QR Modal elements
+        const totpQrModal = document.getElementById('totp-qr-modal');
+        const totpQrModalClose = document.getElementById('totp-qr-modal-close');
+        const totpQrModalCancel = document.getElementById('totp-qr-modal-cancel');
+        const totpQrCodeContainer = document.getElementById('totp-qr-code');
+        const totpQrCodeWrapper = document.getElementById('totp-qr-code-container');
+        const totpSecretDisplay = document.getElementById('totp-manual-entry');
+        const totpSecretText = document.getElementById('totp-secret-display');
+        const totpVerifyCodeInput = document.getElementById('totp-verify-code-input');
+        const totpQrVerifyBtn = document.getElementById('totp-qr-verify-btn');
+        let currentTotpSecret = null;
+
+        function syncTwofaModalFromServer() {
+            fetch('{{ path("2fa_status") }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) return;
+                    const enabled = !!data.twoFactorEnabled;
+                    const totpConfigured = !!data.totpConfigured;
+                    if (twofaToggle) twofaToggle.checked = enabled;
+                    if (twofaStatusText) twofaStatusText.textContent = enabled ? 'Enabled' : 'Disabled';
+                    if (twofaEmailSection) twofaEmailSection.style.display = enabled ? 'block' : 'none';
+                    if (twofaTotpSection) twofaTotpSection.style.display = enabled ? 'block' : 'none';
+                    if (twofaTotpConfiguredBlock) twofaTotpConfiguredBlock.style.display = totpConfigured ? 'block' : 'none';
+                    if (twofaTotpSetupBlock) twofaTotpSetupBlock.style.display = totpConfigured ? 'none' : 'block';
+                })
+                .catch(() => {});
+        }
+
+        function openTwofaModal() {
+            if (twofaModal) {
+                twofaModal.style.display = 'flex';
+                twofaModal.offsetHeight;
+                twofaModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                syncTwofaModalFromServer();
+            }
+        }
+
+        function closeTwofaModal() {
+            if (twofaModal) {
+                twofaModal.classList.remove('active');
+                setTimeout(() => {
+                    twofaModal.style.display = 'none';
+                    document.body.style.overflow = '';
+                }, 400);
+            }
+        }
+
+        // Toggle 2FA
+        if (twofaToggle) {
+            twofaToggle.addEventListener('change', async function() {
+                const enabled = this.checked;
+                const originalState = !enabled;
+                this.disabled = true;
+
+                try {
+                    const response = await fetch('{{ path("2fa_toggle") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ enabled: enabled })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        twofaStatusText.textContent = enabled ? 'Enabled' : 'Disabled';
+                        twofaEmailSection.style.display = enabled ? 'block' : 'none';
+                        twofaTotpSection.style.display = enabled ? 'block' : 'none';
+                        if (typeof showCoolPopup === 'function') {
+                            showCoolPopup('Success', data.message, 'success');
+                        }
+                    } else {
+                        this.checked = originalState;
+                        if (typeof showCoolPopup === 'function') {
+                            showCoolPopup('Error', data.message || 'Failed to update 2FA settings', 'error');
+                        }
+                    }
+                } catch (error) {
+                    this.checked = originalState;
+                    console.error('Error:', error);
+                    if (typeof showCoolPopup === 'function') {
+                        showCoolPopup('Error', 'Failed to update 2FA settings', 'error');
+                    }
+                } finally {
+                    this.disabled = false;
+                }
+            });
+        }
+
+        // Test Email OTP
+        if (twofaTestEmailBtn) {
+            twofaTestEmailBtn.addEventListener('click', async function() {
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Sending...';
+                this.disabled = true;
+
+                try {
+                    const response = await fetch('{{ path("2fa_send_test_code") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        if (typeof showCoolPopup === 'function') {
+                            showCoolPopup('Code Sent', 'Check your email for the verification code', 'success');
+                        } else {
+                            alert('Code sent! Check your email.');
+                        }
+                    } else {
+                        if (typeof showCoolPopup === 'function') {
+                            showCoolPopup('Error', data.message || 'Failed to send code', 'error');
+                        } else {
+                            alert(data.message || 'Failed to send code');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    if (typeof showCoolPopup === 'function') {
+                        showCoolPopup('Error', 'Failed to send code', 'error');
+                    } else {
+                        alert('Failed to send code');
+                    }
+                } finally {
+                    this.innerHTML = originalHtml;
+                    this.disabled = false;
+                }
+            });
+        }
+
+        // TOTP QR Modal functions
+        function openTotpQrModal() {
+            if (totpQrModal) {
+                totpQrModal.style.display = 'flex';
+                totpQrModal.offsetHeight;
+                totpQrModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                generateTotpQr();
+            }
+        }
+
+        function closeTotpQrModal() {
+            if (totpQrModal) {
+                totpQrModal.classList.remove('active');
+                setTimeout(() => {
+                    totpQrModal.style.display = 'none';
+                    document.body.style.overflow = '';
+                    // Reset form
+                    if (totpVerifyCodeInput) totpVerifyCodeInput.value = '';
+                    if (totpQrCodeContainer) totpQrCodeContainer.innerHTML = '<div class="text-center"><i class="bx bx-loader-alt bx-spin" style="font-size: 2rem; color: rgba(255,255,255,0.5);"></i><div style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-top: 0.5rem;">Generating QR code...</div></div>';
+                    if (totpSecretDisplay) totpSecretDisplay.style.display = 'none';
+                    if (totpSecretText) totpSecretText.textContent = '';
+                    currentTotpSecret = null;
+                    // Sync 2FA modal from server so toggle and TOTP state stay correct
+                    syncTwofaModalFromServer();
+                }, 400);
+            }
+        }
+
+        async function generateTotpQr() {
+            if (!totpQrCodeContainer) return;
+
+            try {
+                const response = await fetch('{{ path("2fa_generate_totp") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const data = await response.json();
+                if (data.success && data.qrCode && data.secret) {
+                    currentTotpSecret = data.secret;
+                    
+                    // Display manual entry code
+                    if (totpSecretText) {
+                        totpSecretText.textContent = data.secret;
+                        if (totpSecretDisplay) totpSecretDisplay.style.display = 'block';
+                    }
+
+                    // Generate QR code using multiple methods for reliability
+                    totpQrCodeContainer.innerHTML = '';
+                    
+                    // Method 1: Try QRCode.js library
+                    if (typeof QRCode !== 'undefined') {
+                        try {
+                            await new Promise((resolve, reject) => {
+                                QRCode.toCanvas(totpQrCodeContainer, data.qrCode, {
+                                    width: 240,
+                                    margin: 2,
+                                    color: {
+                                        dark: '#000000',
+                                        light: '#FFFFFF'
+                                    },
+                                    errorCorrectionLevel: 'M'
+                                }, function(error) {
+                                    if (error) {
+                                        reject(error);
+                                    } else {
+                                        resolve();
+                                    }
+                                });
+                            });
+                            // Success - QR code generated
+                            return;
+                        } catch (error) {
+                            console.warn('QRCode.js failed, trying API method:', error);
+                        }
+                    }
+
+                    // Method 2: Use QR code API as fallback
+                    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(data.qrCode)}&bgcolor=FFFFFF&color=000000&margin=2`;
+                    const img = document.createElement('img');
+                    img.src = qrApiUrl;
+                    img.alt = 'QR Code';
+                    img.style.width = '100%';
+                    img.style.height = 'auto';
+                    img.style.display = 'block';
+                    img.onerror = function() {
+                        // Fallback: Show manual entry only
+                        totpQrCodeContainer.innerHTML = '<div style="color: rgba(255,255,255,0.7); padding: 1rem; text-align: center;"><i class="bx bx-error-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><div>QR code unavailable. Please use the manual entry code below.</div></div>';
+                    };
+                    totpQrCodeContainer.appendChild(img);
+                    
+                    // Focus on code input
+                    if (totpVerifyCodeInput) {
+                        setTimeout(() => totpVerifyCodeInput.focus(), 300);
+                    }
+                } else {
+                    totpQrCodeContainer.innerHTML = '<div style="color: rgba(255,255,255,0.7); padding: 1rem; text-align: center;"><i class="bx bx-error-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><div>' + (data.message || 'Failed to generate QR code') + '</div></div>';
+                    if (typeof showCoolPopup === 'function') {
+                        showCoolPopup('Error', data.message || 'Failed to generate QR code', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error generating QR code:', error);
+                if (totpQrCodeContainer) {
+                    totpQrCodeContainer.innerHTML = '<div style="color: rgba(255,255,255,0.7); padding: 1rem; text-align: center;"><i class="bx bx-error-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><div>Failed to generate QR code. Please try again.</div></div>';
+                }
+                if (typeof showCoolPopup === 'function') {
+                    showCoolPopup('Error', 'Failed to generate QR code', 'error');
+                }
+            }
+        }
+
+        // Setup TOTP - Open modal
+        if (twofaSetupTotpBtn) {
+            twofaSetupTotpBtn.addEventListener('click', function() {
+                openTotpQrModal();
+            });
+        }
+
+        // Verify TOTP code from modal
+        if (totpQrVerifyBtn && totpVerifyCodeInput) {
+            totpQrVerifyBtn.addEventListener('click', async function() {
+                const code = totpVerifyCodeInput.value.trim();
+                if (!code || code.length !== 6) {
+                    if (typeof showCoolPopup === 'function') {
+                        showCoolPopup('Error', 'Please enter a valid 6-digit code', 'error');
+                    } else {
+                        alert('Please enter a valid 6-digit code');
+                    }
+                    return;
+                }
+
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Verifying...';
+                this.disabled = true;
+
+                try {
+                    const response = await fetch('{{ path("2fa_verify_totp") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ code: code, secret: currentTotpSecret || undefined })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        if (typeof showCoolPopup === 'function') {
+                            showCoolPopup('Success', 'Authenticator app configured successfully!', 'success');
+                        } else {
+                            alert('Authenticator app configured successfully!');
+                        }
+                        closeTotpQrModal();
+                        // Update 2FA modal to show "already configured" immediately
+                        if (twofaTotpConfiguredBlock) twofaTotpConfiguredBlock.style.display = 'block';
+                        if (twofaTotpSetupBlock) twofaTotpSetupBlock.style.display = 'none';
+                        if (twofaToggle) twofaToggle.checked = true;
+                        if (twofaStatusText) twofaStatusText.textContent = 'Enabled';
+                        if (twofaEmailSection) twofaEmailSection.style.display = 'block';
+                        if (twofaTotpSection) twofaTotpSection.style.display = 'block';
+                        setTimeout(() => location.reload(), 500);
+                    } else {
+                        if (typeof showCoolPopup === 'function') {
+                            showCoolPopup('Error', data.message || 'Invalid code', 'error');
+                        } else {
+                            alert(data.message || 'Invalid code');
+                        }
+                        if (totpVerifyCodeInput) {
+                            totpVerifyCodeInput.value = '';
+                            totpVerifyCodeInput.focus();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    if (typeof showCoolPopup === 'function') {
+                        showCoolPopup('Error', 'Failed to verify code', 'error');
+                    } else {
+                        alert('Failed to verify code');
+                    }
+                } finally {
+                    this.innerHTML = originalHtml;
+                    this.disabled = false;
+                }
+            });
+
+            // Allow Enter key to submit
+            totpVerifyCodeInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    totpQrVerifyBtn.click();
+                }
+            });
+        }
+
+        // Close TOTP QR modal
+        if (totpQrModalClose) totpQrModalClose.addEventListener('click', closeTotpQrModal);
+        if (totpQrModalCancel) totpQrModalCancel.addEventListener('click', closeTotpQrModal);
+        if (totpQrModal) {
+            totpQrModal.addEventListener('click', function(e) {
+                if (e.target === totpQrModal) closeTotpQrModal();
+            });
+        }
+
+        // Remove TOTP
+        if (twofaRemoveTotpBtn) {
+            twofaRemoveTotpBtn.addEventListener('click', async function() {
+                if (!confirm('Are you sure you want to remove the authenticator app? You will need to set it up again to use it.')) {
+                    return;
+                }
+
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Removing...';
+                this.disabled = true;
+
+                try {
+                    const response = await fetch('{{ path("2fa_remove_totp") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        if (typeof showCoolPopup === 'function') {
+                            showCoolPopup('Success', 'Authenticator app removed', 'success');
+                        } else {
+                            alert('Authenticator app removed');
+                        }
+                        location.reload();
+                    } else {
+                        if (typeof showCoolPopup === 'function') {
+                            showCoolPopup('Error', data.message || 'Failed to remove', 'error');
+                        } else {
+                            alert(data.message || 'Failed to remove');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    if (typeof showCoolPopup === 'function') {
+                        showCoolPopup('Error', 'Failed to remove', 'error');
+                    } else {
+                        alert('Failed to remove');
+                    }
+                } finally {
+                    this.innerHTML = originalHtml;
+                    this.disabled = false;
+                }
+            });
+        }
+
+        if (twofaOpenBtn) twofaOpenBtn.addEventListener('click', openTwofaModal);
+        if (twofaCloseBtn) twofaCloseBtn.addEventListener('click', closeTwofaModal);
+        if (twofaCancelBtn) twofaCancelBtn.addEventListener('click', closeTwofaModal);
+        if (twofaModal) {
+            twofaModal.addEventListener('click', function(e) {
+                if (e.target === twofaModal) closeTwofaModal();
+            });
+        }
+
         // --- WebAuthn Modal Logic ---
         const waModal = document.getElementById('webauthn-settings-modal');
         const waOpenBtn = document.getElementById('webauthn-settings-open');

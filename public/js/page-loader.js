@@ -94,12 +94,22 @@
     // Handle form submissions
     document.addEventListener('submit', function(e) {
         const form = e.target;
+        if (!form || form.nodeName !== 'FORM') return;
         
         // Skip forms that open in new tab
         if (form.target === '_blank') return;
         
         // Skip AJAX forms
         if (form.hasAttribute('data-ajax')) return;
+        
+        // Skip loader for sign-in (shows TOTP popup without full-page reload feel)
+        if (form.hasAttribute('data-no-page-loader')) return;
+        if (form.id === 'signin-form') return;
+        if (form.classList && form.classList.contains('main-home-auth-form')) return;
+        try {
+            const action = (form.getAttribute('action') || '').toLowerCase();
+            if (action.indexOf('sign-in') !== -1) return;
+        } catch (err) {}
         
         showLoader();
     }, true);

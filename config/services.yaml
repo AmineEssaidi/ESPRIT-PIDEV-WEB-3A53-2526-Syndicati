@@ -11,6 +11,18 @@ parameters:
     residences_directory: '%kernel.project_dir%/public/residence_images'
     appartements_directory: '%kernel.project_dir%/public/appartement_images'
     reponse_images_directory: '%kernel.project_dir%/public/reponse_images'
+    mailer_from_email: '%env(string:MAILER_FROM_EMAIL)%'
+    mailer_from_name: '%env(string:MAILER_FROM_NAME)%'
+    mailer_dsn: '%env(MAILER_DSN)%'
+    # Gmail OAuth (optional – for sending mail via Gmail API instead of SMTP)
+    google_oauth_client_id_default: ''
+    google_oauth_client_secret_default: ''
+    google_oauth_redirect_uri_default: ''
+    mailer_oauth_user_id_default: 0
+    google_oauth_client_id: '%env(default:google_oauth_client_id_default:GOOGLE_OAUTH_CLIENT_ID)%'
+    google_oauth_client_secret: '%env(default:google_oauth_client_secret_default:GOOGLE_OAUTH_CLIENT_SECRET)%'
+    google_oauth_redirect_uri: '%env(default:google_oauth_redirect_uri_default:GOOGLE_OAUTH_REDIRECT_URI)%'
+    mailer_oauth_user_id: '%env(int:default:mailer_oauth_user_id_default:MAILER_OAUTH_USER_ID)%'
 
 services:
     # default configuration for services in *this* file
@@ -22,6 +34,31 @@ services:
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
+
+    # Two-Factor Email Mailer
+    App\Service\TwoFactor\EmailAuthCodeMailer:
+        arguments:
+            $fromEmail: '%mailer_from_email%'
+            $fromName: '%mailer_from_name%'
+
+    # Two-Factor Service
+    App\Service\TwoFactor\TwoFactorService:
+        arguments:
+            $fromEmail: '%mailer_from_email%'
+            $fromName: '%mailer_from_name%'
+            $mailerDsn: '%mailer_dsn%'
+
+    # Gmail OAuth
+    App\Service\OAuth\GoogleOAuthService:
+        arguments:
+            $clientId: '%google_oauth_client_id%'
+            $clientSecret: '%google_oauth_client_secret%'
+            $redirectUri: '%google_oauth_redirect_uri%'
+
+    App\Service\OAuth\GmailOAuthMailer:
+        arguments:
+            $oauthUserId: '%mailer_oauth_user_id%'
+            $fromName: '%mailer_from_name%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

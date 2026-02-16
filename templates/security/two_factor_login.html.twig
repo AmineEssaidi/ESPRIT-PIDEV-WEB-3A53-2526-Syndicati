@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    {% if app.session.get('is_logged_in') and app.session.get('user') is iterable %}
+        <script>
+            window.serverSettings = {{ app.session.get('user').settings|default({})|json_encode|raw }};
+        </script>
+    {% endif %}
+    <script src="{{ asset('frontend/js/global-settings.js') }}"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Factor Authentication - Horizon</title>
+    <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+<body class="sign-in-page">
+    <div class="main-home-layout-wrapper">
+        <div class="main-home-page">
+            {% include 'frontend/shared/_main_navbar.html.twig' %}
+            
+            <div class="main-home-content-wrapper">
+                <div class="main-home-auth-container">
+                    <div class="main-home-auth-card main-home-auth-card--signin">
+                        <div class="main-home-auth-flex-container">
+                            <div class="main-home-auth-form-column">
+                                <div class="main-home-auth-form-wrap">
+                                    <div class="main-home-auth-header">
+                                        <h1 class="main-home-auth-title">Two-Factor Authentication</h1>
+                                        <p class="main-home-auth-subtitle">Enter the code sent to your email</p>
+                                    </div>
+
+                                    {% if error %}
+                                        <div class="main-home-auth-error">
+                                            {{ error.messageKey|trans(error.messageData, 'security') }}
+                                        </div>
+                                    {% endif %}
+
+                                    <form class="main-home-auth-form" action="{{ path('2fa_verify') }}" method="POST" novalidate>
+                                        <div class="main-home-form-group">
+                                            <label for="code" class="main-home-form-label">Verification Code</label>
+                                            <input 
+                                                type="text" 
+                                                id="code" 
+                                                name="code" 
+                                                class="main-home-form-input" 
+                                                placeholder="Enter 6-digit code"
+                                                autocomplete="one-time-code"
+                                                maxlength="6"
+                                                pattern="[0-9]{6}"
+                                                required
+                                                autofocus
+                                            />
+                                        </div>
+
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('2fa_verify') }}">
+
+                                        <div class="main-home-auth-submit-row">
+                                            <button type="submit" class="main-home-btn main-home-btn-auth-submit" style="width: 100%;">
+                                                Verify & Continue
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <form action="{{ path('2fa_resend') }}" method="POST" style="margin-top: 1rem;">
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('2fa_resend') }}">
+                                        <button type="submit" class="main-home-forgot-btn" style="width: 100%; text-align: center;">
+                                            Resend Code
+                                        </button>
+                                    </form>
+
+                                    <p class="main-home-auth-footer" style="margin-top: 1.5rem; text-align: center;">
+                                        <a href="{{ path('auth_sign_in') }}" class="main-home-auth-link">Back to Sign In</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% include 'frontend/shared/_main_footer.html.twig' %}
+        </div>
+    </div>
+
+    <style>
+        .sign-in-page,
+        .sign-in-page html {
+            margin: 0;
+            padding: 0;
+            height: 100% !important;
+            width: 100% !important;
+            overflow: hidden !important;
+        }
+        .sign-in-page { background: transparent !important; }
+        .sign-in-page .main-home-layout-wrapper {
+            min-height: 100vh !important;
+            height: 100vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
+        .sign-in-page .main-home-page {
+            flex: 1 1 0 !important;
+            min-height: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
+        .sign-in-page .main-home-content-wrapper {
+            flex: 1 1 0 !important;
+            min-height: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            padding: 0.75rem 1.5rem !important;
+            overflow: hidden !important;
+        }
+        .sign-in-page .main-home-auth-container {
+            width: 100% !important;
+            max-width: 500px !important;
+            flex: 1 1 0 !important;
+            min-height: 0 !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            padding: 0 1rem !important;
+        }
+        #code {
+            text-align: center;
+            font-size: 1.5rem;
+            letter-spacing: 0.5rem;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</body>
+</html>
