@@ -30,7 +30,7 @@ class ResidenceType extends AbstractType
                         'minMessage' => 'The title must be at least {{ limit }} characters long.',
                     ]),
                     new Regex([
-                        'pattern' => '/^[a-zA-Z0-9\s]+$/',
+                        'pattern' => '/^[\p{L}\p{N}\s,]+$/u',
                         'message' => 'The title cannot contain special characters.',
                     ]),
                 ],
@@ -45,7 +45,7 @@ class ResidenceType extends AbstractType
                         'minMessage' => 'The location must be at least {{ limit }} characters long.',
                     ]),
                     new Regex([
-                        'pattern' => '/^[a-zA-Z0-9\s,]+$/',
+                        'pattern' => '/^[\p{L}\p{N}\s,]+$/u',
                         'message' => 'The location cannot contain special characters (except commas).',
                     ]),
                 ],
@@ -64,7 +64,7 @@ class ResidenceType extends AbstractType
                 'label' => 'Blocs (Select Multiple)',
                 'choices' => array_combine(['A', 'B', 'C', 'D', 'E'], ['A', 'B', 'C', 'D', 'E']),
                 'multiple' => true,
-                'expanded' => true,  // Use checkboxes for better UX
+                'expanded' => true,  
                 'attr' => ['class' => 'blocs-checkbox-group']
             ])
             ->add('imageR', FileType::class, [
@@ -85,14 +85,11 @@ class ResidenceType extends AbstractType
             ])
         ;
 
-        // Use CallbackTransformer to handle Array <-> String conversion
         $builder->get('nBlocs')->addModelTransformer(new \Symfony\Component\Form\CallbackTransformer(
             function ($blocsAsString) {
-                // Transform the string to an array
                 return $blocsAsString ? explode(',', $blocsAsString) : [];
             },
             function ($blocsAsArray) {
-                // Transform the array back to a string
                 return is_array($blocsAsArray) ? implode(',', $blocsAsArray) : '';
             }
         ));

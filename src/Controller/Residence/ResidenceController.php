@@ -24,6 +24,9 @@ use Symfony\Component\Form\FormFactoryInterface;
 use App\Entity\User\User;
 use Sensiolabs\GotenbergBundle\GotenbergPdfInterface;
 
+use App\Service\MachineLearning;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+
 
 #[Route('/residence')]
 class ResidenceController extends AbstractController
@@ -48,7 +51,19 @@ class ResidenceController extends AbstractController
     }
 
     #[Route('/admin', name: 'admin_residence')]
-    public function adminIndex(PageStatusService $pageStatusService, Request $request, ResidenceRepository $residenceRepository, AppartementRepository $appartementRepository, FormFactoryInterface $formFactory): Response
+    public function adminIndex(
+        
+    PageStatusService $pageStatusService, 
+    Request $request, 
+    ResidenceRepository $residenceRepository, 
+    \App\Repository\Residence\AppartementRepository $appartementRepository, 
+    \Symfony\Component\Form\FormFactoryInterface $formFactory, 
+    EntityManagerInterface $em, 
+    \Symfony\Component\String\Slugger\SluggerInterface $slugger,
+    MachineLearning $predictor,
+    \Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface $params
+    
+    ): Response
     {
         $pageStatusService->setPageStatus('residence', 'online');
 
@@ -65,6 +80,26 @@ class ResidenceController extends AbstractController
             'action' => $this->generateUrl('app_appartement_new'),
             'method' => 'POST',
         ]);
+    
+        $modelPath = $params->get('kernel.project_dir') . '/var/models/appartement_prix.model';
+        $predictions = [];
+    
+    if (file_exists($modelPath)) {
+        try {
+            $predictor->loadModel($modelPath);
+            
+            foreach ($appartements as $appartement) {
+                try {
+                    $prediction = $predictor->predict($appartement);
+                    $predictions[$appartement->getIdApp()] = is_numeric($prediction) ? round((float) $prediction) : 0;
+                } catch (\Exception $e) {
+                    $predictions[$appartement->getIdApp()] = 0;
+                }
+            }
+        } catch (\Exception $e) {
+            error_log('Failed to load prediction model: ' . $e->getMessage());
+        }
+    }
 
         $residenceEditForm = $formFactory->createNamed('residence_edit', ResidenceType::class, new Residence());
         $appartementEditForm = $formFactory->createNamed('appartement_edit', AppartementType::class, new Appartement());
@@ -75,6 +110,7 @@ class ResidenceController extends AbstractController
             'residenceAddForm' => $residenceAddForm->createView(),
             'residenceEditForm' => $residenceEditForm->createView(),
             'appartementAddForm' => $appartementAddForm->createView(),
+             'predictions' => $predictions,
             'appartementEditForm' => $appartementEditForm->createView(),
         ]);
     }
@@ -419,5 +455,98 @@ public function sendSms(SmsGenerator $smsGenerator, Request $request, UserReposi
         ->stream()
     ;
     }
+
+
+    
+    //            FONCTION POUR LA PREDICTION DU PRIX                    //
+    ///////////////////////////////////////////////////////////////////////
+#[Route('admin/prediction', name: 'prediction_prix', methods: ['POST'])]
+public function predictPrice(
+    Request $request, 
+    MachineLearning $predictor, 
+    ParameterBagInterface $params
+): JsonResponse {
+    try {
+        $rawContent = $request->getContent();
+        
+        if (empty($rawContent)) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Empty request content',
+                'predicted_price' => 0,
+                'formatted_price' => 'Erreur: requête vide'
+            ], 400);
+        }
+        
+        $data = json_decode($rawContent, true);
+        
+        if (!$data) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Invalid JSON data',
+                'predicted_price' => 0,
+                'formatted_price' => 'Erreur de format JSON'
+            ], 400);
+        }
+        
+        if (!isset($data['superficie']) || !isset($data['type'])) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Missing required fields',
+                'predicted_price' => 0,
+                'formatted_price' => 'Champs manquants'
+            ], 400);
+        }
+        
+        if (!is_numeric($data['superficie']) || (float) $data['superficie'] <= 0) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Invalid surface value',
+                'predicted_price' => 0,
+                'formatted_price' => 'Surface invalide'
+            ], 400);
+        }
+        
+        $superficie = (float) $data['superficie'];
+        $type = (string) $data['type'];
+        $parking = isset($data['parking']) ? (bool) $data['parking'] : false;
+        
+        $appartement = new Appartement();
+        $appartement->setSuperficie($superficie);
+        $appartement->setTypeA($type);
+        $appartement->setParking($parking);
+
+        $modelPath = $params->get('kernel.project_dir') . '/var/models/appartement_prix.model';
+        $predictedPrice = 0;
+        
+        if (file_exists($modelPath)) {
+            try {
+                $predictor->loadModel($modelPath);
+                $predictedPrice = $predictor->predict($appartement);
+                $predictedPrice = is_numeric($predictedPrice) ? max(0, (float) $predictedPrice) : 0;
+            } catch (\Exception $e) {
+                $predictedPrice = $superficie * 50000;
+            }
+        } else {
+            $predictedPrice = $superficie * 50000;
+        }
+        
+        $formattedPrice = number_format($predictedPrice, 0, ',', ' ') . ' TND';
+        
+        return $this->json([
+            'success' => true,
+            'predicted_price' => $predictedPrice,
+            'formatted_price' => $formattedPrice
+        ]);
+        
+    } catch (\Exception $e) {
+        return $this->json([
+            'success' => false,
+            'error' => 'Prediction failed',
+            'predicted_price' => 0,
+            'formatted_price' => 'Erreur de calcul'
+        ], 500);
+    }
+}
 }
 

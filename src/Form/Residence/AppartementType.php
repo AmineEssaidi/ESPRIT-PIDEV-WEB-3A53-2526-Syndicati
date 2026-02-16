@@ -69,11 +69,11 @@ class AppartementType extends AbstractType
                 ],
             ])
             ->add('parking', CheckboxType::class, [
-                'label' => 'Parking Available',
+                'label' => 'Parking Available?',
                 'required' => false,
             ])
             ->add('disponible', CheckboxType::class, [
-                'label' => 'Available',
+                'label' => 'For rent?',
                 'required' => false,
             ])
             ->add('imageA', FileType::class, [
