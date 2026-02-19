@@ -84,13 +84,13 @@
                                                                             {% endif %}
                                                                             </div>
                                                                             {% if apartment.disponible %}
-                                                                        <div class="col-12 text-center">
-                                                                            <hr>
-                                                                        <form method="post" action="{{ path('send_sms', {'id': residence.IdResidence}) }}">
-                                                                                <button class="main-home-btn main-home-btn-primary col-sm-12" type="submit">Send SMS to owner</button>
-                                                                            </form>
+                                                                            <div class="col-12 text-center">
+                                                                                <hr>
+                                                                                    <form method="post" action="{{ path('send_sms', {'id': residence.IdResidence}) }}">
+                                                                                        <button class="main-home-btn main-home-btn-primary col-sm-12" type="submit">Send SMS to owner</button>
+                                                                                    </form>
                                                                             </div>
-                                                                        {% endif %}
+                                                                            {% endif %}
                                                                         </div>
                                                                         
                                         </div>

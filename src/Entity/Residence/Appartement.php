@@ -3,6 +3,7 @@
 namespace App\Entity\Residence;
 
 use App\Repository\Residence\AppartementRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\User\User;
 
@@ -46,6 +47,12 @@ class Appartement
 
     #[ORM\Column(nullable: true)]
     private ?float $prix_vente = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTime $date_construction = null;
+
+  #[ORM\OneToOne(mappedBy: 'appartement', targetEntity: Maintenance::class, cascade: ['persist', 'remove'])]
+    private ?Maintenance $maintenance = null;
 
     public function getIdApp(): ?int
     {
@@ -167,6 +174,35 @@ class Appartement
     public function setPrixVente(?float $prix_vente): static
     {
         $this->prix_vente = $prix_vente;
+
+        return $this;
+    }
+
+    public function getDateConstruction(): ?\DateTime
+    {
+        return $this->date_construction;
+    }
+
+    public function setDateConstruction(?\DateTime $date_construction): static
+    {
+        $this->date_construction = $date_construction;
+
+        return $this;
+    }
+
+    public function getMaintenance(): ?Maintenance
+    {
+        return $this->maintenance;
+    }
+
+    public function setMaintenance(Maintenance $maintenance): static
+    {
+        // set the owning side of the relation if necessary
+        if ($maintenance->getAppartement() !== $this) {
+            $maintenance->setAppartement($this);
+        }
+
+        $this->maintenance = $maintenance;
 
         return $this;
     }

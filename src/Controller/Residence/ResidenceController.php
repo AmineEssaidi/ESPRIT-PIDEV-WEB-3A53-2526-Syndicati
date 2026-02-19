@@ -547,6 +547,8 @@ public function predictPrice(
             'formatted_price' => 'Erreur de calcul'
         ], 500);
     }
+
 }
+   
 }
 
