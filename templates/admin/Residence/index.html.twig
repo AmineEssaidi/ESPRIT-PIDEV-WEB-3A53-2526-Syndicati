@@ -613,12 +613,12 @@
                                             <div class="predicted-price-container">
                                                 <input type="text" 
                                                     id="app-edit-predicted-price" 
-                                                    class="glass-input text-warning" 
+                                                    class="glass-input" 
                                                     readonly disabled
                                                     value="Chargement..."
-                                                    >
+                                                >
                                                 <small class="form-text" style="color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-top: 0.3rem; display: block;">
-                                                    Estimation basée sur superficie, type & parking
+                                                    Estimation basée sur superficie et type
                                                 </small>
                                             </div>
                                         </div>
@@ -694,20 +694,19 @@
                                     <div class="col-md-6">{{ form_row(appartementAddForm.superficie, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'id': 'app-add-superficie' } }) }}</div>
                                     <div class="col-md-6">{{ form_row(appartementAddForm.prixLocation, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'id': 'app-add-prixLocation' } }) }}</div>
                                 </div>
-                                <!-- FIXED: Added predicted price display for add form -->
-                                <div class="row">
+                               <div class="row">
                                     <div class="col-md-6">
                                         <div class="glass-form-group">
                                             <label class="glass-label">Prix estimé (IA)</label>
                                             <div class="predicted-price-container">
                                                 <input type="text" 
                                                     id="app-add-predicted-price" 
-                                                    class="glass-input text-warning" 
+                                                    class="glass-input" 
                                                     readonly disabled
                                                     value="Entrez les détails"
-                                                    >
+                                                >
                                                 <small class="form-text" style="color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-top: 0.3rem; display: block;">
-                                                    Estimation basée sur superficie, type & parking
+                                                    Estimation basée sur superficie et type
                                                 </small>
                                             </div>
                                         </div>
@@ -1119,55 +1118,37 @@ function initApartmentDropdowns() {
     return true;
 }
 
-// Setup price prediction for add form
 function setupAddFormPrediction() {
-    const superficieInput = document.querySelector('#app-add-superficie');
+    const superficieInput = document.querySelector('#app-add-form input[name*="superficie"]');
     const typeSelect = document.querySelector('#app-add-form select[name*="typeA"]');
-    const parkingCheckbox = document.querySelector('#app-add-form input[name*="parking"]');
     const predictedDisplay = document.getElementById('app-add-predicted-price');
-    const prixLocationField = document.querySelector('#app-add-prixLocation');
+    const prixLocationField = document.querySelector('#app-add-form input[name*="prixLocation"]');
     
-    if (!superficieInput || !typeSelect || !parkingCheckbox || !predictedDisplay) {
-        console.warn('Add form elements not fully loaded yet');
-        return false;
+    if (!superficieInput || !typeSelect || !predictedDisplay) {
+        console.warn('Add form elements not found');
+        return;
     }
     
-    console.log('Add form prediction setup complete');
-    
-    function fetchAddPrediction() {
-        const superficie = superficieInput.value;
-        const typeA = typeSelect.value;
-        const parking = parkingCheckbox.checked;
+    function updatePrediction() {
+        const superficieValue = parseFloat(superficieInput.value);
+        const typeValue = typeSelect.value;
         
-        if (!superficie || superficie.trim() === '') {
-            predictedDisplay.value = 'Entrez une superficie';
-            predictedDisplay.style.color = '#6c757d';
+        if (!superficieValue || superficieValue <= 0 || !typeValue) {
+            predictedDisplay.value = 'Données invalides';
             return;
         }
         
-        const superficieFloat = parseFloat(superficie);
-        if (isNaN(superficieFloat) || superficieFloat <= 0) {
-            predictedDisplay.value = superficieFloat <= 0 ? 'Superficie doit être > 0' : 'Superficie invalide';
-            predictedDisplay.style.color = '#6c757d';
-            return;
-        }
+        predictedDisplay.value = 'Chargement...';
         
-        predictedDisplay.value = 'Calcul en cours...';
-        predictedDisplay.style.color = '#007bff';
-        
-        const url = '{{ path("prediction_prix") }}';
-        
-        fetch(url, {
+        fetch('/residence/admin/prediction', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({
-                superficie: superficieFloat,
-                type: typeA,
-                parking: parking
+                superficie: superficieValue,
+                type: typeValue
             })
         })
         .then(response => {
@@ -1177,85 +1158,56 @@ function setupAddFormPrediction() {
             return response.json();
         })
         .then(data => {
-            if (data.error || data.success === false) {
-                throw new Error(data.error || 'Prediction failed');
-            }
-            
-            const displayValue = data.formatted_price || 
-                (data.predicted_price ? Number(data.predicted_price).toLocaleString('fr-FR') + ' TND' : 'Non disponible');
-            
-            predictedDisplay.value = displayValue;
-            predictedDisplay.style.color = '#28a745';
-            
-            if (prixLocationField && !prixLocationField.value && data.predicted_price) {
-                prixLocationField.value = data.predicted_price;
+            if (data.success) {
+                predictedDisplay.value = data.formatted_price;
+                if (prixLocationField && !prixLocationField.value) {
+                    prixLocationField.value = Math.round(data.predicted_price);
+                }
+            } else {
+                predictedDisplay.value = 'Erreur: ' + (data.error || 'Calcul échoué');
             }
         })
         .catch(error => {
             console.error('Prediction error:', error);
-            predictedDisplay.value = 'Erreur de calcul';
-            predictedDisplay.style.color = '#dc3545';
+            predictedDisplay.value = 'Erreur de connexion';
         });
     }
     
-    superficieInput.addEventListener('input', fetchAddPrediction);
-    superficieInput.addEventListener('blur', fetchAddPrediction);
-    typeSelect.addEventListener('change', fetchAddPrediction);
-    parkingCheckbox.addEventListener('change', fetchAddPrediction);
-    
-    if (superficieInput.value && parseFloat(superficieInput.value) > 0) {
-        fetchAddPrediction();
-    }
-    
-    return true;
+    superficieInput.addEventListener('input', updatePrediction);
+    typeSelect.addEventListener('change', updatePrediction);
 }
 
-// Setup price prediction for edit form
 function setupEditFormPrediction() {
-    const editSuperficie = document.querySelector('#app-edit-form input[name*="superficie"]');
-    const editType = document.querySelector('#app-edit-form select[name*="typeA"]');
-    const editParking = document.querySelector('#app-edit-form input[name*="parking"]');
-    const editPredictedDisplay = document.getElementById('app-edit-predicted-price');
-    const editPrixLocation = document.querySelector('#app-edit-prixLocation');
+    const superficieInput = document.querySelector('#app-edit-form input[name*="superficie"]');
+    const typeSelect = document.querySelector('#app-edit-form select[name*="typeA"]');
+    const predictedDisplay = document.getElementById('app-edit-predicted-price');
+    const prixLocationField = document.querySelector('#app-edit-form input[name*="prixLocation"]');
     
-    if (!editSuperficie || !editType || !editParking || !editPredictedDisplay) {
-        setTimeout(setupEditFormPrediction, 100);
-        return false;
+    if (!superficieInput || !typeSelect || !predictedDisplay) {
+        console.warn('Edit form elements not found');
+        return;
     }
     
-    console.log('Edit prediction elements found, setting up listeners');
-    
-    const displayElement = editPredictedDisplay;
-    
-    function fetchEditPrediction() {
-        const superficie = editSuperficie.value;
-        const typeA = editType.value;
-        const parking = editParking.checked;
+    function updatePrediction() {
+        const superficieValue = parseFloat(superficieInput.value);
+        const typeValue = typeSelect.value;
         
-        const superficieFloat = parseFloat(superficie);
-        
-        if (!superficie || isNaN(superficieFloat) || superficieFloat <= 0) {
-            displayElement.value = 'Entrez une superficie valide';
-            displayElement.style.color = '#6c757d';
+        if (!superficieValue || superficieValue <= 0 || !typeValue) {
+            predictedDisplay.value = 'Données invalides';
             return;
         }
-
-        displayElement.value = 'Calcul en cours...';
-        displayElement.style.color = '#007bff';
         
-        const url = '{{ path("prediction_prix") }}';
+        predictedDisplay.value = 'Chargement...';
         
-        fetch(url, {
+        fetch('/residence/admin/prediction', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({
-                superficie: superficieFloat,
-                type: typeA,
-                parking: parking
+                superficie: superficieValue,
+                type: typeValue
             })
         })
         .then(response => {
@@ -1265,37 +1217,43 @@ function setupEditFormPrediction() {
             return response.json();
         })
         .then(data => {
-            if (data.error || data.success === false) {
-                throw new Error(data.error || 'Prediction failed');
-            }
-            
-            const displayValue = data.formatted_price || 
-                (data.predicted_price ? Number(data.predicted_price).toLocaleString('fr-FR') + ' TND' : 'Non disponible');
-            
-            displayElement.value = displayValue;
-            displayElement.style.color = '#28a745';
-            
-            if (editPrixLocation && !editPrixLocation.value && data.predicted_price) {
-                editPrixLocation.value = data.predicted_price;
+            if (data.success) {
+                predictedDisplay.value = data.formatted_price;
+                if (prixLocationField && !prixLocationField.value) {
+                    prixLocationField.value = Math.round(data.predicted_price);
+                }
+            } else {
+                predictedDisplay.value = 'Erreur: ' + (data.error || 'Calcul échoué');
             }
         })
-        .catch(() => {
-            displayElement.value = 'Erreur de calcul';
-            displayElement.style.color = '#dc3545';
+        .catch(error => {
+            console.error('Prediction error:', error);
+            predictedDisplay.value = 'Erreur de connexion';
         });
     }
     
-    editSuperficie.addEventListener('input', fetchEditPrediction);
-    editSuperficie.addEventListener('blur', fetchEditPrediction);
-    editType.addEventListener('change', fetchEditPrediction);
-    editParking.addEventListener('change', fetchEditPrediction);
-    
-    if (editSuperficie.value && parseFloat(editSuperficie.value) > 0) {
-        fetchEditPrediction();
-    }
-    
-    return true;
+    superficieInput.addEventListener('input', updatePrediction);
+    typeSelect.addEventListener('change', updatePrediction);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupEditFormPrediction();
+    setupAddFormPrediction();
+});
+
+window.openModal = (function() {
+    const original = window.openModal;
+    return function(modalId) {
+        if (original) original(modalId);
+        
+        if (modalId === 'app-edit-modal') {
+            setTimeout(setupEditFormPrediction, 300);
+        } else if (modalId === 'app-add-modal') {
+            setTimeout(setupAddFormPrediction, 300);
+        }
+    };})();
+
+document.addEventListener('DOMContentLoaded', setupEditFormPrediction);
 
 const predictions = {};
 appartementsData.forEach(apt => {

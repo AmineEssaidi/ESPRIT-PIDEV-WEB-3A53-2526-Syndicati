@@ -236,6 +236,7 @@ public function residence(
 
     $appartements = $appartementRepository->findAll();
     
+    // Load predictions
     $modelPath = $params->get('kernel.project_dir') . '/var/models/appartement_prix.model';
     $predictions = [];
     
@@ -243,18 +244,13 @@ public function residence(
         try {
             $predictor->loadModel($modelPath);
             foreach ($appartements as $appartement) {
-                try {
-                    $prediction = $predictor->predict($appartement);
-                    $predictions[$appartement->getIdApp()] = is_numeric($prediction) ? round((float) $prediction) : 0;
-                } catch (\Exception $e) {
-                    $predictions[$appartement->getIdApp()] = 0;
-                }
+                $prediction = $predictor->predict($appartement);
+                $predictions[$appartement->getIdApp()] = is_numeric($prediction) ? round((float) $prediction) : 0;
             }
         } catch (\Exception $e) {
-            error_log('Failed to load prediction model: ' . $e->getMessage());
+            // Model loading failed, predictions remain empty
         }
     }
-
 
     $appartementAddForm = $formFactory->createNamed('appartement_add', \App\Form\Residence\AppartementType::class, new \App\Entity\Residence\Appartement(), [
         'action' => $this->generateUrl('app_appartement_new'),
@@ -278,7 +274,8 @@ public function residence(
         $predictionsmaintenance[$appartement->getIdApp()] = $maintenance?->getRecommendationIa();
     }
 
-$em->flush();
+    $em->flush();
+    
     return $this->render('admin/Residence/index.html.twig', [
         'residences' => $residences,
         'appartements' => $appartements,
@@ -293,7 +290,8 @@ $em->flush();
         'maintenanceEditForm' => $maintenanceEditForm->createView(),
     ]);
 }
-    #[Route('/admin/residence/add', name: 'admin_residence_add', methods: ['POST'])]
+
+#[Route('/admin/residence/add', name: 'admin_residence_add', methods: ['POST'])]
     public function residenceAdd(Request $request, EntityManagerInterface $em, \Symfony\Component\String\Slugger\SluggerInterface $slugger, \Symfony\Component\Security\Csrf\CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
     {
         $residence = new Residence();
@@ -350,7 +348,6 @@ $em->flush();
 
         return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
     }
-
     #[Route('/admin/residence/{id}/edit', name: 'admin_residence_edit', methods: ['POST'])]
     public function residenceEdit(int $id, Request $request, ResidenceRepository $residenceRepository, EntityManagerInterface $em, \Symfony\Component\String\Slugger\SluggerInterface $slugger, \Symfony\Component\Form\FormFactoryInterface $formFactory): JsonResponse
     {
@@ -479,72 +476,56 @@ $em->flush();
     }
     //            FONCTION POUR LA PREDICTION DU PRIX                    //
     ///////////////////////////////////////////////////////////////////////
+private ?MachineLearning $cachedPredictor = null;
 
-#[Route('admin/prediction', name: 'prediction_prix', methods: ['POST'])]
+#[Route('/residence/admin/prediction', name: 'prediction_prix', methods: ['POST'])]
 public function predictPrice(
     Request $request, 
     MachineLearning $predictor, 
     ParameterBagInterface $params
 ): JsonResponse {
     try {
-        $rawContent = $request->getContent();
-        $data = json_decode($rawContent, true);
+        $data = json_decode($request->getContent(), true);
         
-        if (!$data) {
+        if (!$data || !isset($data['superficie']) || !isset($data['type'])) {
             return $this->json([
                 'success' => false,
-                'error' => 'Invalid JSON data received',
                 'predicted_price' => 0,
-                'formatted_price' => 'Erreur de données'
+                'formatted_price' => 'Données invalides'
             ], 400);
         }
         
-        // Validate required fields
-        if (!isset($data['superficie']) || !isset($data['type'])) {
-            return $this->json([
-                'success' => false,
-                'error' => 'Missing required fields: superficie and type are required',
-                'predicted_price' => 0,
-                'formatted_price' => 'Champs manquants'
-            ], 400);
-        }
-        
-        // Validate superficie is numeric and positive
         $superficie = (float) $data['superficie'];
         if ($superficie <= 0) {
             return $this->json([
                 'success' => false,
-                'error' => 'Surface must be greater than 0',
                 'predicted_price' => 0,
                 'formatted_price' => 'Surface invalide'
             ], 400);
         }
-
         
+        $modelPath = $params->get('kernel.project_dir') . '/var/models/appartement_prix.model';
+        
+        if (!file_exists($modelPath)) {
+            return $this->json([
+                'success' => false,
+                'predicted_price' => 0,
+                'formatted_price' => 'Modèle non disponible'
+            ], 404);
+        }
+        
+        // Load model only once per request
+        if ($this->cachedPredictor === null) {
+            $predictor->loadModel($modelPath);
+            $this->cachedPredictor = $predictor;
+        }
         
         $appartement = new Appartement();
         $appartement->setSuperficie($superficie);
         $appartement->setTypeA((string) $data['type']);
-        $appartement->setParking(isset($data['parking']) ? (bool) $data['parking'] : false);
-
-        $modelPath = $params->get('kernel.project_dir') . '/var/models/appartement_prix.model';
         
-        $predictedPrice = 0;
-        
-        if (file_exists($modelPath)) {
-            try {
-                $predictor->loadModel($modelPath);
-                $predictedPrice = $predictor->predict($appartement);
-                $predictedPrice = is_numeric($predictedPrice) ? max(0, (float) $predictedPrice) : 0;
-            } catch (\Exception $e) {
-                error_log('Model prediction failed: ' . $e->getMessage());
-                // Fallback to calculation if model prediction fails
-                $predictedPrice = $superficie * 50000;
-            }
-        } else {
-            error_log('Model file not found at: ' . $modelPath);
-            $predictedPrice = $superficie * 50000; // Fallback calculation
-        }
+        $predictedPrice = $this->cachedPredictor->predict($appartement);
+        $predictedPrice = is_numeric($predictedPrice) ? max(0, (float) $predictedPrice) : 0;
         
         $formattedPrice = number_format($predictedPrice, 0, ',', ' ') . ' TND';
         
@@ -555,18 +536,13 @@ public function predictPrice(
         ]);
         
     } catch (\Exception $e) {
-        error_log('❌ PREDICTION ERROR: ' . $e->getMessage());
-        error_log('Error trace: ' . $e->getTraceAsString());
-        
         return $this->json([
             'success' => false,
-            'error' => 'An error occurred during prediction',
             'predicted_price' => 0,
             'formatted_price' => 'Erreur de calcul'
         ], 500);
     }
 }
-
 #[Route('/appartement/{id}/predict-maintenance', name: 'app_appartement_predict_maintenance', methods: ['POST'])]
 public function predictMaintenance(
     int $id,
