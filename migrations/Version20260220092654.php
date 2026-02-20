@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20260219232306 extends AbstractMigration
+final class Version20260220092654 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -22,7 +22,7 @@ final class Version20260219232306 extends AbstractMigration
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql('ALTER TABLE appartement CHANGE type_a type_a ENUM(\'S+0\', \'S+1\', \'S+2\', \'S+3\', \'S+4\', \'S+5\')');
         $this->addSql('ALTER TABLE evenement CHANGE statut_event statut_event ENUM(\'planifie\', \'en_cours\', \'termine\', \'annule\'), CHANGE type_event type_event ENUM(\'reunion\', \'social\', \'formation\', \'maintenance\', \'culturel\', \'sportif\')');
-        $this->addSql('ALTER TABLE maintenance DROP date_construction');
+        $this->addSql('ALTER TABLE maintenance ADD recommendation_ia VARCHAR(255) DEFAULT NULL');
         $this->addSql('ALTER TABLE participation CHANGE statut_participation statut_participation ENUM(\'confirme\', \'en_attente\', \'refuse\', \'annule\')');
         $this->addSql('ALTER TABLE reclamations CHANGE statutreclamation statutreclamation ENUM(\'active\', \'en_attente\', \'refuse\', \'termine\') DEFAULT \'en_attente\'');
         $this->addSql('ALTER TABLE residence CHANGE n_appartements n_appartements ENUM(\'1\', \'2\', \'3\', \'4\', \'5\', \'6\', \'7\', \'8\', \'9\', \'10\'), CHANGE n_blocs n_blocs SET(\'A\', \'B\', \'C\', \'D\', \'E\')');
@@ -34,7 +34,7 @@ final class Version20260219232306 extends AbstractMigration
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('ALTER TABLE appartement CHANGE type_a type_a VARCHAR(255) DEFAULT NULL');
         $this->addSql('ALTER TABLE evenement CHANGE statut_event statut_event VARCHAR(255) DEFAULT NULL, CHANGE type_event type_event VARCHAR(255) DEFAULT NULL');
-        $this->addSql('ALTER TABLE maintenance ADD date_construction DATE NOT NULL');
+        $this->addSql('ALTER TABLE maintenance DROP recommendation_ia');
         $this->addSql('ALTER TABLE participation CHANGE statut_participation statut_participation VARCHAR(255) DEFAULT NULL');
         $this->addSql('ALTER TABLE reclamations CHANGE statutreclamation statutreclamation VARCHAR(255) DEFAULT \'en_attente\'');
         $this->addSql('ALTER TABLE residence CHANGE n_appartements n_appartements VARCHAR(255) DEFAULT NULL, CHANGE n_blocs n_blocs LONGTEXT DEFAULT NULL COMMENT \'(DC2Type:simple_array)\'');

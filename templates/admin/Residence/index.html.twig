@@ -1,3 +1,5 @@
+
+
 {% extends 'base.html.twig' %}
 
 {% block title %}Residences - Liquid Glass Admin{% endblock %}
@@ -5,6 +7,43 @@
 {% block stylesheets %}
     <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
     <style>
+        
+    .maintenance-section {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        padding: 1.2rem;
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .maintenance-section-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 1rem;
+    }
+
+    select.glass-input {
+        appearance: auto;
+        -webkit-appearance: auto;
+        cursor: pointer;
+    }
+
+    .glass-form-group {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .glass-input {
+        flex: 1;
+    }
+
+    .row.g-3 {
+        row-gap: 1rem !important;
+    }
+
         .glass-switcher { position: relative; width: 100%; transition: height 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
         .glass-switcher-face { width: 100%; }
 
@@ -434,8 +473,7 @@
         </div>
     </div>
 
-    <!-- Page 2: Appartements -->
-    <div class="residence-page-content" data-page="2" style="display: none;">
+     <div class="residence-page-content" data-page="2" style="display: none;">
         <div class="glass-table-container">
             <div id="appartementGlassSwitcher" class="glass-switcher style-slide">
                 <div class="glass-switcher-face glass-switcher-face-main">
@@ -454,6 +492,7 @@
                         
                         <div style="display: flex; gap: 0.5rem;">
                             <div class="glass-pill glass-pill-active app-sort-option" data-value="number" onclick="selectAppSortPill(this)">Number</div>
+                            <div class="glass-pill app-sort-option" data-value="ID" onclick="selectAppSortPill(this)">ID</div>
                             <div class="glass-pill app-sort-option" data-value="residence" onclick="selectAppSortPill(this)">Residence</div>
                             <div class="glass-pill app-sort-option" data-value="status" onclick="selectAppSortPill(this)">Status</div>
                             <div class="glass-pill app-sort-option" data-value="type" onclick="selectAppSortPill(this)">Type</div>
@@ -496,12 +535,22 @@
                                 <div class="glass-view-details">
                                     <img id="view-app-image" class="img-fluid">
                                     <div class="glass-view-row"><div class="glass-view-label">Residence</div><div class="glass-view-value" id="view-app-res">-</div></div>
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">ID App</div>
+                                        <div class="glass-view-value" id="view-app-id-display">-</div>
+                                    </div>
+                                    <input type="hidden" id="view-app-id" value="">
                                     <div class="glass-view-row"><div class="glass-view-label">Number</div><div class="glass-view-value" id="view-app-num">-</div></div>
                                     <div class="glass-view-row"><div class="glass-view-label">Status</div><div class="glass-view-value" id="view-app-status">-</div></div>
                                     <div class="glass-view-row"><div class="glass-view-label">Surface</div><div class="glass-view-value" id="view-app-surface">-</div></div>
                                     <div class="glass-view-row"><div class="glass-view-label">Rent Price</div><div class="glass-view-value" id="view-app-prix">-</div></div>
                                     <div class="glass-view-row"><div class="glass-view-label">Price Prediction (AI)</div><div class="glass-view-value" id="view-app-predicted-price">-</div></div>
-
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">Maintenance Prédictive</div>
+                                        <div class="glass-view-value">
+                                            <span id="view-app-maintenance-prediction">-</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
                                     <button type="button" class="users-btn-modify" id="view-app-modify-btn"><i class="bx bx-edit"></i> Modify Appartement</button>
@@ -542,39 +591,40 @@
                                     <div class="col-md-6">{{ form_row(appartementEditForm.disponible, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
                                 </div>
                                 <div class="row">
-        <div class="col-md-6">
-            <div class="glass-form-group">
-                <label class="glass-label">Surface (m²)</label>
-                {{ form_widget(appartementEditForm.superficie, { 'attr': { 'class': 'glass-input' } }) }}
-                {{ form_errors(appartementEditForm.superficie) }}
-            </div>
-        </div>
-        <div class="row">
-    <div class="col-md-6">
-        <div class="glass-form-group">
-            <label class="glass-label">Prix Location (TND)</label>
-            {{ form_widget(appartementEditForm.prixLocation, { 'attr': { 'class': 'glass-input' } }) }}
-            {{ form_errors(appartementEditForm.prixLocation) }}
-        </div>
-    </div>
-            <div class="col-md-6">
-                <div class="glass-form-group">
-                    <label class="glass-label">Prix estimé (IA)</label>
-                    <div class="predicted-price-container">
-                        <input type="text" 
-                            id="predicted_price_display" 
-                            class="glass-input text-warning" 
-                            readonly disabled
-                            value="Chargement..."
-                            >
-                        <small class="form-text" style="color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-top: 0.3rem; display: block;">
-                            Estimation basée sur superficie, type & parking
-                        </small>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
+                                    <div class="col-md-6">
+                                        <div class="glass-form-group">
+                                            <label class="glass-label">Surface (m²)</label>
+                                            {{ form_widget(appartementEditForm.superficie, { 'attr': { 'class': 'glass-input', 'id': 'app-edit-superficie' } }) }}
+                                            {{ form_errors(appartementEditForm.superficie) }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="glass-form-group">
+                                            <label class="glass-label">Prix Location (TND)</label>
+                                            {{ form_widget(appartementEditForm.prixLocation, { 'attr': { 'class': 'glass-input', 'id': 'app-edit-prixLocation' } }) }}
+                                            {{ form_errors(appartementEditForm.prixLocation) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="glass-form-group">
+                                            <label class="glass-label">Prix estimé (IA)</label>
+                                            <div class="predicted-price-container">
+                                                <input type="text" 
+                                                    id="app-edit-predicted-price" 
+                                                    class="glass-input text-warning" 
+                                                    readonly disabled
+                                                    value="Chargement..."
+                                                    >
+                                                <small class="form-text" style="color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-top: 0.3rem; display: block;">
+                                                    Estimation basée sur superficie, type & parking
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 {{ form_row(appartementEditForm.imageA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
                                 
                                 <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
@@ -589,6 +639,7 @@
                     </div>
                 </div>
 
+                <!-- FIXED: Add Appartement Modal -->
                 <div class="glass-switcher-face glass-switcher-face-extra" id="app-add-face">
                     <div id="app-add-modal" class="users-edit-modal">
                         <div class="users-edit-modal-card">
@@ -639,6 +690,30 @@
                                     <div class="col-md-6">{{ form_row(appartementAddForm.parking, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
                                     <div class="col-md-6">{{ form_row(appartementAddForm.disponible, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
                                 </div>
+                                <div class="row">
+                                    <div class="col-md-6">{{ form_row(appartementAddForm.superficie, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'id': 'app-add-superficie' } }) }}</div>
+                                    <div class="col-md-6">{{ form_row(appartementAddForm.prixLocation, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'id': 'app-add-prixLocation' } }) }}</div>
+                                </div>
+                                <!-- FIXED: Added predicted price display for add form -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="glass-form-group">
+                                            <label class="glass-label">Prix estimé (IA)</label>
+                                            <div class="predicted-price-container">
+                                                <input type="text" 
+                                                    id="app-add-predicted-price" 
+                                                    class="glass-input text-warning" 
+                                                    readonly disabled
+                                                    value="Entrez les détails"
+                                                    >
+                                                <small class="form-text" style="color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-top: 0.3rem; display: block;">
+                                                    Estimation basée sur superficie, type & parking
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 {{ form_row(appartementAddForm.imageA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
                                 
                                 <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
@@ -646,12 +721,6 @@
                                     <span class="users-edit-modal-actions-spacer"></span>
                                     <button type="submit" class="users-btn-modify"><i class="bx bx-plus"></i> Create Appartement</button>
                                 </div>
-                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
                                 {{ form_end(appartementAddForm) }}
                                 {% endif %}
                             </div>
@@ -664,413 +733,408 @@
 </div>
 
 <script>
+let currentAppartment = null; 
 
+const residencesData = [{% for r in residences|default([]) %} [ "{{ r.nomR|e('js') }}", "{{ r.adresse|e('js') }}", "{{ r.imageR|e('js') }}", "{{ r.idResidence }}", "{{ r.nAppartements }}", "{{ r.nEtages }}", "{{ r.nBlocs }}", "{{ csrf_token('delete' ~ r.idResidence)|e('js') }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
+const appartementsData = [{% for a in appartements|default([]) %} [ "{{ a.appartementInfo.number|default('—')|e('js') }}", "{{ a.residence ? a.residence.nomR|e('js') : '—' }}", "{{ a.disponible ? 'Available' : 'Occupied' }}", "{{ a.idApp }}", "{{ a.residence ? a.residence.idResidence : '' }}", "{{ a.user ? a.user.idUser : '' }}", "{{ a.typeA|e('js') }}", "{{ a.parking ? 'true' : 'false' }}", "{{ a.appartementInfo.bloc|default('')|e('js') }}", "{{ a.appartementInfo.floor|default('')|e('js') }}","{{ a.superficie|default('0')|e('js') }}","{{ a.prixLocation|default('0')|e('js') }}", "{{ a.imageA|e('js') }}", "{{ csrf_token('delete' ~ a.idApp)|e('js') }}","{{ predictions[a.idApp] }}", "{{ predictionsmaintenance[a.idApp]|default('')|e('js') }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
 
-    const residencesData = [{% for r in residences|default([]) %} [ "{{ r.nomR|e('js') }}", "{{ r.adresse|e('js') }}", "{{ r.imageR|e('js') }}", "{{ r.idResidence }}", "{{ r.nAppartements }}", "{{ r.nEtages }}", "{{ r.nBlocs }}", "{{ csrf_token('delete' ~ r.idResidence)|e('js') }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
-    const appartementsData = [{% for a in appartements|default([]) %} [ "{{ a.appartementInfo.number|default('—')|e('js') }}", "{{ a.residence ? a.residence.nomR|e('js') : '—' }}", "{{ a.disponible ? 'Available' : 'Occupied' }}", "{{ a.idApp }}", "{{ a.residence ? a.residence.idResidence : '' }}", "{{ a.user ? a.user.idUser : '' }}", "{{ a.typeA|e('js') }}", "{{ a.parking ? 'true' : 'false' }}", "{{ a.appartementInfo.bloc|default('')|e('js') }}", "{{ a.appartementInfo.floor|default('')|e('js') }}","{{ a.superficie|default('0')|e('js') }}","{{ a.prixLocation|default('0')|e('js') }}", "{{ a.imageA|e('js') }}", "{{ csrf_token('delete' ~ a.idApp)|e('js') }}","{{ predictions[a.idApp] }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
+const predictionsmaintenance = { {% for a in appartements|default([]) %} "{{ a.idApp }}": "{{ predictionsmaintenance[a.idApp]|default('')|e('js') }}"{% if not loop.last %},{% endif %} {% endfor %} };   
+
+const editResUrlTemplate = "{{ path('admin_residence_edit', {id: 'ID_PLACEHOLDER'}) }}";
+const deleteResUrlTemplate = "{{ path('admin_residence_delete', {id: 'ID_PLACEHOLDER'}) }}";
+const editAppUrlTemplate = "{{ path('app_appartement_edit', {idApp: 'ID_PLACEHOLDER'}) }}";
+const GenererMaintUrlTemplate = "{{ path('app_appartement_edit', {idApp: 'ID_PLACEHOLDER'}) }}";
+const deleteAppUrlTemplate = "{{ path('app_appartement_delete', {idApp: 'ID_PLACEHOLDER'}) }}";
+
+let resPage = 1, appPage = 1, resRows = [...residencesData], appRows = [...appartementsData], rowsPP = 10;
+let resSortValue = 'name', resSortDir = 'asc';
+let appSortValue = 'number', appSortDir = 'asc';
+
+// Define openModal and closeModal functions globally
+window.openModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+        console.log('Opened modal:', modalId);
+    } else {
+        console.error('Modal not found:', modalId);
+    }
+};
+
+window.closeModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+    }
+};
+
+// Define switchGlassFace function globally
+window.switchGlassFace = function(face, switcherId) {
+    const switcher = document.getElementById(switcherId);
+    if (switcher) {
+        const faces = switcher.querySelectorAll('.glass-switcher-face');
+        faces.forEach(f => f.style.display = 'none');
+        
+        let targetFace;
+        if (face === 'main') {
+            targetFace = switcher.querySelector('.glass-switcher-face-main');
+        } else if (face === 'details') {
+            targetFace = switcher.querySelector('.glass-switcher-face-details');
+        } else if (face === 'edit') {
+            targetFace = switcher.querySelector('.glass-switcher-face-edit');
+        } else if (face === 'extra') {
+            targetFace = switcher.querySelector('.glass-switcher-face-extra');
+        }
+        
+        if (targetFace) {
+            targetFace.style.display = 'block';
+        }
+    }
+};
+
+function updateResSortIcon() {
+    const el = document.getElementById('res-sort-dir-icon-svg'); if(!el) return;
+    el.innerHTML = resSortDir === 'asc' ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>` : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
+}
+
+function updateAppSortIcon() {
+    const el = document.getElementById('app-sort-dir-icon-svg'); if(!el) return;
+    el.innerHTML = appSortDir === 'asc' ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>` : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
+}
+
+window.selectResSortPill = function(pill) {
+    resSortValue = pill.dataset.value;
+    document.querySelectorAll('.res-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
+    pill.classList.add('glass-pill-active');
+    filterSortResidences();
+};
+
+window.selectAppSortPill = function(pill) {
+    appSortValue = pill.dataset.value;
+    document.querySelectorAll('.app-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
+    pill.classList.add('glass-pill-active');
+    filterSortAppartements();
+};
+
+function filterSortResidences() {
+    const val = document.querySelector('.res-search-input').value.toLowerCase();
+    let rows = residencesData.filter(d => d[0].toLowerCase().includes(val) || d[1].toLowerCase().includes(val));
     
-    const editResUrlTemplate = "{{ path('admin_residence_edit', {id: 'ID_PLACEHOLDER'}) }}";
-    const deleteResUrlTemplate = "{{ path('admin_residence_delete', {id: 'ID_PLACEHOLDER'}) }}";
-    const editAppUrlTemplate = "{{ path('app_appartement_edit', {idApp: 'ID_PLACEHOLDER'}) }}";
-    const deleteAppUrlTemplate = "{{ path('app_appartement_delete', {idApp: 'ID_PLACEHOLDER'}) }}";
+    let idx = 0; // Name
+    if(resSortValue === 'address') idx = 1;
 
-    let resPage = 1, appPage = 1, resRows = [...residencesData], appRows = [...appartementsData], rowsPP = 10;
-    let resSortValue = 'name', resSortDir = 'asc';
-    let appSortValue = 'number', appSortDir = 'asc';
+    rows.sort((a,b) => {
+        let vA = a[idx].toLowerCase(), vB = b[idx].toLowerCase();
+        return resSortDir === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
+    });
+    resRows = rows; resPage = 1; renderResTable();
+}
 
-    function updateResSortIcon() {
-        const el = document.getElementById('res-sort-dir-icon-svg'); if(!el) return;
-        el.innerHTML = resSortDir === 'asc' ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>` : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
-    }
-    function updateAppSortIcon() {
-        const el = document.getElementById('app-sort-dir-icon-svg'); if(!el) return;
-        el.innerHTML = appSortDir === 'asc' ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>` : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
-    }
+function filterSortAppartements() {
+    const val = document.querySelector('.app-search-input').value.toLowerCase();
+    let rows = appartementsData.filter(d => d[1].toLowerCase().includes(val) || d[0].toLowerCase().includes(val) || d[2].toLowerCase().includes(val));
 
-    window.selectResSortPill = function(pill) {
-        resSortValue = pill.dataset.value;
-        document.querySelectorAll('.res-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
-        pill.classList.add('glass-pill-active');
-        filterSortResidences();
-    };
+    let idx = 0;
+    let numeric = false;
 
-    window.selectAppSortPill = function(pill) {
-        appSortValue = pill.dataset.value;
-        document.querySelectorAll('.app-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
-        pill.classList.add('glass-pill-active');
-        filterSortAppartements();
-    };
-
-    function filterSortResidences() {
-        const val = document.querySelector('.res-search-input').value.toLowerCase();
-        let rows = residencesData.filter(d => d[0].toLowerCase().includes(val) || d[1].toLowerCase().includes(val));
-        
-        let idx = 0; // Name
-        if(resSortValue === 'address') idx = 1;
-
-        rows.sort((a,b) => {
-            let vA = a[idx].toLowerCase(), vB = b[idx].toLowerCase();
-            return resSortDir === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
-        });
-        resRows = rows; resPage = 1; renderResTable();
+    switch (appSortValue) {
+        case "residence": idx = 1; break;
+        case "status":    idx = 2; break;
+        case "ID":        idx = 3; numeric = true; break;
+        case "type":      idx = 6; break;
+        case "surface":   idx = 10; numeric = true; break;
+        case "price":     idx = 11; numeric = true; break;
     }
 
-    function filterSortAppartements() {
-        const val = document.querySelector('.app-search-input').value.toLowerCase();
-        let rows = appartementsData.filter(d => d[1].toLowerCase().includes(val) || d[0].toLowerCase().includes(val) || d[2].toLowerCase().includes(val));
-        
-        let idx = 0;
-        switch (appSortValue)
-        {
-            case "residence":
-                idx=1;
-            case "status":
-                idx=2;
-            case "type":
-                idx=6;
-            case "surface":
-                idx=10;
-            case "price":
-                idx=11;
-        }
-        rows.sort((a,b) => {
-            let vA = a[idx].toLowerCase(), vB = b[idx].toLowerCase();
+    rows.sort((a, b) => {
+        if (numeric) {
+            let vA = parseFloat(a[idx]) || 0;
+            let vB = parseFloat(b[idx]) || 0;
+            return appSortDir === 'asc' ? vA - vB : vB - vA;
+        } else {
+            let vA = a[idx].toLowerCase();
+            let vB = b[idx].toLowerCase();
             return appSortDir === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
-        });
-        appRows = rows; appPage = 1; renderAppTable();
-    }
-
-    function renderResTable() {
-        const tb = document.getElementById('res-table-body'); tb.innerHTML = '';
-        const start = (resPage-1)*rowsPP, end = Math.min(start+rowsPP, resRows.length);
-        for(let i=start; i<end; i++) {
-            const d = resRows[i]; const r = document.createElement('tr');
-            r.innerHTML = `<td><strong>${d[0]}</strong></td><td>${d[1]}</td><td><span class="glass-pill">Residence</span></td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewRes(${i})"><i class="bx bx-show"></i> Details</button></td>`;
-            tb.appendChild(r);
-        }
-        const total = Math.ceil(resRows.length / rowsPP), cont = document.getElementById('res-table-pages'); cont.innerHTML = '';
-        for(let i=1; i<=total; i++) { const b = document.createElement('button'); b.className = 'glass-pagination-btn' + (i === resPage ? ' active' : ''); b.textContent = i; b.onclick = () => { resPage = i; renderResTable(); }; cont.appendChild(b); }
-    }
-    function renderAppTable() {
-        const tb = document.getElementById('app-table-body'); tb.innerHTML = '';
-        const start = (appPage-1)*rowsPP, end = Math.min(start+rowsPP, appRows.length);
-        for(let i=start; i<end; i++) {
-            const d = appRows[i]; const r = document.createElement('tr');
-            r.innerHTML = `<td><strong>${d[1]}</strong></td><td>${d[6]}</td><td><span class="glass-pill">${d[2]}</span></td><td><span class="glass-pill">${d[11]} TND</span></td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewApp(${i})"><i class="bx bx-show"></i> Details</button></td>`;
-            tb.appendChild(r);
-        }
-        const total = Math.ceil(appRows.length / rowsPP), cont = document.getElementById('app-table-pages'); cont.innerHTML = '';
-        for(let i=1; i<=total; i++) { const b = document.createElement('button'); b.className = 'glass-pagination-btn' + (i === appPage ? ' active' : ''); b.textContent = i; b.onclick = () => { appPage = i; renderAppTable(); }; cont.appendChild(b); }
-    }
-
-    window.viewRes = function(idx) {
-        const d = resRows[idx]; document.getElementById('view-res-name').textContent = d[0]; document.getElementById('view-res-address').textContent = d[1];
-        const ir = document.getElementById('view-res-image-row'); if(d[2]) { document.getElementById('view-res-image').src = '/uploads/images/' + d[2]; ir.style.display = 'flex'; } else ir.style.display = 'none';
-        document.getElementById('view-res-delete-token').value = d[7]; document.getElementById('view-res-delete-form').action = deleteResUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
-        document.getElementById('view-res-modify-btn').onclick = () => {
-            const f = document.getElementById('res-edit-form'); f.action = editResUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
-            f.querySelector('[name*="nomR"]').value = d[0]; f.querySelector('[name*="adresse"]').value = d[1];
-            f.querySelector('[name*="nAppartements"]').value = d[4]; f.querySelector('[name*="nEtages"]').value = d[5];
-            // nBlocs (multiple)
-            const blocs = d[6].split(',');
-            const chks = f.querySelectorAll('[name*="nBlocs"]');
-            chks.forEach(c => c.checked = blocs.includes(c.value));
-            openModal('res-edit-modal');
-        };
-        openModal('res-view-modal');
-    };
-    window.viewApp = function(idx) {
-        const d = appRows[idx];document.getElementById('view-app-image').src = d[12] ? '/residence_images/' + d[12] : 'placeholder-image-gray-3x2-1'; document.getElementById('view-app-num').textContent = d[0]; document.getElementById('view-app-res').textContent = d[1]; document.getElementById('view-app-status').textContent = d[2]; document.getElementById('view-app-surface').textContent = d[10];document.getElementById('view-app-prix').textContent = d[11];         document.getElementById('view-app-predicted-price').textContent = predictions[d[3]] || '-';
-;
-        document.getElementById('view-app-delete-token').value = d[13]; document.getElementById('view-app-delete-form').action = deleteAppUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
-        document.getElementById('view-app-modify-btn').onclick = () => {
-            const f = document.getElementById('app-edit-form'); f.action = editAppUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
-            f.querySelector('[name*="residence"]').value = d[4];
-            f.querySelector('[name*="user"]').value = d[5];
-            f.querySelector('[name*="typeA"]').value = d[6];
-            f.querySelector('[name*="parking"]').checked = d[7] === 'true';
-            f.querySelector('[name*="disponible"]').checked = d[2] === 'Available';
-            f.querySelector('[name*="bloc"]').value = d[8];
-            f.querySelector('[name*="floor"]').value = d[9];
-            f.querySelector('[name*="number"]').value = d[0];
-             f.querySelector('[name*="superficie"]').value = d[10];
-             f.querySelector('[name*="prixLocation"]').value = d[11];
-            openModal('app-edit-modal');
-        };
-        openModal('app-view-modal');
-    };
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const sl = document.getElementById('residence-switcher-slider'), ts = document.querySelectorAll('.premium-switcher-tab'), ps = document.querySelectorAll('.residence-page-content');
-        ts.forEach((t, i) => t.addEventListener('click', () => {
-            ts.forEach(x => x.classList.remove('active')); t.classList.add('active'); sl.style.left = (i * 50) + '%'; sl.style.width = '50%';
-            ps.forEach(p => p.style.display = p.dataset.page === t.dataset.page ? 'block' : 'none');
-            const as = document.querySelector(`.residence-page-content[data-page="${t.dataset.page}"] .glass-switcher`); if(as) switchGlassFace('main', as.id);
-        }));
-        sl.style.width = '50%'; 
-        renderResTable(); 
-        renderAppTable(); 
-        updateResSortIcon();
-        updateAppSortIcon();
-        switchGlassFace('main', 'residenceGlassSwitcher');
-
-        document.getElementById('res-sort-dir-pill').onclick = () => { resSortDir = resSortDir === 'asc' ? 'desc' : 'asc'; updateResSortIcon(); filterSortResidences(); };
-        document.getElementById('app-sort-dir-pill').onclick = () => { appSortDir = appSortDir === 'asc' ? 'desc' : 'asc'; updateAppSortIcon(); filterSortAppartements(); };
-
-        document.querySelector('.res-search-input').oninput = () => filterSortResidences();
-        document.querySelector('.app-search-input').oninput = () => filterSortAppartements();
-
-        document.getElementById('res-btn-add').onclick = () => openModal('res-add-modal');
-        
-        // Modified to initialize dropdowns when modal opens
-        document.getElementById('app-btn-add').onclick = () => {
-            openModal('app-add-modal');
-            
-            // Small delay to ensure modal is fully rendered
-            setTimeout(() => {
-                initApartmentDropdowns();
-            }, 150);
-        };
-
-        function initApartmentDropdowns() {
-            // Try multiple selectors to find the residence dropdown
-            const residenceSelect = document.querySelector('#app-add-form select[name*="residence"]') ||
-                                  document.querySelector('select[name*="residence"]') ||
-                                  document.querySelector('#app-add-form select');
-            
-            if (!residenceSelect) {
-                console.error('Could not find residence select!');
-                return;
-            }
-
-            const blocSelect = document.getElementById('app-bloc-select');
-            const floorSelect = document.getElementById('app-floor-select');
-            const numberSelect = document.getElementById('app-number-select');
-            const blocInput = document.getElementById('app-bloc-field');
-            const floorInput = document.getElementById('app-floor-field');
-            const numberInput = document.getElementById('app-number-field');
-
-            console.log('Initializing apartment dropdowns...');
-            console.log('Residence select:', residenceSelect);
-
-            // Sync selects with hidden inputs
-            if (blocSelect && blocInput) {
-                blocSelect.addEventListener('change', () => blocInput.value = blocSelect.value);
-            }
-            if (floorSelect && floorInput) {
-                floorSelect.addEventListener('change', () => floorInput.value = floorSelect.value);
-            }
-            if (numberSelect && numberInput) {
-                numberSelect.addEventListener('change', () => numberInput.value = numberSelect.value);
-            }
-
-            // Remove any existing listener and add new one
-            const newResidenceSelect = residenceSelect.cloneNode(true);
-            residenceSelect.parentNode.replaceChild(newResidenceSelect, residenceSelect);
-
-            // When residence changes, populate dropdowns
-            newResidenceSelect.addEventListener('change', function() {
-                const selectedResId = this.value;
-                console.log('Residence selected:', selectedResId);
-                
-                // Reset all dropdowns
-                if (blocSelect) {
-                    blocSelect.innerHTML = '<option value="">Select Bloc</option>';
-                    if (blocInput) blocInput.value = '';
-                }
-                if (floorSelect) {
-                    floorSelect.innerHTML = '<option value="">Select Floor</option>';
-                    if (floorInput) floorInput.value = '';
-                }
-                if (numberSelect) {
-                    numberSelect.innerHTML = '<option value="">Select Apartment</option>';
-                    if (numberInput) numberInput.value = '';
-                }
-                
-                if (!selectedResId) return;
-
-                // Find residence data
-                const resData = residencesData.find(r => r[3] == selectedResId);
-                console.log('Found residence data:', resData);
-                
-                if (!resData) {
-                    console.error('No data found for residence ID:', selectedResId);
-                    return;
-                }
-
-                // Parse residence data
-                const blocsString = resData[6] || '';
-                const blocsArray = blocsString ? blocsString.split(',').map(b => b.trim()).filter(b => b) : [];
-                const nEtages = parseInt(resData[5]) || 0;
-                const nAppartements = parseInt(resData[4]) || 0;
-
-                console.log('Populating - Blocs:', blocsArray, 'Floors:', nEtages, 'Apartments:', nAppartements);
-
-                // Populate Bloc dropdown
-                if (blocSelect && blocsArray.length > 0) {
-                    blocsArray.forEach(bloc => {
-                        const option = document.createElement('option');
-                        option.value = bloc;
-                        option.textContent = `Bloc ${bloc}`;
-                        blocSelect.appendChild(option);
-                    });
-                    console.log('Populated', blocsArray.length, 'blocs');
-                }
-
-                // Populate Floor dropdown
-                if (floorSelect && nEtages > 0) {
-                    for (let i = 1; i <= nEtages; i++) {
-                        const option = document.createElement('option');
-                        option.value = i;
-                        option.textContent = `Floor ${i}`;
-                        floorSelect.appendChild(option);
-                    }
-                    console.log('Populated', nEtages, 'floors');
-                }
-
-                // Populate Apartment Number dropdown
-                if (numberSelect && nAppartements > 0) {
-                    for (let i = 1; i <= nAppartements; i++) {
-                        const option = document.createElement('option');
-                        option.value = i;
-                        option.textContent = `Apartment ${i}`;
-                        numberSelect.appendChild(option);
-                    }
-                    console.log('Populated', nAppartements, 'apartment numbers');
-                }
-            });
         }
     });
-document.addEventListener('DOMContentLoaded', function() {
-    const setupEditPrediction = () => {
-        const editSuperficie = document.querySelector('#app-edit-form input[name*="superficie"]');
-        const editType = document.querySelector('#app-edit-form select[name*="typeA"]');
-        const editParking = document.querySelector('#app-edit-form input[name*="parking"]');
-        const editPredictedDisplay = document.querySelector('#app-edit-modal #predicted_price_display');
-        const editPrixLocation = document.querySelector('#app-edit-form input[name*="prixLocation"]');
+
+    appRows = rows; appPage = 1; renderAppTable();
+}
+
+function renderResTable() {
+    const tb = document.getElementById('res-table-body'); tb.innerHTML = '';
+    const start = (resPage-1)*rowsPP, end = Math.min(start+rowsPP, resRows.length);
+    for(let i=start; i<end; i++) {
+        const d = resRows[i]; const r = document.createElement('tr');
+        r.innerHTML = `<td><strong>${d[0]}</strong></td><td>${d[1]}</td><td><span class="glass-pill">Residence</span></td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewRes(${i})"><i class="bx bx-show"></i> Details</button></td>`;
+        tb.appendChild(r);
+    }
+    const total = Math.ceil(resRows.length / rowsPP), cont = document.getElementById('res-table-pages'); cont.innerHTML = '';
+    for(let i=1; i<=total; i++) { const b = document.createElement('button'); b.className = 'glass-pagination-btn' + (i === resPage ? ' active' : ''); b.textContent = i; b.onclick = () => { resPage = i; renderResTable(); }; cont.appendChild(b); }
+}
+
+function renderAppTable() {
+    const tb = document.getElementById('app-table-body'); tb.innerHTML = '';
+    const start = (appPage-1)*rowsPP, end = Math.min(start+rowsPP, appRows.length);
+    for(let i=start; i<end; i++) {
+        const d = appRows[i]; const r = document.createElement('tr');
+        r.innerHTML = `<td><strong>${d[1]}</strong></td><td>${d[6]}</td><td><span class="glass-pill">${d[2]}</span></td><td><span class="glass-pill">${d[11]} TND</span></td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewApp(${i})"><i class="bx bx-show"></i> Details</button></td>`;
+        tb.appendChild(r);
+    }
+    const total = Math.ceil(appRows.length / rowsPP), cont = document.getElementById('app-table-pages'); cont.innerHTML = '';
+    for(let i=1; i<=total; i++) { const b = document.createElement('button'); b.className = 'glass-pagination-btn' + (i === appPage ? ' active' : ''); b.textContent = i; b.onclick = () => { appPage = i; renderAppTable(); }; cont.appendChild(b); }
+}
+
+window.viewRes = function(idx) {
+    const d = resRows[idx]; document.getElementById('view-res-name').textContent = d[0]; document.getElementById('view-res-address').textContent = d[1];
+    const ir = document.getElementById('view-res-image-row'); if(d[2]) { document.getElementById('view-res-image').src = '/uploads/images/' + d[2]; ir.style.display = 'flex'; } else ir.style.display = 'none';
+    document.getElementById('view-res-delete-token').value = d[7]; document.getElementById('view-res-delete-form').action = deleteResUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
+    document.getElementById('view-res-modify-btn').onclick = () => {
+        const f = document.getElementById('res-edit-form'); f.action = editResUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
+        f.querySelector('[name*="nomR"]').value = d[0]; f.querySelector('[name*="adresse"]').value = d[1];
+        f.querySelector('[name*="nAppartements"]').value = d[4]; f.querySelector('[name*="nEtages"]').value = d[5];
+        // nBlocs (multiple)
+        const blocs = d[6].split(',');
+        const chks = f.querySelectorAll('[name*="nBlocs"]');
+        chks.forEach(c => c.checked = blocs.includes(c.value));
+        openModal('res-edit-modal');
+    };
+    openModal('res-view-modal');
+};
+
+window.viewApp = function(idx) {
+    const d = appartementsData[idx];
+    
+    if (!d) return;
+    
+    document.getElementById('view-app-image').src = d[12] ? '/residence_images/' + d[12] : 'placeholder-image-gray-3x2-1';
+    document.getElementById('view-app-num').textContent = d[0];
+    document.getElementById('view-app-res').textContent = d[1];
+    document.getElementById('view-app-status').textContent = d[2];
+    document.getElementById('view-app-surface').textContent = d[10];
+    document.getElementById('view-app-prix').textContent = d[11];
+    document.getElementById('view-app-predicted-price').textContent = predictions[d[3]] || '-';
+    document.getElementById('view-app-id').value = d[3];
+    const idDisplay = document.getElementById('view-app-id-display');
+    if (idDisplay) idDisplay.textContent = d[3];
+
+    document.getElementById('view-app-delete-token').value = d[13];
+    document.getElementById('view-app-delete-form').action = deleteAppUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
+
+    // Set maintenance prediction with condition
+    const maintenanceSpan = document.getElementById('view-app-maintenance-prediction');
+    const maintenancePrediction = predictionsmaintenance[d[3]] || '';
+
+    if (!maintenancePrediction || maintenancePrediction == 'NULL' || maintenancePrediction === 'Données insuffisantes pour une analyse.') {
+        maintenanceSpan.innerHTML = '<span style="color: #888;">Génération en cours...</span>';
+        generateMaintenancePrediction(d[3], maintenanceSpan);
+    } else {
+        maintenanceSpan.textContent = maintenancePrediction;
+    }
+
+    document.getElementById('view-app-modify-btn').onclick = () => {
+        const f = document.getElementById('app-edit-form');
+        if (!f) return;
         
-        if (!editSuperficie || !editType || !editParking || !editPredictedDisplay) {
-            setTimeout(setupEditPrediction, 100);
-            return;
-        }
+        f.action = editAppUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
         
-        console.log('Edit prediction elements found, setting up listeners');
+        const fp = document.getElementById('app-gen-form');
+        if (fp) fp.action = GenererMaintUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
         
-        if (!editPredictedDisplay) {
-            const priceContainer = document.querySelector('#app-edit-modal .predicted-price-container');
-            if (priceContainer) {
-                const newDisplay = document.createElement('input');
-                newDisplay.type = 'text';
-                newDisplay.id = 'predicted_price_display_edit';
-                newDisplay.className = 'form-control';
-                newDisplay.readOnly = true;
-                priceContainer.innerHTML = '';
-                priceContainer.appendChild(newDisplay);
+        const setField = (selector, value) => {
+            const field = f.querySelector(selector);
+            if (field) {
+                if (field.type === 'checkbox') {
+                    field.checked = value === 'true' || value === true;
+                } else {
+                    field.value = value;
+                }
             }
-        }
+        };
         
-        const displayElement = editPredictedDisplay || document.getElementById('predicted_price_display_edit');
-        if (!displayElement) return;
+        setField('[name*="residence"]', d[4]);
+        setField('[name*="id"]', d[3]);
+        setField('[name*="user"]', d[5]);
+        setField('[name*="typeA"]', d[6]);
+        setField('[name*="parking"]', d[7]);
+        setField('[name*="disponible"]', d[2] === 'Available');
+        setField('[name*="bloc"]', d[8]);
+        setField('[name*="floor"]', d[9]);
+        setField('[name*="number"]', d[0]);
+        setField('[name*="superficie"]', d[10]);
+        setField('[name*="prixLocation"]', d[11]);
         
-        function fetchEditPrediction() {
-            const superficie = editSuperficie.value;
-            const typeA = editType.value;
-            const parking = editParking.checked;
-            
-
-            const superficieFloat = parseFloat(superficie);
-
-            displayElement.value = 'Calcul en cours...';
-            
-            const url = '{{ path('prediction_prix') }}';
-            
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({
-                    superficie: superficieFloat,
-                    type: typeA,
-                    parking: parking
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.error || data.success === false) {
-                    throw new Error(data.error || 'Prediction failed');
-                }
-                
-                const displayValue = data.formatted_price || 
-                    (data.predicted_price ? Number(data.predicted_price).toLocaleString('fr-FR') + ' TND' : 'Non disponible');
-                
-                displayElement.value = displayValue;
-                displayElement.style.color = '#28a745';
-                
-                if (editPrixLocation && !editPrixLocation.value && data.predicted_price) {
-                    editPrixLocation.value = data.predicted_price;
-                }
-            })
-            .catch(() => {
-                displayElement.value = 'Erreur de calcul';
-                displayElement.style.color = '#dc3545';
-            });
-        }
-        
-        editSuperficie.addEventListener('input', fetchEditPrediction);
-        editSuperficie.addEventListener('blur', fetchEditPrediction);
-        editType.addEventListener('change', fetchEditPrediction);
-        editParking.addEventListener('change', fetchEditPrediction);
-        
-        if (editSuperficie.value && parseFloat(editSuperficie.value) > 0) {
-            fetchEditPrediction();
-        }
+        openModal('app-edit-modal');
     };
     
-    const editModal = document.getElementById('app-edit-modal');
-    if (editModal) {
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                    if (editModal.style.display === 'flex') {
-                        setTimeout(setupEditPrediction, 200);
-                    }
-                }
-            });
-        });
-        
-        observer.observe(editModal, { attributes: true });
-    }
-    
-    setTimeout(setupEditPrediction, 500);
-});
-        const predictions = {};
-        appartementsData.forEach(apt => {
-            predictions[apt[3]] = apt[14]; 
-        });
-console.log('Predictions loaded:', predictions);
-    
-    console.log('All predictions:', predictions);
+    openModal('app-view-modal');
+};
 
-    document.addEventListener('DOMContentLoaded', function() {
-    const superficieInput = document.querySelector('#{{ appartementAddForm.superficie.vars.id }}');
-    const typeSelect = document.querySelector('#{{ appartementAddForm.typeA.vars.id }}');
-    const parkingCheckbox = document.querySelector('#{{ appartementAddForm.parking.vars.id }}');
-    const predictedDisplay = document.getElementById('predicted_price_display');
-    const prixLocationField = document.querySelector('#{{ appartementAddForm.prixLocation.vars.id }}');
+// Generate maintenance prediction
+function generateMaintenancePrediction(appartementId, displayElement) {
+    const url = `/appartement/${appartementId}/predict-maintenance`;
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+        }
+        return response.text();
+    })
+    .then(text => {
+        console.log('Raw response:', text);
+        
+        if (!text) {
+            throw new Error('Empty response from server');
+        }
+        
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            console.error('JSON parse error:', e);
+            console.error('Response text was:', text);
+            throw e;
+        }
+    })
+    .then(data => {
+        if (data.success) {
+            const resultText = data.prediction || data.recommendationIa || 'Prédiction générée';
+            displayElement.textContent = resultText;
+            predictionsmaintenance[appartementId] = resultText;
+        } else {
+            displayElement.textContent = data.message || 'Erreur lors de la génération';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        displayElement.textContent = 'Erreur: ' + error.message;
+    });
+}
+
+// Initialize apartment dropdowns
+function initApartmentDropdowns() {
+    const residenceSelect = document.getElementById('app-residence-select');
+    
+    if (!residenceSelect) {
+        console.warn('Residence select not found');
+        return false;
+    }
+
+    const blocSelect = document.getElementById('app-bloc-select');
+    const floorSelect = document.getElementById('app-floor-select');
+    const numberSelect = document.getElementById('app-number-select');
+    const blocInput = document.getElementById('app-bloc-field');
+    const floorInput = document.getElementById('app-floor-field');
+    const numberInput = document.getElementById('app-number-field');
+
+    // Sync selects with hidden inputs
+    if (blocSelect && blocInput) {
+        blocSelect.addEventListener('change', () => {
+            blocInput.value = blocSelect.value;
+        });
+    }
+    if (floorSelect && floorInput) {
+        floorSelect.addEventListener('change', () => {
+            floorInput.value = floorSelect.value;
+        });
+    }
+    if (numberSelect && numberInput) {
+        numberSelect.addEventListener('change', () => {
+            numberInput.value = numberSelect.value;
+        });
+    }
+
+    // When residence changes, populate dropdowns
+    residenceSelect.addEventListener('change', function() {
+        const selectedResId = this.value;
+        
+        // Reset all dropdowns
+        if (blocSelect) {
+            blocSelect.innerHTML = '<option value="">Select Bloc</option>';
+            if (blocInput) blocInput.value = '';
+        }
+        if (floorSelect) {
+            floorSelect.innerHTML = '<option value="">Select Floor</option>';
+            if (floorInput) floorInput.value = '';
+        }
+        if (numberSelect) {
+            numberSelect.innerHTML = '<option value="">Select Apartment</option>';
+            if (numberInput) numberInput.value = '';
+        }
+        
+        if (!selectedResId) return;
+
+        // Find residence data
+        const resData = residencesData.find(r => r[3] == selectedResId);
+        
+        if (!resData) {
+            console.warn('No data found for residence ID:', selectedResId);
+            return;
+        }
+
+        // Parse residence data
+        const blocsString = resData[6] || '';
+        const blocsArray = blocsString ? blocsString.split(',').map(b => b.trim()).filter(b => b) : [];
+        const nEtages = parseInt(resData[5]) || 0;
+        const nAppartements = parseInt(resData[4]) || 0;
+
+        // Populate Bloc dropdown
+        if (blocSelect && blocsArray.length > 0) {
+            blocsArray.forEach(bloc => {
+                const option = document.createElement('option');
+                option.value = bloc;
+                option.textContent = `Bloc ${bloc}`;
+                blocSelect.appendChild(option);
+            });
+        }
+
+        // Populate Floor dropdown
+        if (floorSelect && nEtages > 0) {
+            for (let i = 1; i <= nEtages; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Floor ${i}`;
+                floorSelect.appendChild(option);
+            }
+        }
+
+        // Populate Apartment Number dropdown
+        if (numberSelect && nAppartements > 0) {
+            for (let i = 1; i <= nAppartements; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Apartment ${i}`;
+                numberSelect.appendChild(option);
+            }
+        }
+    });
+
+    return true;
+}
+
+// Setup price prediction for add form
+function setupAddFormPrediction() {
+    const superficieInput = document.querySelector('#app-add-superficie');
+    const typeSelect = document.querySelector('#app-add-form select[name*="typeA"]');
+    const parkingCheckbox = document.querySelector('#app-add-form input[name*="parking"]');
+    const predictedDisplay = document.getElementById('app-add-predicted-price');
+    const prixLocationField = document.querySelector('#app-add-prixLocation');
     
     if (!superficieInput || !typeSelect || !parkingCheckbox || !predictedDisplay) {
-        return;
+        console.warn('Add form elements not fully loaded yet');
+        return false;
     }
     
-    function fetchPrediction() {
+    console.log('Add form prediction setup complete');
+    
+    function fetchAddPrediction() {
         const superficie = superficieInput.value;
         const typeA = typeSelect.value;
         const parking = parkingCheckbox.checked;
@@ -1091,7 +1155,7 @@ console.log('Predictions loaded:', predictions);
         predictedDisplay.value = 'Calcul en cours...';
         predictedDisplay.style.color = '#007bff';
         
-        const url = '{{ path('prediction_prix') }}';
+        const url = '{{ path("prediction_prix") }}';
         
         fetch(url, {
             method: 'POST',
@@ -1127,20 +1191,191 @@ console.log('Predictions loaded:', predictions);
                 prixLocationField.value = data.predicted_price;
             }
         })
-        .catch(() => {
+        .catch(error => {
+            console.error('Prediction error:', error);
             predictedDisplay.value = 'Erreur de calcul';
             predictedDisplay.style.color = '#dc3545';
         });
     }
     
-    superficieInput.addEventListener('input', fetchPrediction);
-    superficieInput.addEventListener('blur', fetchPrediction);
-    typeSelect.addEventListener('change', fetchPrediction);
-    parkingCheckbox.addEventListener('change', fetchPrediction);
+    superficieInput.addEventListener('input', fetchAddPrediction);
+    superficieInput.addEventListener('blur', fetchAddPrediction);
+    typeSelect.addEventListener('change', fetchAddPrediction);
+    parkingCheckbox.addEventListener('change', fetchAddPrediction);
     
     if (superficieInput.value && parseFloat(superficieInput.value) > 0) {
-        fetchPrediction();
+        fetchAddPrediction();
     }
+    
+    return true;
+}
+
+// Setup price prediction for edit form
+function setupEditFormPrediction() {
+    const editSuperficie = document.querySelector('#app-edit-form input[name*="superficie"]');
+    const editType = document.querySelector('#app-edit-form select[name*="typeA"]');
+    const editParking = document.querySelector('#app-edit-form input[name*="parking"]');
+    const editPredictedDisplay = document.getElementById('app-edit-predicted-price');
+    const editPrixLocation = document.querySelector('#app-edit-prixLocation');
+    
+    if (!editSuperficie || !editType || !editParking || !editPredictedDisplay) {
+        setTimeout(setupEditFormPrediction, 100);
+        return false;
+    }
+    
+    console.log('Edit prediction elements found, setting up listeners');
+    
+    const displayElement = editPredictedDisplay;
+    
+    function fetchEditPrediction() {
+        const superficie = editSuperficie.value;
+        const typeA = editType.value;
+        const parking = editParking.checked;
+        
+        const superficieFloat = parseFloat(superficie);
+        
+        if (!superficie || isNaN(superficieFloat) || superficieFloat <= 0) {
+            displayElement.value = 'Entrez une superficie valide';
+            displayElement.style.color = '#6c757d';
+            return;
+        }
+
+        displayElement.value = 'Calcul en cours...';
+        displayElement.style.color = '#007bff';
+        
+        const url = '{{ path("prediction_prix") }}';
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                superficie: superficieFloat,
+                type: typeA,
+                parking: parking
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error || data.success === false) {
+                throw new Error(data.error || 'Prediction failed');
+            }
+            
+            const displayValue = data.formatted_price || 
+                (data.predicted_price ? Number(data.predicted_price).toLocaleString('fr-FR') + ' TND' : 'Non disponible');
+            
+            displayElement.value = displayValue;
+            displayElement.style.color = '#28a745';
+            
+            if (editPrixLocation && !editPrixLocation.value && data.predicted_price) {
+                editPrixLocation.value = data.predicted_price;
+            }
+        })
+        .catch(() => {
+            displayElement.value = 'Erreur de calcul';
+            displayElement.style.color = '#dc3545';
+        });
+    }
+    
+    editSuperficie.addEventListener('input', fetchEditPrediction);
+    editSuperficie.addEventListener('blur', fetchEditPrediction);
+    editType.addEventListener('change', fetchEditPrediction);
+    editParking.addEventListener('change', fetchEditPrediction);
+    
+    if (editSuperficie.value && parseFloat(editSuperficie.value) > 0) {
+        fetchEditPrediction();
+    }
+    
+    return true;
+}
+
+const predictions = {};
+appartementsData.forEach(apt => {
+    predictions[apt[3]] = apt[14]; 
+});
+
+// Single DOMContentLoaded event listener with everything
+document.addEventListener('DOMContentLoaded', () => {
+    const sl = document.getElementById('residence-switcher-slider');
+    const ts = document.querySelectorAll('.premium-switcher-tab');
+    const ps = document.querySelectorAll('.residence-page-content');
+    
+    ts.forEach((t, i) => t.addEventListener('click', () => {
+        ts.forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        sl.style.left = (i * 50) + '%';
+        sl.style.width = '50%';
+        ps.forEach(p => p.style.display = p.dataset.page === t.dataset.page ? 'block' : 'none');
+        const as = document.querySelector(`.residence-page-content[data-page="${t.dataset.page}"] .glass-switcher`);
+        if(as) switchGlassFace('main', as.id);
+    }));
+    
+    sl.style.width = '50%'; 
+    renderResTable(); 
+    renderAppTable(); 
+    updateResSortIcon();
+    updateAppSortIcon();
+    switchGlassFace('main', 'residenceGlassSwitcher');
+
+    document.getElementById('res-sort-dir-pill').onclick = () => { 
+        resSortDir = resSortDir === 'asc' ? 'desc' : 'asc'; 
+        updateResSortIcon(); 
+        filterSortResidences(); 
+    };
+    
+    document.getElementById('app-sort-dir-pill').onclick = () => { 
+        appSortDir = appSortDir === 'asc' ? 'desc' : 'asc'; 
+        updateAppSortIcon(); 
+        filterSortAppartements(); 
+    };
+
+    document.querySelector('.res-search-input').oninput = () => filterSortResidences();
+    document.querySelector('.app-search-input').oninput = () => filterSortAppartements();
+
+    document.getElementById('res-btn-add').onclick = () => openModal('res-add-modal');
+    
+    // FIXED: Add Appartement button with proper initialization
+    const addAppButton = document.getElementById('app-btn-add');
+    if (addAppButton) {
+        addAppButton.addEventListener('click', function() {
+            console.log('Add Appartement button clicked');
+            openModal('app-add-modal');
+            
+            // Initialize dropdowns and prediction after modal opens
+            setTimeout(() => {
+                initApartmentDropdowns();
+                setupAddFormPrediction();
+            }, 300);
+        });
+    }
+
+    // Setup edit form prediction with MutationObserver
+    const editModal = document.getElementById('app-edit-modal');
+    if (editModal) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                    if (editModal.style.display === 'flex') {
+                        setTimeout(setupEditFormPrediction, 200);
+                    }
+                }
+            });
+        });
+        
+        observer.observe(editModal, { attributes: true });
+    }
+    
+    setTimeout(setupEditFormPrediction, 500);
+
+    console.log('Page initialization complete');
 });
 </script>
 {% endblock %}

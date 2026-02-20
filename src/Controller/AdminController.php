@@ -5,6 +5,10 @@ namespace App\Controller;
 use App\Entity\Onboarding\Onboarding;
 use App\Entity\Profile\Profile;
 use App\Entity\User\User;
+use App\Entity\Residence\Residence;
+use App\Entity\Residence\Appartement;
+use App\Entity\Residence\Maintenance;
+
 use App\Form\Onboarding\OnboardingType;
 use App\Form\Profile\ProfileType;
 use App\Form\User\UserType;
@@ -12,12 +16,12 @@ use App\Repository\Onboarding\OnboardingRepository;
 use App\Repository\Profile\ProfileRepository;
 use App\Repository\User\UserRepository;
 use App\Repository\Residence\ResidenceRepository;
-use App\Entity\Residence\Residence;
-use App\Entity\Residence\Appartement;
+use App\Repository\Residence\Maintenanceepository;
+use App\Repository\Residence\AppartementRepository;
 use App\Form\Residence\ResidenceType;
+use App\Form\Residence\MaintenanceType;
 use App\Repository\Syndicat\ReclamationRepository;
 use App\Entity\Syndicat\Reclamation;
-use App\Service\PageStatusService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,7 +32,9 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
+use App\Service\PageStatusService;
 use App\Service\MachineLearning;
+use App\Service\MaintenancePrediction;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 
@@ -204,17 +210,18 @@ class AdminController extends AbstractController
         }
         return $this->redirectToRoute('admin_users');
     }
-
-    #[Route('/residence/admin', name: 'admin_residence')]
-    public function residence(
+#[Route('/residence/admin', name: 'admin_residence')]
+public function residence(
     PageStatusService $pageStatusService, 
     Request $request, 
     ResidenceRepository $residenceRepository, 
     \App\Repository\Residence\AppartementRepository $appartementRepository, 
+    \App\Repository\Residence\MaintenanceRepository $maintenanceRepository, 
     \Symfony\Component\Form\FormFactoryInterface $formFactory, 
     EntityManagerInterface $em, 
     \Symfony\Component\String\Slugger\SluggerInterface $slugger,
-    \App\Service\MachineLearning $predictor,
+    MachineLearning $predictor,
+    MaintenancePrediction $pr,
     \Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface $params
 ): Response
 {
@@ -235,7 +242,6 @@ class AdminController extends AbstractController
     if (file_exists($modelPath)) {
         try {
             $predictor->loadModel($modelPath);
-            
             foreach ($appartements as $appartement) {
                 try {
                     $prediction = $predictor->predict($appartement);
@@ -249,6 +255,7 @@ class AdminController extends AbstractController
         }
     }
 
+
     $appartementAddForm = $formFactory->createNamed('appartement_add', \App\Form\Residence\AppartementType::class, new \App\Entity\Residence\Appartement(), [
         'action' => $this->generateUrl('app_appartement_new'),
         'method' => 'POST',
@@ -257,14 +264,33 @@ class AdminController extends AbstractController
     $residenceEditForm = $formFactory->createNamed('residence_edit', ResidenceType::class, new Residence());
     $appartementEditForm = $formFactory->createNamed('appartement_edit', \App\Form\Residence\AppartementType::class, new \App\Entity\Residence\Appartement());
 
+    $maintenances = $maintenanceRepository->findAll();
+    $maintenanceAddForm = $formFactory->createNamed('maintenance_add', \App\Form\Residence\MaintenanceType::class, new \App\Entity\Residence\Maintenance(), [
+        'action' => $this->generateUrl('app_appartement_new'),
+        'method' => 'POST',
+    ]);
+
+    $maintenanceEditForm = $formFactory->createNamed('maintenance_edit', \App\Form\Residence\MaintenanceType::class, new \App\Entity\Residence\Maintenance());
+
+    $predictionsmaintenance = [];
+    foreach ($appartements as $appartement) {
+        $maintenance = $appartement->getMaintenance();
+        $predictionsmaintenance[$appartement->getIdApp()] = $maintenance?->getRecommendationIa();
+    }
+
+$em->flush();
     return $this->render('admin/Residence/index.html.twig', [
         'residences' => $residences,
         'appartements' => $appartements,
         'predictions' => $predictions,
+        'predictionsmaintenance' => $predictionsmaintenance,
+        'maintenances' => $maintenances,
         'residenceAddForm' => $residenceAddForm->createView(),
         'residenceEditForm' => $residenceEditForm->createView(),
         'appartementAddForm' => $appartementAddForm->createView(),
         'appartementEditForm' => $appartementEditForm->createView(),
+        'maintenanceAddForm' => $maintenanceAddForm->createView(),
+        'maintenanceEditForm' => $maintenanceEditForm->createView(),
     ]);
 }
     #[Route('/admin/residence/add', name: 'admin_residence_add', methods: ['POST'])]
@@ -390,6 +416,67 @@ class AdminController extends AbstractController
         }
     }
 
+
+    #[Route('/appartement/new', name: 'app_appartement_new', methods: ['POST'])]
+    public function newAppartement(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, FormFactoryInterface $formFactory, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
+    {
+        $appartement = new Appartement();
+        $form = $formFactory->createNamed('appartement_add', AppartementType::class, $appartement);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $imageFile = $form->get('imageA')->getData();
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+                try {
+                    $imageFile->move($this->getParameter('appartements_directory'), $newFilename);
+                    $appartement->setImageA($newFilename);
+                } catch (\Exception $e) {
+                }
+            }
+
+            $appartement->setAppartementInfo([
+                'bloc' => $form->get('bloc')->getData(),
+                'floor' => $form->get('floor')->getData(),
+                'number' => $form->get('number')->getData(),
+                'parking' => $form->get('parking')->getData(),
+                'disponible' => $form->get('disponible')->getData(),
+            ]);
+
+            $entityManager->persist($appartement);
+            $entityManager->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Apartment registered successfully.',
+                'appartement' => [
+                    'id' => $appartement->getIdApp(),
+                    'type' => $appartement->getTypeA(),
+                    'residence' => $appartement->getResidence() ? $appartement->getResidence()->getNomR() : 'N/A',
+                    'resId' => $appartement->getResidence() ? $appartement->getResidence()->getIdResidence() : '',
+                    'owner' => $appartement->getUser() ? $appartement->getUser()->getEmailUser() : 'N/A',
+                    'ownerId' => $appartement->getUser() ? $appartement->getUser()->getIdUser() : '',
+                    'parking' => $appartement->isParking() ? 'Yes' : 'No',
+                    'isParking' => (bool) $appartement->isParking(),
+                    'status' => $appartement->isDisponible() ? 'Available' : 'Occupied',
+                    'isAvailable' => (bool) $appartement->isDisponible(),
+                    'image' => $appartement->getImageA() ? '/uploads/images/' . $appartement->getImageA() : '/frontend/images/property-placeholder.jpg',
+                    'bloc' => $form->get('bloc')->getData(),
+                    'floor' => $form->get('floor')->getData(),
+                    'number' => $form->get('number')->getData(),
+                    'deleteToken' => $csrfTokenManager->getToken('appartement_delete')->getValue()
+                ]
+            ]);
+        }
+
+        $errors = [];
+        foreach ($form->getErrors(true) as $error) {
+            $errors[] = $error->getMessage();
+        }
+        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+    }
     //            FONCTION POUR LA PREDICTION DU PRIX                    //
     ///////////////////////////////////////////////////////////////////////
 
@@ -432,6 +519,8 @@ public function predictPrice(
                 'formatted_price' => 'Surface invalide'
             ], 400);
         }
+
+        
         
         $appartement = new Appartement();
         $appartement->setSuperficie($superficie);
@@ -478,6 +567,70 @@ public function predictPrice(
     }
 }
 
+#[Route('/appartement/{id}/predict-maintenance', name: 'app_appartement_predict_maintenance', methods: ['POST'])]
+public function predictMaintenance(
+    int $id,
+    AppartementRepository $appartementRepository,
+    MaintenancePrediction $predictor,
+    EntityManagerInterface $em
+): JsonResponse {
+    $appartement = $appartementRepository->find($id);
+    
+    if (!$appartement) {
+        return $this->json([
+            'success' => false,
+            'message' => 'Appartement non trouvé'
+        ], 404);
+    }
+    
+    $maintenance = $appartement->getMaintenance();
+    if (!$maintenance) {
+        return $this->json([
+            'success' => false,
+            'message' => 'Aucun enregistrement de maintenance'
+        ], 404);
+    }
+    
+    // Check if data is sufficient (you can reuse your logic)
+    if (!$this->isMaintenanceSufficientlyFilled($maintenance)) {
+        return $this->json([
+            'success' => false,
+            'message' => 'Données insuffisantes pour une analyse',
+            'showLink' => true
+        ]);
+    }
+    
+    try {
+        $recommendation = $predictor->predict($appartement);
+        $maintenance->setRecommendationIa($recommendation);
+        $em->flush();
+        
+        return $this->json([
+            'success' => true,
+            'prediction' => $recommendation
+        ]);
+    } catch (\Exception $e) {
+        return $this->json([
+            'success' => false,
+            'message' => 'Erreur lors de la prédiction: ' . $e->getMessage(),
+            'showLink' => true
+        ], 500);
+    }
+}
+
+private function isMaintenanceSufficientlyFilled(\App\Entity\Residence\Maintenance $maintenance): bool
+{
+    $fields = [
+        $maintenance->getEtatApp(),
+        $maintenance->getEtatPlomberie(),
+        $maintenance->getEtatElectricite(),
+        $maintenance->getEtatChauffage(),
+        $maintenance->getDateDerniereMaintenance(),
+        $maintenance->getDescriptionMaint(),
+    ];
+    $filled = array_filter($fields, fn($v) => $v !== null && $v !== '');
+    return count($filled) >= 4;
+}
 
     #[Route('/admin/forum', name: 'admin_forum')]
     public function forum(PageStatusService $pageStatusService, Request $request, \App\Repository\Forum\PublicationRepository $publicationRepository, \App\Repository\Forum\CommentaireRepository $commentaireRepository, \Symfony\Component\Form\FormFactoryInterface $formFactory): Response

@@ -4,6 +4,7 @@ namespace App\Form\Residence;
 
 use App\Entity\Residence\Appartement;
 use App\Entity\Residence\Residence;
+use App\Entity\Residence\Maintenance;
 use App\Entity\User\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -105,6 +106,10 @@ class AppartementType extends AbstractType
             'required' => false,
             'disabled' => true,
             'attr' => ['readonly' => true, 'class' => 'predicted-price-field']
+        ])
+        ->add('maintenance', MaintenanceType::class, [
+            'label'    => false,
+            'required' => false,
         ]);
         
     }
