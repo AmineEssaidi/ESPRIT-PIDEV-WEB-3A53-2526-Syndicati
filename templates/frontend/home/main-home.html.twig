@@ -159,7 +159,10 @@
         }
     </style>
 </head>
-<body{% if show_onboarding_overlay|default(false) %} class="onboarding-active"{% endif %}>
+<body{% if show_onboarding_overlay|default(false) %} class="onboarding-active"{% endif %}
+      data-user-info="{{ app.session.get('user') ? 'true' : 'false' }}"
+      data-user-role="{{ app.session.get('user').role|default('Guest') }}"
+      data-is-admin="{{ app.session.get('user') and app.session.get('user').role in ['OWNER', 'ADMIN', 'SUPERADMIN'] ? 'true' : 'false' }}">
 <!-- Page Loader -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -896,5 +899,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 })();
 </script>
+
+<script src="{{ asset('frontend/js/syndicati-agent.js') }}" defer></script>
+
+
 </body>
 </html>

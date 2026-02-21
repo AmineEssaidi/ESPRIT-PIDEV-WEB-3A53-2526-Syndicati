@@ -60,5 +60,51 @@ services:
             $oauthUserId: '%mailer_oauth_user_id%'
             $fromName: '%mailer_from_name%'
 
+    # Agent Controller
+    App\Controller\AgentController:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    # Syndicati Agent Service
+    App\Service\SyndicatiAgent:
+        public: true
+        arguments:
+            $ollamaUrl: '%env(default::OLLAMA_BASE_URL)%'
+            $model: '%env(default::OLLAMA_MODEL)%'
+
+    # Smart Route Mapping Service
+    App\Service\SmartRouteMappingService:
+        public: true
+
+    # Deep Codebase Scanner
+    App\Service\DeepCodebaseScanner:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    # Internal Knowledge Service
+    App\Service\InternalKnowledgeService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Service\SyndicatiNativeAgentRuntime:
+        public: true
+        arguments:
+            $routes: '@App\Service\SmartRouteMappingService'
+
+    App\Controller\SyndicatiNativeAgentController:
+        public: true
+
+    App\Service\PlaywrightToolServerManager:
+        public: true
+
+    App\Controller\SyndicatiAgentBootstrapController:
+        public: true
+
+    App\Service\LangGraphClient:
+        autowire: true
+
+    App\Service\PlaywrightService:
+        autowire: true
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

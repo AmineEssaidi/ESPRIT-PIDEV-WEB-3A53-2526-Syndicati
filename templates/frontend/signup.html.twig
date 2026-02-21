@@ -622,13 +622,22 @@ body {
                 }
             } catch (error) {
                 console.error('Signup Error:', error);
-                showCoolPopup('Network Error', 'Please check your internet connection and try again.', 'error');
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
                 btn.style.opacity = '1';
             }
-        };
-    }
-</script>
+        } catch (error) {
+            console.error('Signup Error:', error);
+            showCoolPopup('Network Error', 'Please check your internet connection and try again.', 'error');
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    };
+}
+
+//
 </body>
 </html>
+
+<script src="{{ asset('frontend/js/syndicati-agent.js') }}" defer></script>

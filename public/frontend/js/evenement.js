@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!container) return;
 
         // Remove all possible active classes
-        container.classList.remove('active-extra', 'active-details', 'active-participate');
+        container.classList.remove('active-extra', 'active-details', 'active-participate', 'active-edit');
 
         if (faceName !== 'main') {
             container.classList.add(`active-${faceName}`);

@@ -127,7 +127,7 @@
                             </div>
 
                             <div class="glass-switcher-content-scroll" style="max-height: 520px; overflow-y: auto; overflow-x: hidden; padding-right: 12px;">
-                                {{ form_start(form, {'attr': {'class': 'main-home-auth-form', 'enctype': 'multipart/form-data', 'id': 'createEventFormDashboard', 'data-ajax': 'true'}}) }}
+                                {{ form_start(form, {'action': path('app_evenement_new'), 'attr': {'class': 'main-home-auth-form', 'enctype': 'multipart/form-data', 'id': 'createEventFormDashboard', 'data-ajax': 'true'}}) }}
                                     <div class="glass-form-group">
                                         <label class="glass-label">Event Title</label>
                                         {{ form_widget(form.titre_event, {'attr': {'class': 'glass-input', 'placeholder': 'What is the event called?', 'data-min-length': '5', 'required': 'required'}}) }}

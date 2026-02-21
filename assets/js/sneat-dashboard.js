@@ -263,7 +263,7 @@ function initializeMobileMenu() {
 function toggleMobileMenu() {
   const sidebar = document.querySelector('.layout-menu');
   const overlay = document.querySelector('.layout-overlay');
-
+  if (!sidebar || !overlay) return;
   sidebar.classList.toggle('show');
   overlay.classList.toggle('show');
   document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
@@ -272,9 +272,8 @@ function toggleMobileMenu() {
 function closeMobileMenu() {
   const sidebar = document.querySelector('.layout-menu');
   const overlay = document.querySelector('.layout-overlay');
-
-  sidebar.classList.remove('show');
-  overlay.classList.remove('show');
+  if (sidebar) sidebar.classList.remove('show');
+  if (overlay) overlay.classList.remove('show');
   document.body.style.overflow = '';
 }
 
@@ -396,9 +395,9 @@ function formatCurrency(amount, currency = 'USD') {
   return formatter.format(amount);
 }
 
-// Revenue Chart Year Selector
+// Safe Event Listeners
 document.addEventListener('change', function (e) {
-  if (e.target.matches('select.form-select')) {
+  if (e.target && typeof e.target.matches === 'function' && e.target.matches('select.form-select')) {
     const selectedYear = e.target.value;
     updateRevenueChart(selectedYear);
   }
@@ -415,14 +414,15 @@ function updateRevenueChart(year) {
 
 // Smooth scrolling for anchor links
 document.addEventListener('click', function (e) {
-  if (e.target.matches('a[href^="#"]')) {
-    const href = e.target.getAttribute('href');
+  const target = e.target;
+  if (target && typeof target.matches === 'function' && target.matches('a[href^="#"]')) {
+    const href = target.getAttribute('href');
     if (href === '#') return;
 
     e.preventDefault();
-    const target = document.querySelector(href);
-    if (target) {
-      target.scrollIntoView({
+    const targetEl = document.querySelector(href);
+    if (targetEl) {
+      targetEl.scrollIntoView({
         behavior: 'smooth',
         block: 'start'
       });
@@ -432,16 +432,18 @@ document.addEventListener('click', function (e) {
 
 // Card hover effects
 document.addEventListener('mouseenter', function (e) {
-  if (e.target.matches('.card') || e.target.closest('.card')) {
-    const card = e.target.matches('.card') ? e.target : e.target.closest('.card');
-    card.style.transform = 'translateY(-2px)';
+  const target = e.target;
+  if (target && typeof target.matches === 'function' && (target.matches('.card') || target.closest('.card'))) {
+    const card = target.matches('.card') ? target : target.closest('.card');
+    if (card) card.style.transform = 'translateY(-2px)';
   }
 }, true);
 
 document.addEventListener('mouseleave', function (e) {
-  if (e.target.matches('.card') || e.target.closest('.card')) {
-    const card = e.target.matches('.card') ? e.target : e.target.closest('.card');
-    card.style.transform = 'translateY(0)';
+  const target = e.target;
+  if (target && typeof target.matches === 'function' && (target.matches('.card') || target.closest('.card'))) {
+    const card = target.matches('.card') ? target : target.closest('.card');
+    if (card) card.style.transform = 'translateY(0)';
   }
 }, true);
 

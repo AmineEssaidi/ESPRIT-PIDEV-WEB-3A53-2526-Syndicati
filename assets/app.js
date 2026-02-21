@@ -210,7 +210,7 @@ function initializeMenuInteractions() {
 
 // Safe Event Listeners
 document.addEventListener('change', function (e) {
-  if (e.target instanceof Element && e.target.matches('select.form-select')) {
+  if (e.target && typeof e.target.matches === 'function' && e.target.matches('select.form-select')) {
     updateRevenueChart(e.target.value);
   }
 });
@@ -224,27 +224,30 @@ function updateRevenueChart(year) {
 }
 
 document.addEventListener('click', function (e) {
-  if (e.target instanceof Element && e.target.matches('a[href^="#"]')) {
-    const href = e.target.getAttribute('href');
+  const target = e.target;
+  if (target && typeof target.matches === 'function' && target.matches('a[href^="#"]')) {
+    const href = target.getAttribute('href');
     if (href === '#') return;
-    const target = document.querySelector(href);
-    if (target) {
+    const targetEl = document.querySelector(href);
+    if (targetEl) {
       e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 });
 
 document.addEventListener('mouseenter', function (e) {
-  if (e.target instanceof Element && (e.target.matches('.card') || e.target.closest('.card'))) {
-    const card = e.target.matches('.card') ? e.target : e.target.closest('.card');
-    card.style.transform = 'translateY(-2px)';
+  const target = e.target;
+  if (target && typeof target.matches === 'function' && (target.matches('.card') || target.closest('.card'))) {
+    const card = target.matches('.card') ? target : target.closest('.card');
+    if (card) card.style.transform = 'translateY(-2px)';
   }
 }, true);
 
 document.addEventListener('mouseleave', function (e) {
-  if (e.target instanceof Element && (e.target.matches('.card') || e.target.closest('.card'))) {
-    const card = e.target.matches('.card') ? e.target : e.target.closest('.card');
-    card.style.transform = 'translateY(0)';
+  const target = e.target;
+  if (target && typeof target.matches === 'function' && (target.matches('.card') || target.closest('.card'))) {
+    const card = target.matches('.card') ? target : target.closest('.card');
+    if (card) card.style.transform = 'translateY(0)';
   }
 }, true);

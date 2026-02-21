@@ -327,7 +327,11 @@
         }
     </style>
 </head>
-<body style="background: transparent !important;">
+{% set currentUser = currentUser|default(app.session.get('user')) %}
+<body style="background: transparent !important;"
+      data-user-info="{{ currentUser ? 'true' : 'false' }}"
+      data-user-role="{{ currentUser ? currentUser.role : 'Guest' }}"
+      data-is-admin="{{ currentUser and currentUser.role in ['OWNER', 'ADMIN', 'SUPERADMIN'] ? 'true' : 'false' }}">
     {% include 'frontend/shared/_global_video_background.html.twig' %}
 <div class="page-loader" id="pageLoader">
     <div class="loader-content">
@@ -3767,5 +3771,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (pageLoader) pageLoader.style.display = 'none';
     }, 100);
     </script>
+
+    <script src="{{ asset('frontend/js/syndicati-agent.js') }}" defer></script>
+
 </body>
 </html>

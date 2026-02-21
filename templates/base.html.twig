@@ -31,7 +31,10 @@
 </head>
 {% set is_admin = app.request.get('_route') starts with 'admin_' %}
 
-<body class="{{ is_admin ? 'admin-body' : 'layout-menu-fixed' }}">
+<body class="{{ is_admin ? 'admin-body' : 'layout-menu-fixed' }}"
+      data-user-info="{{ app.session.get('user') ? 'true' : 'false' }}"
+      data-user-role="{{ app.session.get('user').role|default('Guest') }}"
+      data-is-admin="{{ app.session.get('user') and app.session.get('user').role in ['OWNER', 'ADMIN', 'SUPERADMIN'] ? 'true' : 'false' }}">
     {% include 'frontend/shared/_global_video_background.html.twig' %}
     <!-- Page Loader -->
     <div class="page-loader" id="pageLoader">
@@ -111,5 +114,7 @@
             observer.observe(document.body, { childList: true, subtree: true });
         });
     </script>
+
+    <script src="{{ asset('frontend/js/syndicati-agent.js') }}" defer></script>
 </body>
 </html>
