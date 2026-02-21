@@ -1,34 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="font-family:Arial; background-color:gray;">
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Residence {{ residence.nomR }}</title>
 </head>
-<body>
+<body style=" margin:0 auto; padding:0;">
+<meta charset="UTF-8">
+<div>
+    <div class="bg">
+        <h5 style="text-align:left; font-size:20px; color:rgb(20, 7, 99); font-weight:900; font-weight:bold;">SYNDICATI</h>
+                <hr style="margin:5px; border-color:pink;">
 
-    <div class="container">
-        <h1>Liste des appartements disponibles dans la résidence {{ residence.nomR }}</h1>
-    <table border="3">
-    <tr>
-        <td>Type</td>
-        <td>Bloc</td>
-        <td>Etage</td>
-        <td>Numéro</td>
-        <td>Parking Disponible?</td>
-        <td>Email du propriétaire</td>
-        <td>Prix Location</td>
+    <div style=" padding:10px; background:linear-gradient(150deg,rgba(90, 0, 150, 1) 0%, rgba(181, 58, 158, 1) 50%, rgba(255, 176, 251, 1) 100%);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+
+        <h1 style="text-align:center; color:white"> {{ residence.nomR }} </h1>
+    </div>
+        <h3 style="color:rgb(83, 5, 125);">Appartements Disponibles</h3>
+    <table style="width: 100%; border-collapse: collapse;  box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <tr style="background:linear-gradient(150deg,rgba(90, 0, 150, 1) 0%, rgba(181, 58, 158, 1) 50%, rgba(255, 176, 251, 1) 100%); color: white; font-weight: bold; text-align: left;">
+        <td style="padding: 15px; border: 1px solid #ecf0f1;">Type</td>
+        <td style="padding: 15px; border: 1px solid #ecf0f1;">Bloc</td>
+        <td style="padding: 15px; border: 1px solid #ecf0f1;">Etage</td>
+        <td style="padding: 15px; border: 1px solid #ecf0f1;">Numéro</td>
+        <td style="padding: 15px; border: 1px solid #ecf0f1;">Parking Disponible?</td>
+        <td style="padding: 15px; border: 1px solid #ecf0f1;">Email du propriétaire</td>
+        <td style="padding: 15px; border: 1px solid #ecf0f1;">Prix Location</td>
+
     </tr>
 {% for a in appartements %}
-    <tr>  
-        <td>{{ a.typeA }}</td>
-        <td>{{ a.appartementInfo.bloc }}</td>
-        <td>{{ a.appartementInfo.floor }}</td>
-        <td>{{ a.appartementInfo.number }}</td>
-        <td>{{ a.parking ? 'Disponible' : 'Non Disponible' }}</td>
-        <td>{{ a.user.EmailUser }}</td>
-        <td>{{ a.prixLocation }} TND</td>
+    {% if a.disponible %}
+    <tr style="background-color: #f8f9fa; transition: background-color 0.3s;">
+        <td style="padding: 12px 15px; border: 1px solid #ecf0f1; color: #2c3e50; font-weight: 500;">{{ a.typeA }}</td>
+        <td style="padding: 12px 15px; border: 1px solid #ecf0f1; color: #555;">{{ a.appartementInfo.bloc }}</td>
+        <td style="padding: 12px 15px; border: 1px solid #ecf0f1; color: #555;">{{ a.appartementInfo.floor }}</td>
+        <td style="padding: 12px 15px; border: 1px solid #ecf0f1; color: #555;">{{ a.appartementInfo.number }}</td>
+        <td style="padding: 12px 15px; border: 1px solid #ecf0f1; font-size:15px; color: {{ a.parking ? '#8f38b7' : '#e74c3c' }}; font-weight: bold;">{{ a.parking ? 'Dispo' : 'Non Dispo' }}</td>
+        <td style="padding: 12px 15px; border: 1px solid #ecf0f1; color: #3498db; text-decoration: underline;">{{ a.user.EmailUser }}</td>
+        <td style="padding: 12px 15px; border: 1px solid #ecf0f1; color: #8f38b7; font-weight: bold;">{{ a.prixLocation }} TND</td>
+</td>
     </tr>
+        {% endif %}
     {% endfor %}
 </table>
     </div>

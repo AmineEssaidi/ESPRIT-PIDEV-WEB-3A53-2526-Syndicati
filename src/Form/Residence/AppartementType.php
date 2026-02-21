@@ -101,12 +101,7 @@ class AppartementType extends AbstractType
             ])
             ->add('superficie')
             ->add('prixLocation')
-              ->add('predictedPrice', NumberType::class, [
-            'mapped' => false,
-            'required' => false,
-            'disabled' => true,
-            'attr' => ['readonly' => true, 'class' => 'predicted-price-field']
-        ])
+              
         ->add('maintenance', MaintenanceType::class, [
             'label'    => false,
             'required' => false,

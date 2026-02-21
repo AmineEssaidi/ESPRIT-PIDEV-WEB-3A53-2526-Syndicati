@@ -384,11 +384,12 @@
                             </div>
                             <div class="users-edit-modal-body">
                                 <div class="glass-view-details">
+                                    <div class="glass-view-row" id="view-res-image-row" style="display: none; flex-direction: column;">
+                                        <img id="view-res-image" src="" style="display: block; margin: auto; width: 50%;" class="img-fluid">
+                                    </div>
                                     <div class="glass-view-row"><div class="glass-view-label">Name</div><div class="glass-view-value" id="view-res-name">-</div></div>
                                     <div class="glass-view-row"><div class="glass-view-label">Address</div><div class="glass-view-value" id="view-res-address">-</div></div>
-                                    <div class="glass-view-row" id="view-res-image-row" style="display: none; flex-direction: column;">
-                                        <img id="view-res-image" src="" style="max-width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-                                    </div>
+                                    
                                 </div>
                                 <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
                                     <button type="button" class="users-btn-modify" id="view-res-modify-btn"><i class="bx bx-edit"></i> Modify Residence</button>
@@ -533,16 +534,18 @@
                             </div>
                             <div class="users-edit-modal-body">
                                 <div class="glass-view-details">
-                                    <img id="view-app-image" class="img-fluid">
+                                    <div class="glass-view-row" id="view-res-image-row" style="flex-direction: column;"></div>
+                                        <img id="view-app-image" style="display: block; margin: auto; width: 50%;" class="img-fluid rounded">
+                                        
                                     <div class="glass-view-row"><div class="glass-view-label">Residence</div><div class="glass-view-value" id="view-app-res">-</div></div>
-                                    <div class="glass-view-row">
+                                    <div class="glass-view-row" style="display:none;">
                                         <div class="glass-view-label">ID App</div>
                                         <div class="glass-view-value" id="view-app-id-display">-</div>
                                     </div>
                                     <input type="hidden" id="view-app-id" value="">
                                     <div class="glass-view-row"><div class="glass-view-label">Number</div><div class="glass-view-value" id="view-app-num">-</div></div>
                                     <div class="glass-view-row"><div class="glass-view-label">Status</div><div class="glass-view-value" id="view-app-status">-</div></div>
-                                    <div class="glass-view-row"><div class="glass-view-label">Surface</div><div class="glass-view-value" id="view-app-surface">-</div></div>
+                                    <div class="glass-view-row"><div class="glass-view-label">Surface</div><div class="glass-view-value" id="view-app-surface"></div></div>
                                     <div class="glass-view-row"><div class="glass-view-label">Rent Price</div><div class="glass-view-value" id="view-app-prix">-</div></div>
                                     <div class="glass-view-row"><div class="glass-view-label">Price Prediction (AI)</div><div class="glass-view-value" id="view-app-predicted-price">-</div></div>
                                     <div class="glass-view-row">
@@ -552,6 +555,8 @@
                                         </div>
                                     </div>
                                 </div>
+
+
                                 <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
                                     <button type="button" class="users-btn-modify" id="view-app-modify-btn"><i class="bx bx-edit"></i> Modify Appartement</button>
                                     <form id="view-app-delete-form" method="post" style="display: inline-block; margin-left: 1rem;" data-ajax="true" data-refresh="softRefresh">
@@ -641,90 +646,135 @@
 
                 <!-- FIXED: Add Appartement Modal -->
                 <div class="glass-switcher-face glass-switcher-face-extra" id="app-add-face">
-                    <div id="app-add-modal" class="users-edit-modal">
-                        <div class="users-edit-modal-card">
-                            <div class="users-edit-modal-header">
-                                <div><h3>Add Appartement</h3><p class="users-edit-modal-subtitle">Add to inventory</p></div>
-                                <button type="button" class="users-edit-modal-close" onclick="closeModal('app-add-modal')">&times;</button>
-                            </div>
-                            <div class="users-edit-modal-body">
-                                {% if appartementAddForm is defined %}
-                                {{ form_start(appartementAddForm, { 'attr': { 'id': 'app-add-form', 'method': 'post', 'action': path('app_appartement_new'), 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
-                                
-                                {{ form_row(appartementAddForm.residence, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'id': 'app-residence-select' } }) }}
-                                
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="glass-form-group">
-                                            <label class="glass-label">Building Block</label>
-                                            <select class="glass-input" id="app-bloc-select">
-                                                <option value="">Select Bloc</option>
-                                            </select>
-                                            {{ form_widget(appartementAddForm.bloc, { 'attr': { 'style': 'display:none;', 'id': 'app-bloc-field' } }) }}
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="glass-form-group">
-                                            <label class="glass-label">Floor Level</label>
-                                            <select class="glass-input" id="app-floor-select">
-                                                <option value="">Select Floor</option>
-                                            </select>
-                                            {{ form_widget(appartementAddForm.floor, { 'attr': { 'style': 'display:none;', 'id': 'app-floor-field' } }) }}
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="glass-form-group">
-                                            <label class="glass-label">Apartment Number</label>
-                                            <select class="glass-input" id="app-number-select">
-                                                <option value="">Select Apartment</option>
-                                            </select>
-                                            {{ form_widget(appartementAddForm.number, { 'attr': { 'style': 'display:none;', 'id': 'app-number-field' } }) }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">{{ form_row(appartementAddForm.typeA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-6">{{ form_row(appartementAddForm.user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">{{ form_row(appartementAddForm.parking, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
-                                    <div class="col-md-6">{{ form_row(appartementAddForm.disponible, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">{{ form_row(appartementAddForm.superficie, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'id': 'app-add-superficie' } }) }}</div>
-                                    <div class="col-md-6">{{ form_row(appartementAddForm.prixLocation, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'id': 'app-add-prixLocation' } }) }}</div>
-                                </div>
-                               <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="glass-form-group">
-                                            <label class="glass-label">Prix estimé (IA)</label>
-                                            <div class="predicted-price-container">
-                                                <input type="text" 
-                                                    id="app-add-predicted-price" 
-                                                    class="glass-input" 
-                                                    readonly disabled
-                                                    value="Entrez les détails"
-                                                >
-                                                <small class="form-text" style="color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-top: 0.3rem; display: block;">
-                                                    Estimation basée sur superficie et type
-                                                </small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                {{ form_row(appartementAddForm.imageA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
-                                
-                                <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
-                                    <button type="button" class="users-btn-cancel" onclick="closeModal('app-add-modal')"><i class="bx bx-x"></i> Discard</button>
-                                    <span class="users-edit-modal-actions-spacer"></span>
-                                    <button type="submit" class="users-btn-modify"><i class="bx bx-plus"></i> Create Appartement</button>
-                                </div>
-                                {{ form_end(appartementAddForm) }}
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
+    <div id="app-add-modal" class="users-edit-modal">
+        <div class="users-edit-modal-card">
+            <div class="users-edit-modal-header">
+                <div><h3>Add Appartement</h3><p class="users-edit-modal-subtitle">Add to inventory</p></div>
+                <button type="button" class="users-edit-modal-close" onclick="closeModal('app-add-modal')">&times;</button>
+            </div>
+            <div class="users-edit-modal-body">
+    {% if appartementAddForm is defined %}
+    {{ form_start(appartementAddForm, { 'attr': { 'id': 'app-add-form', 'method': 'post', 'action': path('app_appartement_new'), 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
+    
+    {{ form_row(appartementAddForm.residence, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'id': 'app-residence-select' } }) }}
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="glass-form-group">
+                <label class="glass-label">Building Block</label>
+                <select class="glass-input" id="app-bloc-select">
+                    <option value="">Select Bloc</option>
+                </select>
+                {{ form_widget(appartementAddForm.bloc, { 'attr': { 'style': 'display:none;', 'id': 'app-bloc-field' } }) }}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-form-group">
+                <label class="glass-label">Floor Level</label>
+                <select class="glass-input" id="app-floor-select">
+                    <option value="">Select Floor</option>
+                </select>
+                {{ form_widget(appartementAddForm.floor, { 'attr': { 'style': 'display:none;', 'id': 'app-floor-field' } }) }}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-form-group">
+                <label class="glass-label">Apartment Number</label>
+                <select class="glass-input" id="app-number-select">
+                    <option value="">Select Apartment</option>
+                </select>
+                {{ form_widget(appartementAddForm.number, { 'attr': { 'style': 'display:none;', 'id': 'app-number-field' } }) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">{{ form_row(appartementAddForm.typeA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+        <div class="col-md-6">{{ form_row(appartementAddForm.user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">{{ form_row(appartementAddForm.parking, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
+        <div class="col-md-6">{{ form_row(appartementAddForm.disponible, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">{{ form_row(appartementAddForm.superficie, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'id': 'app-add-superficie' } }) }}</div>
+        <div class="col-md-4">{{ form_row(appartementAddForm.prixLocation, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'id': 'app-add-prixLocation' } }) }}</div>
+        <div class="col-md-4">
+            <div class="glass-form-group">
+                <label class="glass-label">Prix estimé (IA)</label>
+                <input type="text" 
+                    id="app-add-predicted-price" 
+                    class="glass-input" 
+                    readonly disabled
+                    value="Entrez les détails"
+                >
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-12">
+            <label class="glass-label">Apartment Conditions</label>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="glass-form-group">
+                <label class="glass-label">General</label>
+                {{ form_widget(appartementAddForm.maintenance.etat_app, { 'attr': { 'class': 'glass-input' } }) }}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-form-group">
+                <label class="glass-label">Plumbing</label>
+                {{ form_widget(appartementAddForm.maintenance.etat_plomberie, { 'attr': { 'class': 'glass-input' } }) }}
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="glass-form-group">
+                <label class="glass-label">Electricity</label>
+                {{ form_widget(appartementAddForm.maintenance.etat_electricite, { 'attr': { 'class': 'glass-input' } }) }}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-form-group">
+                <label class="glass-label">Heating</label>
+                {{ form_widget(appartementAddForm.maintenance.etat_chauffage, { 'attr': { 'class': 'glass-input' } }) }}
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    <div class="row">
+        <div class="col-md-12">
+        {{ form_row(appartementAddForm.maintenance.date_derniere_maintenance, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+        {{ form_row(appartementAddForm.maintenance.description_maint, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+        </div>
+    </div>
+    {{ form_row(appartementAddForm.imageA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+    
+    <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
+        <button type="button" class="users-btn-cancel" onclick="closeModal('app-add-modal')"><i class="bx bx-x"></i> Discard</button>
+        <span class="users-edit-modal-actions-spacer"></span>
+        <button type="submit" class="users-btn-modify"><i class="bx bx-plus"></i> Create Appartement</button>
+    </div>
+<div style="display:none;">
+    {{ form_widget(appartementAddForm.maintenance.appartement, { 'attr': { 'class': 'glass-input' } }) }}
+</div>
+    {{ form_end(appartementAddForm) }}
+    {% endif %}
+</div>
+        </div>
+    </div>
+</div>
                 </div>
             </div>
         </div>
@@ -888,7 +938,7 @@ function renderAppTable() {
 
 window.viewRes = function(idx) {
     const d = resRows[idx]; document.getElementById('view-res-name').textContent = d[0]; document.getElementById('view-res-address').textContent = d[1];
-    const ir = document.getElementById('view-res-image-row'); if(d[2]) { document.getElementById('view-res-image').src = '/uploads/images/' + d[2]; ir.style.display = 'flex'; } else ir.style.display = 'none';
+    const ir = document.getElementById('view-res-image-row'); if(d[2]) { document.getElementById('view-res-image').src = '/residence_images/' + d[2]; ir.style.display = 'flex'; } else ir.style.display = 'none';
     document.getElementById('view-res-delete-token').value = d[7]; document.getElementById('view-res-delete-form').action = deleteResUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
     document.getElementById('view-res-modify-btn').onclick = () => {
         const f = document.getElementById('res-edit-form'); f.action = editResUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
@@ -908,12 +958,18 @@ window.viewApp = function(idx) {
     
     if (!d) return;
     
-    document.getElementById('view-app-image').src = d[12] ? '/residence_images/' + d[12] : 'placeholder-image-gray-3x2-1';
-    document.getElementById('view-app-num').textContent = d[0];
+const imageElement = document.getElementById('view-app-image');
+        if (d[12]) {
+            imageElement.src = '/appartement_images/' + d[12];
+            imageElement.style.display = 'block';
+        } else {
+            imageElement.style.display = 'none';
+        }    
+document.getElementById('view-app-num').textContent = d[0];
     document.getElementById('view-app-res').textContent = d[1];
     document.getElementById('view-app-status').textContent = d[2];
-    document.getElementById('view-app-surface').textContent = d[10];
-    document.getElementById('view-app-prix').textContent = d[11];
+    document.getElementById('view-app-surface').textContent = d[10] +' m²';
+    document.getElementById('view-app-prix').textContent = d[11] + ' TND';
     document.getElementById('view-app-predicted-price').textContent = predictions[d[3]] || '-';
     document.getElementById('view-app-id').value = d[3];
     const idDisplay = document.getElementById('view-app-id-display');
@@ -1134,7 +1190,7 @@ function setupAddFormPrediction() {
         const typeValue = typeSelect.value;
         
         if (!superficieValue || superficieValue <= 0 || !typeValue) {
-            predictedDisplay.value = 'Données invalides';
+            predictedDisplay.value = 'Ajouter les données';
             return;
         }
         

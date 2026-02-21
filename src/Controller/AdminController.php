@@ -420,7 +420,7 @@ public function residence(
         $appartement = new Appartement();
         $form = $formFactory->createNamed('appartement_add', AppartementType::class, $appartement);
         $form->handleRequest($request);
-
+        $appartement->setDateConstruction(new \DateTime('2019-01-01'));
         if ($form->isSubmitted() && $form->isValid()) {
             $imageFile = $form->get('imageA')->getData();
             if ($imageFile) {

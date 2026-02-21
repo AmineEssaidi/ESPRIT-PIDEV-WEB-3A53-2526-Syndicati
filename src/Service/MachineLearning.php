@@ -165,8 +165,8 @@ class MachineLearning
 
     private function extractFeatures(float $surface, int $apartmentType): array
     {
-        $surfaceScaled = $surface * 1.5;
-        $roomsScaled = (float) $apartmentType * 1.2;
+        $surfaceScaled = $surface * 2;
+        $roomsScaled = (float) $apartmentType * 1.5;
         
         return [
             $surfaceScaled,

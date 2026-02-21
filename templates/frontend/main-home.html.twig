@@ -50,6 +50,11 @@ document.addEventListener('DOMContentLoaded', function() {
         <!-- Content Wrapper -->
         <div class="main-home-content-wrapper">
             <div class="container-xxl flex-grow-1 container-p-y">
+                        {% if email_envoyé %}
+           <div class="alert alert-success" role="alert">
+                Votre Email a été envoyé avec succès!
+            </div>
+            {% endif %}
 
                 <!-- Beautiful Landing Page -->
                 <div class="row">

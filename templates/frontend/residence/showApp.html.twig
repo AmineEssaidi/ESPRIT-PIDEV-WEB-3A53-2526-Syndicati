@@ -1,0 +1,187 @@
+{% extends 'base_symfony.html.twig' %}
+
+{% block title %}Residences - Horizon{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset('frontend/css/residence.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+
+<div class="main-home-layout-wrapper">
+    <div class="main-home-page">
+        {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'residence'} %}
+        
+            <div class="residence-hero">
+                <div class="residence-hero-glow"></div>
+                
+                <div class="container residence-hero-content">
+                    <div class="row align-items-center">
+                        <div class="col-lg-12" data-aos="fade-up">
+                            <span class="residence-badge">
+                                <i class='bx bx-home-alt-2'></i> Appartement {{ appartement.typeA }} à {{ appartement.residence.nomR }}
+                            </span>
+                            {% if appartement.imageA %}
+                            <div>
+                                <img src="{{ asset('appartement_images/' ~ appartement.imageA) }}" class="residence-card-img">
+
+                            </div>
+                            {% endif %}
+                            <div class="col">
+                                <div class="col">
+                                    <div class="apartment-info-row">
+                                            <i class='bx bxs-building-house'></i>
+                                            <span>Type {{ appartement.typeA }}</span>
+                                        </div>
+                                </div>
+                                <div class="col">
+                                    <div class="apartment-info-row">
+                                            <i class='bx bx-money'></i>
+                                            <span>Prix Location: {{ appartement.prixLocation}}</span>
+                                        </div>
+                                </div>
+                                <div class="apartment-info-row">
+                                            <i class='bx bx-checkbox-square'></i>
+                                            <span>Surface: {{ appartement.superficie}} m²</span>
+                                        </div>
+                                </div>
+                       
+
+                                <div>
+                                    <div class="apartment-info-row">
+                                        <i class='bx bx-buildings'></i>
+                                        <span>Bloc {{ appartement.appartementInfo.bloc ?? 'N/A' }}</span>
+                                    </div>
+                                    
+                                    <div class="apartment-info-row">
+                                        <i class='bx bx-layer'></i>
+                                        <span>Etage {{ appartement.appartementInfo.floor ?? 'N/A' }}</span>
+                                    </div>
+                                    
+                                    {# Features #}
+                                    <div class="apartment-features">
+                                        <div class="col-auto">
+                                        {% if appartement.parking %}
+                                            <span class="apartment-feature-tag">
+                                                <i class='bx bxs-car'></i> Parking Place Available
+                                            </span>
+                                        {% endif %}
+                                        </div>
+                                        <div class="col-auto">
+                                        {% if appartement.disponible %}
+                                            <span class="apartment-feature-tag">
+                                                <i class='bx bx-money'></i> Price: {{ appartement.prixLocation }} TND
+                                            </span>
+                                        {% endif %}
+                                        </div>
+               
+                                    </div>
+                                                                        
+                                        </div>
+                            </div>
+                            </div>
+                            
+                            <div class="container p-3">
+                                <hr>
+                                <div class="similar-apartments">
+                                <h3>Appartements Similaires</h3>
+                                <hr>
+                            <div class="row g-3">
+                                
+                                {% for item in app_recommende %}
+                                
+                                    {% set apt = item.apartment %}
+                            <div class="col-lg-3 col-md-3 col-sm-3 ">
+
+                                    <div class="residence-card">
+
+                                <div class="position-relative overflow-hidden">
+                                    {% if apt.imageA %}
+                                        <img src="{{ asset('appartement_images/' ~ apt.imageA) }}" class="residence-card-img">
+                                    {% else %}
+                                    <img src="{{ asset('residence_images/' ~ apt.residence.imageR) }}" class="residence-card-img" style="filter:brightness(10%) blur(5px)">
+
+                                        {% endif %}
+                                        
+                                    <div class="residence-card-overlay">
+                                        
+                                        <span class="residence-price-tag">{{ apt.disponible ? 'Appartment à louer' : 'Appartement loué'}}</span>
+                                    </div>
+                                    </div>
+                                    <div class="residence-card-body">
+                                                                                <h6>{{ apt.typeA }} à {{ apt.residence.nomR }}</h6>
+
+                                        <div class="position-relative overflow-hidden">
+                                        </div>
+                                    
+                                        {% set score = item.score %}
+
+                                    <div class="apartment-info-row">
+                                        <i class='bx bx-money'></i>
+                                        <span>Prix {{ apt.prixLocation ?? '0' }} TND</span>
+                                    </div>
+                                    
+                                    <div class="apartment-info-row">
+                                        <i class='bx bx-layer'></i>
+                                        <span>Superficie {{ apt.superficie }} m²</span>
+                                    </div>
+                                        <p style="font-size: 0.9rem; color: #888;">Similarité: {{ score|round }}%</p>
+                                        <a href="{{ path('app_appartement_show', {'id': apt.idApp}) }}" type="button" class="main-home-btn main-home-btn-primary col-sm-12">
+                                            Consulter
+                                        </a>
+                                    </div>
+                                </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            </div>
+                            </div>
+
+                        </div>
+
+                        </div>
+                        
+                </div>
+                </div>
+                </div>
+               <div class="container">
+    <div class="main-home-cta-section">
+        <div class="forum-main-content custom-scrollbar p-4">
+            <h2>Contacter le propriétaire</h2>
+            <h4>{{ appartement.user.firstname }} {{ appartement.user.lastname }}</h4>
+            <hr>
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="glass-form-group p-4">
+                        <form id="formulaire-email-appartment" action="{{ path('envoyer_email_residence')}}" method="post">
+                            <div class="mb-3">
+                                <label class="glass-label d-block mb-2">Votre nom et prénom</label>
+                                <input class="glass-input w-100" type="text" name="nom_u" id="nom_u" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="glass-label d-block mb-2">Votre Email</label>
+                                <input class="glass-input w-100" type="email" name="email_u" id="email_u" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="glass-label d-block mb-2">Message (Optionnel)</label>
+                                <input class="glass-input w-100" type="text" name="message_u" id="message_u">
+                            </div>
+                            
+                            <button type="submit" class="glass-btn-save w-100">Envoyer un email</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="glass-form-group p-4 d-flex flex-column align-items-center">
+                        <img class="m-4" src="{{ qr_code_url(absolute_url(path('send_sms', {'id': appartement.idApp}))) }}" alt="QR Code" style="max-width: 250px; width: 100%;">
+                        <p class="mb-3" style="text-align: center;">Scannez ce code QR pour envoyer un SMS au propriétaire</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

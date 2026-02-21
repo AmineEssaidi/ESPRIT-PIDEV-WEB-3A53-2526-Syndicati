@@ -25,6 +25,7 @@ use App\Entity\User\User;
 use Sensiolabs\GotenbergBundle\GotenbergPdfInterface;
 
 use App\Service\MachineLearning;
+use App\Service\RecommendationAppartement;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 
@@ -50,7 +51,6 @@ class ResidenceController extends AbstractController
         ]);
     }
 
-    // --- Appartement Methods ---
 
   #[Route('/appartement/new', name: 'app_appartement_new', methods: ['POST'])]
     public function newAppartement(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, FormFactoryInterface $formFactory, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
@@ -58,6 +58,7 @@ class ResidenceController extends AbstractController
         $appartement = new Appartement();
         $form = $formFactory->createNamed('appartement_add', AppartementType::class, $appartement);
         $form->handleRequest($request);
+        $appartement->setDateConstruction(new \DateTime('2019-01-01'));
 
         if ($form->isSubmitted() && $form->isValid()) {
             $imageFile = $form->get('imageA')->getData();
@@ -253,6 +254,16 @@ public function sendSms(SmsGenerator $smsGenerator, Request $request, UserReposi
     ]);
 }
 
+    #[Route('/appartementform/{id}', name: 'app_appartement_show')]
+    public function showApp($id, Appartement $appartement, RecommendationAppartement $recommender): Response
+    {
+        $app_recommende = $recommender->AppartementsSimilaires($appartement, limit: 4);
+
+        return $this->render('frontend/residence/showApp.html.twig', [
+            'appartement' => $appartement,
+            'app_recommende' => $app_recommende,
+        ]);
+    }
 
     #[Route('/pdf/{id}', 'pdf_residence')]
     public function GenererPDFResidence($id, Request $request, GotenbergPdfInterface $gotenbergPdf, ResidenceRepository $residenceRepository): Response

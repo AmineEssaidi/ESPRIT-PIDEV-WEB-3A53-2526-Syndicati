@@ -12,11 +12,14 @@
         {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'residence'} %}
         
         <div class="main-home-page-content" style="padding: 0; padding-bottom: 5rem;">
+
            {% if smsSent %}
            <div class="alert alert-success" role="alert">
                 Votre SMS a été envoyé avec succès!
-                </div>
+            </div>
            {% endif %}
+
+           
             
             <!-- Hero Section -->
             <div class="residence-hero">
@@ -84,7 +87,6 @@
                                                 <span class="residence-stat-label">Bloc</span>
                                             </div>
                                         </div>
-                                        <!-- <img src="{{ qr_code_url('My QR Code') }}" /> -->
                                          <div class="row">
                                             <hr>
                                          <div class="col-6">
