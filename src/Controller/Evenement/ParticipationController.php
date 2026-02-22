@@ -6,6 +6,7 @@ use App\Entity\Evenement\Evenement;
 use App\Entity\Evenement\Participation;
 use App\Form\Evenement\ParticipationType;
 use App\Repository\User\UserRepository;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,7 +17,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class ParticipationController extends AbstractController
 {
     #[Route('/new/{id}', name: 'app_participation_new', methods: ['POST'])]
-    public function new(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, UserRepository $userRepository): Response
+    public function new(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, UserRepository $userRepository, NotificationService $notificationService): Response
     {
         // Get user from Security or Session fallback
         $user = $this->getUser();
@@ -56,6 +57,12 @@ class ParticipationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Verify availability
+            $numRequested = $participation->getNbAccompagnants() + 1;
+            if ($evenement->getNbRestants() < $numRequested) {
+                $this->addFlash('error', 'Désolé, il ne reste plus assez de places disponibles.');
+                return $this->redirectToRoute('app_evenement_index');
+            }
 
             // Fill formulaire_data
             $formulaireData = [
@@ -69,10 +76,20 @@ class ParticipationController extends AbstractController
             ];
             $participation->setFormulaireData($formulaireData);
 
+            // Update remaining places
+            $evenement->setNbRestants($evenement->getNbRestants() - $numRequested);
+
             $entityManager->persist($participation);
-
-
             $entityManager->flush();
+
+            // Send notification
+            $mailSent = $notificationService->sendParticipationConfirmation($participation);
+
+            if ($mailSent) {
+                $this->addFlash('success', 'Votre participation a été enregistrée. Un email de confirmation a été envoyé.');
+            } else {
+                $this->addFlash('warning', 'Participation enregistrée, mais l\'envoi de l\'email a échoué. Vérifiez votre configuration MAILER_DSN.');
+            }
         } else {
             foreach ($form->getErrors(true) as $error) {
                 $this->addFlash('error', $error->getMessage());

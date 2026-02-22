@@ -59,12 +59,17 @@ class Evenement
     private $statut_event = 'planifie';
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank(message: "Please upload an event banner.")]
     private $image_event;
 
     #[ORM\Column(type: 'string', length: 50, columnDefinition: "ENUM('reunion', 'social', 'formation', 'maintenance', 'culturel', 'sportif')")]
     #[Assert\Choice(choices: self::TYPES)]
     private $type_event;
+
+    #[ORM\Column(type: 'float', nullable: true)]
+    private $lat_event;
+
+    #[ORM\Column(type: 'float', nullable: true)]
+    private $lng_event;
 
     #[ORM\Column(type: 'datetime')]
     private $created_at;
@@ -210,6 +215,28 @@ class Evenement
     public function setUser(?User $user): self
     {
         $this->user = $user;
+        return $this;
+    }
+
+    public function getLatEvent(): ?float
+    {
+        return $this->lat_event;
+    }
+
+    public function setLatEvent(?float $lat_event): self
+    {
+        $this->lat_event = $lat_event;
+        return $this;
+    }
+
+    public function getLngEvent(): ?float
+    {
+        return $this->lng_event;
+    }
+
+    public function setLngEvent(?float $lng_event): self
+    {
+        $this->lng_event = $lng_event;
         return $this;
     }
 

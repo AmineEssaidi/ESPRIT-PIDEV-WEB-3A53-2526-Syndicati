@@ -87,14 +87,24 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -2px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+}
+
+.event-modal .event-hero-title {
+    font-size: 2.2rem;
+    /* Optimized for modal visibility */
 }
 
 .event-hero-subtitle {
-    font-size: 1.35rem;
+    font-size: 1rem;
     color: rgba(255, 255, 255, 0.5);
     max-width: 600px;
-    line-height: 1.6;
-    margin-bottom: 3rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .btn-create-outline {
@@ -302,9 +312,11 @@
     backdrop-filter: blur(8px);
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 1rem;
+    /* Reduced padding on mobile */
     opacity: 0;
     transition: opacity 0.3s ease;
+    overflow-x: hidden;
     /* Hidden scrollbar */
     scrollbar-width: none;
     /* Firefox */
@@ -341,7 +353,9 @@
     backdrop-filter: blur(10px);
     box-sizing: border-box;
     /* Fix height calculation */
-    padding: 3rem 3rem 5rem 3rem;
+    padding: 3rem;
+    overflow-wrap: break-word;
+    word-break: break-word;
     /* Hidden scrollbar */
     scrollbar-width: none;
     /* Firefox */
@@ -385,13 +399,16 @@
 /* Details Modal Specifics */
 .event-details-hero-modal {
     position: relative;
-    height: 350px;
+    height: 250px;
+    background: #2a2a35;
+    /* Dark fallback but not pure black */
     /* Break out of parent padding */
     margin: -3rem -3rem 0 -3rem;
     width: calc(100% + 6rem);
     border-radius: 48px 48px 0 0;
     overflow: hidden;
     margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .event-details-hero-modal img {

@@ -1,0 +1,21 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block body %}
+    <h1>Félicitations !</h1>
+    <p>Bonjour {{ user.firstName }} {{ user.lastName }},</p>
+    <p>Votre événement <strong>{{ evenement.titreEvent }}</strong> a été créé avec succès.</p>
+
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <h3>Détails de l'événement :</h3>
+        <ul>
+            <li><strong>Date :</strong> {{ evenement.dateEvent|date('d/m/Y H:i') }}</li>
+            <li><strong>Lieu :</strong> {{ evenement.lieuEvent }}</li>
+            <li><strong>Type :</strong> {{ evenement.typeEvent }}</li>
+            <li><strong>Places disponibles :</strong> {{ evenement.nbPlaces }}</li>
+        </ul>
+    </div>
+
+    <p>Vous pouvez maintenant gérer votre événement depuis votre tableau de bord.</p>
+
+    <p>Cordialement,<br>L'équipe Horizon</p>
+{% endblock %}

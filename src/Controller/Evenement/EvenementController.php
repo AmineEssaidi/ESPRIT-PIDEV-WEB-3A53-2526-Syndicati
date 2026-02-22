@@ -5,6 +5,7 @@ namespace App\Controller\Evenement;
 use App\Entity\Evenement\Evenement;
 use App\Form\Evenement\EvenementType;
 use App\Repository\Evenement\EvenementRepository;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,12 +13,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use App\Service\WeatherService;
 
 #[Route('/evenement')]
 class EvenementController extends AbstractController
 {
     #[Route('/', name: 'app_evenement_index', methods: ['GET', 'POST'])]
-    public function index(Request $request, EvenementRepository $evenementRepository, \App\Repository\User\UserRepository $userRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function index(Request $request, EvenementRepository $evenementRepository, \App\Repository\User\UserRepository $userRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger, NotificationService $notificationService): Response
     {
         $evenement = new Evenement();
         $form = $this->createForm(EvenementType::class, $evenement);
@@ -71,8 +73,20 @@ class EvenementController extends AbstractController
             $entityManager->persist($evenement);
             $entityManager->flush();
 
+            // Send notification
+            $mailSent = $notificationService->sendEventCreatedNotification($evenement);
+
             if ($request->isXmlHttpRequest()) {
-                return $this->json(['success' => true, 'message' => 'Event created successfully!']);
+                $msg = $mailSent 
+                    ? 'Event Live! Your event has been organized and a confirmation email has been sent.'
+                    : 'Event Live! Your event is organized, but we could not send the confirmation email (check your MAILER_DSN).';
+                return $this->json(['success' => true, 'message' => $msg]);
+            }
+
+            if ($mailSent) {
+                $this->addFlash('success', 'Événement créé avec succès ! Un email de confirmation a été envoyé.');
+            } else {
+                $this->addFlash('warning', 'Événement créé, mais l\'envoi de l\'email a échoué. Vérifiez votre configuration MAILER_DSN.');
             }
 
             return $this->redirectToRoute('app_evenement_index', [], Response::HTTP_SEE_OTHER);
@@ -112,7 +126,7 @@ class EvenementController extends AbstractController
         }
 
         /** @var \App\Entity\User\User|null $user */
-        $user = $this->getUser();
+        $user = $this->getUser() ?: $userForCheck;
         $currentUserId = ($user instanceof \App\Entity\User\User) ? $user->getIdUser() : null;
         $currentUserRole = ($user instanceof \App\Entity\User\User) ? $user->getRoleUser() : null;
 
@@ -127,7 +141,7 @@ class EvenementController extends AbstractController
     }
 
     #[Route('/new', name: 'app_evenement_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, NotificationService $notificationService): Response
     {
         $evenement = new Evenement();
         $user = $this->getUser();
@@ -165,6 +179,9 @@ class EvenementController extends AbstractController
 
                 $entityManager->persist($evenement);
                 $entityManager->flush();
+
+                // Send notification
+                $notificationService->sendEventCreatedNotification($evenement);
 
                 if ($isAjax) {
                     return $this->json(['success' => true, 'message' => 'Event created successfully!']);
@@ -242,6 +259,24 @@ class EvenementController extends AbstractController
                     $this->addFlash('error', $error->getMessage());
                 }
             }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
         }
 
         return $this->redirectToRoute('app_evenement_index');
@@ -256,5 +291,50 @@ class EvenementController extends AbstractController
         }
 
         return $this->redirectToRoute('app_evenement_index', [], Response::HTTP_SEE_OTHER);
+    }
+    #[Route('/weather/preview', name: 'app_evenement_weather_preview', methods: ['GET'])]
+    public function weatherPreview(Request $request, WeatherService $weatherService): Response
+    {
+        $lat = $request->query->get('lat');
+        $lng = $request->query->get('lng');
+        $dateStr = $request->query->get('date');
+
+        if (!$lat || !$lng || !$dateStr) {
+            return $this->json(['success' => false, 'message' => 'Missing parameters.'], 400);
+        }
+
+        try {
+            $date = new \DateTime($dateStr);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Invalid date.'], 400);
+        }
+
+        $weather = $weatherService->getForecast((float)$lat, (float)$lng, $date);
+
+        if (!$weather) {
+            return $this->json(['success' => false, 'message' => 'Weather forecast failed.'], 500);
+        }
+
+        return $this->json(['success' => true, 'data' => $weather]);
+    }
+
+    #[Route('/{id}/weather', name: 'app_evenement_weather', methods: ['GET'])]
+    public function weather(Evenement $evenement, WeatherService $weatherService): Response
+    {
+        if (!$evenement->getLatEvent() || !$evenement->getLngEvent()) {
+            return $this->json(['success' => false, 'message' => 'No coordinates for this event.'], 400);
+        }
+
+        $weather = $weatherService->getForecast(
+            (float) $evenement->getLatEvent(),
+            (float) $evenement->getLngEvent(),
+            $evenement->getDateEvent()
+        );
+
+        if (!$weather) {
+            return $this->json(['success' => false, 'message' => 'Weather forecast failed.'], 500);
+        }
+
+        return $this->json(['success' => true, 'data' => $weather]);
     }
 }

@@ -75,6 +75,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime')]
     private $updated_at;
 
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    #[Assert\Regex(
+        pattern: '/^\+?[0-9]{8,15}$/',
+        message: 'Please enter a valid phone number (e.g., +21612345678).'
+    )]
+    private $telephone_user;
+
     // Getters and setters...
     public function getIdUser(): ?int
     {
@@ -161,6 +168,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUpdatedAt(\DateTimeInterface $updated_at): self
     {
         $this->updated_at = $updated_at;
+        return $this;
+    }
+
+    public function getTelephoneUser(): ?string
+    {
+        return $this->telephone_user;
+    }
+
+    public function setTelephoneUser(?string $telephone_user): self
+    {
+        $this->telephone_user = $telephone_user;
         return $this;
     }
 

@@ -56,6 +56,15 @@
                     <div class="container-xxl flex-grow-1 container-p-y">
     {% endif %}
 
+                        {% for label, messages in app.flashes %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+
                         {% block content %}{% endblock %}
 
     {% if is_admin %}

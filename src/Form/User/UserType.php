@@ -29,6 +29,11 @@ class UserType extends AbstractType
             ->add('email_user', EmailType::class, [
                 'constraints' => [new NotBlank()],
                 'label' => 'Email',
+            ])
+            ->add('telephone_user', TextType::class, [
+                'label' => 'Phone Number',
+                'required' => false,
+                'attr' => ['placeholder' => '+216XXXXXXXX'],
             ]);
 
         // Password for signup and admin add (not for edit)

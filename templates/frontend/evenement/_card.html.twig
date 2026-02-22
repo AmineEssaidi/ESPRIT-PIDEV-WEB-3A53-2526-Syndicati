@@ -40,6 +40,8 @@
                data-edit-path="{{ path('app_evenement_edit', {'id': evenement.id}) }}"
                data-delete-path="{{ path('app_evenement_delete', {'id': evenement.id}) }}"
                data-has-participated="{{ evenement.id in participatedEventIds ? 'true' : 'false' }}"
+               data-lat="{{ evenement.latEvent }}"
+               data-lng="{{ evenement.lngEvent }}"
                data-token="{{ csrf_token('delete' ~ evenement.id) }}">
                 View Details
             </div>

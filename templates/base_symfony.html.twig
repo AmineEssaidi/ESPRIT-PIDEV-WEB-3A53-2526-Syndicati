@@ -23,6 +23,17 @@
         {% endblock %}
     </head>
     <body>
+        <div class="container mt-3" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 9999; max-width: 600px;">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'warning' ? 'warning' : 'success') }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
         {% block body %}{% endblock %}
         {% include 'frontend/shared/_scroll_pill.html.twig' %}
         <script src="{{ asset('frontend/js/main-home.js') }}" defer></script>

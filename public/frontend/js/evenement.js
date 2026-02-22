@@ -3,7 +3,63 @@
    "Horizon" Sick UI Interactivity
    ========================================================================== */
 
+// Global promise error handling to catch "Uncaught (in promise)"
+window.addEventListener('unhandledrejection', function (event) {
+    console.error('Unhandled promise rejection:', event.reason);
+});
+
 document.addEventListener('DOMContentLoaded', function () {
+    // --- ADVANCED MAP LOGIC (LEAFLET) ---
+    let eventMaps = {};
+
+    function initLeafletMap(containerId, latInputId, lngInputId, initialLat, initialLng, interactive = true) {
+        console.log('initLeafletMap:', containerId);
+
+        if (typeof L === 'undefined') {
+            alert('CRITICAL: Leaflet library (L) is not loaded! The map will not work. Please check your internet connection.');
+            return;
+        }
+
+        if (eventMaps[containerId]) {
+            eventMaps[containerId].remove();
+        }
+
+        try {
+            const lat = initialLat ? parseFloat(initialLat) : 36.8065;
+            const lng = initialLng ? parseFloat(initialLng) : 10.1815;
+
+            // Basic Init
+            const map = L.map(containerId).setView([lat, lng], 13);
+            eventMaps[containerId] = map;
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap travelers'
+            }).addTo(map);
+
+            let marker;
+            if (initialLat && initialLng) {
+                marker = L.marker([lat, lng], { draggable: interactive }).addTo(map);
+            }
+
+            if (interactive) {
+                map.on('click', function (e) {
+                    if (marker) marker.setLatLng(e.latlng);
+                    else marker = L.marker(e.latlng, { draggable: true }).addTo(map);
+
+                    if (latInputId) document.getElementById(latInputId).value = e.latlng.lat;
+                    if (lngInputId) document.getElementById(lngInputId).value = e.latlng.lng;
+                });
+            }
+
+            // Force refresh
+            setTimeout(() => map.invalidateSize(), 800);
+        } catch (e) {
+            console.error('Leaflet failing:', e);
+            const container = document.getElementById(containerId);
+            if (container) container.innerHTML = '<p style="color:red; padding:10px;">Map Init failed: ' + e.message + '</p>';
+        }
+    }
+
     // --- CREATE MODAL ---
     const createModal = document.getElementById('createEventModal');
     const btnOpenCreate = document.getElementById('btnOpenCreate');
@@ -27,7 +83,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!createModal) return;
         lockScroll();
         createModal.style.display = 'flex';
-        setTimeout(() => createModal.classList.add('show'), 10);
+        setTimeout(() => {
+            createModal.classList.add('show');
+            initLeafletMap('createEventMap', 'createLat', 'createLng', null, null, true);
+        }, 10);
     }
 
     window.closeCreateModal = function () {
@@ -68,10 +127,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (typeDisplay) typeDisplay.textContent = data.type;
                 document.getElementById('modalEventAvailability').textContent = `${data.restants} / ${data.places} Places`;
 
+                // Map Display
+                const detailsMapContainer = document.getElementById('detailsEventMap');
+                if (data.lat && data.lng && data.lat !== "" && data.lng !== "") {
+                    detailsMapContainer.style.display = 'block';
+                    initLeafletMap('detailsEventMap', null, null, data.lat, data.lng, false);
+                } else {
+                    detailsMapContainer.style.display = 'none';
+                }
+
                 // Banner
                 const banner = document.getElementById('modalEventBanner');
                 if (data.image && data.image !== "") {
-                    banner.innerHTML = `<img src="${data.image}" alt="${data.title}"><div class="hero-overlay"></div>`;
+                    banner.innerHTML = `<img src="${data.image}" alt="${data.title}" onerror="this.src='/img/default-event.jpg'; console.error('Image load failed:', this.src);"><div class="hero-overlay"></div>`;
                 } else {
                     banner.innerHTML = `<div style="width: 100%; height: 100%; background: var(--event-gradient);"></div><div class="hero-overlay"></div>`;
                 }
@@ -107,31 +175,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Participation Button & Already Participated Label
                 const btnOpenParticipation = document.getElementById('btnOpenParticipation');
-                let alreadyLabel = document.getElementById('alreadyParticipatedLabel');
 
                 if (btnOpenParticipation) {
+                    btnOpenParticipation.style.display = 'block';
                     if (data.hasParticipated === 'true') {
-                        btnOpenParticipation.style.display = 'none';
-                        if (!alreadyLabel) {
-                            alreadyLabel = document.createElement('div');
-                            alreadyLabel.id = 'alreadyParticipatedLabel';
-                            alreadyLabel.className = 'main-home-made-with-love text-center mt-3';
-                            alreadyLabel.style.cssText = `
-                                background: rgba(255, 255, 255, 0.05);
-                                border: 1px solid rgba(255, 255, 255, 0.1);
-                                color: var(--event-accent);
-                                padding: 1.2rem;
-                                border-radius: 15px;
-                                font-weight: 600;
-                                backdrop-filter: blur(10px);
-                            `;
-                            alreadyLabel.innerHTML = '<i class="bx bxs-check-circle" style="font-size: 1.2rem; vertical-align: middle; margin-right: 0.5rem;"></i> You already requested to participate';
-                            btnOpenParticipation.parentNode.insertBefore(alreadyLabel, btnOpenParticipation.nextSibling);
-                        }
-                        alreadyLabel.style.display = 'block';
+                        btnOpenParticipation.innerHTML = '<i class="bx bxs-check-circle"></i> Already Joined';
+                        btnOpenParticipation.style.opacity = '0.7';
+                        btnOpenParticipation.style.pointerEvents = 'none';
                     } else {
-                        btnOpenParticipation.style.display = 'block';
-                        if (alreadyLabel) alreadyLabel.style.display = 'none';
+                        btnOpenParticipation.innerHTML = 'Participate';
+                        btnOpenParticipation.style.opacity = '1';
+                        btnOpenParticipation.style.pointerEvents = 'auto';
                     }
                 }
 
@@ -168,6 +222,12 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('editRestants').value = data.restants;
             document.getElementById('editType').value = data.type;
 
+            // Map Edit
+            const editLatInput = document.getElementById('editLat');
+            const editLngInput = document.getElementById('editLng');
+            if (editLatInput) editLatInput.value = data.lat || "";
+            if (editLngInput) editLngInput.value = data.lng || "";
+
             if (data.dateRaw) {
                 document.getElementById('editDate').value = data.dateRaw;
             }
@@ -176,7 +236,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 const editStatut = document.getElementById('editStatut');
                 if (editStatut) {
                     editStatut.value = data.statut;
-                    // Manually sync pills for immediate feedback before observer triggers
                     const pillContainer = editStatut.closest('.main-home-form-group');
                     if (pillContainer) {
                         const pills = pillContainer.querySelectorAll('.status-pill');
@@ -188,21 +247,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            // Handle DateTime string for input (convert "F d, Y • H:i" back is hard, but we can try or use better data attr)
-            // Let's assume we need a raw ISO date for the input
-            // For now, I'll recommend the user to add a data-raw-date if it fails, 
-            // but I'll try to find a way if it was passed.
-            // Update: I'll go back and add data-date-raw to the card for better compatibility.
-
             editForm.action = data.editPath;
 
             // Transition: Close details, open edit
-            detailsModal.classList.remove('show'); // Slide out details
+            detailsModal.classList.remove('show');
             setTimeout(() => {
                 detailsModal.style.display = 'none';
                 editModal.style.display = 'flex';
-                // Lock scroll should already be active from viewDetails
-                setTimeout(() => editModal.classList.add('show'), 10);
+                setTimeout(() => {
+                    editModal.classList.add('show');
+                    initLeafletMap('editEventMap', 'editLat', 'editLng', data.lat, data.lng, true);
+                }, 10);
             }, 300);
         };
     }
@@ -216,9 +271,6 @@ document.addEventListener('DOMContentLoaded', function () {
     window.closeDeleteConfirm = function () {
         if (!deleteConfirmModal) return;
         deleteConfirmModal.classList.remove('show');
-        // If we opened this from Details, we don't necessarily want to unlockScroll 
-        // if Details is still open, but usually we cover Details with this.
-        // Let's just restore scroll if nothing else is open.
         if (!detailsModal.classList.contains('show') && !editModal.classList.contains('show')) {
             unlockScroll();
         }
@@ -259,18 +311,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = window.currentEventData;
             if (!data) return;
 
-            // Check if logged in
-            const currentUserId = document.getElementById('currentUserId')?.value;
+            const currentUserIdInput = document.getElementById('currentUserId');
+            const currentUserId = currentUserIdInput ? currentUserIdInput.value : "";
+
             if (!currentUserId || currentUserId === "") {
-                window.location.href = '/sign-in'; // Correct login route
+                window.location.href = '/sign-in';
                 return;
             }
 
-            // Populate Participation Modal
             document.getElementById('participationEventTitle').textContent = data.title;
             participationForm.action = `/participation/new/${data.id}`;
 
-            // Show Modal
             participationModal.style.display = 'flex';
             lockScroll();
             setTimeout(() => participationModal.classList.add('show'), 10);
@@ -292,24 +343,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const year = displayDate.getFullYear();
         const month = displayDate.getMonth();
 
-        // Update Month Display
         const monthName = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(displayDate);
         calendarMonthDisplay.textContent = `${monthName} ${year}`;
 
-        // Clear existing days (keep labels)
         const labels = calendarGrid.querySelectorAll('.calendar-day-label');
         calendarGrid.innerHTML = '';
         labels.forEach(label => calendarGrid.appendChild(label));
 
-        // Get first day of month (0 = Sunday, 1 = Monday...)
         let firstDay = new Date(year, month, 1).getDay();
-        // Adjust to Mo-Su (where Mo=0, Su=6)
         firstDay = firstDay === 0 ? 6 : firstDay - 1;
 
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-        // 1. Render days from previous month (empty slots)
         for (let i = firstDay; i > 0; i--) {
             const dayDiv = document.createElement('div');
             dayDiv.className = 'calendar-day empty';
@@ -317,18 +363,15 @@ document.addEventListener('DOMContentLoaded', function () {
             calendarGrid.appendChild(dayDiv);
         }
 
-        // 2. Render current month days
         for (let i = 1; i <= daysInMonth; i++) {
             const dayDiv = document.createElement('div');
             dayDiv.className = 'calendar-day';
             dayDiv.textContent = i;
 
-            // Check if it's today
             if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
                 dayDiv.classList.add('active');
             }
 
-            // Check if there's an event on this day
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
             if (window.calendarEvents && window.calendarEvents[dateStr]) {
                 const event = window.calendarEvents[dateStr];
@@ -342,8 +385,7 @@ document.addEventListener('DOMContentLoaded', function () {
             calendarGrid.appendChild(dayDiv);
         }
 
-        // 3. Fill remaining slots to make a full grid (optional for aesthetic)
-        const totalSlots = 42; // 6 rows of 7
+        const totalSlots = 42;
         const currentSlots = calendarGrid.querySelectorAll('.calendar-day').length;
         for (let i = 1; i <= (totalSlots - currentSlots); i++) {
             const dayDiv = document.createElement('div');
@@ -357,28 +399,20 @@ document.addEventListener('DOMContentLoaded', function () {
     function showEventPreview(element, event) {
         if (!previewPopover) return;
 
-        // Populate Preview
         const banner = document.getElementById('previewBanner');
         const type = document.getElementById('previewType');
         const title = document.getElementById('previewTitle');
         const date = document.getElementById('previewDate');
         const viewBtn = document.getElementById('previewViewBtn');
 
-        if (event.image) {
-            banner.style.backgroundImage = `url(${event.image})`;
-        } else {
-            banner.style.background = 'var(--event-gradient)';
-        }
+        if (event.image) banner.style.backgroundImage = `url(${event.image})`;
+        else banner.style.background = 'var(--event-gradient)';
 
         type.textContent = event.type;
         title.textContent = event.title;
         date.textContent = event.date;
 
-        // View Button Hook
         viewBtn.onclick = () => {
-            // Find the card's view details button and trigger it
-            // Or use a more direct way since we have the data
-            // Let's find the card in the DOM by title or ID if possible
             const cards = document.querySelectorAll('.event-card');
             let targetBtn = null;
             cards.forEach(card => {
@@ -394,11 +428,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
-        // Position Preview
         const rect = element.getBoundingClientRect();
-        previewPopover.style.top = `${rect.top - 12}px`; /* Added slight offset */
+        previewPopover.style.top = `${rect.top - 12}px`;
         previewPopover.style.left = `${rect.left + rect.width / 2}px`;
-
         previewPopover.classList.add('show');
     }
 
@@ -422,10 +454,8 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
 
-    // Initial render
     renderCalendar();
 
-    // Outer Click to Close
     window.onclick = function (event) {
         if (event.target == createModal) closeCreateModal();
         if (event.target == detailsModal) closeDetailsModal();
@@ -433,13 +463,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (event.target == deleteConfirmModal) closeDeleteConfirm();
         if (event.target == participationModal) closeParticipationModal();
 
-        // Hide preview when clicking elsewhere
         if (!event.target.closest('.calendar-event-preview') && !event.target.closest('.calendar-day')) {
             hideEventPreview();
         }
     }
 
-    // --- AJAX EVENT SUBMISSION (NEW) ---
     const createEventForm = document.getElementById('createEventForm');
     if (createEventForm) {
         createEventForm.onsubmit = async function (e) {
@@ -458,6 +486,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
 
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    console.error('Non-JSON response received:', await response.text());
+                    throw new TypeError("Ouch! The server didn't return JSON. Check the console for the full response.");
+                }
                 const data = await response.json();
                 if (data.success) {
                     showCoolPopup('Event Live!', 'Your event has been successfully organized.', 'success');
@@ -469,8 +506,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     btn.disabled = false;
                 }
             } catch (error) {
-                console.error('Create Event Error:', error);
-                showCoolPopup('Network Error', 'Please try again later.', 'error');
+                console.error('Fetch Error:', error);
+                showCoolPopup('Network Error', 'The server responded with an error or is unreachable.', 'error');
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }
@@ -495,6 +532,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
 
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    console.error('Non-JSON response received:', await response.text());
+                    throw new TypeError("Ouch! The server didn't return JSON. Check the console for the full response.");
+                }
                 const data = await response.json();
                 if (data.success) {
                     showCoolPopup('Updated!', 'Your event details have been saved.', 'success');
@@ -506,8 +552,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     btn.disabled = false;
                 }
             } catch (error) {
-                console.error('Edit Event Error:', error);
-                showCoolPopup('Network Error', 'Please try again later.', 'error');
+                console.error('Fetch Error:', error);
+                showCoolPopup('Network Error', 'The server responded with an error or is unreachable.', 'error');
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }

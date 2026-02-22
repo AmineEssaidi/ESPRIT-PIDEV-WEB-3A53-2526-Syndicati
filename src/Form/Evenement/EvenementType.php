@@ -7,6 +7,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -19,6 +20,9 @@ class EvenementType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $evenement = $options['data'] ?? null;
+        $isEdit = $evenement && $evenement->getId();
+
         $builder
             ->add('titre_event', TextType::class, [
                 'label' => 'Event Title',
@@ -65,19 +69,24 @@ class EvenementType extends AbstractType
                 'label' => 'Event Image',
                 'mapped' => false,
                 'required' => false,
-                'constraints' => [
-                    new File([
-                        'maxSize' => '5M',
-                        'mimeTypes' => [
-                            'image/jpeg',
-                            'image/png',
-                            'image/webp',
-                        ],
-                        'mimeTypesMessage' => 'Please upload a valid image (JPEG, PNG, WEBP)',
-                    ])
-                ],
+                'constraints' => array_merge(
+                    $isEdit ? [] : [new NotBlank(['message' => 'Please upload an event banner.'])],
+                    [
+                        new File([
+                            'maxSize' => '5M',
+                            'mimeTypes' => [
+                                'image/jpeg',
+                                'image/png',
+                                'image/webp',
+                            ],
+                            'mimeTypesMessage' => 'Please upload a valid image (JPEG, PNG, WEBP)',
+                        ])
+                    ]
+                ),
                 'attr' => ['class' => 'form-control'],
             ])
+            ->add('lat_event', HiddenType::class)
+            ->add('lng_event', HiddenType::class)
         ;
     }
 

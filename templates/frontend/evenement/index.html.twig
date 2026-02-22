@@ -6,6 +6,34 @@
     <link href="{{ asset('frontend/css/evenement-form-custom.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <!-- Leaflet Map - Using Cloudflare CDN for reliability -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        .leaflet-container {
+            background: rgba(255,255,255,0.05);
+            height: 300px !important;
+            width: 100% !important;
+            border-radius: 15px;
+            margin-top: 1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+        }
+        .leaflet-container::after {
+            content: "Map Loading...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(255,255,255,0.3);
+            z-index: 0;
+        }
+        /* Fix for Leaflet visibility */
+        .leaflet-pane { z-index: 400 !important; }
+        .leaflet-tile-pane { z-index: 200 !important; }
+        .leaflet-map-pane canvas { z-index: 100 !important; }
+        .leaflet-map-pane svg { z-index: 100 !important; }
+        .leaflet-top, .leaflet-bottom { z-index: 1000 !important; }
+    </style>
 {% endblock %}
 
 {% block body %}
@@ -227,9 +255,29 @@
                     </div>
 
                     <div class="main-home-form-group">
-                        <label class="main-home-form-label">Location</label>
+                        <label class="main-home-form-label">Location / Map</label>
                         {{ form_widget(form.lieu_event, {'attr': {'class': 'main-home-form-input', 'placeholder': 'Where is it happening?'}}) }}
                         <div class="text-danger small">{{ form_errors(form.lieu_event) }}</div>
+                        
+                        <div id="createEventMap" class="leaflet-container"></div>
+                        <p class="text-muted small mt-2"><i class='bx bx-info-circle'></i> Click on the map to set the exact location.</p>
+                        
+                        <input type="hidden" name="{{ form.lat_event.vars.full_name|replace({ 'lat_event': 'lat_event' }) }}" id="createLat">
+                        <input type="hidden" name="{{ form.lng_event.vars.full_name|replace({ 'lng_event': 'lng_event' }) }}" id="createLng">
+
+                        <!-- Form Weather Preview (New) -->
+                        <div id="createWeatherPreview" class="sidebar-card mt-3 weather-pill" style="display: none; background: rgba(var(--main-home-accent-rgb), 0.05); border: 1px dashed rgba(var(--main-home-accent-rgb), 0.2);">
+                            <div class="d-flex align-items-center gap-3">
+                                <div id="createWeatherIcon" style="font-size: 2rem; color: var(--main-home-accent);"><i class='bx bx-sun'></i></div>
+                                <div class="flex-grow-1">
+                                    <div style="font-size: 0.7rem; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 0.5px;">Live Forecast</div>
+                                    <div id="createWeatherCondition" style="font-size: 0.9rem; font-weight: 700; color: white;">...</div>
+                                </div>
+                                <div class="text-end">
+                                    <div id="createWeatherTemp" style="font-size: 1.1rem; font-weight: 800; color: var(--main-home-accent);">--°C</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="main-home-form-group">
@@ -301,8 +349,12 @@
                     <h2 id="modalEventTitle" class="event-hero-title mb-2"></h2>
                     <p id="modalEventDescription" class="event-hero-subtitle" style="font-size: 1.1rem; max-width: 100%; color: rgba(255,255,255,0.7);"></p>
 
-                    <!-- Host/Admin Actions (Left Side) -->
-                    <div id="modalAdminActions" class="d-none mt-5 pt-4 border-top border-secondary">
+                    <button id="btnOpenParticipation" class="main-home-btn-auth-submit w-100 mt-3" style="height: 60px;">
+                        Participate
+                    </button>
+
+                    <!-- Host/Admin Actions -->
+                    <div id="modalAdminActions" class="d-none mt-4 pt-4 border-top border-secondary">
                         <div style="display: flex; gap: 1rem; align-items: stretch;">
                             <button id="btnOpenEdit" class="btn-event-action" style="flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff;">
                                 <i class='bx bxs-edit-alt'></i> Edit
@@ -315,6 +367,8 @@
                             </form>
                         </div>
                     </div>
+
+                    <div id="detailsEventMap" class="leaflet-container" style="border-radius: 15px; margin-top: 2rem; border: 1px solid rgba(255,255,255,0.1); display: none;"></div>
                 </div>
                 
                 <!-- RIGHT COLUMN: Sidebar Info -->
@@ -351,12 +405,39 @@
                                 <span id="modalEventTypeDisplay" style="font-weight: 600;"></span>
                             </div>
                         </div>
-                    </div>
 
-                    <button id="btnOpenParticipation" class="main-home-btn-auth-submit w-100 mt-3" style="height: 60px;">
-                        Participate
-                    </button>
-                    <div style="height: 1rem;"></div>
+                        <!-- Weather Widget (Improved) -->
+                        <div id="weatherWidget" class="sidebar-card mt-3 weather-pill" style="display: none; background: rgba(var(--main-home-accent-rgb), 0.1); border: 1px solid rgba(var(--main-home-accent-rgb), 0.2);">
+                            <!-- Loading State -->
+                            <div id="weatherLoading" style="text-align: center; padding: 1rem; color: rgba(255,255,255,0.4);">
+                                <i class='bx bx-loader-alt bx-spin' style="font-size: 1.5rem; color: var(--main-home-accent);"></i>
+                                <div style="font-size: 0.75rem; margin-top: 0.5rem; font-weight: 600;">Fetching Forecast...</div>
+                            </div>
+                            
+                            <!-- Error / No Location State -->
+                            <div id="weatherError" style="display: none; text-align: center; padding: 1rem; color: rgba(255,255,255,0.4); font-size: 0.8rem;">
+                                <i class='bx bx-map-alt' style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block; opacity: 0.5;"></i>
+                                <div style="font-weight: 600;">Location data required for weather</div>
+                            </div>
+
+                            <!-- Success State -->
+                            <div id="weatherContent" style="display: none;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div id="weatherIcon" style="font-size: 2.5rem; color: var(--main-home-accent);">
+                                        <i class='bx bx-sun'></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div id="weatherCondition" style="font-size: 0.9rem; font-weight: 700; color: white;">Clear sky</div>
+                                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);" id="weatherWind">Wind: 10km/h</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div id="weatherTempMax" style="font-size: 1.2rem; font-weight: 800; color: var(--main-home-accent);">24°C</div>
+                                        <div id="weatherTempMin" style="font-size: 0.8rem; color: rgba(255,255,255,0.5);">18°C</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <!-- Extra spacer at bottom of modal body -->
@@ -429,8 +510,26 @@
             </div>
 
             <div class="main-home-form-group">
-                <label class="main-home-form-label">Location</label>
+                <label class="main-home-form-label">Location / Map</label>
                 <input type="text" name="evenement[lieu_event]" id="editLieu" class="main-home-form-input" required placeholder="Where is it happening?">
+                
+                <div id="editEventMap" class="leaflet-container" style="border-radius: 15px; margin-top: 1rem; border: 1px solid rgba(255,255,255,0.1);"></div>
+                <input type="hidden" name="evenement[lat_event]" id="editLat">
+                <input type="hidden" name="evenement[lng_event]" id="editLng">
+
+                <!-- Form Weather Preview (New) -->
+                <div id="editWeatherPreview" class="sidebar-card mt-3 weather-pill" style="display: none; background: rgba(var(--main-home-accent-rgb), 0.05); border: 1px dashed rgba(var(--main-home-accent-rgb), 0.2);">
+                    <div class="d-flex align-items-center gap-3">
+                        <div id="editWeatherIcon" style="font-size: 2rem; color: var(--main-home-accent);"><i class='bx bx-sun'></i></div>
+                        <div class="flex-grow-1">
+                            <div style="font-size: 0.7rem; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 0.5px;">Live Forecast</div>
+                            <div id="editWeatherCondition" style="font-size: 0.9rem; font-weight: 700; color: white;">...</div>
+                        </div>
+                        <div class="text-end">
+                            <div id="editWeatherTemp" style="font-size: 1.1rem; font-weight: 800; color: var(--main-home-accent);">--°C</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="main-home-form-group">
@@ -536,381 +635,580 @@
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="{{ asset('frontend/js/evenement.js') }}"></script>
+    
     <script>
-        // Create custom dropdown for select elements
-        function createCustomDropdown(selectElement) {
-            // Check if already converted
-            if (selectElement.parentElement.querySelector('.custom-dropdown-trigger')) {
-                return;
+        /* ==========================================================================
+           EVENEMENT MODULE INLINED JAVASCRIPT
+           ========================================================================== */
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- STATE ---
+            let eventMaps = {};
+            let displayDate = new Date();
+            const today = new Date();
+
+            // --- HELPERS ---
+            function lockScroll() {
+                document.body.style.overflow = 'hidden';
+            }
+            function unlockScroll() {
+                document.body.style.overflow = '';
             }
 
-            const wrapper = selectElement.closest('.custom-select-wrapper');
-            if (!wrapper) return;
+            // --- MAP LOGIC ---
+            function initLeafletMap(containerId, latInputId, lngInputId, initialLat, initialLng, interactive = true) {
+                console.log('initLeafletMap:', containerId);
+                const container = document.getElementById(containerId);
+                if (!container) return;
 
-            // Get options from select
-            const options = Array.from(selectElement.options);
-            
-            // Create custom dropdown elements
-            const trigger = document.createElement('div');
-            trigger.className = 'custom-dropdown-trigger';
-            trigger.innerHTML = `
-                <span class="selected-text">${selectElement.value || selectElement.options[0]?.text || 'Select...'}</span>
-                <span class="arrow">&#xea4e;</span>
-            `;
-
-            const menu = document.createElement('div');
-            menu.className = 'custom-dropdown-menu';
-
-            options.forEach(option => {
-                const optionDiv = document.createElement('div');
-                optionDiv.className = 'custom-dropdown-option';
-                optionDiv.textContent = option.text;
-                optionDiv.dataset.value = option.value;
-                
-                if (option.value === selectElement.value) {
-                    optionDiv.classList.add('selected');
+                if (typeof L === 'undefined') {
+                    container.innerHTML = '<div style="padding:20px; color:red;">Leaflet failing...</div>';
+                    return;
                 }
 
-                optionDiv.addEventListener('click', () => {
-                    // Update select
-                    selectElement.value = option.value;
-                    
-                    // Update UI
-                    trigger.querySelector('.selected-text').textContent = option.text;
-                    menu.querySelectorAll('.custom-dropdown-option').forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-                    optionDiv.classList.add('selected');
-                    
-                    // Close menu
-                    trigger.classList.remove('active');
-                    menu.classList.remove('active');
-                });
-
-                menu.appendChild(optionDiv);
-            });
-
-            // Toggle dropdown
-            trigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isActive = trigger.classList.contains('active');
-                
-                // Close all other dropdowns
-                document.querySelectorAll('.custom-dropdown-trigger.active').forEach(t => {
-                    t.classList.remove('active');
-                    t.nextElementSibling?.classList.remove('active');
-                });
-
-                if (!isActive) {
-                    trigger.classList.add('active');
-                    menu.classList.add('active');
+                if (eventMaps[containerId]) {
+                    eventMaps[containerId].remove();
                 }
-            });
 
-            // Add elements to DOM
-            wrapper.appendChild(trigger);
-            wrapper.appendChild(menu);
+                try {
+                    const lat = initialLat ? parseFloat(initialLat) : 36.8065;
+                    const lng = initialLng ? parseFloat(initialLng) : 10.1815;
 
-            // Hide native select
-            selectElement.style.position = 'absolute';
-            selectElement.style.opacity = '0';
-            selectElement.style.pointerEvents = 'none';
-        }
+                    const map = L.map(containerId).setView([lat, lng], 13);
+                    eventMaps[containerId] = map;
 
-        // Initialize Custom Form Elements
-        function initializeCustomFormElements() {
-            // Create custom dropdowns
-            const selectElements = document.querySelectorAll('.custom-select-wrapper select');
-            selectElements.forEach(select => {
-                createCustomDropdown(select);
-            });
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap'
+                    }).addTo(map);
 
-            // Flatpickr for all datetime inputs
-            const dateInputs = document.querySelectorAll('input[name*="date_event"], input.flatpickr-input, input[type="datetime-local"]');
-            dateInputs.forEach(input => {
-                if (!input._flatpickr) {
-                    flatpickr(input, {
-                        enableTime: true,
-                        dateFormat: "Y-m-d H:i",
-                        time_24hr: true,
-                        minDate: "today"
-                    });
+                    let marker;
+                    if (initialLat && initialLng) {
+                        marker = L.marker([lat, lng], { draggable: interactive }).addTo(map);
+                        
+                        // Trigger Weather Preview for Forms on Load
+                        if (interactive) {
+                            const prefix = containerId.replace('EventMap', '');
+                            updateWeatherPreview(prefix, initialLat, initialLng);
+                        }
+                    }
+
+                    if (interactive) {
+                        map.on('click', function(e) {
+                            const { lat, lng } = e.latlng;
+                            if (marker) marker.setLatLng(e.latlng);
+                            else marker = L.marker([lat, lng]).addTo(map);
+                            
+                            if (latInputId) document.getElementById(latInputId).value = lat;
+                            if (lngInputId) document.getElementById(lngInputId).value = lng;
+
+                            // Trigger Weather Preview for Forms
+                            const prefix = containerId.replace('EventMap', ''); // 'create' or 'edit'
+                            updateWeatherPreview(prefix, lat, lng);
+                        });
+                    }
+                    setTimeout(() => map.invalidateSize(), 500);
+                } catch (e) {
+                    console.error('Leaflet failing:', e);
                 }
-            });
+            }
 
-            // Custom Status Selector - FIXED
-            const statusSelects = document.querySelectorAll('select[name*="statut_event"]');
-            statusSelects.forEach(select => {
-                const pillContainer = select.closest('.main-home-form-group');
-                if (!pillContainer) return;
-
-                const pills = pillContainer.querySelectorAll('.status-pill');
-                if (pills.length === 0) return;
-
-                // Ensure a default value is set if none matches
-                let hasActive = false;
+            // --- WEATHER PREVIEW LOGIC ---
+            async function updateWeatherPreview(prefix, lat, lng) {
+                const previewCont = document.getElementById(prefix + 'WeatherPreview');
+                const iconCont = document.getElementById(prefix + 'WeatherIcon');
+                const condCont = document.getElementById(prefix + 'WeatherCondition');
+                const tempCont = document.getElementById(prefix + 'WeatherTemp');
+                const dateInput = document.getElementById(prefix === 'create' ? '{{ form.date_event.vars.id }}' : 'editDate');
                 
-                // Set initial active state
-                pills.forEach(pill => {
-                    if (pill.dataset.value === select.value) {
-                        pill.classList.add('active');
-                        hasActive = true;
+                if (!previewCont || !dateInput) return;
+                
+                const date = dateInput.value;
+                if (!date) return;
+
+                previewCont.style.display = 'block';
+                previewCont.style.opacity = '0.5';
+
+                try {
+                    const res = await fetch(`/evenement/weather/preview?lat=${lat}&lng=${lng}&date=${date}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        const w = data.data;
+                        condCont.textContent = w.condition;
+                        tempCont.textContent = Math.round(w.temp_max) + '°C';
+                        iconCont.innerHTML = `<i class='bx ${w.icon}'></i>`;
+                        previewCont.style.opacity = '1';
                     } else {
-                        pill.classList.remove('active');
+                        previewCont.style.display = 'none';
                     }
-                });
-                
-                // If no value matched, set default to the first pill
-                if (!hasActive && pills.length > 0) {
-                     const firstPill = pills[0];
-                     firstPill.classList.add('active');
-                     select.value = firstPill.dataset.value;
+                } catch (err) {
+                    previewCont.style.display = 'none';
                 }
+            }
 
-                // Add click handlers - using event delegation on container
-                const statusContainer = pillContainer.querySelector('.custom-status-selector');
-                if (statusContainer && !statusContainer.dataset.initialized) {
-                    statusContainer.dataset.initialized = 'true';
+            // --- CREATE MODAL ---
+            const createModal = document.getElementById('createEventModal');
+            window.openCreateModal = function() {
+                if (!createModal) return;
+                lockScroll();
+                createModal.style.display = 'flex';
+                setTimeout(() => {
+                    createModal.classList.add('show');
+                    initLeafletMap('createEventMap', 'createLat', 'createLng', null, null, true);
+                }, 10);
+            };
+            window.closeCreateModal = function() {
+                if (!createModal) return;
+                createModal.classList.remove('show');
+                unlockScroll();
+                setTimeout(() => createModal.style.display = 'none', 300);
+            };
+
+            // Bind triggers
+            document.querySelectorAll('#btnOpenCreate, #btnOpenCreateTop, #btnEmptyCreate, #btnHostEventDashboard').forEach(btn => {
+                btn.onclick = openCreateModal;
+            });
+
+            // --- DETAILS MODAL ---
+            const detailsModal = document.getElementById('eventDetailsModal');
+            window.closeDetailsModal = function() {
+                if (!detailsModal) return;
+                detailsModal.classList.remove('show');
+                unlockScroll();
+                setTimeout(() => detailsModal.style.display = 'none', 300);
+            };
+
+            document.querySelectorAll('.view-event-details').forEach(btn => {
+                btn.onclick = function() {
+                    const data = btn.dataset;
                     
-                    statusContainer.addEventListener('click', (e) => {
-                        const pill = e.target.closest('.status-pill');
-                        if (!pill) return;
+                    // Inject Text
+                    document.getElementById('modalEventTitle').textContent = data.title;
+                    document.getElementById('modalEventDescription').textContent = data.description;
+                    document.getElementById('modalEventDate').textContent = data.date;
+                    document.getElementById('modalEventLieu').textContent = data.lieu;
+                    const typeBadge = document.getElementById('modalEventType');
+                    if(typeBadge) typeBadge.textContent = data.type;
+                    const typeDisplay = document.getElementById('modalEventTypeDisplay');
+                    if (typeDisplay) typeDisplay.textContent = data.type;
+                    const avail = document.getElementById('modalEventAvailability');
+                    if(avail) avail.textContent = `${data.restants} / ${data.places} Places`;
 
-                        // Remove active from ALL pills
-                        pills.forEach(p => p.classList.remove('active'));
-                        
-                        // Add active to clicked pill
-                        pill.classList.add('active');
-                        
-                        // Update hidden select
-                        select.value = pill.dataset.value;
-                    });
-                }
-            });
-        }
-
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', () => {
-            document.querySelectorAll('.custom-dropdown-trigger.active').forEach(trigger => {
-                trigger.classList.remove('active');
-                trigger.nextElementSibling?.classList.remove('active');
-            });
-        });
-
-        // Run on page load
-        document.addEventListener('DOMContentLoaded', initializeCustomFormElements);
-
-        // Re-initialize when modals are shown
-        const modals = document.querySelectorAll('.event-modal');
-        modals.forEach(modal => {
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.attributeName === 'class' && modal.classList.contains('show')) {
-                        setTimeout(initializeCustomFormElements, 100);
+                    // Banner handling
+                    const banner = document.getElementById('modalEventBanner');
+                    if (data.image) {
+                        banner.innerHTML = `<img src="${data.image}" style="width:100%; height:100%; object-fit:cover;"><div class="hero-overlay"></div>`;
+                    } else {
+                        banner.innerHTML = `<div style="width: 100%; height: 100%; background: var(--event-gradient);"></div><div class="hero-overlay"></div>`;
                     }
-                });
+
+                    // Admin Actions
+                    const currentUserId = document.getElementById('currentUserId')?.value || "";
+                    const currentUserRole = document.getElementById('currentUserRole')?.value || "";
+                    const adminActions = document.getElementById('modalAdminActions');
+                    if (adminActions) {
+                        if (String(currentUserId) === String(data.authorId) || ['ADMIN', 'SYNDIC', 'SUPERADMIN'].includes(currentUserRole.toUpperCase())) {
+                            adminActions.classList.remove('d-none');
+                            adminActions.style.display = 'block';
+                        } else {
+                            adminActions.classList.add('d-none');
+                            adminActions.style.display = 'none';
+                        }
+                    }
+
+                    // Edit/Delete setup
+                    const deleteForm = document.getElementById('deleteEventForm');
+                    if (deleteForm) {
+                        deleteForm.action = data.deletePath;
+                        const deleteToken = document.getElementById('deleteEventToken');
+                        if (deleteToken) deleteToken.value = data.token;
+                    }
+                    window.currentEventData = data;
+
+                    // Show Modal
+                    detailsModal.style.display = 'flex';
+                    lockScroll();
+
+                    // Weather Fetch (Robust Logic)
+                    const weatherCont = document.getElementById('weatherWidget');
+                    const weatherLoading = document.getElementById('weatherLoading');
+                    const weatherError = document.getElementById('weatherError');
+                    const weatherContent = document.getElementById('weatherContent');
+
+                    if (weatherCont) {
+                        const hasPos = (data.lat && data.lng && data.lat !== "0" && data.lng !== "0");
+                        weatherCont.style.display = 'block';
+                        
+                        if (!hasPos) {
+                            weatherLoading.style.display = 'none';
+                            weatherContent.style.display = 'none';
+                            weatherError.style.display = 'block';
+                        } else {
+                            weatherLoading.style.display = 'block';
+                            weatherContent.style.display = 'none';
+                            weatherError.style.display = 'none';
+                            
+                            fetch(`/evenement/${data.id}/weather`)
+                                .then(res => res.json())
+                                .then(res => {
+                                    weatherLoading.style.display = 'none';
+                                    if (res.success) {
+                                        const w = res.data;
+                                        document.getElementById('weatherCondition').textContent = w.condition;
+                                        document.getElementById('weatherTempMax').textContent = Math.round(w.temp_max) + '°C';
+                                        document.getElementById('weatherTempMin').textContent = Math.round(w.temp_min) + '°C';
+                                        document.getElementById('weatherWind').textContent = 'Wind: ' + w.wind + ' km/h';
+                                        document.getElementById('weatherIcon').innerHTML = `<i class='bx ${w.icon}'></i>`;
+                                        weatherContent.style.display = 'block';
+                                    } else {
+                                        weatherError.style.display = 'block';
+                                        weatherError.innerHTML = `<i class='bx bx-error-circle'></i> <div>Weather unavailable</div>`;
+                                    }
+                                })
+                                .catch(() => {
+                                    weatherLoading.style.display = 'none';
+                                    weatherError.style.display = 'block';
+                                    weatherError.innerHTML = `<i class='bx bx-wifi-off'></i> <div>Network Error</div>`;
+                                });
+                        }
+                    }
+
+                    setTimeout(() => {
+                        detailsModal.classList.add('show');
+                        if (data.lat && data.lng) {
+                            initLeafletMap('detailsEventMap', null, null, data.lat, data.lng, false);
+                        }
+                    }, 10);
+                };
             });
-            observer.observe(modal, { attributes: true });
-        });
 
-        // Event Grid Pagination - Run after DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            const eventGrid = document.getElementById('eventGrid');
-            if (!eventGrid) return;
+            // --- EDIT MODAL ---
+            const editModal = document.getElementById('editEventModal');
+            window.closeEditModal = function() {
+                if (!editModal) return;
+                editModal.classList.remove('show');
+                unlockScroll();
+                setTimeout(() => editModal.style.display = 'none', 300);
+            };
+
+            const btnOpenEdit = document.getElementById('btnOpenEdit');
+            if (btnOpenEdit) {
+                btnOpenEdit.onclick = function() {
+                    const data = window.currentEventData;
+                    if (!data) return;
+
+                    document.getElementById('editTitre').value = data.title;
+                    document.getElementById('editDesc').value = data.description;
+                    document.getElementById('editLieu').value = data.lieu;
+                    document.getElementById('editPlaces').value = data.places;
+                    document.getElementById('editRestants').value = data.restants;
+                    document.getElementById('editType').value = data.type;
+                    document.getElementById('editLat').value = data.lat || "";
+                    document.getElementById('editLng').value = data.lng || "";
+                    if (data.dateRaw) document.getElementById('editDate').value = data.dateRaw;
+                    
+                    document.getElementById('editEventForm').action = data.editPath;
+
+                    detailsModal.classList.remove('show');
+                    setTimeout(() => {
+                        detailsModal.style.display = 'none';
+                        editModal.style.display = 'flex';
+                        setTimeout(() => {
+                            editModal.classList.add('show');
+                            initLeafletMap('editEventMap', 'editLat', 'editLng', data.lat, data.lng, true);
+                        }, 10);
+                    }, 300);
+                };
+            }
+
+            // --- DELETE ---
+            const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+            window.closeDeleteConfirm = function() { deleteConfirmModal.classList.remove('show'); setTimeout(()=>deleteConfirmModal.style.display='none',300); }
+            const btnOpenDeleteConfirm = document.getElementById('btnOpenDeleteConfirm');
+            if (btnOpenDeleteConfirm) {
+                btnOpenDeleteConfirm.onclick = () => {
+                    deleteConfirmModal.style.display = 'flex';
+                    setTimeout(() => deleteConfirmModal.classList.add('show'), 10);
+                };
+            }
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.onclick = () => document.getElementById('deleteEventForm').submit();
+            }
+
+            // --- PARTICIPATION ---
+            const participationModal = document.getElementById('participationModal');
+            window.closeParticipationModal = function() { participationModal.classList.remove('show'); setTimeout(()=>participationModal.style.display='none',300); }
+            const btnOpenParticipation = document.getElementById('btnOpenParticipation');
+            if (btnOpenParticipation) {
+                btnOpenParticipation.onclick = () => {
+                    const data = window.currentEventData;
+                    document.getElementById('participationEventTitle').textContent = data.title;
+                    document.getElementById('participationForm').action = `/participation/new/${data.id}`;
+                    participationModal.style.display = 'flex';
+                    setTimeout(() => participationModal.classList.add('show'), 10);
+                };
+            }
+
+            // --- CALENDAR ---
+            const calendarGrid = document.getElementById('calendarGrid');
+            const calendarMonthDisplay = document.getElementById('calendarMonthDisplay');
             
-            const eventsPerPage = 4;
-            const allEventCards = Array.from(eventGrid.querySelectorAll('.event-card'));
-            const totalPages = Math.ceil(allEventCards.length / eventsPerPage);
-            let currentPage = 1;
+            function renderCalendar() {
+                if (!calendarGrid || !calendarMonthDisplay) return;
+                const year = displayDate.getFullYear();
+                const month = displayDate.getMonth();
+                const monthName = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(displayDate);
+                calendarMonthDisplay.textContent = `${monthName} ${year}`;
 
-            const prevBtn = document.getElementById('prevEventPage');
-            const nextBtn = document.getElementById('nextEventPage');
-            const pagesContainer = document.getElementById('eventPaginationPages');
-            const rangeDisplay = document.getElementById('currentEventRange');
-            const paginationControls = document.getElementById('eventPaginationControls');
+                const labels = calendarGrid.querySelectorAll('.calendar-day-label');
+                calendarGrid.innerHTML = '';
+                labels.forEach(l => calendarGrid.appendChild(l));
 
-            // Hide pagination if only 1 page or less
-            if (totalPages <= 1) {
-                if (paginationControls) paginationControls.style.display = 'none';
-            }
+                let firstDay = new Date(year, month, 1).getDay();
+                firstDay = (firstDay === 0) ? 6 : firstDay - 1; // Adjust for Monday start
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-            function showPage(page) {
-                currentPage = page;
-                
-                // Hide all cards
-                allEventCards.forEach(card => {
-                    card.style.display = 'none';
-                });
-                
-                // Show cards for current page
-                const start = (page - 1) * eventsPerPage;
-                const end = start + eventsPerPage;
-                allEventCards.slice(start, end).forEach(card => {
-                    card.style.display = 'flex';
-                });
-                
-                // Update range display
-                if (rangeDisplay) {
-                    const showingStart = start + 1;
-                    const showingEnd = Math.min(end, allEventCards.length);
-                    rangeDisplay.textContent = `${showingStart}-${showingEnd}`;
+                for (let i = firstDay; i > 0; i--) {
+                    calendarGrid.appendChild(createDayEl(daysInPrevMonth - i + 1, 'empty'));
                 }
-                
-                // Update button states
-                if (prevBtn) prevBtn.disabled = page === 1;
-                if (nextBtn) nextBtn.disabled = page === totalPages;
-                
-                // Update page indicators
-                renderPageIndicators();
-                
-                // Scroll to top of grid
-                eventGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-
-            function renderPageIndicators() {
-                if (!pagesContainer) return;
-                pagesContainer.innerHTML = '';
-                for (let i = 1; i <= totalPages; i++) {
-                    const pageBtn = document.createElement('button');
-                    pageBtn.className = 'event-pagination-page' + (i === currentPage ? ' active' : '');
-                    pageBtn.textContent = i;
-                    pageBtn.onclick = () => showPage(i);
-                    pagesContainer.appendChild(pageBtn);
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                    const dayEl = createDayEl(i);
+                    if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) dayEl.classList.add('active');
+                    if (window.calendarEvents && window.calendarEvents[dateStr]) {
+                        dayEl.classList.add('has-event');
+                        dayEl.onclick = (e) => { e.stopPropagation(); showEventPreview(dayEl, window.calendarEvents[dateStr]); };
+                    }
+                    calendarGrid.appendChild(dayEl);
+                }
+                const currentCount = calendarGrid.querySelectorAll('.calendar-day').length;
+                for (let i = 1; i <= (42 - currentCount); i++) {
+                    calendarGrid.appendChild(createDayEl(i, 'empty'));
                 }
             }
 
-            if (prevBtn) {
-                prevBtn.onclick = () => {
-                    if (currentPage > 1) showPage(currentPage - 1);
+            function createDayEl(num, extra = '') {
+                const d = document.createElement('div');
+                d.className = 'calendar-day ' + extra;
+                d.textContent = num;
+                return d;
+            }
+
+            const previewPopover = document.getElementById('calendarEventPreview');
+            function showEventPreview(el, ev) {
+                if (!previewPopover) return;
+                document.getElementById('previewTitle').textContent = ev.title;
+                document.getElementById('previewDate').textContent = ev.date;
+                document.getElementById('previewType').textContent = ev.type;
+                const banner = document.getElementById('previewBanner');
+                if(ev.image) banner.style.backgroundImage = `url(${ev.image})`;
+                else banner.style.background = 'var(--event-gradient)';
+                
+                document.getElementById('previewViewBtn').onclick = () => {
+                   document.querySelectorAll('.view-event-details').forEach(b => {
+                       if (b.dataset.title === ev.title) b.click();
+                   });
+                };
+
+                const rect = el.getBoundingClientRect();
+                previewPopover.style.top = `${rect.top - 10}px`;
+                previewPopover.style.left = `${rect.left + rect.width/2}px`;
+                previewPopover.classList.add('show');
+            }
+
+            document.getElementById('prevMonth')?.addEventListener('click', () => { displayDate.setMonth(displayDate.getMonth()-1); renderCalendar(); });
+            document.getElementById('nextMonth')?.addEventListener('click', () => { displayDate.setMonth(displayDate.getMonth()+1); renderCalendar(); });
+            renderCalendar();
+
+            // --- PAGINATION ---
+            const eventGrid = document.getElementById('eventGrid');
+            if (eventGrid) {
+                const allEventCards = Array.from(eventGrid.querySelectorAll('.event-card'));
+                const perPage = 4;
+                const totalPages = Math.ceil(allEventCards.length / perPage);
+                const paginationControls = document.getElementById('eventPaginationControls');
+                if (totalPages <= 1 && paginationControls) paginationControls.style.display = 'none';
+
+                function showPage(page) {
+                    allEventCards.forEach((c, idx) => {
+                        const start = (page-1)*perPage;
+                        const end = start + perPage;
+                        c.style.display = (idx >= start && idx < end) ? 'flex' : 'none';
+                    });
+                    const range = document.getElementById('currentEventRange');
+                    if(range) range.textContent = `${(page-1)*perPage + 1}-${Math.min(page*perPage, allEventCards.length)}`;
+                    document.getElementById('prevEventPage').disabled = (page === 1);
+                    document.getElementById('nextEventPage').disabled = (page === totalPages);
+                    renderPages(page);
+                }
+
+                function renderPages(current) {
+                    const cont = document.getElementById('eventPaginationPages');
+                    if(!cont) return;
+                    cont.innerHTML = '';
+                    for(let i=1; i<=totalPages; i++) {
+                        const b = document.createElement('button');
+                        b.className = 'event-pagination-page' + (i === current ? ' active' : '');
+                        b.textContent = i;
+                        b.onclick = () => showPage(i);
+                        cont.appendChild(b);
+                    }
+                }
+
+                let curPage = 1;
+                document.getElementById('prevEventPage').onclick = () => { if(curPage > 1) showPage(--curPage); };
+                document.getElementById('nextEventPage').onclick = () => { if(curPage < totalPages) showPage(++curPage); };
+                showPage(1);
+            }
+
+            // --- FORM HELPERS ---
+            initializeCustomFormElements();
+            
+            // --- FORM SUBMISSIONS ---
+            const createForm = document.getElementById('createEventForm');
+            if (createForm) {
+                createForm.onsubmit = async function(e) {
+                    e.preventDefault();
+                    const btn = this.querySelector('button[type="submit"]');
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Organizing...';
+                    btn.disabled = true;
+
+                    try {
+                        const res = await fetch(this.action || '/evenement/new', {
+                            method: 'POST',
+                            body: new FormData(this),
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            showCoolPopup('Event Live!', 'Your event has been successfully organized.', 'success');
+                            setTimeout(() => window.location.reload(), 2000);
+                        } else {
+                            showCoolPopup('Check your event', data.message || 'Validation failed.', 'error');
+                            btn.innerHTML = original;
+                            btn.disabled = false;
+                        }
+                    } catch (err) {
+                        showCoolPopup('Error', 'Something went wrong.', 'error');
+                        btn.innerHTML = original;
+                        btn.disabled = false;
+                    }
                 };
             }
 
-            if (nextBtn) {
-                nextBtn.onclick = () => {
-                    if (currentPage < totalPages) showPage(currentPage + 1);
+            const editForm = document.getElementById('editEventForm');
+            if (editForm) {
+                editForm.onsubmit = async function(e) {
+                    e.preventDefault();
+                    const btn = this.querySelector('button[type="submit"]');
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+                    btn.disabled = true;
+
+                    try {
+                        const res = await fetch(this.action, {
+                            method: 'POST',
+                            body: new FormData(this),
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            showCoolPopup('Updated!', 'Your event details have been saved.', 'success');
+                            setTimeout(() => window.location.reload(), 2000);
+                        } else {
+                            showCoolPopup('Check your edit', data.message || 'Validation failed.', 'error');
+                            btn.innerHTML = original;
+                            btn.disabled = false;
+                        }
+                    } catch (err) {
+                        showCoolPopup('Error', 'Something went wrong.', 'error');
+                        btn.innerHTML = original;
+                        btn.disabled = false;
+                    }
                 };
             }
 
-            // Initial render
-            showPage(1);
+            // Global click to close stuff
+            window.onclick = function(e) {
+                if (e.target.classList.contains('event-modal')) {
+                    closeCreateModal(); closeDetailsModal(); closeEditModal(); closeDeleteConfirm(); closeParticipationModal();
+                }
+                if (!e.target.closest('.calendar-event-preview') && !e.target.closest('.calendar-day')) {
+                    previewPopover?.classList.remove('show');
+                }
+            };
         });
-    </script>
 
-    <!-- COOL POPUP SYSTEM INTEGRATION -->
-    <div id="coolPopup" class="cool-popup-overlay">
-        <div class="cool-popup-content">
-            <div id="coolPopupIcon" class="cool-popup-icon"></div>
-            <h2 id="coolPopupTitle" class="cool-popup-title"></h2>
-            <p id="coolPopupMessage" class="cool-popup-message"></p>
-            <button class="cool-popup-btn" onclick="closeCoolPopup()">Got it</button>
-        </div>
-    </div>
-
-    <style>
-        .cool-popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .cool-popup-overlay.show {
-            display: flex;
-            opacity: 1;
-        }
-
-        .cool-popup-content {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 3rem;
-            border-radius: 30px;
-            text-align: center;
-            max-width: 450px;
-            width: 90%;
-            transform: scale(0.8);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .cool-popup-overlay.show .cool-popup-content {
-            transform: scale(1);
-        }
-
-        .cool-popup-icon {
-            font-size: 5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .cool-popup-title {
-            font-family: 'Outfit', sans-serif;
-            font-weight: 800;
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            background: var(--event-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .cool-popup-message {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 2rem;
-        }
-
-        .cool-popup-btn {
-            background: var(--event-gradient);
-            border: none;
-            padding: 1rem 2.5rem;
-            border-radius: 15px;
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 20px -5px rgba(var(--main-home-accent-rgb), 0.5);
-        }
-
-        .cool-popup-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 25px -5px rgba(var(--main-home-accent-rgb), 0.6);
-        }
-    </style>
-
-    <script>
+        // Exposed functions
         function showCoolPopup(title, message, type = 'success') {
             const popup = document.getElementById('coolPopup');
+            document.getElementById('coolPopupTitle').textContent = title;
+            document.getElementById('coolPopupMessage').innerHTML = message;
             const icon = document.getElementById('coolPopupIcon');
-            const titleEl = document.getElementById('coolPopupTitle');
-            const msgEl = document.getElementById('coolPopupMessage');
-
-            titleEl.textContent = title;
-            msgEl.innerHTML = message;
-
-            if (type === 'success') {
-                icon.innerHTML = "<i class='bx bxs-check-circle' style='color: #00d2ff;'></i>";
-            } else {
-                icon.innerHTML = "<i class='bx bxs-error-circle' style='color: #ff4d4d;'></i>";
-            }
-
+            icon.innerHTML = (type === 'success') ? "<i class='bx bxs-check-circle' style='color: #00d2ff;'></i>" : "<i class='bx bxs-error-circle' style='color: #ff4d4d;'></i>";
             popup.style.display = 'flex';
             setTimeout(() => popup.classList.add('show'), 10);
         }
-
         function closeCoolPopup() {
             const popup = document.getElementById('coolPopup');
             popup.classList.remove('show');
             setTimeout(() => popup.style.display = 'none', 300);
+        }
+
+        function initializeCustomFormElements() {
+            // Dropdowns
+            document.querySelectorAll('.custom-select-wrapper select').forEach(select => {
+                if (select.nextElementSibling?.classList.contains('custom-dropdown-trigger')) return;
+                const wrapper = select.closest('.custom-select-wrapper');
+                const trigger = document.createElement('div');
+                trigger.className = 'custom-dropdown-trigger';
+                trigger.innerHTML = `<span class="selected-text">${select.options[select.selectedIndex]?.text || 'Select...'}</span><span class="arrow">&#xea4e;</span>`;
+                const menu = document.createElement('div');
+                menu.className = 'custom-dropdown-menu';
+                Array.from(select.options).forEach(opt => {
+                    const item = document.createElement('div');
+                    item.className = 'custom-dropdown-option' + (opt.selected ? ' selected' : '');
+                    item.textContent = opt.text;
+                    item.onclick = () => {
+                        select.value = opt.value;
+                        trigger.querySelector('.selected-text').textContent = opt.text;
+                        menu.querySelectorAll('.custom-dropdown-option').forEach(o => o.classList.remove('selected'));
+                        item.classList.add('selected');
+                        trigger.classList.remove('active');
+                        menu.classList.remove('active');
+                    };
+                    menu.appendChild(item);
+                });
+                trigger.onclick = (e) => { e.stopPropagation(); trigger.classList.toggle('active'); menu.classList.toggle('active'); };
+                wrapper.appendChild(trigger);
+                wrapper.appendChild(menu);
+                select.style.cssText = 'position:absolute; opacity:0; pointer-events:none;';
+            });
+
+            // Flatpickr
+            document.querySelectorAll('input[name*="date_event"], .flatpickr-input').forEach(input => {
+                if (!input._flatpickr) flatpickr(input, { enableTime: true, dateFormat: "Y-m-d H:i", minDate: "today" });
+            });
+
+            // Status Pills
+            document.querySelectorAll('select[name*="statut_event"]').forEach(select => {
+                const group = select.closest('.main-home-form-group');
+                const pills = group?.querySelectorAll('.status-pill');
+                if (pills) {
+                    pills.forEach(p => {
+                        if (p.dataset.value === select.value) p.classList.add('active');
+                        p.onclick = () => {
+                            pills.forEach(p2 => p2.classList.remove('active'));
+                            p.classList.add('active');
+                            select.value = p.dataset.value;
+                        };
+                    });
+                }
+            });
         }
     </script>
 {% endblock %}
