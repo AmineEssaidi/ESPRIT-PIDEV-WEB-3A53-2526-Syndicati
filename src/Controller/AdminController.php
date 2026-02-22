@@ -17,6 +17,8 @@ use App\Form\Residence\ResidenceType;
 use App\Repository\Syndicat\ReclamationRepository;
 use App\Entity\Syndicat\Reclamation;
 use App\Service\PageStatusService;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -546,6 +548,45 @@ class AdminController extends AbstractController
         $entityManager->flush();
 
         return $this->json(['success' => true]);
+    }
+
+    #[Route('/admin/syndicat/reclamation/{id}/download-pdf', name: 'admin_reclamation_download_pdf')]
+    public function downloadPdf(int $id, ReclamationRepository $reclamationRepository): Response
+    {
+        $reclamation = $reclamationRepository->find($id);
+        if (!$reclamation) {
+            $this->addFlash('danger', 'Reclamation not found.');
+            return $this->redirectToRoute('admin_syndicat');
+        }
+
+        // Configure Dompdf
+        $pdfOptions = new Options();
+        $pdfOptions->set('defaultFont', 'Arial');
+        $pdfOptions->set('isRemoteEnabled', true);
+
+        // Instantiate Dompdf with our options
+        $dompdf = new Dompdf($pdfOptions);
+
+        $html = $this->renderView('admin/Syndicat/reclamation_pdf.html.twig', [
+            'reclamation' => $reclamation,
+        ]);
+
+        // Load HTML to Dompdf
+        $dompdf->loadHtml($html);
+
+        // (Optional) Setup the paper size and orientation 'portrait' or 'landscape'
+        $dompdf->setPaper('A4', 'portrait');
+
+        // Render the HTML as PDF
+        $dompdf->render();
+
+        // Output the generated PDF
+        $output = $dompdf->output();
+
+        return new Response($output, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="reclamation_' . $reclamation->getId() . '.pdf"',
+        ]);
     }
 
     #[Route('/admin/evenement', name: 'admin_evenement')]

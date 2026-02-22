@@ -315,7 +315,7 @@
 	.liquid-glass-table-scroll { overflow-x: auto; margin-top: 1.75rem; }
 	.liquid-glass-table { width: 100%; border-collapse: separate; border-spacing: 0; background: rgba(255,255,255,0.04); border-radius: 20px; overflow: hidden; color:#e3e8f7; border: 1px solid rgba(255,255,255,0.06); }
 	.liquid-glass-table th { background: rgba(255,255,255,0.12); padding: 1.4rem; font-weight: 800; color:#fff; text-align: center; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; }
-	.liquid-glass-table td { padding: 1.4rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: middle; }
+	.liquid-glass-table td { padding: 1.4rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: middle; word-break: break-word; overflow-wrap: break-word; }
 	.table-pagination-bar { display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-top: 3rem; }
 	.residence-table-arrow { width: 48px; height: 48px; border-radius: 50%; border: none; background: rgba(255,255,255,0.07); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 1.8rem; border: 1px solid rgba(255,255,255,0.1); }
 	.residence-table-arrow:hover:not(:disabled) { background: #0072ff; transform: scale(1.1); box-shadow: 0 0 20px rgba(0, 114, 255, 0.5); }
@@ -390,6 +390,9 @@
 			<div class="users-edit-modal-actions">
 				<button type="button" class="users-btn-cancel" onclick="closeModal('reclamation-view-modal')">Close</button>
 				<span class="users-edit-modal-actions-spacer"></span>
+				<a href="#" id="view-reclamation-download-pdf" download class="users-btn-modify" style="background: linear-gradient(135deg, #FF9500 0%, #FFCC00 100%); box-shadow: 0 10px 25px rgba(255, 149, 0, 0.3);">
+					<i class="bx bxs-file-pdf"></i> Download PDF
+				</a>
 				<button type="button" class="users-btn-modify" id="btn-trigger-reclamation-edit">
 					<i class="bx bx-edit-alt"></i> Edit Record
 				</button>
@@ -629,12 +632,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 		for (let i = start; i < end; i++) {
 			const r = filteredData[i];
-			const desc = (r.description || '').length > 80 ? (r.description || '').slice(0, 80) + '...' : (r.description || '');
+			const desc = (r.description || '').length > 180 ? (r.description || '').slice(0, 180) + '...' : (r.description || '');
 			const statusLabel = statusLabels[r.status] || r.status;
 			const tr = document.createElement('tr');
 			tr.innerHTML = `
-				<td style="font-weight: 800; color: #fff; font-size: 1.05rem;">${escapeHtml(r.title)}</td>
-				<td style="opacity: 0.9; max-width: 280px; text-align: left;">${escapeHtml(desc)}</td>
+				<td style="font-weight: 800; color: #fff; font-size: 1.05rem; max-width: 200px;">${escapeHtml(r.title)}</td>
+				<td style="opacity: 0.9; max-width: 350px; text-align: left;">${escapeHtml(desc)}</td>
 				<td style="opacity: 0.9;">${escapeHtml(r.user)}</td>
 				<td><span class="badge" style="background:rgba(0,198,255,0.15); color:#00c6ff; padding:0.5rem 1rem; border-radius:12px; border: 1px solid rgba(0,198,255,0.2); font-weight: 700;">${escapeHtml(statusLabel)}</span></td>
 				<td><span style="opacity: 0.7; font-size: 0.9rem;">${escapeHtml(r.date)}</span></td>
@@ -676,6 +679,8 @@ document.addEventListener('DOMContentLoaded', function() {
 		document.getElementById('view-reclamation-user').textContent = r.user || '—';
 		document.getElementById('view-reclamation-date').textContent = r.date || '—';
 		document.getElementById('view-reclamation-status').textContent = statusLabels[r.status] || r.status || '—';
+
+		document.getElementById('view-reclamation-download-pdf').href = '/admin/syndicat/reclamation/' + r.id + '/download-pdf';
 
         // Images Logic
         const imgRow = document.getElementById('view-reclamation-images-row');

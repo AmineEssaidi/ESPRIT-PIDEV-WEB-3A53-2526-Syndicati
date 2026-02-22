@@ -39,6 +39,7 @@ class ReclamationController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($j);
             $em->flush();
+            
             return $this->redirectToRoute('frontend_syndicat_reclamation');
         }
         return $this->render('frontend/syndicat/reclamation/newreclamation.html.twig', [

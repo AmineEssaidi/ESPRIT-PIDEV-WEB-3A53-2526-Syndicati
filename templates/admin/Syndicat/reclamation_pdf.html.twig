@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reclamation #{{ reclamation.id }}</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; color: #333; line-height: 1.6; padding: 20px; }
+        .header { border-bottom: 2px solid #0072ff; padding-bottom: 10px; margin-bottom: 30px; }
+        .header h1 { color: #0072ff; margin: 0; font-size: 24px; }
+        .header p { margin: 5px 0; font-size: 14px; opacity: 0.7; }
+        .section { margin-bottom: 25px; }
+        .section-title { font-weight: bold; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; color: #555; text-transform: uppercase; }
+        .field { margin-bottom: 10px; width: 100%; }
+        .label { font-weight: bold; color: #000; width: 130px; display: inline-block; vertical-align: top; }
+        .value { display: inline-block; vertical-align: top; width: 400px; word-wrap: break-word; }
+        .description-box { background: #f9f9f9; border: 1px solid #eee; padding: 15px; border-radius: 5px; margin-top: 10px; word-wrap: break-word; }
+        .footer { position: fixed; bottom: 0; width: 100%; border-top: 1px solid #eee; padding-top: 10px; font-size: 10px; text-align: center; color: #999; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; color: #fff; }
+        .badge-active { background-color: #00c6ff; }
+        .badge-en_attente { background-color: #f39c12; }
+        .badge-refuse { background-color: #e74c3c; }
+        .badge-termine { background-color: #2ecc71; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Horizon - Reclamation Report</h1>
+        <p>Generated on {{ "now"|date("Y-m-d H:i") }}</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Reclamation Details</div>
+        <div class="field">
+            <span class="label">ID:</span>
+            <span class="value">#{{ reclamation.id }}</span>
+        </div>
+        <div class="field">
+            <span class="label">Title:</span>
+            <span class="value">{{ reclamation.titrereclamations }}</span>
+        </div>
+        <div class="field">
+            <span class="label">Status:</span>
+            <span class="value">
+                <span class="badge badge-{{ reclamation.statutreclamation }}">
+                    {{ reclamation.statutreclamation|capitalize }}
+                </span>
+            </span>
+        </div>
+        <div class="field">
+            <span class="label">Date Created:</span>
+            <span class="value">{{ (reclamation.createdAt ? reclamation.createdAt|date('Y-m-d H:i') : (reclamation.datereclamation ? reclamation.datereclamation|date('Y-m-d H:i') : 'N/A')) }}</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">User Information</div>
+        <div class="field">
+            <span class="label">Email:</span>
+            <span class="value">{{ reclamation.user ? reclamation.user.emailUser : 'N/A' }}</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Description</div>
+        <div class="description-box">
+            {{ reclamation.descreclamation|nl2br }}
+        </div>
+    </div>
+
+    <div class="footer">
+        Horizon Management System &copy; {{ "now"|date("Y") }} - Confidential Report
+    </div>
+</body>
+</html>
