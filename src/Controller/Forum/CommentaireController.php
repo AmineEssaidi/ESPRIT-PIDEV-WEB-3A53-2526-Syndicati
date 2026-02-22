@@ -24,7 +24,9 @@ class CommentaireController extends AbstractController
         PublicationRepository $publicationRepository,
         CommentaireRepository $commentaireRepository,
         EntityManagerInterface $entityManager,
-        \Symfony\Component\Security\Csrf\CsrfTokenManagerInterface $csrfTokenManager
+        \Symfony\Component\Security\Csrf\CsrfTokenManagerInterface $csrfTokenManager,
+        \App\Repository\Forum\CommentReactionRepository $commentReactionRepository,
+        \App\Repository\Forum\CommentReportRepository $commentReportRepository
     ): JsonResponse {
         $publication = $publicationRepository->find($id);
 
@@ -60,8 +62,8 @@ class CommentaireController extends AbstractController
 
         $data = [];
         $currentUser = $request->getSession()->get('user');
-        $currentUserId = $currentUser ? ($currentUser['id_user'] ?? $currentUser['id']) : null;
-        $currentUserRole = $currentUser ? ($currentUser['role'] ?? null) : null;
+        $currentUserId = $this->getUserIdFromSession($currentUser);
+        $currentUserRole = is_array($currentUser) ? ($currentUser['role'] ?? null) : (is_object($currentUser) && method_exists($currentUser, 'getRole') ? $currentUser->getRole() : (isset($currentUser->roleUser) ? $currentUser->roleUser : null));
         $moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'];
         $isUserModerator = $currentUserRole && in_array($currentUserRole, $moderatorRoles, true);
 
@@ -107,7 +109,17 @@ class CommentaireController extends AbstractController
                 'canEdit' => ($currentUserId == $user->getIdUser() || $isUserModerator),
                 'canDelete' => ($currentUserId == $user->getIdUser() || $isUserModerator),
                 'deleteToken' => $csrfTokenManager->getToken('delete_comment' . $comment->getIdCommentaire())->getValue(),
-                'image' => $comment->getImageCommentaire() ? '/commentaire_images/' . $comment->getImageCommentaire() : null
+                'editToken' => $csrfTokenManager->getToken('edit_comment' . $comment->getIdCommentaire())->getValue(),
+                'image' => $comment->getImageCommentaire() ? '/commentaire_images/' . $comment->getImageCommentaire() : null,
+                'counts' => [
+                    'likes' => $commentReactionRepository->count(['comment' => $comment, 'reaction_type' => 'like']),
+                    'dislikes' => $commentReactionRepository->count(['comment' => $comment, 'reaction_type' => 'dislike']),
+                    'reports' => $commentReportRepository->count(['comment' => $comment])
+                ],
+                'userInteraction' => [
+                    'reaction' => $currentUserId ? ($commentReactionRepository->findOneBy(['comment' => $comment, 'user' => $entityManager->getRepository(\App\Entity\User\User::class)->find($currentUserId)])?->getReactionType()) : null,
+                    'isReported' => $currentUserId ? ($commentReportRepository->findOneBy(['comment' => $comment, 'user' => $entityManager->getRepository(\App\Entity\User\User::class)->find($currentUserId)]) !== null) : false
+                ]
             ];
         }
 
@@ -134,7 +146,7 @@ class CommentaireController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Comments disabled for announcements'], 403);
         }
 
-        $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($userSession['id_user'] ?? $userSession['id']);
+        $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($this->getUserIdFromSession($userSession));
 
         if (!$user) {
             return new JsonResponse(['success' => false, 'message' => 'User not found'], 404);
@@ -182,7 +194,8 @@ class CommentaireController extends AbstractController
         int $id,
         Request $request,
         CommentaireRepository $commentaireRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        \Symfony\Component\Security\Csrf\CsrfTokenManagerInterface $csrfTokenManager
     ): JsonResponse {
         $commentaire = $commentaireRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -192,16 +205,30 @@ class CommentaireController extends AbstractController
         }
 
         // CSRF Check
-        if (!$this->isCsrfTokenValid('delete_comment' . $commentaire->getIdCommentaire(), $request->request->get('_token'))) {
+        if (!$csrfTokenManager->isTokenValid(new \Symfony\Component\Security\Csrf\CsrfToken('delete_comment' . $commentaire->getIdCommentaire(), $request->request->get('_token')))) {
             return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
         }
 
-        $currentUserId = $userSession['id_user'] ?? $userSession['id'];
-        $userRole = $userSession['role'] ?? null;
-        $moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'];
+        $currentUserId = $this->getUserIdFromSession($userSession);
+        
+        // Handle role extraction from session User entity or array
+        $currentUserRole = null;
+        if (is_array($userSession)) {
+            $currentUserRole = $userSession['role'] ?? $userSession['role_user'] ?? null;
+        } elseif (is_object($userSession)) {
+            if (method_exists($userSession, 'getRoleUser')) {
+                $currentUserRole = $userSession->getRoleUser();
+            } elseif (method_exists($userSession, 'getRoles')) {
+                $roles = $userSession->getRoles();
+                $currentUserRole = is_array($roles) ? ($roles[0] ?? null) : $roles;
+            } elseif (method_exists($userSession, 'getRole')) {
+                $currentUserRole = $userSession->getRole();
+            }
+        }
 
-        $isAuthor = ($commentaire->getUser()->getIdUser() == $currentUserId);
-        $isModerator = $userRole && in_array($userRole, $moderatorRoles, true);
+        $moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'];
+        $isAuthor = ($commentaire->getUser() && $commentaire->getUser()->getIdUser() == $currentUserId);
+        $isModerator = $currentUserRole && in_array($currentUserRole, $moderatorRoles, true);
 
         if (!$isAuthor && !$isModerator) {
             return new JsonResponse(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -228,12 +255,31 @@ class CommentaireController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Not found or not logged in'], 404);
         }
 
-        $currentUserId = $userSession['id_user'] ?? $userSession['id'];
-        $userRole = $userSession['role'] ?? null;
-        $moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'];
+        $currentUserId = $this->getUserIdFromSession($userSession);
+        
+        // Handle role extraction from session User entity or array
+        $currentUserRole = null;
+        if (is_array($userSession)) {
+            $currentUserRole = $userSession['role'] ?? $userSession['role_user'] ?? null;
+        } elseif (is_object($userSession)) {
+            if (method_exists($userSession, 'getRoleUser')) {
+                $currentUserRole = $userSession->getRoleUser();
+            } elseif (method_exists($userSession, 'getRoles')) {
+                $roles = $userSession->getRoles();
+                $currentUserRole = is_array($roles) ? ($roles[0] ?? null) : $roles;
+            } elseif (method_exists($userSession, 'getRole')) {
+                $currentUserRole = $userSession->getRole();
+            }
+        }
 
+        $moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'];
         $isAuthor = ($commentaire->getUser()->getIdUser() == $currentUserId);
-        $isModerator = $userRole && in_array($userRole, $moderatorRoles, true);
+        $isModerator = $currentUserRole && in_array($currentUserRole, $moderatorRoles, true);
+
+        // CSRF Check
+        if (!$this->isCsrfTokenValid('edit_comment' . $commentaire->getIdCommentaire(), $request->request->get('_token'))) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+        }
 
         if (!$isAuthor && !$isModerator) {
             return new JsonResponse(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -266,5 +312,17 @@ class CommentaireController extends AbstractController
         }
 
         return new JsonResponse(['success' => false, 'message' => 'Empty description'], 400);
+    }
+
+    private function getUserIdFromSession($userSession): ?int
+    {
+        if (is_object($userSession) && method_exists($userSession, 'getIdUser')) {
+            return $userSession->getIdUser();
+        } elseif (is_object($userSession) && method_exists($userSession, 'getId')) {
+            return $userSession->getId();
+        } elseif (is_array($userSession)) {
+            return $userSession['id_user'] ?? $userSession['id'] ?? null;
+        }
+        return null;
     }
 }

@@ -53,7 +53,7 @@
             const doc = parser.parseFromString(html, 'text/html');
 
             // 1. Update Table Bodies/Containers
-            const containers = [
+            const selectors = [
                 '.glass-table-scroll',
                 '#syndicat-rec-table-body',
                 '#syndicat-rep-table-body',
@@ -61,34 +61,31 @@
                 '#users-table-body'
             ];
 
-            containers.forEach(selector => {
-                const oldEl = document.querySelector(selector);
-                const newEl = doc.querySelector(selector);
-                if (oldEl && newEl) {
-                    oldEl.innerHTML = newEl.innerHTML;
-                }
+            selectors.forEach(selector => {
+                const oldEls = document.querySelectorAll(selector);
+                const newEls = doc.querySelectorAll(selector);
+                oldEls.forEach((oldEl, idx) => {
+                    if (newEls[idx]) {
+                        oldEl.innerHTML = newEls[idx].innerHTML;
+                    }
+                });
             });
 
             // 2. Update Data Scripts (for JS-rendered tables)
             const scripts = doc.querySelectorAll('script');
             scripts.forEach(s => {
-                if (s.textContent.includes('const reclamationsData') ||
-                    s.textContent.includes('const reponsesData') ||
-                    s.textContent.includes('const usersData') ||
-                    s.textContent.includes('const profilesData') ||
-                    s.textContent.includes('const onboardingData') ||
-                    s.textContent.includes('const eventsData') ||
-                    s.textContent.includes('const partsData') ||
-                    s.textContent.includes('const residenceData') ||
-                    s.textContent.includes('const appartementData') ||
-                    s.textContent.includes('const publicationsData') ||
-                    s.textContent.includes('const commentsData')) {
+                const content = s.textContent;
+                if (content.includes('publicationsData') ||
+                    content.includes('commentsData') ||
+                    content.includes('usersData') ||
+                    content.includes('reclamationsData')) {
 
                     // Evaluate script to update global variables
                     try {
-                        const scriptContent = s.textContent
-                            .replace(/const /g, 'window.')
-                            .replace(/let /g, 'window.');
+                        // We replace const/let with var to allow re-declaration in global scope
+                        const scriptContent = content
+                            .replace(/const /g, 'var ')
+                            .replace(/let /g, 'var ');
                         eval(scriptContent);
                         console.log("Updated data variables from script.");
                     } catch (e) {
@@ -261,11 +258,18 @@
                 window.showObsidianNotification(data.message || 'Action completed successfully.', actionTitle, 'success');
 
                 // 1. Close Modals
-                const modal = form.closest('.glass-modal-overlay') || document.querySelector('.glass-modal-overlay.active');
-                if (modal && window.closeGlassModal) {
-                    window.closeGlassModal(modal.id);
-                } else if (modal && window.closeGlobalDeleteModal) {
-                    window.closeGlobalDeleteModal();
+                const modal = form.closest('.glass-modal-overlay, .users-edit-modal') || document.querySelector('.glass-modal-overlay.active, .users-edit-modal.active');
+                if (modal) {
+                    if (modal.id && typeof window.closeModal === 'function' && modal.classList.contains('users-edit-modal')) {
+                        window.closeModal(modal.id);
+                    } else if (window.closeGlassModal) {
+                        window.closeGlassModal(modal.id);
+                    } else if (window.closeGlobalDeleteModal) {
+                        window.closeGlobalDeleteModal();
+                    } else {
+                        modal.classList.remove('active');
+                        setTimeout(() => { modal.style.display = 'none'; }, 400);
+                    }
                 }
 
                 // 2. Reset Switchers

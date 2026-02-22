@@ -1,0 +1,11 @@
+{% for publication in publications %}
+    {% include 'frontend/forum/_list_item.html.twig' with {
+        'publication': publication,
+        'author_profile': author_profiles[publication.user.idUser]|default(null)
+    } %}
+{% else %}
+    <div class="text-center text-white-50 mt-5">
+        <i class='bx bx-message-square-dots fs-1 mb-2'></i>
+        <p>No discussions yet.</p>
+    </div>
+{% endfor %}

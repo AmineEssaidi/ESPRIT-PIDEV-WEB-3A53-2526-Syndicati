@@ -259,6 +259,16 @@
         /* Badge Styles Cleanup */
         .badge-premium-admin { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
 
+        .users-view-modal-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 1.5rem;
+            margin-top: 2.5rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
         /* Premium Switcher Styles (Unified) */
         .premium-switcher-container {
             padding: 4px;
@@ -330,7 +340,7 @@
             <div id="forumPubGlassSwitcher" class="glass-switcher style-slide">
                 <div class="glass-switcher-face glass-switcher-face-main">
                     <div class="glass-toolbar">
-                        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Publications</h3>
+                        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Publications <span class="badge bg-primary ms-2">{{ publications|length }}</span></h3>
                         <div style="flex: 1;"></div>
                         <button type="button" class="glass-btn-save" id="forum-btn-add-pub" style="padding: 0.6rem 1.5rem; font-size: 0.9rem;">
                             <i class="bx bx-plus"></i> Add Publication
@@ -347,6 +357,8 @@
                             <div class="glass-pill glass-pill-active forum-pub-sort-option" data-value="date" onclick="selectPubSortPill(this)">Date</div>
                             <div class="glass-pill forum-pub-sort-option" data-value="name" onclick="selectPubSortPill(this)">Topic</div>
                             <div class="glass-pill forum-pub-sort-option" data-value="author" onclick="selectPubSortPill(this)">Author</div>
+                            <div class="glass-pill forum-pub-sort-option" data-value="likes" onclick="selectPubSortPill(this)">Likes</div>
+                            <div class="glass-pill forum-pub-sort-option" data-value="signals" onclick="selectPubSortPill(this)">Signals</div>
                             <button class="glass-pagination-btn" id="forum-pub-sort-dir-pill" style="width: 38px; height: 38px;">
                                 <span id="forum-pub-sort-dir-icon-svg"></span>
                             </button>
@@ -361,11 +373,29 @@
                                     <th>Category</th>
                                     <th>Author</th>
                                     <th>Date</th>
+                                    <th>Likes</th>
+                                    <th>Dislikes</th>
+                                    <th>Signals</th>
                                     <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="forum-pub-table-body">
-                                <!-- Table rows rendered by JS -->
+                                {% for p in pubData|slice(0, 10) %}
+                                <tr>
+                                    <td><strong>{{ p.topic }}</strong></td>
+                                    <td><span class="badge-neon badge-neon-discussion">{{ p.category }}</span></td>
+                                    <td>{{ p.author }}</td>
+                                    <td>{{ p.date }}</td>
+                                    <td><span style="color: #2ed573; font-weight: 700;"><i class='bx bx-like'></i> {{ p.likes }}</span></td>
+                                    <td><span style="color: #ff4757; font-weight: 700;"><i class='bx bx-dislike'></i> {{ p.dislikes }}</span></td>
+                                    <td><span style="color: #ffc107; font-weight: 700;"><i class='bx bx-flag'></i> {{ p.reports }}</span></td>
+                                    <td style="text-align: right;">
+                                        <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewPub({{ loop.index0 }})">
+                                            <i class="bx bx-show"></i> Details
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -405,6 +435,14 @@
                                         <div class="glass-view-label">Date</div>
                                         <div class="glass-view-value" id="view-pub-date">-</div>
                                     </div>
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">Interactions</div>
+                                        <div class="glass-view-value">
+                                            <span style="color: #2ed573; margin-right: 1.5rem;"><i class='bx bx-like'></i> <span id="view-pub-likes">0</span></span>
+                                            <span style="color: #ff4757; margin-right: 1.5rem;"><i class='bx bx-dislike'></i> <span id="view-pub-dislikes">0</span></span>
+                                            <span style="color: #ffc107;"><i class='bx bx-flag'></i> <span id="view-pub-reports">0</span></span>
+                                        </div>
+                                    </div>
                                     <div class="glass-view-row" style="flex-direction: column; align-items: flex-start;">
                                         <div class="glass-view-label" style="width: 100%; margin-bottom: 0.5rem;">Description</div>
                                         <div class="glass-view-value" id="view-pub-description" style="line-height: 1.6; opacity: 0.8;">-</div>
@@ -413,11 +451,11 @@
                                         <img id="view-pub-image" src="" alt="Publication Image" style="max-width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
                                     </div>
                                 </div>
-                                <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
+                                <div class="users-view-modal-actions">
                                     <button type="button" class="users-btn-modify" id="view-pub-modify-btn">
                                         <i class="bx bx-edit"></i> Modify Publication
                                     </button>
-                                    <form id="view-pub-delete-form" method="post" style="display: inline-block; margin-left: 1rem;" data-ajax="true" data-refresh="softRefresh">
+                                    <form id="view-pub-delete-form" method="post" style="display: block;" data-ajax="true" data-refresh="softRefresh">
                                         <input type="hidden" name="_token" id="view-pub-delete-token" value="">
                                         <button type="submit" class="users-btn-delete">
                                             <i class="bx bx-trash"></i> Delete Publication
@@ -440,8 +478,8 @@
                                 <button type="button" class="users-edit-modal-close" onclick="closeModal('pub-edit-modal')" aria-label="Close"><i class="bx bx-x"></i></button>
                             </div>
                             <div class="users-edit-modal-body">
-                                {% if publicationEditForm is defined %}
-                                {{ form_start(publicationEditForm, { 'attr': { 'id': 'pub-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
+                                {% if pubEditForm is defined %}
+                                {{ form_start(pubEditForm, { 'attr': { 'id': 'pub-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
                                 
                                 {{ form_row(pubEditForm.titre_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
                                 {{ form_row(pubEditForm.description_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 120px;' } }) }}
@@ -451,7 +489,21 @@
                                         {{ form_row(pubEditForm.categorie_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
                                     </div>
                                     <div class="col-md-6">
-                                        {{ form_row(pubEditForm.image_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        {{ form_row(pubEditForm.image_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input pub-image-input' } }) }}
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 1rem;">
+                                    <div class="col-md-6" id="pub-edit-current-image-container" style="display: none;">
+                                        <p class="glass-label" style="font-size: 0.8rem; margin-bottom: 0.5rem;">Current Image</p>
+                                        <div style="width: 100%; height: 120px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+                                            <img id="pub-edit-current-image" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" id="pub-edit-preview-container" style="display: none;">
+                                        <p class="glass-label" style="font-size: 0.8rem; margin-bottom: 0.5rem;">New Preview</p>
+                                        <div style="width: 100%; height: 120px; border-radius: 8px; overflow: hidden; border: 2px dashed rgba(0, 198, 255, 0.4); background: rgba(0, 198, 255, 0.05);">
+                                            <img id="pub-edit-preview" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -478,8 +530,8 @@
                                 <button type="button" class="users-edit-modal-close" onclick="closeModal('pub-add-modal')" aria-label="Close"><i class="bx bx-x"></i></button>
                             </div>
                             <div class="users-edit-modal-body">
-                                {% if publicationAddForm is defined %}
-                                {{ form_start(publicationAddForm, { 'attr': { 'id': 'pub-add-form', 'method': 'post', 'action': path('app_publication_new'), 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
+                                {% if pubAddForm is defined %}
+                                {{ form_start(pubAddForm, { 'attr': { 'id': 'pub-add-form', 'method': 'post', 'action': path('app_publication_new'), 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
                                 
                                 {{ form_row(pubAddForm.titre_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
                                 {{ form_row(pubAddForm.description_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 120px;' } }) }}
@@ -514,7 +566,7 @@
             <div id="forumCommentGlassSwitcher" class="glass-switcher style-slide">
                 <div class="glass-switcher-face glass-switcher-face-main">
                     <div class="glass-toolbar">
-                        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Commentaires</h3>
+                        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Commentaires <span class="badge bg-primary ms-2">{{ commentaires|length }}</span></h3>
                     </div>
 
                     <div class="glass-toolbar" style="margin-bottom: 1.5rem;">
@@ -527,6 +579,8 @@
                             <div class="glass-pill glass-pill-active forum-comment-sort-option" data-value="date" onclick="selectCommentSortPill(this)">Date</div>
                             <div class="glass-pill forum-comment-sort-option" data-value="author" onclick="selectCommentSortPill(this)">Author</div>
                             <div class="glass-pill forum-comment-sort-option" data-value="publication" onclick="selectCommentSortPill(this)">Publication</div>
+                            <div class="glass-pill forum-comment-sort-option" data-value="likes" onclick="selectCommentSortPill(this)">Likes</div>
+                            <div class="glass-pill forum-comment-sort-option" data-value="signals" onclick="selectCommentSortPill(this)">Signals</div>
                             <button class="glass-pagination-btn" id="forum-comment-sort-dir-pill" style="width: 38px; height: 38px;">
                                 <span id="forum-comment-sort-dir-icon-svg"></span>
                             </button>
@@ -541,11 +595,29 @@
                                     <th>Publication</th>
                                     <th>Author</th>
                                     <th>Date</th>
+                                    <th>Likes</th>
+                                    <th>Dislikes</th>
+                                    <th>Signals</th>
                                     <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="forum-comment-table-body">
-                                <!-- Table rows rendered by JS -->
+                                {% for c in commData|slice(0, 10) %}
+                                <tr>
+                                    <td>{{ c.text }}</td>
+                                    <td><strong>{{ c.pub }}</strong></td>
+                                    <td>{{ c.author }}</td>
+                                    <td>{{ c.date }}</td>
+                                    <td><span style="color: #2ed573; font-weight: 700;"><i class='bx bx-like'></i> {{ c.likes }}</span></td>
+                                    <td><span style="color: #ff4757; font-weight: 700;"><i class='bx bx-dislike'></i> {{ c.dislikes }}</span></td>
+                                    <td><span style="color: #ffc107; font-weight: 700;"><i class='bx bx-flag'></i> {{ c.reports }}</span></td>
+                                    <td style="text-align: right;">
+                                        <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewComment({{ loop.index0 }})">
+                                            <i class="bx bx-show"></i> Details
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -581,16 +653,27 @@
                                         <div class="glass-view-label">Date</div>
                                         <div class="glass-view-value" id="view-comment-date">-</div>
                                     </div>
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">Interactions</div>
+                                        <div class="glass-view-value">
+                                            <span style="color: #2ed573; margin-right: 1.5rem;"><i class='bx bx-like'></i> <span id="view-comment-likes">0</span></span>
+                                            <span style="color: #ff4757; margin-right: 1.5rem;"><i class='bx bx-dislike'></i> <span id="view-comment-dislikes">0</span></span>
+                                            <span style="color: #ffc107;"><i class='bx bx-flag'></i> <span id="view-comment-reports">0</span></span>
+                                        </div>
+                                    </div>
                                     <div class="glass-view-row" style="flex-direction: column; align-items: flex-start;">
                                         <div class="glass-view-label" style="width: 100%; margin-bottom: 0.5rem;">Commentaire</div>
                                         <div class="glass-view-value" id="view-comment-text" style="line-height: 1.6; opacity: 0.8;">-</div>
                                     </div>
+                                    <div class="glass-view-row" id="view-comment-image-row" style="display: none; flex-direction: column; align-items: center;">
+                                        <img id="view-comment-image" src="" alt="Comment Image" style="max-width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
                                 </div>
-                                <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
+                                <div class="users-view-modal-actions">
                                     <button type="button" class="users-btn-modify" id="view-comment-modify-btn">
                                         <i class="bx bx-edit"></i> Modify Comment
                                     </button>
-                                    <form id="view-comment-delete-form" method="post" style="display: inline-block; margin-left: 1rem;" data-ajax="true" data-refresh="softRefresh">
+                                    <form id="view-comment-delete-form" method="post" style="display: block;" data-ajax="true" data-refresh="softRefresh">
                                         <input type="hidden" name="_token" id="view-comment-delete-token" value="">
                                         <button type="submit" class="users-btn-delete">
                                             <i class="bx bx-trash"></i> Delete Comment
@@ -617,7 +700,28 @@
                                 {{ form_start(commentEditForm, { 'attr': { 'id': 'comment-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh' } }) }}
                                 
                                 {{ form_row(commentEditForm.description_commentaire, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 120px;' } }) }}
-                                {{ form_row(commentEditForm.visibility, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        {{ form_row(commentEditForm.visibility, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form_row(commentEditForm.image_commentaire, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input comment-image-input' } }) }}
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 1rem;">
+                                    <div class="col-md-6" id="comment-edit-current-image-container" style="display: none;">
+                                        <p class="glass-label" style="font-size: 0.8rem; margin-bottom: 0.5rem;">Current Image</p>
+                                        <div style="width: 100%; height: 120px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+                                            <img id="comment-edit-current-image" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" id="comment-edit-preview-container" style="display: none;">
+                                        <p class="glass-label" style="font-size: 0.8rem; margin-bottom: 0.5rem;">New Preview</p>
+                                        <div style="width: 100%; height: 120px; border-radius: 8px; overflow: hidden; border: 2px dashed rgba(0, 198, 255, 0.4); background: rgba(0, 198, 255, 0.05);">
+                                            <img id="comment-edit-preview" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                    </div>
+                                </div>
                                 
                                 <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
                                     <button type="button" class="users-btn-cancel" onclick="closeModal('comment-edit-modal')"><i class="bx bx-x"></i> Discard</button>
@@ -634,43 +738,29 @@
         </div><!-- End .glass-table-container -->
     </div><!-- End Page 2 -->
 </div>
+{% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
 <script>
+    console.log('Admin Forum Page Initializing...');
     /**
      * Standardized Glass Switcher Logic
      */
 
 
     // --- Data Templates ---
-    const publicationsData = [
-        {% for p in publications|default([]) %}
-        [
-            "{{ p.titrePub|e('js') }}",
-            "{{ p.categoriePub|e('js') }}",
-            "{{ p.user ? (p.user.firstName ~ ' ' ~ p.user.lastName)|e('js') : '—' }}",
-            "{{ p.dateCreationPub|date('Y-m-d H:i') }}",
-            "{{ p.id }}",
-            "{{ p.descriptionPub|e('js') }}",
-            "{{ p.imagePub|e('js') }}",
-            "{{ csrf_token('delete' ~ p.id)|e('js') }}"
-        ]{% if not loop.last %},{% endif %}
-        {% endfor %}
-    ];
+    var rawPublications = {{ pubData|json_encode|raw }};
 
-    const commentsData = [
-        {% for c in commentaires|default([]) %}
-        [
-            "{{ c.descriptionCommentaire|e('js')|slice(0,50) }}...",
-            "{{ c.publication ? c.publication.titrePub|e('js') : 'Deleted' }}",
-            "{{ c.user ? (c.user.firstName ~ ' ' ~ c.user.lastName)|e('js') : '—' }}",
-            "{{ c.createdAt|date('Y-m-d H:i') }}",
-            "{{ c.idCommentaire }}",
-            "{{ c.descriptionCommentaire|e('js') }}",
-            "{{ c.visibility ? 'true' : 'false' }}",
-            "{{ csrf_token('delete' ~ c.idCommentaire)|e('js') }}"
-        ]{% if not loop.last %},{% endif %}
-        {% endfor %}
-    ];
+    var publicationsData = rawPublications.map(p => [
+        p.topic, p.category, p.author, p.date, p.id, p.description, p.image, p.token, p.likes, p.dislikes, p.reports
+    ]);
+
+    var rawComments = {{ commData|json_encode|raw }};
+
+    var commentsData = rawComments.map(c => [
+        c.text, c.pub, c.author, c.date, c.id, c.fullText, c.visibility, c.token, c.likes, c.dislikes, c.reports, c.image
+    ]);
 
     const editPubUrlTemplate = "{{ path('admin_forum_pub_edit', {id: 'ID_PLACEHOLDER'}) }}";
     const deletePubUrlTemplate = "{{ path('app_publication_delete', {id: 'ID_PLACEHOLDER'}) }}";
@@ -678,17 +768,17 @@
     const editCommentUrlTemplate = "{{ path('admin_forum_comment_edit', {id: 'ID_PLACEHOLDER'}) }}";
 
     // --- Table Management ---
-    let pubCurrentPage = 1;
-    let pubFilteredRows = [...publicationsData];
-    let pubSortValue = 'date';
-    let pubSortDirection = 'desc';
+    var pubCurrentPage = 1;
+    var pubFilteredRows = [...publicationsData];
+    var pubSortValue = 'date';
+    var pubSortDirection = 'desc';
 
-    let commentCurrentPage = 1;
-    let commentFilteredRows = [...commentsData];
-    let commentSortValue = 'date';
-    let commentSortDirection = 'desc';
+    var commentCurrentPage = 1;
+    var commentFilteredRows = [...commentsData];
+    var commentSortValue = 'date';
+    var commentSortDirection = 'desc';
 
-    const rowsPerPage = 10;
+    var rowsPerPage = 10;
 
     function updatePubSortDirIcon() {
         const iconEl = document.getElementById('forum-pub-sort-dir-icon-svg');
@@ -710,25 +800,38 @@
         pubSortValue = pill.dataset.value;
         document.querySelectorAll('.forum-pub-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
         pill.classList.add('glass-pill-active');
-        forumFilterSortPubs();
+        filterSortPublications();
     };
 
     window.selectCommentSortPill = function(pill) {
         commentSortValue = pill.dataset.value;
         document.querySelectorAll('.forum-comment-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
         pill.classList.add('glass-pill-active');
-        forumFilterSortComments();
+        filterSortComments();
     };
 
-    function forumFilterSortPubs() {
-        const val = document.querySelector('.forum-pub-search-input').value.toLowerCase();
-        let rows = publicationsData.filter(d => d[0].toLowerCase().includes(val) || d[2].toLowerCase().includes(val) || d[5].toLowerCase().includes(val));
+    window.filterSortPublications = function() {
+        console.log('Filtering Publications...', publicationsData.length);
+        const val = (document.querySelector('.forum-pub-search-input')?.value || '').toLowerCase();
+        let rows = publicationsData.filter(d => 
+            (d[0] || '').toLowerCase().includes(val) || 
+            (d[2] || '').toLowerCase().includes(val) || 
+            (d[5] || '').toLowerCase().includes(val)
+        );
         
         let sortIdx = 3; // Date
+        let isNumeric = false;
         if (pubSortValue === 'name') sortIdx = 0;
         else if (pubSortValue === 'author') sortIdx = 2;
+        else if (pubSortValue === 'likes') { sortIdx = 8; isNumeric = true; }
+        else if (pubSortValue === 'signals') { sortIdx = 10; isNumeric = true; }
 
         rows.sort((a,b) => {
+            if (isNumeric) {
+                let vA = parseInt(a[sortIdx]) || 0;
+                let vB = parseInt(b[sortIdx]) || 0;
+                return pubSortDirection === 'asc' ? vA - vB : vB - vA;
+            }
             let vA = a[sortIdx].toLowerCase(), vB = b[sortIdx].toLowerCase();
             return pubSortDirection === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
         });
@@ -738,15 +841,28 @@
         renderPubTable();
     }
 
-    function forumFilterSortComments() {
-        const val = document.querySelector('.forum-comment-search-input').value.toLowerCase();
-        let rows = commentsData.filter(d => d[5].toLowerCase().includes(val) || d[1].toLowerCase().includes(val) || d[2].toLowerCase().includes(val));
+    window.filterSortComments = function() {
+        console.log('Filtering Comments...', commentsData.length);
+        const val = (document.querySelector('.forum-comment-search-input')?.value || '').toLowerCase();
+        let rows = commentsData.filter(d => 
+            (d[5] || '').toLowerCase().includes(val) || 
+            (d[1] || '').toLowerCase().includes(val) || 
+            (d[2] || '').toLowerCase().includes(val)
+        );
         
         let sortIdx = 3; // Date
+        let isNumeric = false;
         if (commentSortValue === 'author') sortIdx = 2;
         else if (commentSortValue === 'publication') sortIdx = 1;
+        else if (commentSortValue === 'likes') { sortIdx = 8; isNumeric = true; }
+        else if (commentSortValue === 'signals') { sortIdx = 10; isNumeric = true; }
 
         rows.sort((a,b) => {
+            if (isNumeric) {
+                let vA = parseInt(a[sortIdx]) || 0;
+                let vB = parseInt(b[sortIdx]) || 0;
+                return commentSortDirection === 'asc' ? vA - vB : vB - vA;
+            }
             let vA = a[sortIdx].toLowerCase(), vB = b[sortIdx].toLowerCase();
             return commentSortDirection === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
         });
@@ -757,7 +873,9 @@
     }
 
     function renderPubTable() {
+        console.log('Rendering Pub Table...', pubFilteredRows.length);
         const tbody = document.getElementById('forum-pub-table-body');
+        if (!tbody) { console.error('forum-pub-table-body not found'); return; }
         tbody.innerHTML = '';
         const start = (pubCurrentPage-1)*rowsPerPage;
         const end = Math.min(start+rowsPerPage, pubFilteredRows.length);
@@ -770,6 +888,9 @@
                 <td><span class="badge-neon badge-neon-discussion">${data[1]}</span></td>
                 <td>${data[2]}</td>
                 <td>${data[3]}</td>
+                <td><span style="color: #2ed573; font-weight: 700;"><i class='bx bx-like'></i> ${data[8]}</span></td>
+                <td><span style="color: #ff4757; font-weight: 700;"><i class='bx bx-dislike'></i> ${data[9]}</span></td>
+                <td><span style="color: #ffc107; font-weight: 700;"><i class='bx bx-flag'></i> ${data[10]}</span></td>
                 <td style="text-align: right;">
                     <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewPub(${i})">
                         <i class="bx bx-show"></i> Details
@@ -782,21 +903,27 @@
     }
 
     function renderCommentTable() {
+        console.log('Rendering Comment Table...', commentFilteredRows.length);
         const tbody = document.getElementById('forum-comment-table-body');
+        if (!tbody) { console.error('forum-comment-table-body not found'); return; }
         tbody.innerHTML = '';
         const start = (commentCurrentPage-1)*rowsPerPage;
         const end = Math.min(start+rowsPerPage, commentFilteredRows.length);
         
-        for(let i=start; i<end; i++) {
+        for(let j=start; j<end; j++) {
             const row = document.createElement('tr');
-            const data = commentFilteredRows[i];
+            const data = commentFilteredRows[j];
+            const index = j;
             row.innerHTML = `
                 <td>${data[0]}</td>
                 <td><strong>${data[1]}</strong></td>
                 <td>${data[2]}</td>
                 <td>${data[3]}</td>
+                <td><span style="color: #2ed573; font-weight: 700;"><i class='bx bx-like'></i> ${data[8]}</span></td>
+                <td><span style="color: #ff4757; font-weight: 700;"><i class='bx bx-dislike'></i> ${data[9]}</span></td>
+                <td><span style="color: #ffc107; font-weight: 700;"><i class='bx bx-flag'></i> ${data[10]}</span></td>
                 <td style="text-align: right;">
-                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewComment(${i})">
+                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewComment(${index})">
                         <i class="bx bx-show"></i> Details
                     </button>
                 </td>
@@ -839,11 +966,14 @@
         document.getElementById('view-pub-category').textContent = data[1];
         document.getElementById('view-pub-author').textContent = data[2];
         document.getElementById('view-pub-date').textContent = data[3];
+        document.getElementById('view-pub-likes').textContent = data[8];
+        document.getElementById('view-pub-dislikes').textContent = data[9];
+        document.getElementById('view-pub-reports').textContent = data[10];
         document.getElementById('view-pub-description').textContent = data[5];
         
         const imgRow = document.getElementById('view-pub-image-row');
         if(data[6]) {
-            document.getElementById('view-pub-image').src = '/uploads/publications/' + data[6];
+            document.getElementById('view-pub-image').src = '/forum_images/' + data[6];
             imgRow.style.display = 'flex';
         } else {
             imgRow.style.display = 'none';
@@ -862,6 +992,22 @@
             if(descInput) descInput.value = data[5];
             const catInput = form.querySelector('[name*="categorie_pub"]');
             if(catInput) catInput.value = data[1];
+            
+            // Image Prep
+            const curImgCont = document.getElementById('pub-edit-current-image-container');
+            const curImg = document.getElementById('pub-edit-current-image');
+            const prevCont = document.getElementById('pub-edit-preview-container');
+            const prevImg = document.getElementById('pub-edit-preview');
+            const fileInput = form.querySelector('.pub-image-input');
+
+            if(data[6]) {
+                curImg.src = '/forum_images/' + data[6];
+                curImgCont.style.display = 'block';
+            } else {
+                curImgCont.style.display = 'none';
+            }
+            prevCont.style.display = 'none';
+            if(fileInput) fileInput.value = '';
 
             openModal('pub-edit-modal');
         };
@@ -875,6 +1021,17 @@
         document.getElementById('view-comment-pub').textContent = data[1];
         document.getElementById('view-comment-author').textContent = data[2];
         document.getElementById('view-comment-date').textContent = data[3];
+        document.getElementById('view-comment-likes').textContent = data[8];
+        document.getElementById('view-comment-dislikes').textContent = data[9];
+        document.getElementById('view-comment-reports').textContent = data[10];
+        
+        const imgRow = document.getElementById('view-comment-image-row');
+        if(data[11]) {
+            document.getElementById('view-comment-image').src = '/commentaire_images/' + data[11];
+            imgRow.style.display = 'flex';
+        } else {
+            imgRow.style.display = 'none';
+        }
 
         document.getElementById('view-comment-delete-token').value = data[7];
         document.getElementById('view-comment-delete-form').action = deleteCommentUrlTemplate.replace('ID_PLACEHOLDER', data[4]);
@@ -887,6 +1044,22 @@
             const visInput = form.querySelector('[name*="visibility"]');
             if(visInput) visInput.checked = data[6] === 'true';
 
+            // Image Prep
+            const curImgCont = document.getElementById('comment-edit-current-image-container');
+            const curImg = document.getElementById('comment-edit-current-image');
+            const prevCont = document.getElementById('comment-edit-preview-container');
+            const prevImg = document.getElementById('comment-edit-preview');
+            const fileInput = form.querySelector('.comment-image-input');
+
+            if(data[11]) {
+                curImg.src = '/commentaire_images/' + data[11];
+                curImgCont.style.display = 'block';
+            } else {
+                curImgCont.style.display = 'none';
+            }
+            prevCont.style.display = 'none';
+            if(fileInput) fileInput.value = '';
+
             openModal('comment-edit-modal');
         };
 
@@ -894,6 +1067,31 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
+        // --- Image Preview Helper ---
+        window.setupImagePreview = function(inputSelector, containerId, previewId) {
+            const input = document.querySelector(inputSelector);
+            const container = document.getElementById(containerId);
+            const preview = document.getElementById(previewId);
+            
+            if(!input || !container || !preview) return;
+
+            input.addEventListener('change', function() {
+                if(this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        container.style.display = 'block';
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                } else {
+                    container.style.display = 'none';
+                }
+            });
+        };
+
+        setupImagePreview('.pub-image-input', 'pub-edit-preview-container', 'pub-edit-preview');
+        setupImagePreview('.comment-image-input', 'comment-edit-preview-container', 'comment-edit-preview');
+
         // --- Premium Switcher ---
         const slider = document.getElementById('forum-switcher-slider');
         const tabs = document.querySelectorAll('.premium-switcher-tab');
@@ -925,6 +1123,8 @@
         slider.style.width = (100 / tabs.length) + '%';
 
         // Initial table renders
+        console.log('Constructed publicationsData:', publicationsData);
+        console.log('Constructed commentsData:', commentsData);
         renderPubTable();
         renderCommentTable();
 
@@ -938,13 +1138,13 @@
         document.getElementById('forum-pub-sort-dir-pill').addEventListener('click', () => {
             pubSortDirection = pubSortDirection === 'asc' ? 'desc' : 'asc';
             updatePubSortDirIcon();
-            forumFilterSortPubs();
+            filterSortPublications();
         });
 
         document.getElementById('forum-comment-sort-dir-pill').addEventListener('click', () => {
             commentSortDirection = commentSortDirection === 'asc' ? 'desc' : 'asc';
             updateCommentSortDirIcon();
-            forumFilterSortComments();
+            filterSortComments();
         });
 
         // Add Pub button
@@ -952,12 +1152,12 @@
 
         // Search Pub
         document.querySelector('.forum-pub-search-input').addEventListener('input', (e) => {
-            forumFilterSortPubs();
+            filterSortPublications();
         });
 
         // Search Comment
         document.querySelector('.forum-comment-search-input').addEventListener('input', (e) => {
-            forumFilterSortComments();
+            filterSortComments();
         });
     });
 </script>

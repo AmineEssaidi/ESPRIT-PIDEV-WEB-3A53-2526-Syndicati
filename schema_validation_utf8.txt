@@ -1,0 +1,57 @@
+﻿php : 
+Au caractère Ligne:1 
+: 1
++ php bin/console doc
+trine:schema:validate
+ > schema_validation.
+txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (:String   
+ ) [], RemoteExce    
+ption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+Mapping
+-------
+
+ [FAIL] The 
+entity-class App\Enti
+ty\Syndicat\Reclamati
+on mapping is 
+invalid:
+ * The field App\Enti
+ty\Syndicat\Reclamati
+on#reponses is on 
+the inverse side of 
+a bi-directional 
+relationship, but 
+the specified 
+mappedBy association 
+on the target-entity 
+App\Entity\Syndicat\R
+eponse#reclamation 
+does not contain the 
+required 
+'inversedBy: 
+"reponses"' 
+attribute.
+
+
+Database
+--------
+
+ [ERROR] The database
+         schema is   
+         not in sync 
+         with the    
+         current     
+         mapping     
+         file.       
+

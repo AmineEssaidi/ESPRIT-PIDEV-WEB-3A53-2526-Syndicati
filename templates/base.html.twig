@@ -28,7 +28,6 @@
 
     {% block stylesheets %}{% endblock %}
 </head>
-</head>
 {% set is_admin = app.request.get('_route') starts with 'admin_' %}
 
 <body class="{{ is_admin ? 'admin-body' : 'layout-menu-fixed' }}">

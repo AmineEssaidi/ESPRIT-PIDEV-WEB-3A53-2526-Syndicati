@@ -395,6 +395,52 @@
     box-shadow: 0 0 10px rgba(255, 77, 77, 0.2);
 }
 
+/* Social Buttons specific */
+.social-btn {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.social-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+.social-btn.like:hover,
+.social-btn.like.active {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+    border-color: rgba(76, 175, 80, 0.4);
+}
+
+.social-btn.dislike:hover,
+.social-btn.dislike.active {
+    background: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+    border-color: rgba(244, 67, 54, 0.4);
+}
+
+.social-btn.bookmark:hover,
+.social-btn.bookmark.active {
+    background: rgba(33, 150, 243, 0.2);
+    color: #2196f3;
+    border-color: rgba(33, 150, 243, 0.4);
+}
+
+.social-btn.signal:hover,
+.social-btn.signal.active {
+    background: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+    border-color: rgba(244, 67, 54, 0.4);
+}
+
+.social-btn span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
 /* SCROLLBARS */
 .custom-scrollbar::-webkit-scrollbar {
     width: 6px;

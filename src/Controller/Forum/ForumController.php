@@ -17,11 +17,12 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class ForumController extends AbstractController
 {
     #[Route('/forum', name: 'frontend_forum', methods: ['GET', 'POST'])]
-    public function index(Request $request, PublicationRepository $publicationRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function index(Request $request, PublicationRepository $publicationRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Service\MailNotificationService $mailNotificationService): Response
     {
         $publication = new Publication();
         $session = $request->getSession();
         $userSession = $session->get('user');
+        $userEntity = null; // Initialize to avoid undefined variable error when not logged in
 
         if ($userSession) {
             $userId = null;
@@ -81,6 +82,11 @@ class ForumController extends AbstractController
                 $entityManager->persist($publication);
                 $entityManager->flush();
 
+                // Send email notification ONLY for Announcements
+                if ($publication->getCategoriePub() === 'Announcement') {
+                    $mailNotificationService->sendNewPublicationNotification($publication);
+                }
+
                 if ($isAjax) {
                     return $this->json(['success' => true, 'message' => 'Post created successfully!']);
                 }
@@ -98,27 +104,131 @@ class ForumController extends AbstractController
             }
         }
 
-        $publications = $publicationRepository->findAllLatest();
-
-        // Fetch all profiles for these publications' authors
-        $authorIds = [];
-        foreach ($publications as $pub) {
-            $authorIds[] = $pub->getUser()->getIdUser();
+        $type = $request->query->get('type', 'general');
+        if ($type === 'announcement') {
+            $publications = $publicationRepository->findBy(['categorie_pub' => 'Announcement'], ['date_creation_pub' => 'DESC']);
+        } else {
+            $publications = $publicationRepository->createQueryBuilder('p')
+                ->where('p.categorie_pub != :cat')
+                ->setParameter('cat', 'Announcement')
+                ->orderBy('p.date_creation_pub', 'DESC')
+                ->getQuery()
+                ->getResult();
         }
-        $authorIds = array_unique($authorIds);
 
+        // Fetch Authors' Profiles (Optimized)
         $profiles = [];
-        if (!empty($authorIds)) {
+        if (!empty($publications)) {
+            $authorIds = array_unique(array_map(fn($p) => $p->getUser()->getIdUser(), $publications));
             $profileEntities = $entityManager->getRepository(\App\Entity\Profile\Profile::class)
                 ->createQueryBuilder('p')
-                ->where('p.user IN (:ids)')
+                ->select('p', 'u')
+                ->join('p.user', 'u')
+                ->where('u.id_user IN (:ids)')
                 ->setParameter('ids', $authorIds)
                 ->getQuery()
                 ->getResult();
-
             foreach ($profileEntities as $profile) {
                 $profiles[$profile->getUser()->getIdUser()] = $profile;
             }
+        }
+
+        // Global counts & interactions
+        $globalCounts = [];
+        $userInteractions = ['reactions' => [], 'bookmarks' => [], 'reports' => []];
+
+        if (!empty($publications)) {
+            $pubIds = array_map(fn($p) => $p->getId(), $publications);
+            
+            // Re-add initialization to avoid undefined index errors
+            foreach ($pubIds as $pid) {
+                $globalCounts[$pid] = ['likes' => 0, 'dislikes' => 0, 'reports' => 0];
+            }
+
+            // Optimized global counts using aggregate queries
+            $reactionCounts = $entityManager->getRepository(\App\Entity\Forum\PublicationReaction::class)
+                ->createQueryBuilder('r')
+                ->select('IDENTITY(r.publication) as pubId, r.reaction_type, COUNT(r.id_pubreaction) as count')
+                ->where('r.publication IN (:ids)')
+                ->setParameter('ids', $pubIds)
+                ->groupBy('pubId, r.reaction_type')
+                ->getQuery()
+                ->getResult();
+            foreach ($reactionCounts as $rc) {
+                $pid = $rc['pubId'];
+                if ($rc['reaction_type'] === 'like') $globalCounts[$pid]['likes'] = (int)$rc['count'];
+                elseif ($rc['reaction_type'] === 'dislike') $globalCounts[$pid]['dislikes'] = (int)$rc['count'];
+            }
+
+            $reportCounts = $entityManager->getRepository(\App\Entity\Forum\PublicationReport::class)
+                ->createQueryBuilder('rep')
+                ->select('IDENTITY(rep.publication) as pubId, COUNT(rep.id_report) as count')
+                ->where('rep.publication IN (:ids)')
+                ->setParameter('ids', $pubIds)
+                ->groupBy('pubId')
+                ->getQuery()
+                ->getResult();
+            foreach ($reportCounts as $rc) {
+                $globalCounts[$rc['pubId']]['reports'] = (int)$rc['count'];
+            }
+
+            // User interactions (Optimized with partial selection)
+            if ($userEntity) {
+                // User Reactions
+                $userReactions = $entityManager->getRepository(\App\Entity\Forum\PublicationReaction::class)
+                    ->createQueryBuilder('r')
+                    ->select('IDENTITY(r.publication) as pubId, r.reaction_type')
+                    ->where('r.user = :user')
+                    ->andWhere('r.publication IN (:ids)')
+                    ->setParameter('user', $userEntity)
+                    ->setParameter('ids', $pubIds)
+                    ->getQuery()
+                    ->getScalarResult();
+                foreach ($userReactions as $ur) {
+                    $userInteractions['reactions'][$ur['pubId']] = $ur['reaction_type'];
+                }
+
+                // User Bookmarks
+                $userBookmarks = $entityManager->getRepository(\App\Entity\Forum\PublicationBookmark::class)
+                    ->createQueryBuilder('b')
+                    ->select('IDENTITY(b.publication) as pubId')
+                    ->where('b.user = :user')
+                    ->andWhere('b.publication IN (:ids)')
+                    ->setParameter('user', $userEntity)
+                    ->setParameter('ids', $pubIds)
+                    ->getQuery()
+                    ->getScalarResult();
+                foreach ($userBookmarks as $ub) {
+                    $userInteractions['bookmarks'][$ub['pubId']] = 'true';
+                }
+
+                // User Reports
+                $userReports = $entityManager->getRepository(\App\Entity\Forum\PublicationReport::class)
+                    ->createQueryBuilder('rep')
+                    ->select('IDENTITY(rep.publication) as pubId')
+                    ->where('rep.user = :user')
+                    ->andWhere('rep.publication IN (:ids)')
+                    ->setParameter('user', $userEntity)
+                    ->setParameter('ids', $pubIds)
+                    ->getQuery()
+                    ->getScalarResult();
+                foreach ($userReports as $urp) {
+                    $userInteractions['reports'][$urp['pubId']] = 'true';
+                }
+            }
+        }
+
+        // Return AJAX Response for Filtering
+        if ($request->query->has('ajax_filter')) {
+            return $this->json([
+                'success' => true,
+                'html' => $this->renderView('frontend/forum/_list_content.html.twig', [
+                    'publications' => $publications,
+                    'author_profiles' => $profiles,
+                    'globalCounts' => $globalCounts,
+                    'userInteractions' => $userInteractions,
+                ])
+            ]);
         }
 
         return $this->render('frontend/forum/index.html.twig', [
@@ -126,6 +236,9 @@ class ForumController extends AbstractController
             'author_profiles' => $profiles,
             'form' => $form->createView(),
             'currentUser' => $userSession,
+            'userInteractions' => $userInteractions,
+            'globalCounts' => $globalCounts,
+            'activeType' => $type,
         ]);
     }
 

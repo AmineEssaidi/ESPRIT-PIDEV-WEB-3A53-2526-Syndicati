@@ -398,6 +398,71 @@ class UserController extends AbstractController
             $appartements = $appartementRepository->findBy(['user' => $user]);
         }
 
+        // Fetch bookmarked publications for any user
+        $bookmarks = $em->getRepository(\App\Entity\Forum\PublicationBookmark::class)->findBy(['user' => $user]);
+        $bookmarkedPublications = array_map(fn($bm) => $bm->getPublication(), $bookmarks);
+
+        // --- Fetch Social Interactions & Counts ---
+        $userInteractions = [
+            'reactions' => [],
+            'bookmarks' => [],
+            'reports' => []
+        ];
+
+        $allProfilePubs = array_merge($publications, $bookmarkedPublications);
+        $pubIds = array_unique(array_map(fn($p) => $p->getId(), $allProfilePubs));
+
+        $globalCounts = [];
+        foreach ($pubIds as $id) {
+            $globalCounts[$id] = ['likes' => 0, 'dislikes' => 0, 'reports' => 0];
+        }
+
+        if (!empty($pubIds)) {
+            // Global Counts
+            $allReactions = $em->getRepository(\App\Entity\Forum\PublicationReaction::class)
+                ->createQueryBuilder('r')
+                ->where('r.publication IN (:ids)')
+                ->setParameter('ids', $pubIds)
+                ->getQuery()
+                ->getResult();
+            
+            foreach ($allReactions as $r) {
+                if ($r->getReactionType() === 'like') $globalCounts[$r->getPublication()->getId()]['likes']++;
+                elseif ($r->getReactionType() === 'dislike') $globalCounts[$r->getPublication()->getId()]['dislikes']++;
+            }
+
+            $allReports = $em->getRepository(\App\Entity\Forum\PublicationReport::class)
+                ->createQueryBuilder('rep')
+                ->where('rep.publication IN (:ids)')
+                ->setParameter('ids', $pubIds)
+                ->getQuery()
+                ->getResult();
+            
+            foreach ($allReports as $rep) {
+                $globalCounts[$rep->getPublication()->getId()]['reports']++;
+            }
+
+            // User Specific states
+            if ($user) {
+                $reactions = $em->getRepository(\App\Entity\Forum\PublicationReaction::class)->findBy(['user' => $user, 'publication' => $pubIds]);
+                foreach ($reactions as $r) {
+                    $userInteractions['reactions'][$r->getPublication()->getId()] = $r->getReactionType();
+                }
+
+                $bookmarksUser = $em->getRepository(\App\Entity\Forum\PublicationBookmark::class)->findBy(['user' => $user, 'publication' => $pubIds]);
+                foreach ($bookmarksUser as $b) {
+                    $userInteractions['bookmarks'][$b->getPublication()->getId()] = true;
+                }
+
+                $reportsUser = $em->getRepository(\App\Entity\Forum\PublicationReport::class)->findBy(['user' => $user, 'publication' => $pubIds]);
+                foreach ($reportsUser as $rep) {
+                    $userInteractions['reports'][$rep->getPublication()->getId()] = true;
+                }
+            }
+        }
+
+        $sessionUser = $request->getSession()->get('user');
+
         $response = $this->render('frontend/profile/profile.html.twig', [
             'user' => $user,
             'profile' => $profile,
@@ -406,9 +471,13 @@ class UserController extends AbstractController
             'onboardingForm' => $onboardingFormView,
             'reclamations' => $reclamations,
             'publications' => $publications,
+            'bookmarkedPublications' => $bookmarkedPublications,
             'events' => $events,
             'appartements' => $appartements,
             'isAdmin' => $isAdmin,
+            'globalCounts' => $globalCounts,
+            'userInteractions' => $userInteractions,
+            'currentUser' => $sessionUser,
         ]);
         $response->setPrivate();
         $response->setMaxAge(0);

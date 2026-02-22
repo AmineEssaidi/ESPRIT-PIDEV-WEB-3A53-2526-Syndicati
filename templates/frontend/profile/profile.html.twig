@@ -314,6 +314,167 @@
             background: rgba(255, 255, 255, 0.2);
             transform: rotate(90deg);
         }
+
+        /* Forum Sub-nav Styles */
+        .forum-sub-nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 0.4rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            width: fit-content;
+        }
+
+        .forum-sub-nav-pill {
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .forum-sub-nav-pill:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .forum-sub-nav-pill.active {
+            background: rgba(var(--syndicat-accent-rgb), 0.1);
+            color: var(--syndicat-accent);
+            border-color: rgba(var(--syndicat-accent-rgb), 0.2);
+        }
+
+        .forum-content-section {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+        }
+
+        .forum-content-section.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Profile Social Action Buttons */
+        .action-btn-profile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .action-btn-profile:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .action-btn-profile.active.like {
+            background: rgba(46, 213, 115, 0.15);
+            border-color: rgba(46, 213, 115, 0.3);
+            color: #2ed573;
+            box-shadow: 0 4px 15px rgba(46, 213, 115, 0.2);
+        }
+
+        .action-btn-profile.active.dislike {
+            background: rgba(255, 71, 87, 0.15);
+            border-color: rgba(255, 71, 87, 0.3);
+            color: #ff4757;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.2);
+        }
+
+        /* Publication Stats Preview */
+        .publication-stats-preview {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            padding: 0 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 0;
+        }
+
+        .publication-stats-preview.active {
+            max-height: 200px;
+            opacity: 1;
+            padding: 1.2rem;
+            margin-top: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .action-btn-profile.active.bookmark {
+            background: rgba(33, 150, 243, 0.15);
+            border-color: rgba(33, 150, 243, 0.3);
+            color: #2196f3;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
+        }
+
+        .action-btn-profile.active.signal {
+            background: rgba(255, 152, 0, 0.15);
+            border-color: rgba(255, 152, 0, 0.3);
+            color: #ff9800;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.2);
+        }
+
+        /* Comment Specific Actions */
+        .btn-comment-action {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 0.35rem 0.75rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .btn-comment-action:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-comment-action.active.btn-comment-like {
+            background: rgba(46, 213, 115, 0.1);
+            color: #2ed573;
+            border-color: rgba(46, 213, 115, 0.3);
+        }
+
+        .btn-comment-action.active.btn-comment-dislike {
+            background: rgba(255, 71, 87, 0.1);
+            color: #ff4757;
+            border-color: rgba(255, 71, 87, 0.3);
+        }
+
+        .btn-comment-action.active.btn-comment-signal {
+            background: rgba(255, 152, 0, 0.1);
+            color: #ff9800;
+            border-color: rgba(255, 152, 0, 0.3);
+        }
     </style>
     <style>
         /* Essential for scrolling: make form a flex container */
@@ -653,8 +814,16 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="main-home-profile-card">
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                    <h3 class="main-home-card-title"><i class="bx bx-message-square-detail"></i> Your Forum Activity</h3>
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+                                    <h3 class="main-home-card-title mb-0"><i class="bx bx-message-square-detail"></i> Forum Activity</h3>
+                                    <div class="forum-sub-nav">
+                                        <div class="forum-sub-nav-pill active" data-forum-tab="my-posts">
+                                            My Posts
+                                        </div>
+                                        <div class="forum-sub-nav-pill" data-forum-tab="bookmarked-posts">
+                                            Bookmarked
+                                        </div>
+                                    </div>
                                     {% if isAdmin %}
                                         <div class="admin-toggle-wrapper d-flex align-items-center gap-2 p-1 rounded-pill" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
                                             <button type="button" class="btn btn-sm rounded-pill px-3 py-1 admin-forum-filter-btn btn-outline-light" data-filter="my" style="font-size: 0.75rem; font-weight: 600; transition: all 0.2s;">My Own</button>
@@ -663,47 +832,177 @@
                                     {% endif %}
                                 </div>
                                 <div class="main-home-card-content">
-                                    {% if publications|length > 0 %}
-                                        <div id="forum-publications-container">
-                                            <div class="forum-publication-list">
-                                                {% for pub in publications %}
-                                                    <div class="publication-item mb-3" data-publication-id="{{ pub.id }}" data-user-id="{{ pub.user ? pub.user.idUser : '0' }}" data-bs-toggle="modal" data-bs-target="#publicationModal-{{ pub.id }}" style="cursor: pointer;">
-                                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                                                            <div class="d-flex align-items-center gap-3">
-                                                                <div style="width: 50px; height: 50px; background: rgba(var(--syndicat-accent-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                                                    <i class="bx bx-message-square-dots" style="font-size: 1.5rem; color: var(--syndicat-accent);"></i>
+                                    <!-- My Posts Section -->
+                                    <div id="forum-sec-my-posts" class="forum-content-section active">
+                                        {% if publications|length > 0 %}
+                                            <div id="forum-publications-container">
+                                                <div class="forum-publication-list">
+                                                    {% for pub in publications %}
+                                                        <div class="my-publication-item publication-item mb-3" 
+                                                             data-publication-id="{{ pub.id }}" 
+                                                             data-user-id="{{ pub.user ? pub.user.idUser : '0' }}" 
+                                                             data-bs-toggle="modal" 
+                                                             data-bs-target="#publicationModal-{{ pub.id }}" 
+                                                             style="cursor: pointer;"
+                                                             data-user-reaction="{{ userInteractions.reactions[pub.id] ?? '' }}"
+                                                             data-user-bookmark="{{ userInteractions.bookmarks[pub.id] ?? 'false' }}"
+                                                             data-user-report="{{ userInteractions.reports[pub.id] ?? 'false' }}"
+                                                             data-count-like="{{ globalCounts[pub.id].likes ?? 0 }}"
+                                                             data-count-dislike="{{ globalCounts[pub.id].dislikes ?? 0 }}"
+                                                             data-count-report="{{ globalCounts[pub.id].reports ?? 0 }}"
+                                                             data-token="{{ csrf_token('delete' ~ pub.id) }}">
+                                                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                                                <div class="d-flex align-items-center gap-3">
+                                                                    <div style="width: 50px; height: 50px; background: rgba(var(--syndicat-accent-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                                        <i class="bx bx-message-square-dots" style="font-size: 1.5rem; color: var(--syndicat-accent);"></i>
+                                                                    </div>
+                                                                    <div>
+                                                                        <h5 class="mb-1" style="font-weight: 700;">{{ pub.titrePub }}</h5>
+                                                                        <p class="reclamation-status-text mb-0"><i class="bx bx-calendar"></i> Posted on {{ pub.dateCreationPub|date('d M Y') }}</p>
+                                                                    </div>
                                                                 </div>
-                                                                <div>
-                                                                    <h5 class="mb-1" style="font-weight: 700;">{{ pub.titrePub }}</h5>
-                                                                    <p class="reclamation-status-text mb-0"><i class="bx bx-calendar"></i> Posted on {{ pub.dateCreationPub|date('d M Y') }}</p>
+                                                                <div class="d-flex align-items-center gap-3">
+                                                                    <span class="status-badge" style="background: rgba(var(--syndicat-accent-rgb), 0.1); color: var(--syndicat-accent); padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border: 1px solid rgba(var(--syndicat-accent-rgb), 0.2);">
+                                                                        {{ pub.categoriePub }}
+                                                                    </span>
+                                                                    <i class="bx bx-chevron-right text-muted" style="font-size: 1.5rem;"></i>
                                                                 </div>
                                                             </div>
-                                                            <div class="d-flex align-items-center gap-3">
-                                                                <span class="status-badge" style="background: rgba(var(--syndicat-accent-rgb), 0.1); color: var(--syndicat-accent); padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border: 1px solid rgba(var(--syndicat-accent-rgb), 0.2);">
-                                                                    {{ pub.categoriePub }}
-                                                                </span>
-                                                                <i class="bx bx-chevron-right text-muted" style="font-size: 1.5rem;"></i>
+                                                            <div class="mt-3">
+                                                                <p class="publication-desc-text mb-3">{{ pub.descriptionPub|slice(0, 150) }}{{ pub.descriptionPub|length > 150 ? '...' : '' }}</p>
+                                                                
+                                                                <div class="d-flex align-items-center gap-2 mb-3">
+                                                                    <div class="d-flex align-items-center gap-1 text-white-50 small p-2 rounded-3" style="background: rgba(255,255,255,0.03);">
+                                                                        <i class='bx bx-like {% if (userInteractions.reactions[pub.id] ?? '') == 'like' %}text-primary{% endif %}'></i>
+                                                                        <span>{{ globalCounts[pub.id].likes ?? 0 }}</span>
+                                                                    </div>
+                                                                    <div class="d-flex align-items-center gap-1 text-white-50 small p-2 rounded-3" style="background: rgba(255,255,255,0.03);">
+                                                                        <i class='bx bx-dislike {% if (userInteractions.reactions[pub.id] ?? '') == 'dislike' %}text-danger{% endif %}'></i>
+                                                                        <span>{{ globalCounts[pub.id].dislikes ?? 0 }}</span>
+                                                                    </div>
+                                                                    <div style="flex: 1;"></div>
+                                                                    <button class="action-btn-profile py-1 px-3 stats-btn-toggle" onclick="toggleStats(event, {{ pub.id }})" title="View Statistics" style="font-size: 0.8rem; height: 32px; border-radius: 8px;">
+                                                                        <i class='bx bx-stats'></i> Details Stats
+                                                                    </button>
+                                                                    <button class="action-btn-profile py-1 px-3 text-danger" onclick="deleteProfilePublication(event, {{ pub.id }})" title="Delete Publication" style="font-size: 0.8rem; height: 32px; border-radius: 8px; background: rgba(255, 59, 48, 0.1); border-color: rgba(255, 59, 48, 0.2);">
+                                                                        <i class='bx bx-trash'></i>
+                                                                    </button>
+                                                                </div>
+
+                                                                {% set likes = globalCounts[pub.id].likes ?? 0 %}
+                                                                {% set dislikes = globalCounts[pub.id].dislikes ?? 0 %}
+                                                                {% set total = likes + dislikes %}
+                                                                {% set likePercent = total > 0 ? (likes / total * 100)|round : 0 %}
+                                                                {% set dislikePercent = total > 0 ? (dislikes / total * 100)|round : 0 %}
+
+                                                                <div id="stats-{{ pub.id }}" class="publication-stats-preview">
+                                                                    <div class="d-flex justify-content-between mb-2 small fw-bold">
+                                                                        <span class="text-primary"><i class='bx bx-like'></i> {{ likePercent }}% Likes</span>
+                                                                        <span class="text-danger">{{ dislikePercent }}% Dislikes <i class='bx bx-dislike'></i></span>
+                                                                    </div>
+                                                                    <div class="progress" style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+                                                                        <div class="progress-bar" role="progressbar" style="width: {{ likePercent }}%; background: linear-gradient(90deg, #2ed573, #7bed9f);" aria-valuenow="{{ likePercent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                                        <div class="progress-bar" role="progressbar" style="width: {{ dislikePercent }}%; background: linear-gradient(90deg, #ff6b81, #ff4757);" aria-valuenow="{{ dislikePercent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                                    </div>
+                                                                    {% if total == 0 %}
+                                                                        <p class="text-white-50 small mt-3 mb-0 text-center" style="font-style: italic;"><i class='bx bx-info-circle'></i> No reactions yet to calculate statistics.</p>
+                                                                    {% endif %}
+                                                                </div>
+
+                                                                {% if pub.imagePub %}
+                                                                    <div class="reclamation-image-preview" style="width: 80px; height: 80px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="event.stopPropagation();">
+                                                                        <img src="{{ asset('forum_images/' ~ pub.imagePub) }}" alt="Publication Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="event.stopPropagation(); openLightbox(this.src)">
+                                                                    </div>
+                                                                {% endif %}
                                                             </div>
                                                         </div>
-                                                        <div class="mt-3">
-                                                            <p class="publication-desc-text mb-3">{{ pub.descriptionPub|slice(0, 150) }}{{ pub.descriptionPub|length > 150 ? '...' : '' }}</p>
-                                                            
-                                                            {% if pub.imagePub %}
-                                                                <div class="reclamation-image-preview" style="width: 80px; height: 80px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="event.stopPropagation();">
-                                                                    <img src="{{ asset('forum_images/' ~ pub.imagePub) }}" alt="Publication Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="event.stopPropagation(); openLightbox(this.src)">
-                                                                </div>
-                                                            {% endif %}
-                                                        </div>
-                                                    </div>
-                                                {% endfor %}
+                                                    {% endfor %}
+                                                </div>
+                                                <div id="forum-my-posts-pagination" class="reclamation-pagination"></div>
                                             </div>
-                                            <div id="forum-pagination" class="reclamation-pagination"></div>
-                                        </div>
-                                    {% else %}
-                                        <div class="text-center py-5">
-                                            <p class="text-muted">No publications found.</p>
-                                        </div>
-                                    {% endif %}
+                                        {% else %}
+                                            <div class="text-center py-5">
+                                                <div class="opacity-25 mb-3"><i class='bx bx-message-square-x' style="font-size: 4rem;"></i></div>
+                                                <p class="text-muted">You haven't posted anything yet.</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Bookmarked Posts Section -->
+                                    <div id="forum-sec-bookmarked-posts" class="forum-content-section">
+                                        {% if bookmarkedPublications|length > 0 %}
+                                            <div id="forum-bookmarked-container">
+                                                <div class="forum-publication-list">
+                                                    {% for pub in bookmarkedPublications %}
+                                                        <div class="bookmarked-publication-item publication-item mb-3" 
+                                                             data-publication-id="{{ pub.id }}" 
+                                                             data-bs-toggle="modal" 
+                                                             data-bs-target="#publicationModal-{{ pub.id }}" 
+                                                             style="cursor: pointer;"
+                                                             data-user-reaction="{{ userInteractions.reactions[pub.id] ?? '' }}"
+                                                             data-user-bookmark="{{ userInteractions.bookmarks[pub.id] ?? 'false' }}"
+                                                             data-user-report="{{ userInteractions.reports[pub.id] ?? 'false' }}"
+                                                             data-count-like="{{ globalCounts[pub.id].likes ?? 0 }}"
+                                                             data-count-dislike="{{ globalCounts[pub.id].dislikes ?? 0 }}"
+                                                             data-count-report="{{ globalCounts[pub.id].reports ?? 0 }}"
+                                                             data-token="{{ csrf_token('delete' ~ pub.id) }}">
+                                                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                                                <div class="d-flex align-items-center gap-3">
+                                                                    <div style="width: 50px; height: 50px; background: rgba(33, 150, 243, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                                        <i class="bx bxs-bookmark" style="font-size: 1.5rem; color: #2196f3;"></i>
+                                                                    </div>
+                                                                    <div>
+                                                                        <h5 class="mb-1" style="font-weight: 700;">{{ pub.titrePub }}</h5>
+                                                                        <div class="d-flex align-items-center gap-2">
+                                                                            <p class="reclamation-status-text mb-0"><i class="bx bx-user"></i> {{ pub.user.firstName }} {{ pub.user.lastName }}</p>
+                                                                            <span class="text-muted opacity-25">•</span>
+                                                                            <p class="reclamation-status-text mb-0"><i class="bx bx-calendar"></i> {{ pub.dateCreationPub|date('d M Y') }}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="d-flex align-items-center gap-3">
+                                                                    <span class="status-badge" style="background: rgba(33, 150, 243, 0.1); color: #2196f3; padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border: 1px solid rgba(33, 150, 243, 0.2);">
+                                                                        {{ pub.categoriePub }}
+                                                                    </span>
+                                                                    {% if pub.user.idUser == user.idUser %}
+                                                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-3" 
+                                                                                onclick="deleteProfilePublication(event, {{ pub.id }})"
+                                                                                title="Delete My Post">
+                                                                            <i class="bx bx-trash"></i>
+                                                                        </button>
+                                                                    {% endif %}
+                                                                    <i class="bx bx-chevron-right text-muted" style="font-size: 1.5rem;"></i>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mt-3">
+                                                                <p class="publication-desc-text mb-3">{{ pub.descriptionPub|slice(0, 150) }}{{ pub.descriptionPub|length > 150 ? '...' : '' }}</p>
+                                                                
+                                                                <div class="d-flex align-items-center gap-3 mb-2">
+                                                                    <div class="d-flex align-items-center gap-1 text-white-50 small">
+                                                                        <i class='bx bx-like {% if (userInteractions.reactions[pub.id] ?? '') == 'like' %}text-primary{% endif %}'></i>
+                                                                        <span>{{ globalCounts[pub.id].likes ?? 0 }}</span>
+                                                                    </div>
+                                                                    <div class="d-flex align-items-center gap-1 text-white-50 small">
+                                                                        <i class='bx bx-dislike {% if (userInteractions.reactions[pub.id] ?? '') == 'dislike' %}text-danger{% endif %}'></i>
+                                                                        <span>{{ globalCounts[pub.id].dislikes ?? 0 }}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                                <div id="forum-bookmarked-pagination" class="reclamation-pagination"></div>
+                                            </div>
+                                        {% else %}
+                                            <div class="text-center py-5">
+                                                <div class="opacity-25 mb-3"><i class='bx bx-bookmark-plus' style="font-size: 4rem;"></i></div>
+                                                <p class="text-muted">You haven't bookmarked any posts yet.</p>
+                                                <a href="{{ path('frontend_forum') }}" class="main-home-btn main-home-btn-primary mt-3" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                                                    <i class="bx bx-search"></i> Explore the Forum
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1790,7 +2089,16 @@ function attachReplyHandler(recId) {
 </div>
 
 {# --- Forum Publication Modals --- #}
-{% for pub in publications %}
+{% set all_modal_pubs = [] %}
+{% set seen_ids = [] %}
+{% for pub in publications|merge(bookmarkedPublications) %}
+    {% if pub.id not in seen_ids %}
+        {% set all_modal_pubs = all_modal_pubs|merge([pub]) %}
+        {% set seen_ids = seen_ids|merge([pub.id]) %}
+    {% endif %}
+{% endfor %}
+
+{% for pub in all_modal_pubs %}
     <!-- View Publication Modal -->
     <div class="modal fade" id="publicationModal-{{ pub.id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -1827,6 +2135,26 @@ function attachReplyHandler(recId) {
                                      onclick="openLightbox(this.src)">
                             </div>
                         {% endif %}
+                    </div>
+
+                    <!-- Social Actions in Modal -->
+                    <div class="modal-social-actions d-flex gap-2 mb-4 p-3 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                        <button class="action-btn-profile social-btn-profile like {% if (userInteractions.reactions[pub.id] ?? '') == 'like' %}active{% endif %}" 
+                                data-action="react" data-type="like" data-pub-id="{{ pub.id }}" title="Like">
+                            <i class='bx bx-like'></i> <span class="count-like-{{ pub.id }} ms-1">{{ globalCounts[pub.id].likes ?? 0 }}</span>
+                        </button>
+                        <button class="action-btn-profile social-btn-profile dislike {% if (userInteractions.reactions[pub.id] ?? '') == 'dislike' %}active{% endif %}" 
+                                data-action="react" data-type="dislike" data-pub-id="{{ pub.id }}" title="Dislike">
+                            <i class='bx bx-dislike'></i> <span class="count-dislike-{{ pub.id }} ms-1">{{ globalCounts[pub.id].dislikes ?? 0 }}</span>
+                        </button>
+                        <button class="action-btn-profile social-btn-profile bookmark {% if userInteractions.bookmarks[pub.id] ?? false %}active{% endif %}" 
+                                data-action="bookmark" data-pub-id="{{ pub.id }}" title="Bookmark">
+                            <i class='bx {% if userInteractions.bookmarks[pub.id] ?? false %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
+                        </button>
+                        <button class="action-btn-profile social-btn-profile signal {% if userInteractions.reports[pub.id] ?? false %}active{% endif %}" 
+                                data-action="report" data-pub-id="{{ pub.id }}" title="Signal">
+                            <i class='bx bx-flag'></i> <span class="count-report-{{ pub.id }} ms-1">{{ globalCounts[pub.id].reports ?? 0 }}</span>
+                        </button>
                     </div>
 
                     <div class="discussion-section" style="background: rgba(255,255,255,0.02); border-radius: 16px; padding: 1.5rem; border: 1px solid rgba(255,255,255,0.05);">
@@ -2159,24 +2487,24 @@ document.addEventListener('DOMContentLoaded', function() {
         window.initializeReclamationPagination();
     }
 
-    // --- Forum Pagination & Filtering ---
-    const allForumItems = Array.from(document.querySelectorAll('.publication-item'));
-    const forumPaginationContainer = document.getElementById('forum-pagination');
+    // --- Forum: My Posts Pagination ---
+    const allMyForumItems = Array.from(document.querySelectorAll('.my-publication-item'));
+    const myForumPaginationContainer = document.getElementById('forum-my-posts-pagination');
     let currentForumAdminFilter = isAdmin ? 'all' : 'my';
 
-    window.initializeForumPagination = function() {
+    window.initializeMyPostsPagination = function() {
         try {
-            const filteredItems = allForumItems.filter(item => {
+            const filteredItems = allMyForumItems.filter(item => {
                 if (currentForumAdminFilter === 'all') return true;
                 return item.dataset.userId == currentUserId;
             });
 
-            allForumItems.forEach(item => {
+            allMyForumItems.forEach(item => {
                 item.style.display = 'none';
                 item.classList.remove('active');
             });
 
-            if (!forumPaginationContainer) {
+            if (!myForumPaginationContainer) {
                 filteredItems.forEach(item => {
                     item.style.display = 'block';
                     setTimeout(() => item.classList.add('active'), 10);
@@ -2184,7 +2512,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            forumPaginationContainer.innerHTML = '';
+            myForumPaginationContainer.innerHTML = '';
             if (filteredItems.length === 0) return;
 
             if (filteredItems.length <= itemsPerPage) {
@@ -2196,22 +2524,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-            
-            function showForumPage(page) {
+            function showPage(page) {
                 const start = (page - 1) * itemsPerPage;
                 const end = start + itemsPerPage;
-                
-                filteredItems.forEach(item => {
-                    item.style.display = 'none';
-                    item.classList.remove('active');
-                });
-
+                filteredItems.forEach(item => { item.style.display = 'none'; item.classList.remove('active'); });
                 filteredItems.slice(start, end).forEach(item => {
                     item.style.display = 'block';
                     setTimeout(() => item.classList.add('active'), 10);
                 });
-
-                forumPaginationContainer.querySelectorAll('.pagination-pill').forEach(pill => {
+                myForumPaginationContainer.querySelectorAll('.pagination-pill').forEach(pill => {
                     pill.classList.toggle('active', parseInt(pill.dataset.page) === page);
                 });
             }
@@ -2222,19 +2543,97 @@ document.addEventListener('DOMContentLoaded', function() {
                 pill.textContent = i;
                 pill.dataset.page = i;
                 if (i === 1) pill.classList.add('active');
-                
-                pill.addEventListener('click', () => {
-                    showForumPage(i);
-                    document.getElementById('tab-forum').scrollIntoView({ behavior: 'smooth', block: 'start' });
-                });
-                
-                forumPaginationContainer.appendChild(pill);
+                pill.addEventListener('click', () => { showPage(i); document.getElementById('tab-forum').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+                myForumPaginationContainer.appendChild(pill);
             }
-            showForumPage(1);
-        } catch (e) { console.error("Forum Pagination Error:", e); }
+            showPage(1);
+        } catch (e) { console.error("My Posts Pagination Error:", e); }
     };
 
-    window.initializeForumPagination();
+    // --- Forum: Bookmarked Posts Pagination ---
+    const allBookmarkedForumItems = Array.from(document.querySelectorAll('.bookmarked-publication-item'));
+    const bookmarkedPaginationContainer = document.getElementById('forum-bookmarked-pagination');
+
+    window.initializeBookmarkedPagination = function() {
+        try {
+            // Bookmarks are NOT filtered by user ID (they belong to current user anyway)
+            const filteredItems = allBookmarkedForumItems;
+
+            allBookmarkedForumItems.forEach(item => {
+                item.style.display = 'none';
+                item.classList.remove('active');
+            });
+
+            if (!bookmarkedPaginationContainer) {
+                filteredItems.forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+                return;
+            }
+
+            bookmarkedPaginationContainer.innerHTML = '';
+            if (filteredItems.length === 0) return;
+
+            if (filteredItems.length <= itemsPerPage) {
+                filteredItems.forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+                return;
+            }
+
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+            function showPage(page) {
+                const start = (page - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                filteredItems.forEach(item => { item.style.display = 'none'; item.classList.remove('active'); });
+                filteredItems.slice(start, end).forEach(item => {
+                    item.style.display = 'block';
+                    setTimeout(() => item.classList.add('active'), 10);
+                });
+                bookmarkedPaginationContainer.querySelectorAll('.pagination-pill').forEach(pill => {
+                    pill.classList.toggle('active', parseInt(pill.dataset.page) === page);
+                });
+            }
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pill = document.createElement('div');
+                pill.className = 'pagination-pill';
+                pill.textContent = i;
+                pill.dataset.page = i;
+                if (i === 1) pill.classList.add('active');
+                pill.addEventListener('click', () => { showPage(i); document.getElementById('tab-forum').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+                bookmarkedPaginationContainer.appendChild(pill);
+            }
+            showPage(1);
+        } catch (e) { console.error("Bookmarked Pagination Error:", e); }
+    };
+
+    window.initializeMyPostsPagination();
+    window.initializeBookmarkedPagination();
+    
+    // --- Forum Sub-nav Switching Logic ---
+    const forumSubNavPills = document.querySelectorAll('.forum-sub-nav-pill');
+    const forumContentSections = document.querySelectorAll('.forum-content-section');
+
+    forumSubNavPills.forEach(pill => {
+        pill.addEventListener('click', function() {
+            const targetTab = this.dataset.forumTab;
+            
+            // Update pills
+            forumSubNavPills.forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update sections
+            forumContentSections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === `forum-sec-${targetTab}`) {
+                    section.classList.add('active');
+                }
+            });
+        });
+    });
 
     // --- Events Pagination & Filtering ---
     const allEventItems = Array.from(document.querySelectorAll('.event-item'));
@@ -2313,6 +2712,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.initializeEventsPagination();
 
+    window.handleCommentAction = async function (pubId, commentId, action, type = null) {
+        let url = `/forum/action/comment/${action}/${commentId}`;
+        if (type) url += `/${type}`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                // Update Comment UI
+                const commentEl = document.querySelector(`.comment-item[data-id="${commentId}"]`);
+                if (commentEl) {
+                    const btnLike = commentEl.querySelector('.btn-comment-like');
+                    const btnDislike = commentEl.querySelector('.btn-comment-dislike');
+                    const btnSignal = commentEl.querySelector('.btn-comment-signal');
+
+                    if (action === 'react') {
+                        if (type === 'like') {
+                            btnLike.classList.toggle('active');
+                            btnDislike.classList.remove('active');
+                        } else if (type === 'dislike') {
+                            btnDislike.classList.toggle('active');
+                            btnLike.classList.remove('active');
+                        }
+                    } else if (action === 'report') {
+                        btnSignal.classList.toggle('active');
+                    }
+
+                    // Update Counts
+                    if (data.counts) {
+                        const countLike = commentEl.querySelector('.count-comment-like');
+                        const countDislike = commentEl.querySelector('.count-comment-dislike');
+                        const countReport = commentEl.querySelector('.count-comment-report');
+
+                        if (countLike && data.counts.likes !== undefined) countLike.textContent = data.counts.likes;
+                        if (countDislike && data.counts.dislikes !== undefined) countDislike.textContent = data.counts.dislikes;
+                        if (countReport && data.counts.reports !== undefined) countReport.textContent = data.counts.reports;
+                    }
+                }
+                // window.showCoolPopup('Success', data.message, 'success');
+            } else {
+                // window.showCoolPopup('Information', data.message, 'info');
+            }
+        } catch (err) {
+            console.error('Comment AJAX Error:', err);
+        }
+    };
 
     window.loadComments = function(publicationId, isSilent = false) {
         const list = document.getElementById(`comments-list-${publicationId}`);
@@ -2350,25 +2799,72 @@ document.addEventListener('DOMContentLoaded', function() {
                         const isMe = c.isOwner;
                         const avatar = c.author.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face';
                         return `
-                            <div class="d-flex w-100 ${isMe ? 'justify-content-end' : 'justify-content-start'}">
-                                <div class="d-flex flex-column ${isMe ? 'align-items-end' : 'align-items-start'}" style="max-width: 80%;">
-                                    <div class="d-flex align-items-center gap-2 mb-1 px-1">
-                                        <div class="details-author-avatar" style="width: 24px; height: 24px;">
-                                            <img src="${avatar}" alt="${c.author.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;" loading="lazy">
+                            <div class="comment-item p-3 mb-3 rounded-4" data-id="${c.id}" style="background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05);">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="details-author-avatar" style="width: 32px; height: 32px;">
+                                            <img src="${avatar}" alt="${c.author.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" loading="lazy">
                                         </div>
-                                        <small class="text-secondary" style="font-size: 0.75rem;">${c.author.name}</small>
-                                        <small class="text-secondary opacity-50" style="font-size: 0.7rem;">${c.createdAt}</small>
+                                        <div>
+                                            <strong class="text-white d-block" style="line-height:1.2;">${c.author.name}</strong>
+                                            <small class="text-secondary opacity-50" style="font-size: 0.75rem;">${c.createdAt}</small>
+                                        </div>
                                     </div>
-                                    <div class="card border-0 shadow-sm p-3 ${isMe ? 'bg-primary text-white' : 'border border-secondary border-opacity-25 text-light'}" 
-                                         style="border-radius: 18px; ${isMe ? 'border-bottom-right-radius: 4px;' : 'border-bottom-left-radius: 4px; background-color: #111;'}">
-                                        <p class="mb-0" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5;">${c.description}</p>
-                                        ${c.image ? `
-                                            <div class="mt-2 pt-2 border-top border-white border-opacity-10">
-                                                <img src="${c.image}" class="rounded-3" style="max-height: 150px; cursor: pointer;" onclick="openLightbox('${c.image}')" loading="lazy">
-                                            </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="d-flex align-items-center gap-1">
+                                            <button class="btn-comment-action btn-comment-like ${c.userInteraction.reaction === 'like' ? 'active' : ''}" 
+                                                    onclick="handleCommentAction(${publicationId}, ${c.id}, 'react', 'like')">
+                                                <i class='bx bx-like'></i> <span class="count-comment-like">${c.counts.likes}</span>
+                                            </button>
+                                            <button class="btn-comment-action btn-comment-dislike ${c.userInteraction.reaction === 'dislike' ? 'active' : ''}" 
+                                                    onclick="handleCommentAction(${publicationId}, ${c.id}, 'react', 'dislike')">
+                                                <i class='bx bx-dislike'></i> <span class="count-comment-dislike">${c.counts.dislikes}</span>
+                                            </button>
+                                        </div>
+                                        <button class="btn-comment-action btn-comment-signal ${c.userInteraction.isReported ? 'active' : ''}" 
+                                                onclick="handleCommentAction(${publicationId}, ${c.id}, 'report')">
+                                            <i class='bx bx-flag'></i> <span class="count-comment-report d-none">${c.counts.reports}</span>
+                                        </button>
+                                        ${c.canEdit ? `
+                                            <button class="btn-comment-action text-info" title="Edit Comment"
+                                                    onclick="handleCommentEditToggle(${publicationId}, ${c.id})">
+                                                <i class='bx bx-edit-alt'></i>
+                                            </button>
+                                        ` : ''}
+                                        ${c.canDelete ? `
+                                            <button class="btn-comment-action text-danger" title="Delete Comment"
+                                                    onclick="deleteForumComment(${c.id}, '${c.deleteToken}', ${publicationId})">
+                                                <i class='bx bx-trash'></i>
+                                            </button>
                                         ` : ''}
                                     </div>
                                 </div>
+                                <div id="comment-text-${c.id}" class="text-white-50 ps-1 mt-2 comment-body-text" style="font-size: 0.95rem; line-height: 1.5;">${c.description}</div>
+                                <div id="comment-edit-zone-${c.id}" class="mt-2 d-none">
+                                    <textarea id="comment-textarea-${c.id}" class="glass-textarea w-100 mb-2" rows="3" style="background: rgba(0,0,0,0.2) !important;">${c.description}</textarea>
+                                    
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <label for="edit-image-${c.id}" class="btn btn-sm btn-outline-light" style="font-size: 0.8rem;">
+                                            <i class='bx bx-image-add'></i> ${c.image ? 'Change Photo' : 'Add Photo'}
+                                        </label>
+                                        <input type="file" id="edit-image-${c.id}" class="d-none edit-comment-image" accept="image/*" onchange="previewEditImage(this, ${c.id})">
+                                        <div id="edit-image-preview-container-${c.id}" class="${c.image ? '' : 'd-none'}">
+                                            <img id="edit-image-preview-${c.id}" src="${c.image || ''}" style="height: 40px; width: 40px; border-radius: 6px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);">
+                                            <button class="btn btn-sm btn-link text-danger p-0 ms-1" onclick="clearEditImage(${c.id})"><i class='bx bx-x'></i></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <input type="hidden" id="edit-token-${c.id}" value="${c.canEdit ? c.editToken || '' : ''}">
+                                        <button class="btn btn-sm btn-outline-light" onclick="handleCommentEditToggle(${publicationId}, ${c.id})">Cancel</button>
+                                        <button class="btn btn-sm btn-primary" onclick="handleCommentSave(${publicationId}, ${c.id})">Save</button>
+                                    </div>
+                                </div>
+                                ${c.image ? `
+                                    <div class="mt-2 pt-2 border-top border-white border-opacity-10">
+                                        <img src="${c.image}" class="rounded-3" style="max-height: 150px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);" onclick="openLightbox('${c.image}')" loading="lazy">
+                                    </div>
+                                ` : ''}
                             </div>`;
                     }).join('');
 
@@ -2804,6 +3300,186 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = original; });
     });
 
+    window.deleteForumComment = async function(commentId, token, pubId) {
+        if (!confirm('Are you sure you want to delete this comment?')) return;
+        const formData = new FormData();
+        formData.append('_token', token);
+        try {
+            const res = await fetch(`/forum/comment/delete/${commentId}`, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.loadComments(pubId, true);
+            } else {
+                if (window.showCoolPopup) window.showCoolPopup('Error', data.message || 'Deletion failed', 'error');
+                else alert(data.message || 'Deletion failed');
+            }
+        } catch (err) {
+            console.error('Comment Delete Error:', err);
+        }
+    };
+
+    window.handleCommentEditToggle = function(pubId, commentId) {
+        const text = document.getElementById(`comment-text-${commentId}`);
+        const editZone = document.getElementById(`comment-edit-zone-${commentId}`);
+        if (text && editZone) {
+            text.classList.toggle('d-none');
+            editZone.classList.toggle('d-none');
+            if (!editZone.classList.contains('d-none')) {
+                document.getElementById(`comment-textarea-${commentId}`).focus();
+            }
+        }
+    };
+
+    window.previewEditImage = function(input, commentId) {
+        const container = document.getElementById(`edit-image-preview-container-${commentId}`);
+        const img = document.getElementById(`edit-image-preview-${commentId}`);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                container.classList.remove('d-none');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+
+    window.clearEditImage = function(commentId) {
+        const input = document.getElementById(`edit-image-${commentId}`);
+        const container = document.getElementById(`edit-image-preview-container-${commentId}`);
+        const img = document.getElementById(`edit-image-preview-${commentId}`);
+        input.value = '';
+        img.src = '';
+        container.classList.add('d-none');
+    };
+
+    window.handleCommentSave = async function(pubId, commentId) {
+        const textarea = document.getElementById(`comment-textarea-${commentId}`);
+        const fileInput = document.getElementById(`edit-image-${commentId}`);
+        const token = document.getElementById(`edit-token-${commentId}`).value;
+        const newText = textarea.value.trim();
+
+        if (!newText) return;
+
+        const formData = new FormData();
+        formData.append('description', newText);
+        formData.append('_token', token);
+        if (fileInput.files.length > 0) {
+            formData.append('image_commentaire', fileInput.files[0]); // Fixed typo
+        }
+
+        try {
+            const res = await fetch(`/forum/comment/edit/${commentId}`, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.loadComments(pubId, true);
+            } else {
+                alert(data.message || 'Update failed');
+            }
+        } catch (err) {
+            console.error('Comment Update Error:', err);
+        }
+    };
+
+    // --- Profile Social Actions Logic ---
+    document.addEventListener('click', async function(e) {
+        const btn = e.target.closest('.social-btn-profile');
+        if (!btn) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const action = btn.dataset.action;
+        const type = btn.dataset.type || null;
+        const pubId = btn.dataset.pubId;
+
+        if (!pubId) return;
+
+        let url = `/forum/action/${action}/${pubId}`;
+        if (type) url += `/${type}`;
+
+        console.log(`Profile: Executing Action ${action} for Pub ${pubId}`);
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                // UI Feedback
+                if (action === 'react') {
+                    const row = btn.closest('.modal-social-actions');
+                    const likeBtn = row.querySelector('.like');
+                    const dislikeBtn = row.querySelector('.dislike');
+                    
+                    if (type === 'like') {
+                        likeBtn.classList.toggle('active');
+                        dislikeBtn.classList.remove('active');
+                    } else if (type === 'dislike') {
+                        dislikeBtn.classList.toggle('active');
+                        likeBtn.classList.remove('active');
+                    }
+                } else if (action === 'bookmark') {
+                    btn.classList.toggle('active');
+                    const icon = btn.querySelector('i');
+                    if (btn.classList.contains('active')) {
+                        icon.className = 'bx bxs-bookmark';
+                    } else {
+                        icon.className = 'bx bx-bookmark';
+                    }
+                } else if (action === 'report') {
+                    btn.classList.toggle('active');
+                }
+
+                // Update Counts in Modal
+                if (data.counts) {
+                    const c = data.counts;
+                    const cLike = document.querySelector(`.count-like-${pubId}`);
+                    const cDislike = document.querySelector(`.count-dislike-${pubId}`);
+                    const cReport = document.querySelector(`.count-report-${pubId}`);
+                    
+                    if (cLike) cLike.textContent = c.likes;
+                    if (cDislike) cDislike.textContent = c.dislikes;
+                    if (cReport) cReport.textContent = c.reports;
+                    
+                    // Update Counts in List (Visual only)
+                    const listItem = document.querySelector(`.publication-item[data-publication-id="${pubId}"]`);
+                    if (listItem) {
+                        const listLike = listItem.querySelector('.bx-like').nextElementSibling;
+                        const listDislike = listItem.querySelector('.bx-dislike').nextElementSibling;
+                        if (listLike) listLike.textContent = c.likes;
+                        if (listDislike) listDislike.textContent = c.dislikes;
+                        
+                        // Update icons in list
+                        const listLikeIcon = listItem.querySelector('.bx-like');
+                        const listDislikeIcon = listItem.querySelector('.bx-dislike');
+                        
+                        if (action === 'react') {
+                            if (type === 'like') {
+                                listLikeIcon.classList.toggle('text-primary', btn.classList.contains('active'));
+                                listDislikeIcon.classList.remove('text-danger');
+                            } else if (type === 'dislike') {
+                                listDislikeIcon.classList.toggle('text-danger', btn.classList.contains('active'));
+                                listLikeIcon.classList.remove('text-primary');
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Profile AJAX Error:', err);
+        }
+    });
+
     // Admin Filter logic for all tabs
     function handleAdminFilter(btnClass, filterVarSetter, initFunc) {
         document.querySelectorAll('.' + btnClass).forEach(btn => {
@@ -2822,7 +3498,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (isAdmin) {
         handleAdminFilter('admin-reclamation-filter-btn', (val) => { currentAdminFilter = val; }, window.initializeReclamationPagination);
-        handleAdminFilter('admin-forum-filter-btn', (val) => { currentForumAdminFilter = val; }, window.initializeForumPagination);
+        handleAdminFilter('admin-forum-filter-btn', (val) => { currentForumAdminFilter = val; }, window.initializeMyPostsPagination);
         handleAdminFilter('admin-events-filter-btn', (val) => { currentEventAdminFilter = val; }, window.initializeEventsPagination);
 
         // Residence Filter Logic
@@ -2860,6 +3536,56 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    window.deleteProfilePublication = async function(event, pubId) {
+        event.stopPropagation();
+        if (!confirm('Are you sure you want to delete this publication?')) return;
+        
+        const item = document.querySelector(`.publication-item[data-publication-id="${pubId}"]`);
+        const token = item ? item.dataset.token : null;
+        
+        const formData = new FormData();
+        if (token) formData.append('_token', token);
+        
+        try {
+            const response = await fetch(`/forum/delete/${pubId}`, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            if (data.success) {
+                if (window.showCoolPopup) window.showCoolPopup('Success', data.message || 'Post deleted', 'success');
+                else alert(data.message || 'Post deleted');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                if (window.showCoolPopup) window.showCoolPopup('Error', data.message || 'Deletion failed', 'error');
+                else alert(data.message || 'Deletion failed');
+            }
+        } catch (err) {
+            console.error('Delete Error:', err);
+            alert('An unexpected error occurred');
+        }
+    };
+
+    // Statistics Toggle Logic
+    window.toggleStats = function(event, pubId) {
+        event.stopPropagation();
+        const statsDiv = document.getElementById(`stats-${pubId}`);
+        if (statsDiv) {
+            statsDiv.classList.toggle('active');
+            const btn = event.currentTarget;
+            if (statsDiv.classList.contains('active')) {
+                btn.style.background = 'rgba(255, 255, 255, 0.15)';
+                btn.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                btn.innerHTML = "<i class='bx bx-chevron-up'></i> Hide Stats";
+            } else {
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                btn.innerHTML = "<i class='bx bx-stats'></i> Details Stats";
+            }
+        }
+    };
 
     // Safety: Hide page loader if it's still spinning
     setTimeout(() => {
