@@ -5,15 +5,6 @@
 {% block stylesheets %}
     <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
     <style>
-        .glass-switcher {
-            position: relative;
-            width: 100%;
-            transition: height 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        .glass-switcher-face {
-            width: 100%;
-        }
-
         /* Hide Scrollbar Global */
         html, body, .admin-shell, .layout-wrapper, .layout-page, .content-wrapper, .container-xxl {
             scrollbar-width: none !important; /* Firefox */
@@ -319,6 +310,7 @@
             <div class="premium-switcher-slider" id="forum-switcher-slider"></div>
             <button class="premium-switcher-tab active" data-page="1">Publications</button>
             <button class="premium-switcher-tab" data-page="2">Commentaires</button>
+            <button class="premium-switcher-tab" data-page="3">Reactions</button>
         </div>
     </div>
 </div>
@@ -633,6 +625,137 @@
             </div><!-- End #forumCommentGlassSwitcher -->
         </div><!-- End .glass-table-container -->
     </div><!-- End Page 2 -->
+
+    <!-- Page 3: Reactions -->
+    <div class="forum-page-content" data-page="3" style="display: none;">
+        <div class="glass-table-container">
+            <div id="forumReactionGlassSwitcher" class="glass-switcher style-slide">
+                <div class="glass-switcher-face glass-switcher-face-main">
+                    <div class="glass-toolbar">
+                        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Reactions</h3>
+                    </div>
+
+                    <div class="glass-toolbar" style="margin-bottom: 1.5rem;">
+                        <div class="glass-search-container">
+                            <i class="bx bx-search glass-search-icon"></i>
+                            <input type="text" class="glass-search-input forum-reaction-search-input" placeholder="Search reactions (kind, reason, user)...">
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.5rem;">
+                            <div class="glass-pill glass-pill-active forum-reaction-sort-option" data-value="date" onclick="selectReactionSortPill(this)">Date</div>
+                            <div class="glass-pill forum-reaction-sort-option" data-value="kind" onclick="selectReactionSortPill(this)">Kind</div>
+                            <div class="glass-pill forum-reaction-sort-option" data-value="author" onclick="selectReactionSortPill(this)">Author</div>
+                            <button class="glass-pagination-btn" id="forum-reaction-sort-dir-pill" style="width: 38px; height: 38px;">
+                                <span id="forum-reaction-sort-dir-icon-svg"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="glass-table-scroll">
+                        <table class="glass-table" id="forum-reaction-table">
+                            <thead>
+                                <tr>
+                                    <th>Kind</th>
+                                    <th>Target</th>
+                                    <th>Author</th>
+                                    <th>Date</th>
+                                    <th style="text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="forum-reaction-table-body">
+                                <!-- Table rows rendered by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="glass-pagination-bar" id="forum-reaction-pagination">
+                        <button class="glass-pagination-btn" id="forum-reaction-table-prev"><i class="bx bx-chevron-left"></i></button>
+                        <div id="forum-reaction-table-pages" style="display: flex; gap: 0.5rem;"></div>
+                        <button class="glass-pagination-btn" id="forum-reaction-table-next"><i class="bx bx-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <div class="glass-switcher-face glass-switcher-face-details" id="reaction-view-face">
+                    <div id="reaction-view-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div>
+                                    <h3>Reaction Details</h3>
+                                    <p class="users-edit-modal-subtitle">View reaction content and metadata.</p>
+                                </div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('reaction-view-modal')" aria-label="Close"><i class="bx bx-x"></i></button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                <div class="glass-view-details">
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">Author</div>
+                                        <div class="glass-view-value" id="view-reaction-author">-</div>
+                                    </div>
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">Kind</div>
+                                        <div class="glass-view-value" id="view-reaction-kind">-</div>
+                                    </div>
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">Target</div>
+                                        <div class="glass-view-value" id="view-reaction-target">-</div>
+                                    </div>
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">Date</div>
+                                        <div class="glass-view-value" id="view-reaction-date">-</div>
+                                    </div>
+                                    <div class="glass-view-row" id="view-reaction-reason-row" style="flex-direction: column; align-items: flex-start;">
+                                        <div class="glass-view-label" style="width: 100%; margin-bottom: 0.5rem;">Reason / Emoji</div>
+                                        <div class="glass-view-value" id="view-reaction-reason" style="line-height: 1.6; opacity: 0.8;">-</div>
+                                    </div>
+                                </div>
+                                <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
+                                    <button type="button" class="users-btn-modify" id="view-reaction-modify-btn">
+                                        <i class="bx bx-edit"></i> Modify Reaction
+                                    </button>
+                                    <form id="view-reaction-delete-form" method="post" style="display: inline-block; margin-left: 1rem;" data-ajax="true" data-refresh="softRefresh">
+                                        <input type="hidden" name="_token" id="view-reaction-delete-token" value="">
+                                        <button type="submit" class="users-btn-delete">
+                                            <i class="bx bx-trash"></i> Delete Reaction
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-switcher-face glass-switcher-face-edit" id="reaction-edit-face">
+                    <div id="reaction-edit-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div>
+                                    <h3>Edit Reaction</h3>
+                                    <p class="users-edit-modal-subtitle">Modify reaction kind and details.</p>
+                                </div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('reaction-edit-modal')" aria-label="Close"><i class="bx bx-x"></i></button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                {% if reactionEditForm is defined %}
+                                {{ form_start(reactionEditForm, { 'attr': { 'id': 'reaction-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh' } }) }}
+                                
+                                {{ form_row(reactionEditForm.kind, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                {{ form_row(reactionEditForm.emoji, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                {{ form_row(reactionEditForm.report_reason, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                
+                                <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
+                                    <button type="button" class="users-btn-cancel" onclick="closeModal('reaction-edit-modal')"><i class="bx bx-x"></i> Discard</button>
+                                    <span class="users-edit-modal-actions-spacer"></span>
+                                    <button type="submit" class="users-btn-modify"><i class="bx bx-check"></i> Update Reaction</button>
+                                </div>
+                                {{ form_end(reactionEditForm) }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- End #forumReactionGlassSwitcher -->
+        </div><!-- End .glass-table-container -->
+    </div><!-- End Page 2 -->
 </div>
 
 <script>
@@ -672,10 +795,27 @@
         {% endfor %}
     ];
 
+    const reactionsData = [
+        {% for r in reactions|default([]) %}
+        [
+            "{{ r.kind|e('js') }}",
+            "{{ (r.publication ? 'Pub: ' ~ r.publication.titrePub : (r.commentaire ? 'Comm: ' ~ r.commentaire.descriptionCommentaire|slice(0,30) : 'N/A'))|e('js') }}",
+            "{{ r.user ? (r.user.firstName ~ ' ' ~ r.user.lastName)|e('js') : '—' }}",
+            "{{ r.createdAt|date('Y-m-d H:i') }}",
+            "{{ r.idReaction }}",
+            "{{ r.emoji|e('js') }}",
+            "{{ r.reportReason|e('js') }}",
+            "{{ csrf_token('delete' ~ r.idReaction)|e('js') }}"
+        ]{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
     const editPubUrlTemplate = "{{ path('admin_forum_pub_edit', {id: 'ID_PLACEHOLDER'}) }}";
     const deletePubUrlTemplate = "{{ path('app_publication_delete', {id: 'ID_PLACEHOLDER'}) }}";
     const deleteCommentUrlTemplate = "{{ path('forum_comment_delete', {id: 'ID_PLACEHOLDER'}) }}";
     const editCommentUrlTemplate = "{{ path('admin_forum_comment_edit', {id: 'ID_PLACEHOLDER'}) }}";
+    const editReactionUrlTemplate = "{{ path('admin_forum_reaction_edit', {id: 'ID_PLACEHOLDER'}) }}";
+    const deleteReactionUrlTemplate = "{{ path('admin_forum_reaction_delete', {id: 'ID_PLACEHOLDER'}) }}";
 
     // --- Table Management ---
     let pubCurrentPage = 1;
@@ -687,6 +827,11 @@
     let commentFilteredRows = [...commentsData];
     let commentSortValue = 'date';
     let commentSortDirection = 'desc';
+
+    let reactionCurrentPage = 1;
+    let reactionFilteredRows = [...reactionsData];
+    let reactionSortValue = 'date';
+    let reactionSortDirection = 'desc';
 
     const rowsPerPage = 10;
 
@@ -706,6 +851,14 @@
             : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
     }
 
+    function updateReactionSortDirIcon() {
+        const iconEl = document.getElementById('forum-reaction-sort-dir-icon-svg');
+        if (!iconEl) return;
+        iconEl.innerHTML = reactionSortDirection === 'asc'
+            ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>`
+            : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
+    }
+
     window.selectPubSortPill = function(pill) {
         pubSortValue = pill.dataset.value;
         document.querySelectorAll('.forum-pub-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
@@ -718,6 +871,13 @@
         document.querySelectorAll('.forum-comment-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
         pill.classList.add('glass-pill-active');
         forumFilterSortComments();
+    };
+
+    window.selectReactionSortPill = function(pill) {
+        reactionSortValue = pill.dataset.value;
+        document.querySelectorAll('.forum-reaction-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
+        pill.classList.add('glass-pill-active');
+        forumFilterSortReactions();
     };
 
     function forumFilterSortPubs() {
@@ -756,6 +916,24 @@
         renderCommentTable();
     }
 
+    function forumFilterSortReactions() {
+        const val = document.querySelector('.forum-reaction-search-input').value.toLowerCase();
+        let rows = reactionsData.filter(d => d[0].toLowerCase().includes(val) || d[1].toLowerCase().includes(val) || d[2].toLowerCase().includes(val));
+        
+        let sortIdx = 3; // Date
+        if (reactionSortValue === 'author') sortIdx = 2;
+        else if (reactionSortValue === 'kind') sortIdx = 0;
+
+        rows.sort((a,b) => {
+            let vA = a[sortIdx].toLowerCase(), vB = b[sortIdx].toLowerCase();
+            return reactionSortDirection === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
+        });
+
+        reactionFilteredRows = rows;
+        reactionCurrentPage = 1;
+        renderReactionTable();
+    }
+
     function renderPubTable() {
         const tbody = document.getElementById('forum-pub-table-body');
         tbody.innerHTML = '';
@@ -771,7 +949,7 @@
                 <td>${data[2]}</td>
                 <td>${data[3]}</td>
                 <td style="text-align: right;">
-                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewPub(${i})">
+                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="event.stopPropagation(); viewPub(${i})">
                         <i class="bx bx-show"></i> Details
                     </button>
                 </td>
@@ -796,7 +974,7 @@
                 <td>${data[2]}</td>
                 <td>${data[3]}</td>
                 <td style="text-align: right;">
-                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewComment(${i})">
+                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="event.stopPropagation(); viewComment(${i})">
                         <i class="bx bx-show"></i> Details
                     </button>
                 </td>
@@ -804,6 +982,31 @@
             tbody.appendChild(row);
         }
         renderCommentPagination();
+    }
+
+    function renderReactionTable() {
+        const tbody = document.getElementById('forum-reaction-table-body');
+        tbody.innerHTML = '';
+        const start = (reactionCurrentPage-1)*rowsPerPage;
+        const end = Math.min(start+rowsPerPage, reactionFilteredRows.length);
+        
+        for(let i=start; i<end; i++) {
+            const row = document.createElement('tr');
+            const data = reactionFilteredRows[i];
+            row.innerHTML = `
+                <td><span class="badge-neon badge-neon-${data[0].toLowerCase() === 'report' ? 'announcement' : 'discussion'}">${data[0]}</span></td>
+                <td><strong>${data[1]}</strong></td>
+                <td>${data[2]}</td>
+                <td>${data[3]}</td>
+                <td style="text-align: right;">
+                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="event.stopPropagation(); viewReaction(${i})">
+                        <i class="bx bx-show"></i> Details
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        }
+        renderReactionPagination();
     }
 
     function renderPubPagination() {
@@ -828,6 +1031,19 @@
             btn.className = 'glass-pagination-btn' + (i === commentCurrentPage ? ' active' : '');
             btn.textContent = i;
             btn.onclick = () => { commentCurrentPage = i; renderCommentTable(); };
+            container.appendChild(btn);
+        }
+    }
+
+    function renderReactionPagination() {
+        const total = Math.ceil(reactionFilteredRows.length / rowsPerPage);
+        const container = document.getElementById('forum-reaction-table-pages');
+        container.innerHTML = '';
+        for(let i=1; i<=total; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'glass-pagination-btn' + (i === reactionCurrentPage ? ' active' : '');
+            btn.textContent = i;
+            btn.onclick = () => { reactionCurrentPage = i; renderReactionTable(); };
             container.appendChild(btn);
         }
     }
@@ -866,6 +1082,13 @@
             openModal('pub-edit-modal');
         };
 
+        // 1. Explicitly mark the modal as active before the switcher starts
+        const vModal = document.getElementById('pub-view-modal');
+        if (vModal) {
+            vModal.style.display = 'flex';
+            void vModal.offsetWidth;
+            vModal.classList.add('active');
+        }
         openModal('pub-view-modal');
     };
 
@@ -890,7 +1113,48 @@
             openModal('comment-edit-modal');
         };
 
+        // 1. Explicitly mark the modal as active before the switcher starts
+        const vModal = document.getElementById('comment-view-modal');
+        if (vModal) {
+            vModal.style.display = 'flex';
+            void vModal.offsetWidth;
+            vModal.classList.add('active');
+        }
         openModal('comment-view-modal');
+    };
+
+    window.viewReaction = function(index) {
+        const data = reactionFilteredRows[index];
+        document.getElementById('view-reaction-kind').textContent = data[0];
+        document.getElementById('view-reaction-author').textContent = data[2];
+        document.getElementById('view-reaction-target').textContent = data[1];
+        document.getElementById('view-reaction-date').textContent = data[3];
+        document.getElementById('view-reaction-reason').innerHTML = (data[5] ? `Emoji: ${data[5]}<br>` : '') + (data[6] ? `Reason: ${data[6]}` : '');
+
+        document.getElementById('view-reaction-delete-token').value = data[7];
+        document.getElementById('view-reaction-delete-form').action = deleteReactionUrlTemplate.replace('ID_PLACEHOLDER', data[4]);
+
+        document.getElementById('view-reaction-modify-btn').onclick = () => {
+            const form = document.getElementById('reaction-edit-form');
+            form.action = editReactionUrlTemplate.replace('ID_PLACEHOLDER', data[4]);
+            
+            const kindSelect = form.querySelector('[name*="kind"]');
+            if(kindSelect) kindSelect.value = data[0];
+            const emojiInput = form.querySelector('[name*="emoji"]');
+            if(emojiInput) emojiInput.value = data[5];
+            const reasonInput = form.querySelector('[name*="report_reason"]');
+            if(reasonInput) reasonInput.value = data[6];
+
+            openModal('reaction-edit-modal');
+        };
+
+        const vModal = document.getElementById('reaction-view-modal');
+        if (vModal) {
+            vModal.style.display = 'flex';
+            void vModal.offsetWidth;
+            vModal.classList.add('active');
+        }
+        openModal('reaction-view-modal');
     };
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -927,9 +1191,11 @@
         // Initial table renders
         renderPubTable();
         renderCommentTable();
+        renderReactionTable();
 
         updatePubSortDirIcon();
         updateCommentSortDirIcon();
+        updateReactionSortDirIcon();
         
         // Initial height set
         switchGlassFace('main', 'forumPubGlassSwitcher');
@@ -947,6 +1213,12 @@
             forumFilterSortComments();
         });
 
+        document.getElementById('forum-reaction-sort-dir-pill').addEventListener('click', () => {
+            reactionSortDirection = reactionSortDirection === 'asc' ? 'desc' : 'asc';
+            updateReactionSortDirIcon();
+            forumFilterSortReactions();
+        });
+
         // Add Pub button
         document.getElementById('forum-btn-add-pub').addEventListener('click', () => openModal('pub-add-modal'));
 
@@ -958,6 +1230,11 @@
         // Search Comment
         document.querySelector('.forum-comment-search-input').addEventListener('input', (e) => {
             forumFilterSortComments();
+        });
+
+        // Search Reaction
+        document.querySelector('.forum-reaction-search-input').addEventListener('input', (e) => {
+            forumFilterSortReactions();
         });
     });
 </script>

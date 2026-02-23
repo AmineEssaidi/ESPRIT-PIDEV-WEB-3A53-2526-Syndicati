@@ -40,14 +40,14 @@
                 {% endif %}
 
                 <!-- 2. MAIN SPLIT VIEW CONTAINER -->
-                <div class="forum-split-container" style="height: 92vh; min-height: 1050px;">
+                <div class="forum-split-container" style="height: 88vh; min-height: 700px;">
                     
                     <!-- LEFT: GLASS SWITCHER (Main Content) -->
                     <div id="forumGlassSwitcher" class="forum-split-main glass-switcher style-slide">
                         
                         <!-- FACE 1: READ VIEW -->
-                        <div class="glass-switcher-face glass-switcher-face-main">
-                            <div id="splitViewContent" class="h-100 d-flex flex-column">
+                        <div class="glass-switcher-face glass-switcher-face-main h-100">
+                            <div id="splitViewContent" class="h-100 d-flex flex-column custom-scrollbar">
                                 <!-- Hero Image Overlay -->
                                 <div id="splitViewHero" class="forum-detail-hero">
                                     <div class="forum-hero-text-overlay">
@@ -71,10 +71,74 @@
                                         </div>
 
                                         <!-- Owner Actions -->
-                                        <div id="splitViewActions" class="d-none mb-4 p-3 rounded-4" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                        <!-- UNIFIED ACTION BAR (ADMIN + REACTIONS) -->
+                                        <div id="splitViewActionBar" class="d-flex flex-wrap align-items-center gap-2 mb-4 p-2 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);">
+                                            
+                                            <!-- REACTIONS -->
+                                            <div class="d-flex gap-2 border-end pe-2 me-1" style="border-color: rgba(255,255,255,0.1) !important;">
+                                                <button class="reaction-btn btn-like" onclick="window.toggleReaction('Like')" title="Like">
+                                                    <i class='bx bx-like'></i> <span class="count"></span>
+                                                </button>
+                                                <button class="reaction-btn btn-dislike" onclick="window.toggleReaction('Dislike')" title="Dislike">
+                                                    <i class='bx bx-dislike'></i> <span class="count"></span>
+                                                </button>
+                                            </div>
+
+                                            <!-- RATIO BAR -->
+                                            <div class="ratio-bar-container mx-2 d-flex align-items-center gap-2" style="width: 150px;">
+                                                <div id="publicationRatioBar" class="ratio-bar flex-grow-1">
+                                                    <div class="ratio-fill" style="width: 0%;"></div>
+                                                </div>
+                                                <small id="publicationRatioText" class="text-white-50" style="font-size: 0.7rem; min-width: 30px;">0%</small>
+                                            </div>
+
                                             <div class="d-flex gap-2">
+                                                <div class="position-relative">
+                                                    <button class="reaction-btn btn-emoji" onclick="window.toggleEmojiPicker(event)" title="React with Emoji">
+                                                        <i class='bx bx-smile'></i>
+                                                    </button>
+                                                    <div id="emojiPicker" class="emoji-picker-popup d-none">
+                                                        <div class="emoji-grid">
+                                                            <span onclick="window.reactEmoji('❤️')">❤️</span>
+                                                            <span onclick="window.reactEmoji('😂')">😂</span>
+                                                            <span onclick="window.reactEmoji('😮')">😮</span>
+                                                            <span onclick="window.reactEmoji('😢')">😢</span>
+                                                            <span onclick="window.reactEmoji('😡')">😡</span>
+                                                            <span onclick="window.reactEmoji('👍')">👍</span>
+                                                            <span onclick="window.reactEmoji('🔥')">🔥</span>
+                                                            <span onclick="window.reactEmoji('✨')">✨</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button class="reaction-btn btn-bookmark" onclick="window.toggleReaction('Bookmark')" title="Bookmark">
+                                                    <i class='bx bx-bookmark'></i>
+                                                </button>
+                                            </div>
+
+                                            <!-- OWNER ACTIONS (Conditionally Hidden) -->
+                                            <div id="splitViewOwnerActions" class="d-none d-flex gap-2">
                                                 <button id="btnEditSplit" class="action-btn" title="Edit Post"><i class='bx bxs-edit-alt'></i> Edit</button>
                                                 <button id="btnDeleteSplit" class="action-btn" title="Delete Post"><i class='bx bxs-trash'></i> Delete</button>
+                                            </div>
+
+                                            <button class="reaction-btn btn-report ms-auto" onclick="window.toggleReportPanel()" title="Report Publication">
+                                                <i class='bx bx-flag'></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- INLINE REPORT PANEL -->
+                                        <div id="reportPanel" class="report-panel mb-4 overflow-hidden" style="max-height: 0; transition: max-height 0.3s ease-out;">
+                                            <div class="p-4 rounded-4" style="background: rgba(255, 75, 92, 0.05); border: 1px solid rgba(255, 75, 92, 0.2);">
+                                                <h5 class="text-white mb-3 d-flex align-items-center gap-2">
+                                                    <i class='bx bxs-error-circle text-danger'></i> Report Publication
+                                                </h5>
+                                                <textarea id="reportReason" class="glass-textarea mb-3" rows="3" placeholder="Why are you reporting this? (e.g. spam, harassment, inappropriate content...)" style="background: rgba(0,0,0,0.2) !important;"></textarea>
+                                                <div class="d-flex justify-content-end gap-2">
+                                                    <button onclick="window.toggleReportPanel()" class="btn btn-sm btn-outline-light rounded-pill px-3">Cancel</button>
+                                                    <button onclick="window.submitInlineReport(event)" class="btn btn-sm btn-danger rounded-pill px-3 d-flex align-items-center gap-2">
+                                                        Submit Report <i class='bx bx-send'></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -190,7 +254,24 @@
                                         </div>
                                         <div class="glass-form-group">
                                             <label class="glass-label">Update Image</label>
-                                            <input type="file" name="image_pub" class="glass-input" accept="image/*">
+                                            <div id="editPostImageArea" class="mb-3 d-flex gap-3 flex-wrap">
+                                                <!-- Current Image -->
+                                                <div id="currentPostImageContainer" class="d-none">
+                                                    <small class="text-white-50 d-block mb-1">Current Image:</small>
+                                                    <div class="position-relative">
+                                                        <img id="currentPostImgPreview" src="" class="rounded-3" style="width: 100px; height: 100px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);">
+                                                    </div>
+                                                </div>
+                                                <!-- New Image Preview -->
+                                                <div id="newPostImagePreviewContainer" class="d-none">
+                                                    <small class="text-white-50 d-block mb-1">New Selection:</small>
+                                                    <div class="position-relative">
+                                                        <img id="newPostImgPreview" src="" class="rounded-3" style="width: 100px; height: 100px; object-fit: cover; border: 2px solid var(--main-home-accent-color);">
+                                                        <div id="removeNewPostImg" class="comment-img-remove-btn" style="top:-5px; right:-5px;"><i class='bx bx-x'></i></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <input type="file" name="image_pub" id="editPostImageInput" class="glass-input" accept="image/*">
                                         </div>
                                         <button type="submit" class="glass-btn-save w-100 mt-3">Save Changes <i class='bx bx-check ms-1'></i></button>
                                     </form>
@@ -219,9 +300,19 @@
                                         </button>
                                     {% endif %}
                                 </div>
+
+                                <!-- CATEGORY FILTERS -->
+                                <div class="d-flex gap-2 mt-2">
+                                    <button class="btn-sidebar-action flex-grow-1 active" id="btnFilterGeneral" onclick="window.loadForumCategory('General', this)">
+                                        <i class='bx bx-grid-alt'></i> General
+                                    </button>
+                                    <button class="btn-sidebar-action flex-grow-1" id="btnFilterAnnouncement" onclick="window.loadForumCategory('Announcement', this)">
+                                        <i class='bx bxs-megaphone'></i> Announcements
+                                    </button>
+                                </div>
                             {% endif %}
                         </div>
-                        <div class="forum-list-wrapper custom-scrollbar">
+                        <div class="forum-list-wrapper custom-scrollbar" id="forumListContainer">
                             {% for publication in publications|filter(p => p.categoriePub != 'Announcement') %}
                                 {% include 'frontend/forum/_list_item.html.twig' with {
                                     'publication': publication,
@@ -252,47 +343,6 @@
     <div class="toast-content">
         <i id="toastIcon" class='bx bx-check-circle'></i>
         <span id="toastMessage"></span>
-    </div>
-</div>
-
-<!-- CUSTOM POPUP -->
-<script>
-    window.showCoolPopup = function(title, message, type = 'success') {
-        // Reuse existing popup structure or create simple alert
-        alert(`${title}\n\n${message}`); 
-        // Note: For full "Cool Popup", check layout overrides. 
-        // I will rely on standard alert for fallback or inject the cool popup HTML if needed.
-    };
-    // Inject Cool Popup HTML 
-    document.write(`
-    <div id="coolPopup" class="cool-popup-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-        <div class="cool-popup-content p-5 text-center rounded-4 border border-secondary" style="background: #1a1a2e; max-width:400px;">
-            <div id="coolPopupIcon" class="fs-1 mb-3"></div>
-            <h3 id="coolPopupTitle" class="text-white fw-bold"></h3>
-            <p id="coolPopupMessage" class="text-white-50 mb-4"></p>
-            <button onclick="document.getElementById('coolPopup').style.display='none'" class="btn btn-primary w-100">Got it</button>
-        </div>
-    </div>`);
-    
-    window.showCoolPopup = function(title, message, type) {
-        const p = document.getElementById('coolPopup');
-        document.getElementById('coolPopupTitle').textContent = title;
-        document.getElementById('coolPopupMessage').innerHTML = message;
-        document.getElementById('coolPopupIcon').innerHTML = type === 'success' ? '✅' : '❌';
-        p.style.display = 'flex';
-    };
-</script>
-
-<!-- Confirm Delete Modal -->
-<div id="confirmDeleteModal" class="glass-modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-    <div class="glass-modal-container p-4 rounded-4 border border-danger text-center" style="background: #1a1a2e; max-width:400px;">
-        <i class='bx bxs-error-circle text-danger fs-1 mb-3'></i>
-        <h3 class="text-white fw-bold">Delete Post?</h3>
-        <p class="text-white-50">This action cannot be undone.</p>
-        <div class="d-flex gap-2 justify-content-center mt-4">
-            <button onclick="document.getElementById('confirmDeleteModal').style.display='none'" class="btn btn-outline-light">Cancel</button>
-            <button id="btnConfirmDeleteAction" class="btn btn-danger">Yes, Delete</button>
-        </div>
     </div>
 </div>
 

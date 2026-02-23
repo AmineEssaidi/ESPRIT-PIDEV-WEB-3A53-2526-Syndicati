@@ -1,0 +1,17 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block body %}
+    <h2>Hello {{ user.firstName }},</h2>
+    <p>A new critical announcement has been broadcasted to the community. Stay ahead of the latest protocol updates:</p>
+
+    <div style="background: rgba(255, 75, 92, 0.03); padding: 30px; border-radius: 20px; border: 1px solid rgba(255, 75, 92, 0.2); margin: 35px 0; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
+        <h3 style="margin-bottom: 12px; color: #ff4b5c; font-size: 20px;">{{ publication.titrePub }}</h3>
+        <p style="margin-bottom: 0; font-size: 16px; color: rgba(255, 255, 255, 0.8); line-height: 1.6;">{{ publication.descriptionPub|nl2br }}</p>
+    </div>
+
+    <div class="button-container">
+        <a href="{{ forumUrl }}" class="button">Access Announcement</a>
+    </div>
+
+    <p style="font-size: 14px; color: rgba(255, 255, 255, 0.3); text-align: center;">You can securely view and interact with this broadcast on the platform.</p>
+{% endblock %}

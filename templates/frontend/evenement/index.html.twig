@@ -7,6 +7,69 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
     <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
+    <!-- Leaflet Map -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        .leaflet-container {
+            background: rgba(255,255,255,0.05);
+            height: 200px !important;
+            width: 100% !important;
+            border-radius: 12px;
+            margin-top: 1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .custom-map-marker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--event-gradient);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.2rem;
+            box-shadow: 0 0 15px rgba(var(--main-home-accent-rgb), 0.5);
+            width: 32px !important;
+            height: 32px !important;
+        }
+        .leaflet-popup-content-wrapper {
+            background: rgba(15, 15, 25, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px !important;
+            color: #fff !important;
+        }
+        .leaflet-popup-tip {
+            background: rgba(15, 15, 25, 0.95) !important;
+        }
+        .marker-popup-content h6 {
+            font-weight: 800;
+            color: var(--event-accent);
+            margin: 0 0 5px 0;
+        }
+        .marker-popup-content p {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin: 0 0 10px 0;
+            line-height: 1.3;
+        }
+        .btn-navigate {
+            display: block;
+            text-align: center;
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            color: #fff !important;
+            text-decoration: none !important;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+        .btn-navigate:hover {
+            background: var(--event-gradient);
+            border-color: transparent;
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
@@ -71,7 +134,7 @@
                     <div id="evenementDashboardSwitcher" class="empty-state-right glass-switcher style-slide">
                         
                         <!-- FACE 1: DASHBOARD MAIN -->
-                        <div class="glass-switcher-face glass-switcher-face-main">
+                        <div class="glass-switcher-face glass-switcher-face-main glass-dashboard-card">
                             {% if app.session.get('is_logged_in') %}
                                 <div id="btnHostEventDashboard" class="event-host-pill-trigger">
                                     <div style="width: 40px; height: 40px; background: var(--event-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
@@ -118,46 +181,54 @@
                         </div>
 
                         <!-- FACE 2: HOST EVENT FORM -->
-                        <div class="glass-switcher-face glass-switcher-face-extra">
-                            <div class="card-header-actions mb-4">
-                                <h3 class="m-0" style="font-weight: 850; font-size: 1.8rem;">Organize</h3>
+                        <div class="glass-switcher-face glass-switcher-face-extra glass-dashboard-card">
+                            <div class="organize-header mb-4">
+                                <div>
+                                    <h3 class="organize-title">Organize Event</h3>
+                                    <p class="organize-subtitle">Share your vision with the community</p>
+                                </div>
                                 <button class="btn-switcher-back" onclick="switchGlassCard('evenementDashboardSwitcher', 'main')">
-                                    <i class='bx bx-left-arrow-alt'></i> Back
+                                    <i class='bx bx-x'></i>
                                 </button>
                             </div>
 
                             <div class="glass-switcher-content-scroll" style="max-height: 520px; overflow-y: auto; overflow-x: hidden; padding-right: 12px;">
-                                {{ form_start(form, {'action': path('app_evenement_new'), 'attr': {'class': 'main-home-auth-form', 'enctype': 'multipart/form-data', 'id': 'createEventFormDashboard', 'data-ajax': 'true'}}) }}
+                                {{ form_start(form, {'action': path('app_evenement_new'), 'attr': {'class': 'main-home-auth-form organize-form', 'enctype': 'multipart/form-data', 'id': 'createEventFormDashboard', 'data-ajax': 'true'}}) }}
                                     <div class="glass-form-group">
                                         <label class="glass-label">Event Title</label>
-                                        {{ form_widget(form.titre_event, {'attr': {'class': 'glass-input', 'placeholder': 'What is the event called?', 'data-min-length': '5', 'required': 'required'}}) }}
+                                        {{ form_widget(form.titre_event, {'attr': {'class': 'glass-input', 'placeholder': 'e.g. Sunset Rooftop Gathering', 'data-min-length': '5'}}) }}
                                     </div>
 
-                                    <div class="glass-form-group">
-                                        <label class="glass-label">Date & Time</label>
-                                        {{ form_widget(form.date_event, {'attr': {'class': 'glass-input flatpickr-input'}}) }}
-                                    </div>
-
-                                    <div class="glass-form-group">
-                                        <label class="glass-label">Event Type</label>
-                                        <div class="custom-select-wrapper">
-                                            <select name="{{ form.type_event.vars.full_name }}" id="{{ form.type_event.vars.id }}_dashboard" class="glass-input">
-                                                {% for choice in form.type_event.vars.choices %}
-                                                    <option value="{{ choice.value }}">{{ choice.value|replace({'_': ' '})|title }}</option>
-                                                {% endfor %}
-                                            </select>
-                                            {% do form.type_event.setRendered %}
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="glass-form-group">
+                                                <label class="glass-label">Date & Time</label>
+                                                {{ form_widget(form.date_event, {'attr': {'class': 'glass-input flatpickr-input', 'placeholder': 'When?'}}) }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="glass-form-group">
+                                                <label class="glass-label">Event Type</label>
+                                                <div class="custom-select-wrapper">
+                                                    <select name="{{ form.type_event.vars.full_name }}" id="{{ form.type_event.vars.id }}_dashboard" class="glass-input">
+                                                        {% for choice in form.type_event.vars.choices %}
+                                                            <option value="{{ choice.value }}">{{ choice.value|replace({'_': ' '})|title }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    {% do form.type_event.setRendered %}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div class="glass-form-group">
                                         <label class="glass-label">Location</label>
-                                        {{ form_widget(form.lieu_event, {'attr': {'class': 'glass-input', 'placeholder': 'Where?'}}) }}
+                                        {{ form_widget(form.lieu_event, {'attr': {'class': 'glass-input', 'placeholder': 'Where is the magic happening?'}}) }}
                                     </div>
 
                                     <div class="glass-form-group">
                                         <label class="glass-label">Description</label>
-                                        {{ form_widget(form.description_event, {'attr': {'class': 'glass-input', 'placeholder': 'Tell us more...', 'rows': '3', 'data-min-length': '10', 'required': 'required'}}) }}
+                                        {{ form_widget(form.description_event, {'attr': {'class': 'glass-input', 'placeholder': 'What makes this event special?', 'rows': '3', 'data-min-length': '10'}}) }}
                                     </div>
 
                                     <div class="row">
@@ -169,7 +240,7 @@
                                         </div>
                                         <div class="col-md-6">
                                             <div class="glass-form-group">
-                                                <label class="glass-label">Remaining</label>
+                                                <label class="glass-label">Initial Remaining</label>
                                                 {{ form_widget(form.nb_restants, {'attr': {'class': 'glass-input'}}) }}
                                             </div>
                                         </div>
@@ -177,14 +248,15 @@
 
                                     <div class="glass-form-group">
                                         <label class="glass-label">Event Banner</label>
-                                        {{ form_widget(form.image_event, {'attr': {'class': 'glass-input'}}) }}
+                                        <div class="custom-file-upload">
+                                            {{ form_widget(form.image_event, {'attr': {'class': 'glass-input'}}) }}
+                                        </div>
                                     </div>
 
-                                    <button type="submit" class="main-home-btn-auth-submit w-100 mt-4" style="margin: 0; height: 55px;">
-                                        Live the Event <i class='bx bx-rocket ms-2'></i>
+                                    <button type="submit" class="main-home-btn-auth-submit w-100 mt-4" style="margin: 0; height: 60px; font-size: 1.1rem; letter-spacing: 0.5px;">
+                                        Organize Now <i class='bx bx-rocket ms-2'></i>
                                     </button>
 
-                                    {# Hide the default status field which is rendered by form_end automatically #}
                                     {% do form.statut_event.setRendered %}
                                 {{ form_end(form) }}
                             </div>
@@ -270,430 +342,93 @@
 <input type="hidden" id="currentUserId" value="{{ currentUserId }}">
 <input type="hidden" id="currentUserRole" value="{{ currentUserRole }}">
 
-<!-- Custom Delete Confirmation Modal -->
-<div id="deleteConfirmModal" class="glass-modal-overlay" onclick="closeGlassModal('deleteConfirmModal')">
-    <div class="glass-modal-container" style="max-width: 450px;" onclick="event.stopPropagation()">
-        <button type="button" class="glass-modal-close" onclick="closeGlassModal('deleteConfirmModal')">&times;</button>
-        
-        <div class="glass-modal-body p-0">
-            <div style="text-align: center; padding: 3.5rem 2.5rem;">
-                <div class="delete-icon-wrapper mb-4" style="width: 80px; height: 80px; background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; margin: 0 auto;">
-                    <i class='bx bxs-error-circle'></i>
-                </div>
-                <h2 class="text-white fw-bold mb-3" style="font-size: 2rem;">Are you sure?</h2>
-                <p style="color: rgba(255,255,255,0.6); font-size: 1.1rem; line-height: 1.6; margin-bottom: 2.5rem;">
-                    This action cannot be undone. This event will be permanently removed from Horizon.
-                </p>
-                <div class="d-flex gap-3">
-                    <button type="button" class="btn-event-action" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex: 1;" onclick="closeGlassModal('deleteConfirmModal')">
-                        Cancel
-                    </button>
-                    <button type="button" id="confirmDeleteBtn" class="btn-event-action" style="background: linear-gradient(135deg, #ff4d4d 0%, #dc2626 100%); color: #fff; border: none; flex: 1.5; font-weight: 700;">
-                        Yes, Delete it
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{# Participation Modal replaced by in-card switcher #}
-
-{% endblock %}
-
 {% block javascripts %}
     {{ parent() }}
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="{{ asset('frontend/js/form-validation.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script src="{{ asset('frontend/js/evenement.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize validation for Create Event form
-            if (document.getElementById('createEventFormDashboard')) {
-                const validator = new FormValidator('createEventFormDashboard');
-                // Store validator instance globally or on the form element if needed for AJAX error mapping
-                document.getElementById('createEventFormDashboard').validator = validator;
-            }
-             // Initialize validation for Edit Event form
-            if (document.getElementById('editEventForm')) {
-                const validator = new FormValidator('editEventForm');
-                document.getElementById('editEventForm').validator = validator;
-            }
-        });
-    </script>
-    <script>
-        // Create custom dropdown for select elements
-        function createCustomDropdown(selectElement) {
-            // Check if already converted
-            if (selectElement.parentElement.querySelector('.custom-dropdown-trigger')) {
-                return;
-            }
-
-            const wrapper = selectElement.closest('.custom-select-wrapper');
-            if (!wrapper) return;
-
-            // Get options from select
-            const options = Array.from(selectElement.options);
-            
-            // Create custom dropdown elements
-            const trigger = document.createElement('div');
-            trigger.className = 'custom-dropdown-trigger';
-            trigger.innerHTML = `
-                <span class="selected-text">${selectElement.value || selectElement.options[0]?.text || 'Select...'}</span>
-                <span class="arrow">&#xea4e;</span>
-            `;
-
-            const menu = document.createElement('div');
-            menu.className = 'custom-dropdown-menu';
-
-            options.forEach(option => {
-                const optionDiv = document.createElement('div');
-                optionDiv.className = 'custom-dropdown-option';
-                optionDiv.textContent = option.text;
-                optionDiv.dataset.value = option.value;
-                
-                if (option.value === selectElement.value) {
-                    optionDiv.classList.add('selected');
-                }
-
-                optionDiv.addEventListener('click', () => {
-                    // Update select
-                    selectElement.value = option.value;
-                    
-                    // Update UI
-                    trigger.querySelector('.selected-text').textContent = option.text;
-                    menu.querySelectorAll('.custom-dropdown-option').forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-                    optionDiv.classList.add('selected');
-                    
-                    // Close menu
-                    trigger.classList.remove('active');
-                    menu.classList.remove('active');
-                });
-
-                menu.appendChild(optionDiv);
+            // Initialize Flatpickr
+            flatpickr(".flatpickr-input", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                theme: "dark",
+                disableMobile: "true"
             });
 
-            // Toggle dropdown
-            trigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isActive = trigger.classList.contains('active');
-                
-                // Close all other dropdowns
-                document.querySelectorAll('.custom-dropdown-trigger.active').forEach(t => {
-                    t.classList.remove('active');
-                    t.nextElementSibling?.classList.remove('active');
-                });
-
-                if (!isActive) {
-                    trigger.classList.add('active');
-                    menu.classList.add('active');
-                }
-            });
-
-            // Add elements to DOM
-            wrapper.appendChild(trigger);
-            wrapper.appendChild(menu);
-
-            // Hide native select
-            selectElement.style.position = 'absolute';
-            selectElement.style.opacity = '0';
-            selectElement.style.pointerEvents = 'none';
-        }
-
-        // Initialize Custom Form Elements
-        function initializeCustomFormElements() {
-            // Create custom dropdowns
-            const selectElements = document.querySelectorAll('.custom-select-wrapper select');
-            selectElements.forEach(select => {
-                createCustomDropdown(select);
-            });
-
-            // Flatpickr for all datetime inputs
-            const dateInputs = document.querySelectorAll('input[name*="date_event"], input.flatpickr-input, input[type="datetime-local"]');
-            dateInputs.forEach(input => {
-                if (!input._flatpickr) {
-                    flatpickr(input, {
-                        enableTime: true,
-                        dateFormat: "Y-m-d H:i",
-                        time_24hr: true,
-                        minDate: "today"
-                    });
-                }
-            });
-
-            // Custom Status Selector - FIXED
-            const statusSelects = document.querySelectorAll('select[name*="statut_event"]');
-            statusSelects.forEach(select => {
-                const pillContainer = select.closest('.main-home-form-group');
-                if (!pillContainer) return;
-
-                const pills = pillContainer.querySelectorAll('.status-pill');
-                if (pills.length === 0) return;
-
-                // Ensure a default value is set if none matches
-                let hasActive = false;
-                
-                // Set initial active state
-                pills.forEach(pill => {
-                    if (pill.dataset.value === select.value) {
-                        pill.classList.add('active');
-                        hasActive = true;
-                    } else {
-                        pill.classList.remove('active');
-                    }
-                });
-                
-                // If no value matched, set default to the first pill
-                if (!hasActive && pills.length > 0) {
-                     const firstPill = pills[0];
-                     firstPill.classList.add('active');
-                     select.value = firstPill.dataset.value;
-                }
-
-                // Add click handlers - using event delegation on container
-                const statusContainer = pillContainer.querySelector('.custom-status-selector');
-                if (statusContainer && !statusContainer.dataset.initialized) {
-                    statusContainer.dataset.initialized = 'true';
-                    
-                    statusContainer.addEventListener('click', (e) => {
-                        const pill = e.target.closest('.status-pill');
-                        if (!pill) return;
-
-                        // Remove active from ALL pills
-                        pills.forEach(p => p.classList.remove('active'));
-                        
-                        // Add active to clicked pill
-                        pill.classList.add('active');
-                        
-                        // Update hidden select
-                        select.value = pill.dataset.value;
-                    });
-                }
-            });
-        }
-
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', () => {
-            document.querySelectorAll('.custom-dropdown-trigger.active').forEach(trigger => {
-                trigger.classList.remove('active');
-                trigger.nextElementSibling?.classList.remove('active');
-            });
-        });
-
-        // Run on page load
-        document.addEventListener('DOMContentLoaded', initializeCustomFormElements);
-
-        // Re-initialize when modals are shown
-        const modals = document.querySelectorAll('.event-modal');
-        modals.forEach(modal => {
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.attributeName === 'class' && modal.classList.contains('show')) {
-                        setTimeout(initializeCustomFormElements, 100);
-                    }
-                });
-            });
-            observer.observe(modal, { attributes: true });
-        });
-
-        // Event Grid Pagination - Run after DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            const eventGrid = document.getElementById('eventGrid');
-            if (!eventGrid) return;
-            
-            const eventsPerPage = 3;
-            const allEventCards = Array.from(eventGrid.querySelectorAll('.event-card'));
-            const totalPages = Math.ceil(allEventCards.length / eventsPerPage);
+            // Pagination Logic for Event Cards
+            const cardsPerPage = 3;
             let currentPage = 1;
+            const eventGrid = document.getElementById('eventGrid');
+            if (eventGrid) {
+                const cards = eventGrid.querySelectorAll('.event-card');
+                const totalPages = Math.ceil(cards.length / cardsPerPage);
 
-            const prevBtn = document.getElementById('prevEventPage');
-            const nextBtn = document.getElementById('nextEventPage');
-            const pagesContainer = document.getElementById('eventPaginationPages');
-            const rangeDisplay = document.getElementById('currentEventRange');
-            const paginationControls = document.getElementById('eventPaginationControls');
+                function updatePagination() {
+                    const start = (currentPage - 1) * cardsPerPage;
+                    const end = start + cardsPerPage;
 
-            // Hide pagination if only 1 page or less
-            if (totalPages <= 1) {
-                if (paginationControls) paginationControls.style.display = 'none';
-            }
+                    cards.forEach((card, index) => {
+                        if (index >= start && index < end) {
+                            card.style.display = 'block';
+                            setTimeout(() => { card.style.opacity = '1'; }, 10);
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
 
-            function showPage(page) {
-                currentPage = page;
-                
-                // Hide all cards
-                allEventCards.forEach(card => {
-                    card.style.display = 'none';
-                });
-                
-                // Show cards for current page
-                const start = (page - 1) * eventsPerPage;
-                const end = start + eventsPerPage;
-                allEventCards.slice(start, end).forEach(card => {
-                    card.style.display = 'flex';
-                });
-                
-                // Update range display
-                if (rangeDisplay) {
-                    const showingStart = start + 1;
-                    const showingEnd = Math.min(end, allEventCards.length);
-                    rangeDisplay.textContent = `${showingStart}-${showingEnd}`;
+                    // Update range text
+                    const rangeDisplay = document.getElementById('currentEventRange');
+                    if (rangeDisplay) {
+                        rangeDisplay.textContent = cards.length > 0 ? `${start + 1}-${Math.min(end, cards.length)}` : '0-0';
+                    }
+
+                    // Update buttons
+                    const prevBtn = document.getElementById('prevEventPage');
+                    const nextBtn = document.getElementById('nextEventPage');
+                    if (prevBtn) prevBtn.disabled = currentPage === 1;
+                    if (nextBtn) nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+
+                    // Update page numbers
+                    const pagesContainer = document.getElementById('eventPaginationPages');
+                    if (pagesContainer) {
+                        pagesContainer.innerHTML = '';
+                        for (let i = 1; i <= totalPages; i++) {
+                            const btn = document.createElement('button');
+                            btn.className = `event-pagination-btn ${i === currentPage ? 'active' : ''}`;
+                            btn.textContent = i;
+                            btn.onclick = () => {
+                                currentPage = i;
+                                updatePagination();
+                                // Smarter scroll: only if card is out of view
+                                const gridRect = eventGrid.getBoundingClientRect();
+                                if (gridRect.top < 0 || gridRect.bottom > window.innerHeight) {
+                                    window.scrollTo({
+                                        top: window.pageYOffset + gridRect.top - 100,
+                                        behavior: 'smooth'
+                                    });
+                                }
+                            };
+                            pagesContainer.appendChild(btn);
+                        }
+                    }
                 }
-                
-                // Update button states
-                if (prevBtn) prevBtn.disabled = page === 1;
-                if (nextBtn) nextBtn.disabled = page === totalPages;
-                
-                // Update page indicators
-                renderPageIndicators();
-                
-                // Scroll to top of grid
-                eventGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
 
-            function renderPageIndicators() {
-                if (!pagesContainer) return;
-                pagesContainer.innerHTML = '';
-                for (let i = 1; i <= totalPages; i++) {
-                    const pageBtn = document.createElement('button');
-                    pageBtn.className = 'event-pagination-page' + (i === currentPage ? ' active' : '');
-                    pageBtn.textContent = i;
-                    pageBtn.onclick = () => showPage(i);
-                    pagesContainer.appendChild(pageBtn);
+                const prevBtn = document.getElementById('prevEventPage');
+                const nextBtn = document.getElementById('nextEventPage');
+                if (prevBtn) prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; updatePagination(); document.getElementById('events').scrollIntoView({ behavior: 'smooth' }); } };
+                if (nextBtn) nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; updatePagination(); document.getElementById('events').scrollIntoView({ behavior: 'smooth' }); } };
+
+                if (cards.length > 0) updatePagination();
+                else {
+                    const controls = document.getElementById('eventPaginationControls');
+                    if (controls) controls.style.display = 'none';
+                    const info = document.getElementById('eventPaginationInfo');
+                    if (info) info.style.display = 'none';
                 }
             }
-
-            if (prevBtn) {
-                prevBtn.onclick = () => {
-                    if (currentPage > 1) showPage(currentPage - 1);
-                };
-            }
-
-            if (nextBtn) {
-                nextBtn.onclick = () => {
-                    if (currentPage < totalPages) showPage(currentPage + 1);
-                };
-            }
-
-            // Initial render
-            showPage(1);
         });
     </script>
-
-    <!-- COOL POPUP SYSTEM INTEGRATION -->
-    <div id="coolPopup" class="cool-popup-overlay">
-        <div class="cool-popup-content">
-            <div id="coolPopupIcon" class="cool-popup-icon"></div>
-            <h2 id="coolPopupTitle" class="cool-popup-title"></h2>
-            <p id="coolPopupMessage" class="cool-popup-message"></p>
-            <button class="cool-popup-btn" onclick="closeCoolPopup()">Got it</button>
-        </div>
-    </div>
-
-    <style>
-        .cool-popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .cool-popup-overlay.show {
-            display: flex;
-            opacity: 1;
-        }
-
-        .cool-popup-content {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 3rem;
-            border-radius: 30px;
-            text-align: center;
-            max-width: 450px;
-            width: 90%;
-            transform: scale(0.8);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .cool-popup-overlay.show .cool-popup-content {
-            transform: scale(1);
-        }
-
-        .cool-popup-icon {
-            font-size: 5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .cool-popup-title {
-            font-family: 'Outfit', sans-serif;
-            font-weight: 800;
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            background: var(--event-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .cool-popup-message {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 2rem;
-        }
-
-        .cool-popup-btn {
-            background: var(--event-gradient);
-            border: none;
-            padding: 1rem 2.5rem;
-            border-radius: 15px;
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 20px -5px rgba(var(--main-home-accent-rgb), 0.5);
-        }
-
-        .cool-popup-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 25px -5px rgba(var(--main-home-accent-rgb), 0.6);
-        }
-    </style>
-
-    <script>
-        function showCoolPopup(title, message, type = 'success') {
-            const popup = document.getElementById('coolPopup');
-            const icon = document.getElementById('coolPopupIcon');
-            const titleEl = document.getElementById('coolPopupTitle');
-            const msgEl = document.getElementById('coolPopupMessage');
-
-            titleEl.textContent = title;
-            msgEl.innerHTML = message;
-
-            if (type === 'success') {
-                icon.innerHTML = "<i class='bx bxs-check-circle' style='color: #00d2ff;'></i>";
-            } else {
-                icon.innerHTML = "<i class='bx bxs-error-circle' style='color: #ff4d4d;'></i>";
-            }
-
-            popup.style.display = 'flex';
-            setTimeout(() => popup.classList.add('show'), 10);
-        }
-
-        function closeCoolPopup() {
-            const popup = document.getElementById('coolPopup');
-            popup.classList.remove('show');
-            setTimeout(() => popup.style.display = 'none', 300);
-        }
-    </script>
+{% endblock %}
 {% endblock %}

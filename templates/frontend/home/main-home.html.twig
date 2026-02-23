@@ -220,15 +220,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="onboarding-step" data-step="1">
                                 <div class="onboarding-welcome-icon">✨</div>
                                 <h1 class="onboarding-title">
-                                    <span data-i18n="Welcome to Syndicati">Welcome to Syndicati</span>
+                                    <span >{{ 'syndicat.welcome_title'|trans }}</span>
                                     {% if user is defined and user %}
                                         <span class="onboarding-user-name">, {{ user.firstName|default('') }} {{ user.lastName|default('') }}</span>
                                     {% endif %}
                                 </h1>
-                                <p class="onboarding-subtitle" data-i18n="Personnalisez votre expérience en quelques étapes">Personnalisez votre expérience en quelques étapes</p>
+                                <p class="onboarding-subtitle" >{{ 'syndicat.welcome_sub'|trans }}</p>
                                 {% set _prefs = prefs|default({}) %}
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Langue">Langue</label>
+                                    <label class="onboarding-label" >{{ 'settings.language_title'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'FR':'🇫🇷 Français','EN':'🇺🇸 English','AR':'🇸🇦 العربية','FR_AR':'🇫🇷🇸🇦 Bilingue FR/AR'} %}
                                             <div class="onboarding-opt">
@@ -239,29 +239,29 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Thème">Thème</label>
+                                    <label class="onboarding-label" >Thème</label>
                                     <div class="onboarding-options">
                                         <div class="onboarding-opt">
                                             <input type="radio" name="theme_preference" id="theme_light" value="LIGHT" {{ (_prefs.theme_preference|default('DARK')) == 'LIGHT' ? 'checked' : '' }}>
-                                            <label for="theme_light">☀️ <span data-i18n="Clair">Clair</span></label>
+                                            <label for="theme_light">☀️ <span >{{ 'settings.light'|trans }}</span></label>
                                         </div>
                                         <div class="onboarding-opt">
                                             <input type="radio" name="theme_preference" id="theme_dark" value="DARK" {{ (_prefs.theme_preference|default('DARK')) == 'DARK' ? 'checked' : '' }}>
-                                            <label for="theme_dark">🌙 <span data-i18n="Sombre">Sombre</span></label>
+                                            <label for="theme_dark">🌙 <span >{{ 'settings.dark'|trans }}</span></label>
                                         </div>
                                     </div>
                                     <div class="onboarding-theme-demo">
-                                        <p><strong data-i18n="Aperçu :">Aperçu :</strong> <span data-i18n="Voici un aperçu de votre thème sélectionné.">Voici un aperçu de votre thème sélectionné.</span></p>
+                                        <p><strong >{{ 'settings.preview'|trans }}</strong> <span >{{ 'settings.preview_desc'|trans }}</span></p>
                                     </div>
                                 </div>
                             </div>
 
                             {# STEP 2 #}
                             <div class="onboarding-step" data-step="2">
-                                <h1 class="onboarding-title" data-i18n="Notifications">Notifications</h1>
-                                <p class="onboarding-subtitle" data-i18n="Comment souhaitez-vous être notifié ?">Comment souhaitez-vous être notifié ?</p>
+                                <h1 class="onboarding-title" >{{ 'nav.notifications'|trans }}</h1>
+                                <p class="onboarding-subtitle" >{{ 'forms.how_notified'|trans }}</p>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Canal">Canal</label>
+                                    <label class="onboarding-label" >{{ 'forms.channel'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'EMAIL':'📧 Email','SMS':'📱 SMS','IN_APP':"🔔 Dans l'app",'ALL':'📬 Tous','NONE':'🔕 Aucune'} %}
                                             <div class="onboarding-opt">
@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Fréquence">Fréquence</label>
+                                    <label class="onboarding-label" >{{ 'forms.frequency'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'INSTANT':'Immédiatement','DAILY_DIGEST':'Résumé quotidien','WEEKLY_DIGEST':'Résumé hebdomadaire','MONTHLY':'Résumé mensuel','IMPORTANT_ONLY':'Urgences uniquement'} %}
                                             <div class="onboarding-opt">
@@ -286,10 +286,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                             {# STEP 3 #}
                             <div class="onboarding-step" data-step="3">
-                                <h1 class="onboarding-title" data-i18n="Votre logement">Votre logement</h1>
-                                <p class="onboarding-subtitle" data-i18n="Parlez-nous de votre bien">Parlez-nous de votre bien</p>
+                                <h1 class="onboarding-title" >{{ 'forms.your_property'|trans }}</h1>
+                                <p class="onboarding-subtitle" >{{ 'forms.tell_us_property'|trans }}</p>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Type de bien">Type de bien</label>
+                                    <label class="onboarding-label" >{{ 'forms.property_type'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'APARTMENT':'Appartement','STUDIO':'Studio','DUPLEX':'Duplex'} %}
                                             <div class="onboarding-opt">
@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Statut d'occupation">Statut d'occupation</label>
+                                    <label class="onboarding-label" >{{ 'forms.occupancy_status'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'OWNER_OCCUPIED':'Propriétaire occupant','OWNER_RENTING':'Propriétaire loueur','TENANT':'Locataire','TEMPORARY':'Occupant temporaire'} %}
                                             <div class="onboarding-opt">
@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Parking">Parking</label>
+                                    <label class="onboarding-label" >{{ 'syndicat.parking'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'NONE':'Pas de parking','OUTDOOR':'Extérieur','COVERED':'Couvert','UNDERGROUND':'Sous-sol','MULTIPLE':'Plusieurs places'} %}
                                             <div class="onboarding-opt">
@@ -325,10 +325,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                             {# STEP 4 #}
                             <div class="onboarding-step" data-step="4">
-                                <h1 class="onboarding-title" data-i18n="Communication">Communication</h1>
-                                <p class="onboarding-subtitle" data-i18n="Vos préférences de communication">Vos préférences de communication</p>
+                                <h1 class="onboarding-title" >{{ 'syndicat.communication'|trans }}</h1>
+                                <p class="onboarding-subtitle" >{{ 'forms.comm_prefs'|trans }}</p>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Participation aux réunions">Participation aux réunions</label>
+                                    <label class="onboarding-label" >{{ 'forms.meeting_participation'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'IN_PERSON':'En présentiel','ONLINE':'En ligne','HYBRID':'Hybride','PROXY_ONLY':'Procuration seulement'} %}
                                             <div class="onboarding-opt">
@@ -339,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Documents">Documents</label>
+                                    <label class="onboarding-label" >{{ 'syndicat.documents'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'DIGITAL':'Numérique','PAPER':'Papier','BOTH':'Les deux','ECO_FRIENDLY':'Eco-responsable'} %}
                                             <div class="onboarding-opt">
@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Contact préféré">Contact préféré</label>
+                                    <label class="onboarding-label" >{{ 'forms.pref_contact'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'EMAIL':'Email','PHONE':'Téléphone','WHATSAPP':'WhatsApp','IN_PERSON':'En personne','NO_CONTACT':'Urgence seulement'} %}
                                             <div class="onboarding-opt">
@@ -364,10 +364,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                             {# STEP 5 #}
                             <div class="onboarding-step" data-step="5">
-                                <h1 class="onboarding-title" data-i18n="Communauté">Communauté</h1>
-                                <p class="onboarding-subtitle" data-i18n="Votre implication">Votre implication</p>
+                                <h1 class="onboarding-title" >Communauté</h1>
+                                <p class="onboarding-subtitle" >{{ 'forms.your_involvement'|trans }}</p>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Maintenance">Maintenance</label>
+                                    <label class="onboarding-label" >{{ 'syndicat.maintenance'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'URGENT_ONLY':'Urgences','PREVENTIVE':'Préventive','SCHEDULED':'Planifié','FLEXIBLE':'Flexible'} %}
                                             <div class="onboarding-opt">
@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Engagement communautaire">Engagement communautaire</label>
+                                    <label class="onboarding-label" >{{ 'forms.comm_engagement'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'VERY_ACTIVE':'Très actif','ACTIVE':'Actif','MODERATE':'Modéré','OBSERVER':'Observateur','MINIMAL':'Minimal'} %}
                                             <div class="onboarding-opt">
@@ -392,10 +392,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                             {# STEP 6 #}
                             <div class="onboarding-step" data-step="6">
-                                <h1 class="onboarding-title" data-i18n="Préférences">Préférences</h1>
-                                <p class="onboarding-subtitle" data-i18n="Dernières options">Dernières options</p>
+                                <h1 class="onboarding-title" >Préférences</h1>
+                                <p class="onboarding-subtitle" >{{ 'forms.latest_options'|trans }}</p>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Paiement">Paiement</label>
+                                    <label class="onboarding-label" >{{ 'forms.payment'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'BANK_TRANSFER':'Virement','CASH':'Espèces','CHECK':'Chèque','ONLINE':'En ligne','AUTO_DEBIT':'Prélèvement auto'} %}
                                             <div class="onboarding-opt">
@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Sensibilité au bruit">Sensibilité au bruit</label>
+                                    <label class="onboarding-label" >{{ 'forms.noise_sensitivity'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'HIGH':'Sensible','MODERATE':'Modéré','LOW':'Peu sensible','NOT_CONCERNED':'Non concerné'} %}
                                             <div class="onboarding-opt">
@@ -417,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Animaux">Animaux</label>
+                                    <label class="onboarding-label" >{{ 'forms.pets'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'NO_PETS':'Aucun','CAT':'Chat','DOG':'Chien','MULTIPLE':'Plusieurs','OTHER':'Autre'} %}
                                             <div class="onboarding-opt">
@@ -428,7 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                                 <div class="onboarding-section">
-                                    <label class="onboarding-label" data-i18n="Accessibilité">Accessibilité</label>
+                                    <label class="onboarding-label" >{{ 'forms.accessibility'|trans }}</label>
                                     <div class="onboarding-options">
                                         {% for val, label in {'NONE':'Aucun','ELEVATOR_REQUIRED':'Ascenseur','WHEELCHAIR':'Fauteuil roulant','VISUAL_IMPAIRMENT':'Déficience visuelle','OTHER':'Autre'} %}
                                             <div class="onboarding-opt">
@@ -442,8 +442,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                             {# STEP 7 #}
                             <div class="onboarding-step" data-step="7">
-                                <h1 class="onboarding-title" data-i18n="Presque terminé">Presque terminé&nbsp;!</h1>
-                                <p class="onboarding-subtitle" data-i18n="Des suggestions ou commentaires ? (optionnel)">Des suggestions ou commentaires ? (optionnel)</p>
+                                <h1 class="onboarding-title" >Presque terminé&nbsp;!</h1>
+                                <p class="onboarding-subtitle" >{{ 'forms.suggestions'|trans }}</p>
                                 <div class="onboarding-section onboarding-suggestions-section">
                                     <div class="onboarding-suggestions-wrap">
                                         <textarea name="suggestions" class="onboarding-textarea" placeholder="Vos idées, remarques ou attentes...">{{ onboarding.suggestions|default('') }}</textarea>
@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="container-xxl flex-grow-1 container-p-y">
 
             <!-- Feature Cards Section -->
-            <h1 id="syndicate-title" class="main-home-hero-title main-home-content-title" data-i18n="Our Residential Complex" style="text-align: center;"></h1>
+            <h1 id="syndicate-title" class="main-home-hero-title main-home-content-title"  style="text-align: center;">{{ 'syndicat.our_complex'|trans }}</h1>
     
 <div class="main-home-cards-section">
     
@@ -625,47 +625,47 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
-<h1 id="syndicate-title" class="main-home-hero-title main-home-content-title" data-i18n="Our Stats" style="text-align: center;"></h1>
+<h1 id="syndicate-title" class="main-home-hero-title main-home-content-title"  style="text-align: center;"></h1>
     
 
         <!-- Stats Section - Syndicate Overview -->
                             <div class="main-home-stats-section">
                                 <div class="main-home-stat-item">
                                     <div class="main-home-stat-number">4</div>
-                                    <div class="main-home-stat-label" data-i18n="Blocks">Blocs</div>
+                                    <div class="main-home-stat-label" >{{ 'syndicat.blocks'|trans }}</div>
                                 </div>
                                 <div class="main-home-stat-item">
                                     <div class="main-home-stat-number">48</div>
-                                    <div class="main-home-stat-label" data-i18n="Apartments">Appartements</div>
+                                    <div class="main-home-stat-label" >{{ 'syndicat.apartments'|trans }}</div>
                                 </div>
                                 <div class="main-home-stat-item">
                                     <div class="main-home-stat-number">156</div>
-                                    <div class="main-home-stat-label" data-i18n="Residents">Résidents</div>
+                                    <div class="main-home-stat-label" >{{ 'syndicat.residents'|trans }}</div>
                                 </div>
                                 <div class="main-home-stat-item">
                                     <div class="main-home-stat-number">12</div>
-                                    <div class="main-home-stat-label" data-i18n="Events">Événements</div>
+                                    <div class="main-home-stat-label" >{{ 'syndicat.events'|trans }}</div>
                                 </div>
                             </div>
 
 
                             <!-- Upcoming Events Section -->
                              <div class="main-home-section" id="evenements">
-                                <h3 class="main-home-section-title main-home-content-title" data-i18n="Upcoming Events">📅 Événements à Venir</h3>
-                                <p class="main-home-section-subtitle" data-i18n="Join activities">Participez aux activités de la résidence</p>
+                                <h3 class="main-home-section-title main-home-content-title" >{{ 'events.upcoming'|trans }}</h3>
+                                <p class="main-home-section-subtitle" >{{ 'events.join_activities'|trans }}</p>
                                 
                                 <div class="main-home-testimonials-grid">
                                     <!-- Event 1 -->
                                     <div class="main-home-testimonial-card">
-                                        <div class="main-home-event-badge urgent" data-i18n="Urgent">Urgent</div>
+                                        <div class="main-home-event-badge urgent" >{{ 'events.urgent'|trans }}</div>
                                         <div class="main-home-testimonial-content">
-                                            <h4 class="main-home-event-title main-home-content-title" data-i18n="Annual General Assembly">🗳️ Assemblée Générale Annuelle</h4>
-                                            <p class="main-home-event-date" data-i18n="25 Jan 2026 18h00">📆 25 Janvier 2026 - 18h00</p>
-                                            <p data-i18n="Vote budget election syndic renovation">Vote du budget 2026, élection du nouveau syndic, discussion travaux de rénovation du hall.</p>
+                                            <h4 class="main-home-event-title main-home-content-title" >{{ 'events.assembly'|trans }}</h4>
+                                            <p class="main-home-event-date" >{{ 'events.assembly_date'|trans }}</p>
+                                            <p >{{ 'events.assembly_desc'|trans }}</p>
                                         </div>
                                         <div class="main-home-testimonial-author">
                                             <div class="main-home-event-stats">
-                                                <span data-i18n="42/48 confirmed">👥 42/48 confirmés</span>
+                                                <span >{{ 'events.assembly_conf'|trans }}</span>
                                                 <span class="main-home-participation-rate">87%</span>
                                             </div>
                                         </div>
@@ -673,15 +673,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                     
                                     <!-- Event 2 -->
                                     <div class="main-home-testimonial-card">
-                                        <div class="main-home-event-badge" data-i18n="Community">Communautaire</div>
+                                        <div class="main-home-event-badge" >{{ 'events.community'|trans }}</div>
                                         <div class="main-home-testimonial-content">
-                                            <h4 class="main-home-event-title main-home-content-title" data-i18n="Neighbors Party">🎉 Fête des Voisins</h4>
-                                            <p class="main-home-event-date" data-i18n="15 Feb 2026 16h00">📆 15 Février 2026 - 16h00</p>
-                                            <p data-i18n="Garden party barbecue music games children">Grande fête dans le jardin commun. Barbecue, musique et jeux pour enfants.</p>
+                                            <h4 class="main-home-event-title main-home-content-title" >{{ 'events.neighbors_party'|trans }}</h4>
+                                            <p class="main-home-event-date" >{{ 'events.party_date'|trans }}</p>
+                                            <p >{{ 'events.party_desc'|trans }}</p>
                                         </div>
                                         <div class="main-home-testimonial-author">
                                             <div class="main-home-event-stats">
-                                                <span data-i18n="78/156 registered">👥 78/156 inscrits</span>
+                                                <span >{{ 'events.party_reg'|trans }}</span>
                                                 <span class="main-home-participation-rate">50%</span>
                                             </div>
                                         </div>
@@ -689,15 +689,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                     
                                     <!-- Event 3 -->
                                     <div class="main-home-testimonial-card">
-                                        <div class="main-home-event-badge maintenance" data-i18n="Maintenance">Maintenance</div>
+                                        <div class="main-home-event-badge maintenance" >{{ 'syndicat.maintenance'|trans }}</div>
                                         <div class="main-home-testimonial-content">
-                                            <h4 class="main-home-event-title main-home-content-title" data-i18n="Elevator Works Block A">🔧 Travaux Ascenseur Bloc A</h4>
-                                            <p class="main-home-event-date" data-i18n="1-3 Feb 2026">📆 1-3 Février 2026</p>
-                                            <p data-i18n="Preventive maintenance stairs only 3 days">Maintenance préventive de l'ascenseur. Escaliers uniquement pendant 3 jours.</p>
+                                            <h4 class="main-home-event-title main-home-content-title" >{{ 'events.elevator'|trans }}</h4>
+                                            <p class="main-home-event-date" >{{ 'events.elevator_date'|trans }}</p>
+                                            <p >{{ 'events.elevator_desc'|trans }}</p>
                                         </div>
                                         <div class="main-home-testimonial-author">
                                             <div class="main-home-event-stats">
-                                                <span data-i18n="Block A concerned">🏢 Bloc A concerné</span>
+                                                <span >{{ 'events.block_concerned'|trans }}</span>
                                                 <span class="main-home-participation-rate">Info</span>
                                             </div>
                                         </div>
@@ -708,49 +708,49 @@ document.addEventListener('DOMContentLoaded', function() {
 
                              <!-- Services Section -->
                             <div class="main-home-section">
-                                <h3 class="main-home-section-title main-home-content-title" data-i18n="Syndicat Services">🛠️ Services du Syndicat</h3>
+                                <h3 class="main-home-section-title main-home-content-title" >{{ 'syndicat.services_title'|trans }}</h3>
                                 
                                 <div class="main-home-features-grid">
                                     <div class="main-home-feature-card">
                                         <div class="main-home-feature-icon">💰</div>
-                                        <h4 data-i18n="Financial Management">Gestion Financière</h4>
-                                        <p data-i18n="Financial Management Desc">Suivi des charges, budget annuel, paiements en ligne</p>
+                                        <h4 >{{ 'syndicat.financial_management'|trans }}</h4>
+                                        <p >{{ 'syndicat.financial_desc'|trans }}</p>
                                     </div>
                                     <div class="main-home-feature-card">
                                         <div class="main-home-feature-icon">🔧</div>
-                                        <h4 data-i18n="Maintenance">Maintenance</h4>
-                                        <p data-i18n="Maintenance Desc">Signalement de problèmes, suivi des interventions</p>
+                                        <h4 >{{ 'syndicat.maintenance'|trans }}</h4>
+                                        <p >{{ 'syndicat.maintenance_desc'|trans }}</p>
                                     </div>
                                     <div class="main-home-feature-card">
                                         <div class="main-home-feature-icon">📢</div>
-                                        <h4 data-i18n="Communication">Communication</h4>
-                                        <p data-i18n="Communication Desc">Annonces, notifications, messagerie résidents</p>
+                                        <h4 >{{ 'syndicat.communication'|trans }}</h4>
+                                        <p >{{ 'syndicat.communication_desc'|trans }}</p>
                                     </div>
                                     <div class="main-home-feature-card">
                                         <div class="main-home-feature-icon">📄</div>
-                                        <h4 data-i18n="Documents">Documents</h4>
-                                        <p data-i18n="Documents Desc">Règlement, PV d'assemblées, contrats</p>
+                                        <h4 >{{ 'syndicat.documents'|trans }}</h4>
+                                        <p >{{ 'syndicat.documents_desc'|trans }}</p>
                                     </div>
                                     <div class="main-home-feature-card">
                                         <div class="main-home-feature-icon">🅿️</div>
-                                        <h4 data-i18n="Parking">Parking</h4>
-                                        <p data-i18n="Parking Desc">Gestion des places, badges d'accès</p>
+                                        <h4 >{{ 'syndicat.parking'|trans }}</h4>
+                                        <p >{{ 'syndicat.parking_desc'|trans }}</p>
                                     </div>
                                     <div class="main-home-feature-card">
                                         <div class="main-home-feature-icon">📊</div>
-                                        <h4 data-i18n="Statistics">Statistiques</h4>
-                                        <p data-i18n="Statistics Desc">Rapports, taux de participation, historique</p>
+                                        <h4 >{{ 'syndicat.statistics'|trans }}</h4>
+                                        <p >{{ 'syndicat.statistics_desc'|trans }}</p>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Quick Actions / CTA Section -->
                             <div class="main-home-cta-section">
-                                <h2 data-i18n="Need Assistance">Besoin d'Assistance?</h2>
-                                <p data-i18n="Assistance Desc">Notre équipe de gestion est là pour vous aider. Contactez le syndic ou signalez un problème.</p>
+                                <h2 >{{ 'syndicat.need_assistance'|trans }}</h2>
+                                <p >{{ 'syndicat.assistance_desc'|trans }}</p>
                                 <div class="main-home-cta-buttons">
-                                    <button class="main-home-btn main-home-btn-primary" data-i18n="Contact Syndic">📞 Contacter le Syndic</button>
-                                    <button class="main-home-btn main-home-btn-secondary" data-i18n="Report Problem">🔧 Signaler un Problème</button>
+                                    <button class="main-home-btn main-home-btn-primary" >{{ 'syndicat.contact_syndic'|trans }}</button>
+                                    <button class="main-home-btn main-home-btn-secondary" >{{ 'syndicat.report_problem'|trans }}</button>
                                 </div>
                             </div>
 

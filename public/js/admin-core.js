@@ -149,6 +149,8 @@
         setTimeout(() => {
             const faces = switcher.querySelectorAll('.glass-switcher-face');
             let targetHeight = 0;
+            let targetFaceEl = null;
+
             faces.forEach(f => {
                 const isMain = f.classList.contains('glass-switcher-face-main');
                 const isTarget = (face === 'main' && isMain) ||
@@ -157,25 +159,39 @@
                     (face === 'extra' && f.classList.contains('glass-switcher-face-extra')) ||
                     (face === 'participate' && f.classList.contains('glass-switcher-face-participate'));
                 if (isTarget) {
-                    f.style.position = 'relative'; f.style.visibility = 'visible'; f.style.display = 'block'; f.style.height = 'auto';
+                    targetFaceEl = f;
+                    // Temporary measurement state
+                    const originalStyle = f.getAttribute('style') || '';
+                    f.style.position = 'relative';
+                    f.style.visibility = 'visible';
+                    f.style.display = 'block';
+                    f.style.height = 'auto';
                     targetHeight = f.offsetHeight || f.scrollHeight;
-                    f.style.position = ''; f.style.visibility = ''; f.style.display = ''; f.style.height = '';
+                    f.setAttribute('style', originalStyle);
                 }
             });
 
-            // Fallback: If targetHeight is 0 (can happen during initial render or animation), 
-            // try to measure the direct child if it's the main face.
-            if (targetHeight === 0 && face === 'main') {
-                const mainFace = switcher.querySelector('.glass-switcher-face-main');
-                if (mainFace) targetHeight = mainFace.scrollHeight || mainFace.offsetHeight;
+            // Fallback: If targetHeight is 0 (can happen if hidden), use a safer measurement
+            if (targetHeight === 0 && targetFaceEl) {
+                targetHeight = targetFaceEl.scrollHeight;
             }
 
             if (targetHeight > 0) {
+                // Step 1: Set explicit height for transition
                 switcher.style.height = (targetHeight + 20) + 'px';
+
+                // Step 2: Reset to auto after transition duration (0.5s) to allow natural growth
+                setTimeout(() => {
+                    if (switcher.classList.contains('active-' + face)) {
+                        switcher.style.height = 'auto';
+                    }
+                }, 550);
             } else if (face === 'main') {
-                // Absolute fallback for main table view if measurement fails
                 switcher.style.height = 'auto';
                 switcher.style.minHeight = '400px';
+            } else {
+                switcher.style.height = 'auto';
+                switcher.style.minHeight = '600px';
             }
         }, 150);
     };
@@ -194,7 +210,8 @@
         // 2. Coordinate with Switcher
         // Try to find the closest switcher or use the naming convention
         const switcher = modal.closest('.glass-switcher') ||
-            document.querySelector(`[id*="${id.split('-')[0]}"][class*="glass-switcher"]`);
+            document.querySelector(`.glass-switcher[id*="${id.split('-')[0]}"]`) ||
+            document.querySelector('.glass-switcher'); // Ultimate fallback
 
         if (switcher && window.switchGlassFace) {
             let face = 'main';

@@ -22,7 +22,8 @@ class ReponseApiController extends AbstractController
         Request $request,
         \App\Repository\Syndicat\ReclamationRepository $reclamationRepository,
         EntityManagerInterface $entityManager,
-        SluggerInterface $slugger
+        SluggerInterface $slugger,
+        \App\Service\Syndicat\SyndicatNotificationService $notificationService
     ): JsonResponse {
         $reclamation = $reclamationRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -69,6 +70,9 @@ class ReponseApiController extends AbstractController
 
         $entityManager->persist($reponse);
         $entityManager->flush();
+
+        // Send Reply Notification
+        $notificationService->notifyReclamationReply($reponse);
 
         return new JsonResponse(['success' => true, 'message' => 'Response added successfully.']);
     }

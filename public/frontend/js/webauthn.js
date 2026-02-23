@@ -232,16 +232,17 @@ const WebAuthn = (function () {
 
         container.querySelectorAll('.webauthn-delete-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                if (!confirm('Are you sure you want to remove this method?')) return;
-                const id = btn.dataset.id;
-                const success = await removeCredential(id);
-                if (success) {
-                    const list = await listCredentials();
-                    renderCredentialList(containerId, list);
-                    if (typeof showCoolPopup === 'function') showCoolPopup('Success', 'Credential removed', 'success');
-                } else {
-                    if (typeof showCoolPopup === 'function') showCoolPopup('Error', 'Failed to remove', 'error');
-                }
+                window.confirmObsidianDelete(async () => {
+                    const id = btn.dataset.id;
+                    const success = await removeCredential(id);
+                    if (success) {
+                        const list = await listCredentials();
+                        renderCredentialList(containerId, list);
+                        if (typeof window.showObsidianNotification === 'function') window.showObsidianNotification('Success', 'Credential removed', 'success');
+                    } else {
+                        if (typeof window.showObsidianNotification === 'function') window.showObsidianNotification('Error', 'Failed to remove', 'error');
+                    }
+                }, 'Remove Passkey?', 'Are you sure you want to disable this biometric method?');
             });
         });
     }

@@ -35,6 +35,9 @@
             "./migrations/.gitignore"
         ]
     },
+    "endroid/qr-code-bundle": {
+        "version": "6.1.0"
+    },
     "google/apiclient": {
         "version": "2.19",
         "recipe": {
@@ -74,6 +77,15 @@
             "./config/packages/scheb_2fa.yaml",
             "./config/routes/scheb_2fa.yaml"
         ]
+    },
+    "sensiolabs/gotenberg-bundle": {
+        "version": "1.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "0.1",
+            "ref": "4b40c14df89ba85902d42b112fee818843af6530"
+        }
     },
     "symfony/asset-mapper": {
         "version": "7.3",

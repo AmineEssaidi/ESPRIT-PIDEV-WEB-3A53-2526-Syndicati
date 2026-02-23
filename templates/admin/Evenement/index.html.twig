@@ -5,9 +5,6 @@
 {% block stylesheets %}
     <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
     <style>
-        .glass-switcher { position: relative; width: 100%; transition: height 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
-        .glass-switcher-face { width: 100%; }
-
         /* Hide scrollbars for specific modal containers while allowing them globally */
         .glass-switcher-face::-webkit-scrollbar,
         .users-edit-modal::-webkit-scrollbar,
@@ -637,7 +634,7 @@
         const start = (evPage-1)*rowsPP, end = Math.min(start+rowsPP, evRows.length);
         for(let i=start; i<end; i++) {
             const d = evRows[i]; const r = document.createElement('tr');
-            r.innerHTML = `<td><strong>${d[0]}</strong></td><td>${d[1]}</td><td>${d[3]}</td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewEvent(${i})"><i class="bx bx-show"></i> Details</button></td>`;
+            r.innerHTML = `<td><strong>${d[0]}</strong></td><td>${d[1]}</td><td>${d[3]}</td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="event.stopPropagation(); viewEvent(${i})"><i class="bx bx-show"></i> Details</button></td>`;
             tb.appendChild(r);
         }
         const total = Math.ceil(evRows.length / rowsPP), cont = document.getElementById('event-table-pages'); cont.innerHTML = '';
@@ -648,7 +645,7 @@
         const start = (ptPage-1)*rowsPP, end = Math.min(start+rowsPP, ptRows.length);
         for(let i=start; i<end; i++) {
             const d = ptRows[i]; const r = document.createElement('tr');
-            r.innerHTML = `<td><strong>${d[0]}</strong></td><td>${d[1]}</td><td>${d[2]}</td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewPart(${i})"><i class="bx bx-show"></i> Details</button></td>`;
+            r.innerHTML = `<td><strong>${d[0]}</strong></td><td>${d[1]}</td><td>${d[2]}</td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="event.stopPropagation(); viewPart(${i})"><i class="bx bx-show"></i> Details</button></td>`;
             tb.appendChild(r);
         }
         const total = Math.ceil(ptRows.length / rowsPP), cont = document.getElementById('part-table-pages'); cont.innerHTML = '';
@@ -664,6 +661,13 @@
             f.querySelector('[name*="titre_event"]').value = d[0]; f.querySelector('[name*="lieu_event"]').value = d[1]; f.querySelector('[name*="description_event"]').value = d[2]; f.querySelector('[name*="date_event"]').value = d[3].replace(' ', 'T');
             openModal('event-edit-modal');
         };
+        // 1. Explicitly mark the modal as active before the switcher starts
+        const vModal = document.getElementById('event-view-modal');
+        if (vModal) {
+            vModal.style.display = 'flex';
+            void vModal.offsetWidth;
+            vModal.classList.add('active');
+        }
         openModal('event-view-modal');
     };
     window.viewPart = function(idx) {
@@ -673,6 +677,13 @@
             const f = document.getElementById('part-edit-form'); f.action = editPartUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
             openModal('part-edit-modal');
         };
+        // 1. Explicitly mark the modal as active before the switcher starts
+        const vModal = document.getElementById('part-view-modal');
+        if (vModal) {
+            vModal.style.display = 'flex';
+            void vModal.offsetWidth;
+            vModal.classList.add('active');
+        }
         openModal('part-view-modal');
     };
 

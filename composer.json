@@ -11,12 +11,17 @@
         "doctrine/doctrine-bundle": "^2.18.2",
         "doctrine/doctrine-migrations-bundle": "^3.7.0",
         "doctrine/orm": "^3.6.1",
+        "dompdf/dompdf": "^3.1",
+        "endroid/qr-code-bundle": "^6.1",
         "google/apiclient": "^2.19",
         "knplabs/knp-paginator-bundle": "^6.10",
+        "php-ai/php-ml": "*",
         "phpdocumentor/reflection-docblock": "^5.6.6",
         "phpstan/phpdoc-parser": "^2.3.2",
+        "rubix/ml": "^2.5",
         "scheb/2fa-bundle": "*",
         "scheb/2fa-totp": "^7.13",
+        "sensiolabs/gotenberg-bundle": "*",
         "symfony/asset": "6.4.*",
         "symfony/asset-mapper": "6.4.*",
         "symfony/console": "6.4.*",
@@ -49,10 +54,12 @@
         "symfony/yaml": "6.4.*",
         "twig/extra-bundle": "^2.12|^3.23",
         "twig/twig": "^2.12|^3.23.0",
+        "twilio/sdk": "^8.11",
         "web-auth/webauthn-symfony-bundle": "^5.2"
     },
     "config": {
         "allow-plugins": {
+            "endroid/installer": true,
             "php-http/discovery": true,
             "symfony/flex": true,
             "symfony/runtime": true

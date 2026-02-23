@@ -84,6 +84,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
     #[ORM\Column(name: 'totp_secret', type: 'string', length: 255, nullable: true)]
     private $totpSecret;
 
+    #[ORM\Column(name: 'google_id', type: 'string', length: 255, nullable: true)]
+    private ?string $google_id = null;
+
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    private $phone;
+
     #[ORM\Column(type: 'datetime')]
     private $created_at;
 
@@ -274,6 +280,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
     public function setTotpSecret(?string $totpSecret): self
     {
         $this->totpSecret = $totpSecret;
+        return $this;
+    }
+
+    public function getGoogleId(): ?string
+    {
+        return $this->google_id;
+    }
+
+    public function setGoogleId(?string $google_id): self
+    {
+        $this->google_id = $google_id;
+        return $this;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): self
+    {
+        $this->phone = $phone;
         return $this;
     }
 

@@ -1,0 +1,47 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block body %}
+    <h2 style="color: #ff4b5c;">{% if isOwner %}Nouvelle Demande de Contact{% else %}Copie de votre demande{% endif %}</h2>
+    <p>Bonjour {{ isOwner ? (owner.firstName ~ ' ' ~ owner.lastName) : senderName }},</p>
+    
+    {% if isOwner %}
+        <p>Un utilisateur est intéressé par votre appartement. Voici les détails de la demande :</p>
+    {% else %}
+        <p>Ceci est une copie de la demande que vous avez envoyée pour l'appartement suivant :</p>
+    {% endif %}
+
+    <div style="background: rgba(255, 75, 92, 0.03); padding: 30px; border-radius: 20px; border: 1px solid rgba(255, 75, 92, 0.2); margin: 35px 0;">
+        <h3 style="margin-bottom: 12px; color: #ff4b5c; font-size: 18px;">Détails de l'Appartement</h3>
+        <p style="margin-bottom: 8px; font-size: 15px; color: rgba(255, 255, 255, 0.9);">
+            <strong>Résidence:</strong> {{ residence.nomR }}
+        </p>
+        <p style="margin-bottom: 8px; font-size: 15px; color: rgba(255, 255, 255, 0.9);">
+            <strong>Type:</strong> {{ appartement.typeA }}
+        </p>
+        <p style="margin-bottom: 8px; font-size: 15px; color: rgba(255, 255, 255, 0.9);">
+            <strong>Localisation:</strong> Bloc {{ appartement.appartementInfo.bloc ?? 'N/A' }}, Etage {{ appartement.appartementInfo.floor ?? 'N/A' }}
+        </p>
+        
+        <div style="margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 12px; border-left: 3px solid #ff4b5c;">
+            <h4 style="margin-bottom: 8px; color: #ff4b5c; font-size: 16px;">Message de l'expéditeur:</h4>
+            <p style="margin-bottom: 0; font-size: 14px; color: rgba(255, 255, 255, 0.8); font-style: italic;">
+                "{{ messageContent|default('Aucun message fourni.')|nl2br }}"
+            </p>
+        </div>
+
+        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <p style="margin-bottom: 5px; font-size: 14px; color: rgba(255, 255, 255, 0.7);">
+                <strong>Expéditeur:</strong> {{ senderName }}
+            </p>
+            <p style="margin-bottom: 0; font-size: 14px; color: rgba(255, 255, 255, 0.7);">
+                <strong>Email:</strong> <a href="mailto:{{ senderEmail }}" style="color: #ff4b5c; text-decoration: none;">{{ senderEmail }}</a>
+            </p>
+        </div>
+    </div>
+
+    <p style="font-size: 15px; color: rgba(255, 255, 255, 0.6);">L'équipe <strong>Syndicati</strong> vous remercie pour votre confiance.</p>
+{% endblock %}
+
+{% block footer_extra %}
+    <p style="margin-top: 15px; font-style: italic; color: #ff4b5c;">Référence Appartement: APP-{{ appartement.idApp }} • Demande Directe</p>
+{% endblock %}

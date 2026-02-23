@@ -361,6 +361,8 @@ class UserController extends AbstractController
         OnboardingRepository $onboardingRepository,
         ReclamationRepository $reclamationRepository,
         \App\Repository\Forum\PublicationRepository $publicationRepository,
+        \App\Repository\Forum\CommentaireRepository $commentaireRepository,
+        \App\Repository\Forum\ReactionRepository $reactionRepository,
         \App\Repository\Evenement\EvenementRepository $evenementRepository,
         \App\Repository\Residence\AppartementRepository $appartementRepository,
         \App\Repository\OAuth\OAuthRepository $oauthRepository,
@@ -566,10 +568,14 @@ class UserController extends AbstractController
 
         if ($isAdmin) {
             $publications = $publicationRepository->findAllLatest();
+            $commentaires = $commentaireRepository->findBy([], ['created_at' => 'DESC']);
+            $reactions = $reactionRepository->findBy([], ['created_at' => 'DESC']);
             $events = $evenementRepository->findAllWithUser();
             $appartements = $appartementRepository->findAll();
         } else {
             $publications = $publicationRepository->findBy(['user' => $user], ['date_creation_pub' => 'DESC']);
+            $commentaires = $commentaireRepository->findBy(['user' => $user], ['created_at' => 'DESC']);
+            $reactions = $reactionRepository->findBy(['user' => $user], ['created_at' => 'DESC']);
             $events = $evenementRepository->findBy(['user' => $user], ['date_event' => 'DESC']);
             $appartements = $appartementRepository->findBy(['user' => $user]);
         }
@@ -582,6 +588,8 @@ class UserController extends AbstractController
             'onboardingForm' => $onboardingFormView,
             'reclamations' => $reclamations,
             'publications' => $publications,
+            'commentaires' => $commentaires,
+            'reactions' => $reactions,
             'events' => $events,
             'appartements' => $appartements,
             'isAdmin' => $isAdmin,

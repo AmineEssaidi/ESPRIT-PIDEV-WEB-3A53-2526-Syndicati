@@ -65,6 +65,14 @@ class ProfileType extends AbstractType
                 'label' => 'Description / Bio',
                 'required' => false,
             ])
+            ->add('phone', TextType::class, [
+                'label' => 'Phone Number',
+                'property_path' => 'user.phone',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => '+216XXXXXXXX',
+                ],
+            ])
             ->add('currentPassword', PasswordType::class, [
                 'label' => 'Current Password',
                 'mapped' => false,

@@ -17,7 +17,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class ForumController extends AbstractController
 {
     #[Route('/forum', name: 'frontend_forum', methods: ['GET', 'POST'])]
-    public function index(Request $request, PublicationRepository $publicationRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function index(Request $request, PublicationRepository $publicationRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Service\Forum\ForumNotificationService $notificationService): Response
     {
         $publication = new Publication();
         $session = $request->getSession();
@@ -80,6 +80,11 @@ class ForumController extends AbstractController
 
                 $entityManager->persist($publication);
                 $entityManager->flush();
+
+                // Notify if Announcement
+                if ($publication->getCategoriePub() === 'Announcement') {
+                    $notificationService->notifyNewAnnouncement($publication);
+                }
 
                 if ($isAjax) {
                     return $this->json(['success' => true, 'message' => 'Post created successfully!']);
@@ -250,6 +255,39 @@ class ForumController extends AbstractController
         }
 
         return $this->redirectToRoute('frontend_forum');
+    }
+
+    #[Route('/forum/ajax/list', name: 'frontend_forum_ajax_list', methods: ['GET'])]
+    public function ajaxList(Request $request, PublicationRepository $publicationRepository, EntityManagerInterface $entityManager): Response
+    {
+        $category = $request->query->get('category', 'General');
+        $publications = $publicationRepository->findByCategory($category);
+
+        // Fetch profiles
+        $authorIds = [];
+        foreach ($publications as $pub) {
+            $authorIds[] = $pub->getUser()->getIdUser();
+        }
+        $authorIds = array_unique($authorIds);
+
+        $profiles = [];
+        if (!empty($authorIds)) {
+            $profileEntities = $entityManager->getRepository(\App\Entity\Profile\Profile::class)
+                ->createQueryBuilder('p')
+                ->where('p.user IN (:ids)')
+                ->setParameter('ids', $authorIds)
+                ->getQuery()
+                ->getResult();
+
+            foreach ($profileEntities as $profile) {
+                $profiles[$profile->getUser()->getIdUser()] = $profile;
+            }
+        }
+
+        return $this->render('frontend/forum/_ajax_list.html.twig', [
+            'publications' => $publications,
+            'author_profiles' => $profiles,
+        ]);
     }
 
     private function getUserIdFromSession($userSession): ?int

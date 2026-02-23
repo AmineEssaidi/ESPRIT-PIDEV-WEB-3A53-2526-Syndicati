@@ -36,6 +36,7 @@ class Profile
     #[ORM\Column(type: 'json', nullable: true, name: 'settings')]
     private ?array $settings = [];
 
+
     public function getIdProfile(): ?int
     {
         return $this->id_profile;
@@ -117,4 +118,5 @@ class Profile
         $this->settings = $settings;
         return $this;
     }
+
 }

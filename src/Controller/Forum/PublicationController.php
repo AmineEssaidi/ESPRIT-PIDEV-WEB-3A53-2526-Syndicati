@@ -8,6 +8,9 @@ use App\Repository\Forum\PublicationRepository;
 use App\Entity\Forum\Commentaire;
 use App\Form\Forum\CommentaireType;
 use App\Repository\Forum\CommentaireRepository;
+use App\Entity\Forum\Reaction;
+use App\Form\Forum\ReactionType;
+use App\Repository\Forum\ReactionRepository;
 use App\Service\PageStatusService;
 use App\Entity\User\User;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,10 +32,11 @@ class PublicationController extends AbstractController
     }
 
     #[Route('/admin', name: 'admin_forum')]
-    public function adminIndex(PageStatusService $pageStatusService, Request $request, PublicationRepository $publicationRepository, CommentaireRepository $commentaireRepository, FormFactoryInterface $formFactory): Response
+    public function adminIndex(PageStatusService $pageStatusService, Request $request, PublicationRepository $publicationRepository, CommentaireRepository $commentaireRepository, ReactionRepository $reactionRepository, FormFactoryInterface $formFactory): Response
     {
         $publications = $publicationRepository->findBy([], ['date_creation_pub' => 'DESC']);
         $commentaires = $commentaireRepository->findBy([], ['created_at' => 'DESC']);
+        $reactions = $reactionRepository->findBy([], ['created_at' => 'DESC']);
 
         $pubEditForm = $formFactory->createNamed('publication_edit', PublicationType::class, new Publication());
         $pubAddForm = $formFactory->createNamed('publication_add', PublicationType::class, new Publication(), [
@@ -40,18 +44,21 @@ class PublicationController extends AbstractController
             'method' => 'POST',
         ]);
         $commentEditForm = $formFactory->createNamed('comment_edit', CommentaireType::class, new Commentaire());
+        $reactionEditForm = $formFactory->createNamed('reaction_edit', ReactionType::class, new Reaction());
 
         return $this->render('admin/Forum/index.html.twig', [
             'publications' => $publications,
             'commentaires' => $commentaires,
+            'reactions' => $reactions,
             'pubEditForm' => $pubEditForm->createView(),
             'pubAddForm' => $pubAddForm->createView(),
-            'commentEditForm' => $commentEditForm->createView()
+            'commentEditForm' => $commentEditForm->createView(),
+            'reactionEditForm' => $reactionEditForm->createView()
         ]);
     }
 
     #[Route('/admin/add', name: 'admin_forum_pub_add', methods: ['POST'])]
-    public function adminAdd(Request $request, EntityManagerInterface $em, SluggerInterface $slugger, FormFactoryInterface $formFactory): JsonResponse
+    public function adminAdd(Request $request, EntityManagerInterface $em, SluggerInterface $slugger, FormFactoryInterface $formFactory, \App\Service\Forum\ForumNotificationService $notificationService): JsonResponse
     {
         $publication = new Publication();
         $form = $formFactory->createNamed('publication_add', PublicationType::class, $publication);
@@ -94,6 +101,11 @@ class PublicationController extends AbstractController
 
             $em->persist($publication);
             $em->flush();
+
+            // Notify if Announcement
+            if ($publication->getCategoriePub() === 'Announcement') {
+                $notificationService->notifyNewAnnouncement($publication);
+            }
 
             return new JsonResponse([
                 'success' => true,
@@ -205,8 +217,60 @@ class PublicationController extends AbstractController
         return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
     }
 
+    #[Route('/admin/reaction/{id}/edit', name: 'admin_forum_reaction_edit', methods: ['POST'])]
+    public function reactionEdit(int $id, Request $request, ReactionRepository $reactionRepository, EntityManagerInterface $em, FormFactoryInterface $formFactory): JsonResponse
+    {
+        $reaction = $reactionRepository->find($id);
+        if (!$reaction) {
+            return new JsonResponse(['success' => false, 'message' => 'Reaction not found.'], 404);
+        }
+
+        $form = $formFactory->createNamed('reaction_edit', ReactionType::class, $reaction);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Reaction updated successfully.',
+                'reaction' => [
+                    'id' => $reaction->getIdReaction(),
+                    'kind' => $reaction->getKind(),
+                    'emoji' => $reaction->getEmoji(),
+                    'reason' => $reaction->getReportReason()
+                ]
+            ]);
+        }
+
+        $errors = [];
+        foreach ($form->getErrors(true) as $error) {
+            $errors[] = $error->getMessage();
+        }
+        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+    }
+
+    #[Route('/admin/reaction/{id}/delete', name: 'admin_forum_reaction_delete', methods: ['POST'])]
+    public function reactionDelete(int $id, Request $request, ReactionRepository $reactionRepository, EntityManagerInterface $em): JsonResponse
+    {
+        $reaction = $reactionRepository->find($id);
+        if (!$reaction) {
+            return new JsonResponse(['success' => false, 'message' => 'Reaction not found.'], 404);
+        }
+
+        // CSRF check
+        if (!$this->isCsrfTokenValid('delete' . $reaction->getIdReaction(), $request->request->get('_token'))) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+        }
+
+        $em->remove($reaction);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Reaction deleted successfully.']);
+    }
+
     #[Route('/new', name: 'app_publication_new', methods: ['POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): JsonResponse
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Service\Forum\ForumNotificationService $notificationService): JsonResponse
     {
         $publication = new Publication();
         $user = $this->getUser();
@@ -238,6 +302,11 @@ class PublicationController extends AbstractController
 
             $entityManager->persist($publication);
             $entityManager->flush();
+
+            // Notify if Announcement
+            if ($publication->getCategoriePub() === 'Announcement') {
+                $notificationService->notifyNewAnnouncement($publication);
+            }
 
             return new JsonResponse([
                 'success' => true,

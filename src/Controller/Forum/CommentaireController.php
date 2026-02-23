@@ -6,6 +6,7 @@ use App\Entity\Forum\Commentaire;
 use App\Entity\Forum\Publication;
 use App\Repository\Forum\CommentaireRepository;
 use App\Repository\Forum\PublicationRepository;
+use App\Repository\Forum\ReactionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,6 +24,7 @@ class CommentaireController extends AbstractController
         Request $request,
         PublicationRepository $publicationRepository,
         CommentaireRepository $commentaireRepository,
+        ReactionRepository $reactionRepository,
         EntityManagerInterface $entityManager,
         \Symfony\Component\Security\Csrf\CsrfTokenManagerInterface $csrfTokenManager
     ): JsonResponse {
@@ -61,6 +63,7 @@ class CommentaireController extends AbstractController
         $data = [];
         $currentUser = $request->getSession()->get('user');
         $currentUserId = $currentUser ? ($currentUser['id_user'] ?? $currentUser['id']) : null;
+        $currentUserEntity = $currentUserId ? $entityManager->getRepository(\App\Entity\User\User::class)->find($currentUserId) : null;
         $currentUserRole = $currentUser ? ($currentUser['role'] ?? null) : null;
         $moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'];
         $isUserModerator = $currentUserRole && in_array($currentUserRole, $moderatorRoles, true);
@@ -107,7 +110,12 @@ class CommentaireController extends AbstractController
                 'canEdit' => ($currentUserId == $user->getIdUser() || $isUserModerator),
                 'canDelete' => ($currentUserId == $user->getIdUser() || $isUserModerator),
                 'deleteToken' => $csrfTokenManager->getToken('delete_comment' . $comment->getIdCommentaire())->getValue(),
-                'image' => $comment->getImageCommentaire() ? '/commentaire_images/' . $comment->getImageCommentaire() : null
+                'image' => $comment->getImageCommentaire() ? '/commentaire_images/' . $comment->getImageCommentaire() : null,
+                'reactions' => $currentUserEntity ? array_map(fn($r) => ['kind' => $r->getKind(), 'emoji' => $r->getEmoji()], $reactionRepository->findByCommentAndUser($comment, $currentUserEntity)) : [],
+                'counts' => [
+                    'Like' => $reactionRepository->countByCommentAndKind($comment->getIdCommentaire(), 'Like'),
+                    'Dislike' => $reactionRepository->countByCommentAndKind($comment->getIdCommentaire(), 'Dislike')
+                ]
             ];
         }
 
@@ -120,7 +128,8 @@ class CommentaireController extends AbstractController
         Request $request,
         PublicationRepository $publicationRepository,
         EntityManagerInterface $entityManager,
-        SluggerInterface $slugger
+        SluggerInterface $slugger,
+        \App\Service\Forum\ForumNotificationService $notificationService
     ): JsonResponse {
         $publication = $publicationRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -170,6 +179,9 @@ class CommentaireController extends AbstractController
 
             $entityManager->persist($commentaire);
             $entityManager->flush();
+
+            // Send Email Notification
+            $notificationService->notifyNewComment($commentaire);
 
             return new JsonResponse(['success' => true]);
         }

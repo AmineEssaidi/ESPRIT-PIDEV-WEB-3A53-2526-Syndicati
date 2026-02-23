@@ -20,24 +20,24 @@
         <div class="main-home-nav-tabs">
             <div class="main-home-nav-tab {{ active_tab|default('') == 'home' ? 'active' : '' }}">
                 <span class="main-home-tab-text">
-                    <a href="{{ path('main_home') }}" style="text-decoration: none; color: inherit;" data-i18n="Home">Accueil</a>
+                    <a href="{{ path('main_home') }}" style="text-decoration: none; color: inherit;" >{{ 'nav.home'|trans }}</a>
                 </span>
             </div>
             <div class="main-home-nav-tab {{ active_tab|default('') == 'services' ? 'active' : '' }}">
-                <span class="main-home-tab-text"><a href="#" data-i18n="Services" style="text-decoration: none; color: inherit;">Services</a></span>
+                <span class="main-home-tab-text"><a href="#"  style="text-decoration: none; color: inherit;">{{ 'nav.services'|trans }}</a></span>
                 <div class="main-home-tab-dropdown">
-                    <a href="{{ path('app_residence_index') }}" class="main-home-dropdown-item" data-i18n="Residence">Residence</a>
-                    <a href="{{ path('frontend_forum') }}" class="main-home-dropdown-item" data-i18n="Forum">Forum</a>
-                    <a href="{{ path('frontend_syndicat') }}" class="main-home-dropdown-item" data-i18n="Syndicat">Syndicat</a>
-                    <a href="{{ path('app_evenement_index') }}" class="main-home-dropdown-item" data-i18n="Evenement">Evenement</a>
+                    <a href="{{ path('app_residence_index') }}" class="main-home-dropdown-item" >{{ 'nav.residence'|trans }}</a>
+                    <a href="{{ path('frontend_forum') }}" class="main-home-dropdown-item" >{{ 'nav.forum'|trans }}</a>
+                    <a href="{{ path('frontend_syndicat') }}" class="main-home-dropdown-item" >{{ 'nav.syndicat'|trans }}</a>
+                    <a href="{{ path('app_evenement_index') }}" class="main-home-dropdown-item" >{{ 'nav.evenement'|trans }}</a>
                 </div>
             </div>
             <div class="main-home-nav-tab {{ active_tab|default('') == 'about' ? 'active' : '' }}">
-                <span class="main-home-tab-text"><a href="{{ path('frontend_our_team') }}" style="text-decoration: none; color: inherit;" data-i18n="About">À propos</a></span>
+                <span class="main-home-tab-text"><a href="{{ path('frontend_our_team') }}" style="text-decoration: none; color: inherit;" >{{ 'nav.about'|trans }}</a></span>
                 <div class="main-home-tab-dropdown">
-                    <a href="{{ path('frontend_our_team') }}" class="main-home-dropdown-item" data-i18n="Our Team">Notre équipe</a>
-                    <a href="#" class="main-home-dropdown-item" data-i18n="Company">Entreprise</a>
-                    <a href="{{ path('frontend_contact') }}" class="main-home-dropdown-item" data-i18n="Contact">Contact</a>
+                    <a href="{{ path('frontend_our_team') }}" class="main-home-dropdown-item" >{{ 'nav.our_team'|trans }}</a>
+                    <a href="#" class="main-home-dropdown-item" >{{ 'nav.company'|trans }}</a>
+                    <a href="{{ path('frontend_contact') }}" class="main-home-dropdown-item" >{{ 'nav.contact'|trans }}</a>
                 </div>
             </div>
         </div>
@@ -65,15 +65,15 @@
                 <span class="main-home-notification-badge">3</span>
                 <!-- Dynamic Content -->
                 <div class="main-home-dynamic-content">
-                    <p class="main-home-dynamic-text" data-i18n="Notifications">Notifications</p>
-                    <p class="main-home-dynamic-subtext"><span data-i18n="3">3</span> <span data-i18n="new messages">nouveaux messages</span></p>
+                    <p class="main-home-dynamic-text" >{{ 'nav.notifications'|trans }}</p>
+                    <p class="main-home-dynamic-subtext"><span >3</span> <span >{{ 'nav.new_messages'|trans }}</span></p>
                 </div>
                 <!-- Notification Popup Content -->
                 <div class="main-home-notification-popup-content" style="display: none;">
                     <div class="main-home-notification-popup-icon">📱</div>
                     <div class="main-home-notification-popup-text">
-                        <p class="main-home-notification-popup-title" data-i18n="New Message">New Message</p>
-                        <p class="main-home-notification-popup-message"><span data-i18n="You have">You have</span> 3 <span data-i18n="unread notifications">unread notifications</span></p>
+                        <p class="main-home-notification-popup-title" >{{ 'nav.new_message'|trans }}</p>
+                        <p class="main-home-notification-popup-message"><span >You have</span> 3 <span >{{ 'nav.unread_notifications'|trans }}</span></p>
                     </div>
                 </div>
                 <!-- Multiple Notifications Container -->
@@ -111,24 +111,24 @@
                 <div class="main-home-dropdown-divider"></div>
                 <a href="{{ path('frontend_profile') }}" class="main-home-dropdown-item">
                     <i class="bx bx-user"></i>
-                    <span data-i18n="My Profile">Mon profil</span>
+                    <span >{{ 'nav.my_profile'|trans }}</span>
                 </a>
                 <a href="{{ path('admin_dashboard') }}" class="main-home-dropdown-item" data-page-loader>
                     <i class="bx bx-grid-alt"></i>
-                    <span data-i18n="Dashboard">Tableau de bord</span>
+                    <span >{{ 'nav.dashboard'|trans }}</span>
                 <a href="{{ path('frontend_settings') }}" class="main-home-dropdown-item">
                     <i class="bx bx-cog"></i>
-                    <span data-i18n="Settings">Paramètres</span>
+                    <span >{{ 'settings.title'|trans }}</span>
                 </a>
                 <a href="#" class="main-home-dropdown-item">
                     <i class="bx bx-credit-card"></i>
-                    <span data-i18n="Billing">Facturation</span>
+                    <span >{{ 'nav.billing'|trans }}</span>
                     <span class="badge">4</span>
                 </a>
                 <div class="main-home-dropdown-divider"></div>
                 <a href="{{ path('auth_logout') }}" class="main-home-dropdown-item logout">
                     <i class="bx bx-power-off"></i>
-                    <span data-i18n="Log Out">Déconnexion</span>
+                    <span >{{ 'nav.log_out'|trans }}</span>
                 </a>
             </div>
         </div>

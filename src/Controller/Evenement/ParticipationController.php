@@ -17,8 +17,14 @@ use Symfony\Component\Routing\Annotation\Route;
 class ParticipationController extends AbstractController
 {
     #[Route('/new/{id}', name: 'app_participation_new', methods: ['POST'])]
-    public function new(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, UserRepository $userRepository): Response
-    {
+    public function new(
+        Request $request,
+        Evenement $evenement,
+        EntityManagerInterface $entityManager,
+        UserRepository $userRepository,
+        \App\Repository\Evenement\ParticipationRepository $participationRepository,
+        \App\Service\Evenement\EvenementNotificationService $notificationService
+    ): Response {
         try {
             $isAjax = $request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
 
@@ -53,6 +59,24 @@ class ParticipationController extends AbstractController
             }
 
             /** @var \App\Entity\User\User $user */
+
+            // SERVER-SIDE GUARD: Check if already registered
+            $existing = $participationRepository->findOneBy([
+                'user' => $user,
+                'evenement' => $evenement
+            ]);
+
+            if ($existing) {
+                if ($isAjax) {
+                    return new JsonResponse([
+                        'success' => true,
+                        'message' => 'You are already registered for this event. No action needed.'
+                    ]);
+                }
+                $this->addFlash('info', 'You are already registered for this event.');
+                return $this->redirectToRoute('app_evenement_index');
+            }
+
             $participation = new Participation();
             $participation->setEvenement($evenement);
             $participation->setUser($user);
@@ -77,6 +101,9 @@ class ParticipationController extends AbstractController
 
                 $entityManager->persist($participation);
                 $entityManager->flush();
+
+                // Send Confirmation Email
+                $notificationService->notifyParticipationConfirmation($participation);
 
                 if ($isAjax) {
                     return new JsonResponse(['success' => true, 'message' => 'Your participation request has been sent!']);

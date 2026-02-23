@@ -5,9 +5,6 @@
 {% block stylesheets %}
     <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
     <style>
-        .glass-switcher { position: relative; width: 100%; transition: height 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
-        .glass-switcher-face { width: 100%; }
-
         /* Hide scrollbars for specific modal containers while allowing them globally */
         .glass-switcher-face::-webkit-scrollbar,
         .users-edit-modal::-webkit-scrollbar,
@@ -272,6 +269,56 @@
             padding: 0 1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .premium-switcher-tab.active { color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+
+        /* AI Prediction Styles */
+        .ai-prediction-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: rgba(0, 198, 255, 0.1);
+            border: 1px solid rgba(0, 198, 255, 0.2);
+            border-radius: 100px;
+            color: #00c6ff;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .ai-prediction-display {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #00c6ff;
+            text-shadow: 0 0 15px rgba(0, 198, 255, 0.3);
+        }
+        .prediction-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(0, 198, 255, 0.3);
+            border-top-color: #00c6ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Maintenance IA Specifics */
+        .maintenance-ia-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        .maintenance-header-ia {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+            color: #00c6ff;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.85rem;
+        }
     </style>
 {% endblock %}
 
@@ -284,6 +331,7 @@
             <div class="premium-switcher-slider" id="residence-switcher-slider"></div>
             <button class="premium-switcher-tab active" data-page="1">Residences</button>
             <button class="premium-switcher-tab" data-page="2">Appartements</button>
+            <button class="premium-switcher-tab" data-page="3">Maintenance</button>
         </div>
     </div>
 </div>
@@ -491,6 +539,29 @@
                                     <div class="glass-view-row"><div class="glass-view-label">Number</div><div class="glass-view-value" id="view-app-num">-</div></div>
                                     <div class="glass-view-row"><div class="glass-view-label">Residence</div><div class="glass-view-value" id="view-app-res">-</div></div>
                                     <div class="glass-view-row"><div class="glass-view-label">Status</div><div class="glass-view-value" id="view-app-status">-</div></div>
+                                    <div class="glass-view-row"><div class="glass-view-label">Surface</div><div class="glass-view-value" id="view-app-superficie">-</div></div>
+                                    <div class="glass-view-row"><div class="glass-view-label">Rent</div><div class="glass-view-value" id="view-app-rent">-</div></div>
+                                    <div class="glass-view-row"><div class="glass-view-label">Sale Price</div><div class="glass-view-value" id="view-app-sale">-</div></div>
+                                    <div class="glass-view-row"><div class="glass-view-label">Built Date</div><div class="glass-view-value" id="view-app-date">-</div></div>
+                                    
+                                    <div class="glass-view-row" style="border: 1px solid rgba(0, 198, 255, 0.2); background: rgba(0, 198, 255, 0.03);">
+                                        <div class="glass-view-label" style="color: #00c6ff !important;">Price Prediction (IA)</div>
+                                        <div class="glass-view-value ai-prediction-display" id="view-app-prediction">-</div>
+                                    </div>
+
+                                    <div class="maintenance-ia-box">
+                                        <div class="maintenance-header-ia">
+                                            <i class="bx bx-brain"></i> Maintenance Prédictive (IA)
+                                        </div>
+                                        <div id="view-app-maintenance-ia" class="glass-view-value" style="font-size: 1rem; font-weight: 500; color: rgba(255,255,255,0.7);">
+                                            Aucune recommandation générée.
+                                        </div>
+                                        <div style="margin-top: 1.5rem; text-align: right;">
+                                            <button type="button" class="glass-btn-save" id="btn-generate-maintenance" style="padding: 0.5rem 1.2rem; font-size: 0.8rem; background: rgba(0, 198, 255, 0.1) !important; border-color: rgba(0, 198, 255, 0.3) !important; color: #00c6ff !important;">
+                                                <i class="bx bx-refresh"></i> Analyser avec l'IA
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
                                     <button type="button" class="users-btn-modify" id="view-app-modify-btn"><i class="bx bx-edit"></i> Modify Appartement</button>
@@ -525,6 +596,20 @@
                                 <div class="row">
                                     <div class="col-md-6">{{ form_row(appartementEditForm.typeA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
                                     <div class="col-md-6">{{ form_row(appartementEditForm.user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">{{ form_row(appartementEditForm.superficie, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-3">{{ form_row(appartementEditForm.prix_location, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-3">{{ form_row(appartementEditForm.prix_vente, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-3">{{ form_row(appartementEditForm.date_construction, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                </div>
+
+                                <div class="glass-view-row" style="border: 1px solid rgba(0, 198, 255, 0.2); background: rgba(0, 198, 255, 0.03); margin-top: 1rem;">
+                                    <div class="glass-view-label" style="color: #00c6ff !important;">Price Prediction (IA)</div>
+                                    <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+                                        <div class="glass-view-value ai-prediction-display" id="edit-app-prediction">-</div>
+                                        <div class="prediction-spinner" id="edit-prediction-spinner"></div>
+                                    </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6">{{ form_row(appartementEditForm.parking, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
@@ -591,6 +676,39 @@
                                     <div class="col-md-6">{{ form_row(appartementAddForm.user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
                                 </div>
                                 <div class="row">
+                                    <div class="col-md-3">{{ form_row(appartementAddForm.superficie, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-3">{{ form_row(appartementAddForm.prix_location, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-3">{{ form_row(appartementAddForm.prix_vente, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-3">{{ form_row(appartementAddForm.date_construction, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                </div>
+
+                                <div class="glass-view-row" style="border: 1px solid rgba(0, 198, 255, 0.2); background: rgba(0, 198, 255, 0.03); margin-top: 1rem;">
+                                    <div class="glass-view-label" style="color: #00c6ff !important;">Price Prediction (IA)</div>
+                                    <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+                                        <div class="glass-view-value ai-prediction-display" id="add-app-prediction">-</div>
+                                        <div class="prediction-spinner" id="add-prediction-spinner"></div>
+                                    </div>
+                                </div>
+
+                                <div class="maintenance-ia-box" style="margin-top: 2rem;">
+                                    <div class="maintenance-header-ia">
+                                        <i class="bx bx-home-heart"></i> Apartment Conditions (for AI)
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">{{ form_row(appartementAddForm.maintenance.etat_app, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                        <div class="col-md-6">{{ form_row(appartementAddForm.maintenance.etat_plomberie, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">{{ form_row(appartementAddForm.maintenance.etat_electricite, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                        <div class="col-md-6">{{ form_row(appartementAddForm.maintenance.etat_chauffage, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    </div>
+                                    {{ form_row(appartementAddForm.maintenance.description_maint, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'rows': 3, 'placeholder': 'Describe current state...' } }) }}
+                                    <div style="display:none;">
+                                        {{ form_widget(appartementAddForm.maintenance.date_derniere_maintenance) }}
+                                        {{ form_widget(appartementAddForm.maintenance.appartement) }}
+                                    </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-md-6">{{ form_row(appartementAddForm.parking, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
                                     <div class="col-md-6">{{ form_row(appartementAddForm.disponible, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' } }) }}</div>
                                 </div>
@@ -610,22 +728,151 @@
             </div>
         </div>
     </div>
+
+    <!-- Page 3: Maintenance -->
+    <div class="residence-page-content" data-page="3" style="display: none;">
+        <div class="glass-table-container">
+            <div id="maintenanceGlassSwitcher" class="glass-switcher style-slide">
+                <div class="glass-switcher-face glass-switcher-face-main">
+                    <div class="glass-toolbar">
+                        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Maintenance</h3>
+                        <div style="flex: 1;"></div>
+                    </div>
+                    <div class="glass-toolbar" style="margin-bottom: 1.5rem;">
+                        <div class="glass-search-container">
+                            <i class="bx bx-search glass-search-icon"></i>
+                            <input type="text" class="glass-search-input maint-search-input" placeholder="Search maintenance...">
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.5rem;">
+                            <div class="glass-pill glass-pill-active maint-sort-option" data-value="date" onclick="selectMaintSortPill(this)">Date</div>
+                            <div class="glass-pill maint-sort-option" data-value="app" onclick="selectMaintSortPill(this)">Apartment</div>
+                            <div class="glass-pill maint-sort-option" data-value="etat" onclick="selectMaintSortPill(this)">Condition</div>
+                            <button class="glass-pagination-btn" id="maint-sort-dir-pill" style="width: 38px; height: 38px;">
+                                <span id="maint-sort-dir-icon-svg"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="glass-table-scroll">
+                        <table class="glass-table" id="maint-table">
+                            <thead>
+                                <tr>
+                                    <th>Apartment</th>
+                                    <th>Condition</th>
+                                    <th>Last Date</th>
+                                    <th>Description</th>
+                                    <th style="text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="maint-table-body"><!-- Rendered by JS --></tbody>
+                        </table>
+                    </div>
+                    <div class="glass-pagination-bar" id="maint-pagination">
+                        <button class="glass-pagination-btn" id="maint-table-prev"><i class="bx bx-chevron-left"></i></button>
+                        <div id="maint-table-pages" style="display: flex; gap: 0.5rem;"></div>
+                        <button class="glass-pagination-btn" id="maint-table-next"><i class="bx bx-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <div class="glass-switcher-face glass-switcher-face-details" id="maint-view-face">
+                    <div id="maint-view-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div><h3>Maintenance Details</h3><p class="users-edit-modal-subtitle">Full analysis & conditions</p></div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('maint-view-modal')">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                <div class="glass-view-details">
+                                    <div class="glass-view-row"><div class="glass-view-label">Apartment</div><div class="glass-view-value" id="view-maint-app">-</div></div>
+                                    <div class="glass-view-row"><div class="glass-view-label">Global State</div><div class="glass-view-value" id="view-maint-etat">-</div></div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="glass-view-row"><div class="glass-view-label">Plumbing</div><div class="glass-view-value" id="view-maint-plomberie">-</div></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="glass-view-row"><div class="glass-view-label">Electricity</div><div class="glass-view-value" id="view-maint-elec">-</div></div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="glass-view-row"><div class="glass-view-label">Heating</div><div class="glass-view-value" id="view-maint-chauffage">-</div></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="glass-view-row"><div class="glass-view-label">Last Date</div><div class="glass-view-value" id="view-maint-date">-</div></div>
+                                        </div>
+                                    </div>
+                                    <div class="glass-view-row">
+                                        <div class="glass-view-label">Description</div>
+                                        <div class="glass-view-value" id="view-maint-desc">-</div>
+                                    </div>
+
+                                    <div class="maintenance-ia-box">
+                                        <div class="maintenance-header-ia">
+                                            <i class="bx bx-brain"></i> Recommendation IA
+                                        </div>
+                                        <div id="view-maint-ia" class="glass-view-value" style="font-size: 1rem; font-weight: 500; color: rgba(255,255,255,0.7); line-height: 1.6;">
+                                            Aucune recommandation générée.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
+                                    <button type="button" class="users-btn-cancel" onclick="closeModal('maint-view-modal')"><i class="bx bx-arrow-back"></i> Back to List</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
 
 
     const residencesData = [{% for r in residences|default([]) %} [ "{{ r.nomR|e('js') }}", "{{ r.adresse|e('js') }}", "{{ r.imageR|e('js') }}", "{{ r.idResidence }}", "{{ r.nAppartements }}", "{{ r.nEtages }}", "{{ r.nBlocs }}", "{{ csrf_token('delete' ~ r.idResidence)|e('js') }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
-    const appartementsData = [{% for a in appartements|default([]) %} [ "{{ a.appartementInfo.number|default('—')|e('js') }}", "{{ a.residence ? a.residence.nomR|e('js') : '—' }}", "{{ a.disponible ? 'Available' : 'Occupied' }}", "{{ a.idApp }}", "{{ a.residence ? a.residence.idResidence : '' }}", "{{ a.user ? a.user.idUser : '' }}", "{{ a.typeA|e('js') }}", "{{ a.parking ? 'true' : 'false' }}", "{{ a.appartementInfo.bloc|default('')|e('js') }}", "{{ a.appartementInfo.floor|default('')|e('js') }}", "{{ a.imageA|e('js') }}", "{{ csrf_token('delete' ~ a.idApp)|e('js') }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
+    const appartementsData = [{% for a in appartements|default([]) %} [ 
+        "{{ a.appartementInfo.number|default('—')|e('js') }}", 
+        "{{ a.residence ? a.residence.nomR|e('js') : '—' }}", 
+        "{{ a.disponible ? 'Available' : 'Occupied' }}", 
+        "{{ a.idApp }}", 
+        "{{ a.residence ? a.residence.idResidence : '' }}", 
+        "{{ a.user ? a.user.idUser : '' }}", 
+        "{{ a.typeA|e('js') }}", 
+        "{{ a.parking ? 'true' : 'false' }}", 
+        "{{ a.appartementInfo.bloc|default('')|e('js') }}", 
+        "{{ a.appartementInfo.floor|default('')|e('js') }}", 
+        "{{ a.imageA|e('js') }}", 
+        "{{ a.superficie|default('—')|e('js') }}", 
+        "{{ a.prixLocation|default('—')|e('js') }}", 
+        "{{ a.prixVente|default('—')|e('js') }}", 
+        "{{ a.dateConstruction ? a.dateConstruction|date('Y-m-d') : '—' }}", 
+        "{{ csrf_token('delete' ~ a.idApp)|e('js') }}",
+        "{{ predictions[a.idApp] ?? '—' }}",
+        "{{ predictionsmaintenance[a.idApp]|default('Aucune recommandation générée.')|e('js') }}"
+    ]{% if not loop.last %},{% endif %} {% endfor %}];
+    
+    const maintenancesData = [{% for m in maintenances|default([]) %} [
+        "{{ m.idMaintenance }}",
+        "{{ m.appartement ? m.appartement.appartementInfo.number : '—' }}",
+        "{{ m.etatApp|capitalize|e('js') }}",
+        "{{ m.dateDerniereMaintenance ? m.dateDerniereMaintenance|date('Y-m-d') : '—' }}",
+        "{{ m.descriptionMaint|e('js')|replace({"\n": ' ', "\r": ''}) }}",
+        "{{ m.etatPlomberie|capitalize|e('js') }}",
+        "{{ m.etatElectricite|capitalize|e('js') }}",
+        "{{ m.etatChauffage|capitalize|e('js') }}",
+        "{{ m.recommendationIa|default('Aucune recommandation générée.')|e('js')|replace({"\n": ' ', "\r": ''}) }}"
+    ]{% if not loop.last %},{% endif %} {% endfor %}];
     
     const editResUrlTemplate = "{{ path('admin_residence_edit', {id: 'ID_PLACEHOLDER'}) }}";
     const deleteResUrlTemplate = "{{ path('admin_residence_delete', {id: 'ID_PLACEHOLDER'}) }}";
     const editAppUrlTemplate = "{{ path('app_appartement_edit', {idApp: 'ID_PLACEHOLDER'}) }}";
     const deleteAppUrlTemplate = "{{ path('app_appartement_delete', {idApp: 'ID_PLACEHOLDER'}) }}";
 
-    let resPage = 1, appPage = 1, resRows = [...residencesData], appRows = [...appartementsData], rowsPP = 10;
+    let resPage = 1, appPage = 1, maintPage = 1, resRows = [...residencesData], appRows = [...appartementsData], maintRows = [...maintenancesData], rowsPP = 10;
     let resSortValue = 'name', resSortDir = 'asc';
     let appSortValue = 'number', appSortDir = 'asc';
+    let maintSortValue = 'date', maintSortDir = 'desc';
 
     function updateResSortIcon() {
         const el = document.getElementById('res-sort-dir-icon-svg'); if(!el) return;
@@ -634,6 +881,10 @@
     function updateAppSortIcon() {
         const el = document.getElementById('app-sort-dir-icon-svg'); if(!el) return;
         el.innerHTML = appSortDir === 'asc' ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>` : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
+    }
+    function updateMaintSortIcon() {
+        const el = document.getElementById('maint-sort-dir-icon-svg'); if(!el) return;
+        el.innerHTML = maintSortDir === 'asc' ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>` : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
     }
 
     window.selectResSortPill = function(pill) {
@@ -648,6 +899,13 @@
         document.querySelectorAll('.app-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
         pill.classList.add('glass-pill-active');
         filterSortAppartements();
+    };
+
+    window.selectMaintSortPill = function(pill) {
+        maintSortValue = pill.dataset.value;
+        document.querySelectorAll('.maint-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
+        pill.classList.add('glass-pill-active');
+        filterSortMaintenances();
     };
 
     function filterSortResidences() {
@@ -679,12 +937,34 @@
         appRows = rows; appPage = 1; renderAppTable();
     }
 
+    function filterSortMaintenances() {
+        const val = document.querySelector('.maint-search-input').value.toLowerCase();
+        let rows = maintenancesData.filter(d => 
+            d[1].toLowerCase().includes(val) || 
+            d[2].toLowerCase().includes(val) || 
+            d[4].toLowerCase().includes(val)
+        );
+        
+        let idx = 3; // Date
+        if(maintSortValue === 'app') idx = 1;
+        else if(maintSortValue === 'etat') idx = 2;
+
+        rows.sort((a,b) => {
+            let vA = a[idx].toLowerCase(), vB = b[idx].toLowerCase();
+            if (idx === 3) { // Date sort
+                return maintSortDir === 'asc' ? new Date(vA) - new Date(vB) : new Date(vB) - new Date(vA);
+            }
+            return maintSortDir === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
+        });
+        maintRows = rows; maintPage = 1; renderMaintenanceTable();
+    }
+
     function renderResTable() {
         const tb = document.getElementById('res-table-body'); tb.innerHTML = '';
         const start = (resPage-1)*rowsPP, end = Math.min(start+rowsPP, resRows.length);
         for(let i=start; i<end; i++) {
             const d = resRows[i]; const r = document.createElement('tr');
-            r.innerHTML = `<td><strong>${d[0]}</strong></td><td>${d[1]}</td><td><span class="glass-pill">Residence</span></td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewRes(${i})"><i class="bx bx-show"></i> Details</button></td>`;
+            r.innerHTML = `<td><strong>${d[0]}</strong></td><td>${d[1]}</td><td><span class="glass-pill">Residence</span></td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="event.stopPropagation(); viewRes(${i})"><i class="bx bx-show"></i> Details</button></td>`;
             tb.appendChild(r);
         }
         const total = Math.ceil(resRows.length / rowsPP), cont = document.getElementById('res-table-pages'); cont.innerHTML = '';
@@ -695,11 +975,40 @@
         const start = (appPage-1)*rowsPP, end = Math.min(start+rowsPP, appRows.length);
         for(let i=start; i<end; i++) {
             const d = appRows[i]; const r = document.createElement('tr');
-            r.innerHTML = `<td><strong>${d[0]}</strong></td><td>${d[1]}</td><td><span class="glass-pill">${d[2]}</span></td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewApp(${i})"><i class="bx bx-show"></i> Details</button></td>`;
+            r.innerHTML = `<td><strong>${d[0]}</strong></td><td>${d[1]}</td><td><span class="glass-pill">${d[2]}</span></td><td style="text-align: right;"><button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="event.stopPropagation(); viewApp(${i})"><i class="bx bx-show"></i> Details</button></td>`;
             tb.appendChild(r);
         }
         const total = Math.ceil(appRows.length / rowsPP), cont = document.getElementById('app-table-pages'); cont.innerHTML = '';
         for(let i=1; i<=total; i++) { const b = document.createElement('button'); b.className = 'glass-pagination-btn' + (i === appPage ? ' active' : ''); b.textContent = i; b.onclick = () => { appPage = i; renderAppTable(); }; cont.appendChild(b); }
+    }
+
+    function renderMaintenanceTable() {
+        const tb = document.getElementById('maint-table-body'); if(!tb) return;
+        tb.innerHTML = '';
+        const start = (maintPage-1)*rowsPP, end = Math.min(start+rowsPP, maintRows.length);
+        for(let i=start; i<end; i++) {
+            const d = maintRows[i]; const r = document.createElement('tr');
+            r.innerHTML = `
+                <td><strong>Apartment ${d[1]}</strong></td>
+                <td><span class="glass-pill">${d[2]}</span></td>
+                <td>${d[3]}</td>
+                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${d[4] || '—'}</td>
+                <td style="text-align: right;">
+                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="event.stopPropagation(); viewMaintenance(${i})">
+                        <i class="bx bx-show"></i> View
+                    </button>
+                </td>`;
+            tb.appendChild(r);
+        }
+        const total = Math.ceil(maintRows.length / rowsPP), cont = document.getElementById('maint-table-pages'); if(!cont) return;
+        cont.innerHTML = '';
+        for(let i=1; i<=total; i++) { 
+            const b = document.createElement('button'); 
+            b.className = 'glass-pagination-btn' + (i === maintPage ? ' active' : ''); 
+            b.textContent = i; 
+            b.onclick = () => { maintPage = i; renderMaintenanceTable(); }; 
+            cont.appendChild(b); 
+        }
     }
 
     window.viewRes = function(idx) {
@@ -716,11 +1025,18 @@
             chks.forEach(c => c.checked = blocs.includes(c.value));
             openModal('res-edit-modal');
         };
+        // 1. Explicitly mark the modal as active before the switcher starts
+        const vModal = document.getElementById('res-view-modal');
+        if (vModal) {
+            vModal.style.display = 'flex';
+            void vModal.offsetWidth;
+            vModal.classList.add('active');
+        }
         openModal('res-view-modal');
     };
     window.viewApp = function(idx) {
         const d = appRows[idx]; document.getElementById('view-app-num').textContent = d[0]; document.getElementById('view-app-res').textContent = d[1]; document.getElementById('view-app-status').textContent = d[2];
-        document.getElementById('view-app-delete-token').value = d[11]; document.getElementById('view-app-delete-form').action = deleteAppUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
+        document.getElementById('view-app-delete-token').value = d[15]; document.getElementById('view-app-delete-form').action = deleteAppUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
         document.getElementById('view-app-modify-btn').onclick = () => {
             const f = document.getElementById('app-edit-form'); f.action = editAppUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
             f.querySelector('[name*="residence"]').value = d[4];
@@ -731,30 +1047,79 @@
             f.querySelector('[name*="bloc"]').value = d[8];
             f.querySelector('[name*="floor"]').value = d[9];
             f.querySelector('[name*="number"]').value = d[0];
+            f.querySelector('[name*="superficie"]').value = d[11] !== '—' ? d[11] : '';
+            f.querySelector('[name*="prix_location"]').value = d[12] !== '—' ? d[12] : '';
+            f.querySelector('[name*="prix_vente"]').value = d[13] !== '—' ? d[13] : '';
+            f.querySelector('[name*="date_construction"]').value = d[14] !== '—' ? d[14] : '';
             openModal('app-edit-modal');
+            setupEditFormPrediction();
         };
+        // Update View Modal fields
+        document.getElementById('view-app-superficie').textContent = d[11] !== '—' ? d[11] + ' m²' : '—';
+        document.getElementById('view-app-rent').textContent = d[12] !== '—' ? d[12] + ' TND/month' : '—';
+        document.getElementById('view-app-sale').textContent = d[13] !== '—' ? d[13] + ' TND' : '—';
+        document.getElementById('view-app-date').textContent = d[14];
+        
+        // AI Info
+        const prediction = d[16] !== '—' ? parseInt(d[16]).toLocaleString('fr-FR') + ' TND' : '—';
+        document.getElementById('view-app-prediction').textContent = prediction;
+        document.getElementById('view-app-maintenance-ia').textContent = d[17] || 'Aucune recommandation générée.';
+        
+        document.getElementById('btn-generate-maintenance').onclick = () => generateMaintenancePrediction(d[3], idx);
+
+        // 1. Explicitly mark the modal as active before the switcher starts
+        const vModal = document.getElementById('app-view-modal');
+        if (vModal) {
+            vModal.style.display = 'flex';
+            void vModal.offsetWidth;
+            vModal.classList.add('active');
+        }
         openModal('app-view-modal');
+    };
+
+    window.viewMaintenance = function(idx) {
+        const d = maintRows[idx];
+        document.getElementById('view-maint-app').textContent = 'Apartment ' + d[1];
+        document.getElementById('view-maint-etat').textContent = d[2];
+        document.getElementById('view-maint-plomberie').textContent = d[5];
+        document.getElementById('view-maint-elec').textContent = d[6];
+        document.getElementById('view-maint-chauffage').textContent = d[7];
+        document.getElementById('view-maint-date').textContent = d[3];
+        document.getElementById('view-maint-desc').textContent = d[4] || '—';
+        document.getElementById('view-maint-ia').textContent = d[8];
+
+        const vModal = document.getElementById('maint-view-modal');
+        if (vModal) {
+            vModal.style.display = 'flex';
+            void vModal.offsetWidth;
+            vModal.classList.add('active');
+        }
+        openModal('maint-view-modal');
     };
 
     document.addEventListener('DOMContentLoaded', () => {
         const sl = document.getElementById('residence-switcher-slider'), ts = document.querySelectorAll('.premium-switcher-tab'), ps = document.querySelectorAll('.residence-page-content');
         ts.forEach((t, i) => t.addEventListener('click', () => {
-            ts.forEach(x => x.classList.remove('active')); t.classList.add('active'); sl.style.left = (i * 50) + '%'; sl.style.width = '50%';
+            ts.forEach(x => x.classList.remove('active')); t.classList.add('active'); sl.style.left = (i * 33.33) + '%'; sl.style.width = '33.33%';
             ps.forEach(p => p.style.display = p.dataset.page === t.dataset.page ? 'block' : 'none');
             const as = document.querySelector(`.residence-page-content[data-page="${t.dataset.page}"] .glass-switcher`); if(as) switchGlassFace('main', as.id);
         }));
-        sl.style.width = '50%'; 
+        sl.style.width = '33.33%'; 
         renderResTable(); 
         renderAppTable(); 
+        renderMaintenanceTable();
         updateResSortIcon();
         updateAppSortIcon();
+        updateMaintSortIcon();
         switchGlassFace('main', 'residenceGlassSwitcher');
 
         document.getElementById('res-sort-dir-pill').onclick = () => { resSortDir = resSortDir === 'asc' ? 'desc' : 'asc'; updateResSortIcon(); filterSortResidences(); };
         document.getElementById('app-sort-dir-pill').onclick = () => { appSortDir = appSortDir === 'asc' ? 'desc' : 'asc'; updateAppSortIcon(); filterSortAppartements(); };
+        document.getElementById('maint-sort-dir-pill').onclick = () => { maintSortDir = maintSortDir === 'asc' ? 'desc' : 'asc'; updateMaintSortIcon(); filterSortMaintenances(); };
 
         document.querySelector('.res-search-input').oninput = () => filterSortResidences();
         document.querySelector('.app-search-input').oninput = () => filterSortAppartements();
+        document.querySelector('.maint-search-input').oninput = () => filterSortMaintenances();
 
         document.getElementById('res-btn-add').onclick = () => openModal('res-add-modal');
         
@@ -765,7 +1130,119 @@
             // Small delay to ensure modal is fully rendered
             setTimeout(() => {
                 initApartmentDropdowns();
+                setupAddFormPrediction();
             }, 150);
+        };
+        
+        function setupAddFormPrediction() {
+            const form = document.getElementById('app-add-form');
+            const superficieInput = form.querySelector('[name*="superficie"]');
+            const typeInput = form.querySelector('[name*="typeA"]');
+            const targetEl = document.getElementById('add-app-prediction');
+            const spinner = document.getElementById('add-prediction-spinner');
+
+            if (!superficieInput || !typeInput) return;
+
+            const update = () => {
+                const s = superficieInput.value;
+                const t = typeInput.value;
+                if (s && t) fetchPrediction(s, t, targetEl, spinner);
+            };
+
+            superficieInput.addEventListener('input', update);
+            typeInput.addEventListener('change', update);
+        }
+
+        function setupEditFormPrediction() {
+            const form = document.getElementById('app-edit-form');
+            const superficieInput = form.querySelector('[name*="superficie"]');
+            const typeInput = form.querySelector('[name*="typeA"]');
+            const targetEl = document.getElementById('edit-app-prediction');
+            const spinner = document.getElementById('edit-prediction-spinner');
+
+            if (!superficieInput || !typeInput) return;
+
+            const update = () => {
+                const s = superficieInput.value;
+                const t = typeInput.value;
+                if (s && t) fetchPrediction(s, t, targetEl, spinner);
+            };
+
+            superficieInput.addEventListener('input', update);
+            typeInput.addEventListener('change', update);
+            
+            // Initial update
+            update();
+        }
+
+        function fetchPrediction(superficie, type, targetEl, spinner) {
+            if (spinner) spinner.style.display = 'block';
+            
+            fetch("{{ path('prediction_prix') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ superficie: superficie, type: type })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    targetEl.textContent = data.formatted_price;
+                    targetEl.style.color = '#00c6ff';
+                } else {
+                    targetEl.textContent = 'Indisponible';
+                }
+            })
+            .catch(() => {
+                targetEl.textContent = 'Erreur';
+            })
+            .finally(() => {
+                if (spinner) spinner.style.display = 'none';
+            });
+        }
+
+        window.generateMaintenancePrediction = function(id, dataIdx) {
+            const btn = document.getElementById('btn-generate-maintenance');
+            const display = document.getElementById('view-app-maintenance-ia');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Analyse en cours...';
+            display.style.opacity = '0.5';
+
+            fetch(`/residence/appartement/${id}/predict-maintenance`, {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    display.textContent = data.prediction;
+                    display.style.opacity = '1';
+                    display.style.color = '#fff';
+                    
+                    // Update main data array for future views without refresh
+                    const mainIdx = appRows[dataIdx][3] == id ? dataIdx : -1; // Finding correct index just in case of filtering
+                    if (mainIdx !== -1) {
+                        appRows[mainIdx][17] = data.prediction;
+                    }
+                    // Find in global data as well
+                    const globalIdx = appartementsData.findIndex(row => row[3] == id);
+                    if (globalIdx !== -1) {
+                        appartementsData[globalIdx][17] = data.prediction;
+                    }
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Analyse Impossible',
+                        text: data.message,
+                        background: '#1a1a1a',
+                        color: '#fff',
+                        confirmButtonColor: '#00c6ff'
+                    });
+                }
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bx bx-refresh"></i> Réanalyser avec l\'IA';
+            });
         };
 
         function initApartmentDropdowns() {

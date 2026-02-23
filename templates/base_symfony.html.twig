@@ -29,9 +29,24 @@
           data-user-role="{{ app.session.get('user').role|default('Guest') }}"
           data-is-admin="{{ app.session.get('user') and app.session.get('user').role in ['OWNER', 'ADMIN', 'SUPERADMIN'] ? 'true' : 'false' }}">
         {% include 'frontend/shared/_global_video_background.html.twig' %}
+        
+        <!-- Page Loader -->
+        <div class="page-loader" id="pageLoader">
+            <div class="loader-content">
+                <div class="loader-dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+        </div>
+
         {% block body %}{% endblock %}
+        {% include 'shared/_obsidian_modals.html.twig' %}
         {% include 'frontend/shared/_scroll_pill.html.twig' %}
 
+        <script src="{{ asset('js/page-loader.js') }}"></script>
+        <script src="{{ asset('js/address-bar-rewrite.js') }}"></script>
         <script src="{{ asset('frontend/js/main-home.js') }}" defer></script>
         <script src="{{ asset('frontend/js/scroll-pill.js') }}" defer></script>
         <script>

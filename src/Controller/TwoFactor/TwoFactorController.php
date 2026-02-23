@@ -45,7 +45,7 @@ class TwoFactorController extends AbstractController
 
         if ($request->isMethod('POST')) {
             $code = trim((string) $request->request->get('code', ''));
-            
+
             if ($code === '') {
                 $error = 'Please enter the verification code.';
             } elseif ($twoFactorService->verifyCode($user, $code)) {
@@ -379,6 +379,41 @@ class TwoFactorController extends AbstractController
         return $this->json(['success' => true, 'message' => 'TOTP removed successfully']);
     }
 
+    #[Route('/2fa/check-channels', name: '2fa_check_channels', methods: ['POST'])]
+    public function checkChannels(
+        Request $request,
+        UserRepository $userRepository,
+        ProfileRepository $profileRepository
+    ): JsonResponse {
+        $content = $request->getContent();
+        $data = is_string($content) && $content !== '' ? json_decode($content, true) : [];
+        $email = isset($data['email']) ? trim((string) $data['email']) : '';
+
+        if ($email === '') {
+            return $this->json(['success' => false, 'message' => 'Email is required'], 400);
+        }
+
+        $user = $userRepository->findOneByEmail($email);
+        if (!$user instanceof User) {
+            // Standard security: don't reveal existence
+            return $this->json(['success' => true, 'channels' => ['email']]);
+        }
+
+        $channels = ['email'];
+        $rawPhone = $user->getPhone();
+        $hasPhone = !empty($rawPhone) && strlen(trim($rawPhone)) > 0;
+
+        if ($hasPhone) {
+            $channels[] = 'sms';
+        }
+
+        return $this->json([
+            'success' => true,
+            'channels' => $channels,
+            'phone' => $hasPhone ? substr($rawPhone, 0, 4) . '****' . substr($rawPhone, -2) : null,
+        ]);
+    }
+
     #[Route('/2fa/request-otp', name: '2fa_request_otp', methods: ['POST'])]
     public function requestOtp(
         Request $request,
@@ -392,6 +427,7 @@ class TwoFactorController extends AbstractController
             $data = [];
         }
         $email = isset($data['email']) ? trim((string) $data['email']) : trim((string) $request->request->get('email', ''));
+        $channel = isset($data['channel']) ? trim((string) $data['channel']) : 'email';
 
         if ($email === '') {
             return $this->json(['success' => false, 'message' => 'Email is required. Enter your email in the sign-in box and try again.'], 400);
@@ -405,8 +441,10 @@ class TwoFactorController extends AbstractController
         }
 
         try {
-            $twoFactorService->sendCode($user);
-            return $this->json(['success' => true, 'message' => 'OTP code sent to your email']);
+            $actualChannel = $channel === 'sms' ? 'sms' : 'email';
+            $twoFactorService->sendCode($user, $actualChannel);
+            $target = $actualChannel === 'sms' ? 'phone' : 'email';
+            return $this->json(['success' => true, 'message' => 'OTP code sent to your ' . $target, 'channel' => $actualChannel]);
         } catch (\Throwable $e) {
             return $this->json(['success' => false, 'message' => 'Failed to send code: ' . $e->getMessage()], 500);
         }

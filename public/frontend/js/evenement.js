@@ -7,12 +7,62 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- CREATE MODAL ---
     const createModal = document.getElementById('createEventModal');
     const editModal = document.getElementById('editEventModal');
-    const deleteConfirmModal = document.getElementById('deleteConfirmModal');
     const detailsModal = document.getElementById('eventDetailsModal');
     const btnOpenEdit = document.getElementById('btnOpenEdit');
     const btnOpenDeleteConfirm = document.getElementById('btnOpenDeleteConfirm');
-    // --- GLASS SWITCHER UTILITY ---
-    window.switchGlassCard = function (containerId, faceName) {
+    // --- ADVANCED MAP & WEATHER LOGIC ---
+    let activeMaps = {};
+
+    async function geocodeLocation(location) {
+        if (!location) return null;
+        console.log(`Geocoding: ${location}`);
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`;
+            const response = await fetch(url, {
+                headers: {
+                    'Accept-Language': 'en',
+                    'User-Agent': 'HorizonCommunityApp/1.0 (amineessaidi)'
+                }
+            });
+            const data = await response.json();
+            if (data && data.length > 0) {
+                console.log('Geocoding Success:', data[0]);
+                return {
+                    lat: parseFloat(data[0].lat),
+                    lng: parseFloat(data[0].lon),
+                    displayName: data[0].display_name
+                };
+            } else {
+                console.warn('Geocoding: No results found.');
+            }
+        } catch (err) {
+            console.error('Geocoding error:', err);
+        }
+        return null;
+    }
+
+    async function updateWeatherForEvent(eventId, lat, lng, date) {
+        const weatherCont = document.getElementById(`weather_${eventId}`);
+        if (!weatherCont) return;
+
+        try {
+            const res = await fetch(`/evenement/weather/preview?lat=${lat}&lng=${lng}&date=${date}`);
+            const data = await res.json();
+            if (data.success) {
+                const w = data.data;
+                document.getElementById(`weatherCondition_${eventId}`).textContent = w.condition;
+                document.getElementById(`weatherTempMax_${eventId}`).textContent = Math.round(w.temp_max) + '°C';
+                document.getElementById(`weatherTempMin_${eventId}`).textContent = Math.round(w.temp_min) + '°C';
+                document.getElementById(`weatherWind_${eventId}`).textContent = `Wind: ${Math.round(w.wind)} km/h`;
+                document.getElementById(`weatherIcon_${eventId}`).innerHTML = `<i class='bx ${w.icon}'></i>`;
+                weatherCont.style.display = 'block';
+            }
+        } catch (err) {
+            console.error('Weather error:', err);
+        }
+    }
+
+    window.switchGlassCard = async function (containerId, faceName) {
         const container = document.getElementById(containerId);
         if (!container) return;
 
@@ -21,12 +71,163 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (faceName !== 'main') {
             container.classList.add(`active-${faceName}`);
-            // Trigger Flatpickr/Custom Select init for the newly shown face
-            if (typeof initializeCustomFormElements === 'function') {
-                setTimeout(initializeCustomFormElements, 100);
+
+            // --- Logic for Details Face (Map & Weather) ---
+            if (faceName === 'details') {
+                const eventId = container.dataset.eventId;
+                const location = container.dataset.lieu;
+                const date = container.dataset.date;
+
+                const mapDiv = document.getElementById(`map_${eventId}`);
+                const weatherCont = document.getElementById(`weather_${eventId}`);
+                const loader = document.getElementById(`loading_info_${eventId}`);
+
+                if (loader) loader.style.display = 'block';
+                if (mapDiv) mapDiv.style.display = 'none';
+                if (weatherCont) weatherCont.style.display = 'none';
+
+                if (location) {
+                    const coords = await geocodeLocation(location);
+                    if (coords) {
+                        if (loader) loader.style.display = 'none';
+                        if (mapDiv) mapDiv.style.display = 'block';
+
+                        // Wait for transition or use timeout for Leaflet to work correctly with displays
+                        setTimeout(() => {
+                            if (activeMaps[eventId]) {
+                                activeMaps[eventId].remove();
+                            }
+
+                            const map = L.map(mapDiv).setView([coords.lat, coords.lng], 15);
+                            activeMaps[eventId] = map;
+
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '&copy; OpenStreetMap'
+                            }).addTo(map);
+
+                            // Custom Marker
+                            const customIcon = L.divIcon({
+                                className: 'custom-map-marker',
+                                html: '<i class="bx bxs-map-pin"></i>',
+                                iconSize: [32, 32],
+                                iconAnchor: [16, 32],
+                                popupAnchor: [0, -32]
+                            });
+
+                            const marker = L.marker([coords.lat, coords.lng], { icon: customIcon }).addTo(map);
+
+                            // Rich Popup
+                            const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`;
+                            const eventTitle = container.querySelector('.event-card-title')?.textContent || 'Event Location';
+
+                            marker.bindPopup(`
+                                <div class="marker-popup-content">
+                                    <h6>${eventTitle}</h6>
+                                    <p style="font-size: 0.7rem; color: rgba(255,255,255,0.5); font-style: italic; margin-top: -3px; margin-bottom: 8px;">Resolved: ${coords.displayName}</p>
+                                    <a href="${googleMapsUrl}" target="_blank" class="btn-navigate">
+                                        <i class='bx bx-navigation me-1'></i> Navigate with Google
+                                    </a>
+                                </div>
+                            `).openPopup();
+
+                            setTimeout(() => map.invalidateSize(), 150);
+                        }, 400);
+
+                        // Fetch Weather
+                        updateWeatherForEvent(eventId, coords.lat, coords.lng, date);
+                    } else {
+                        if (loader) {
+                            loader.innerHTML = `<i class='bx bx-error-circle' style="font-size: 1.5rem; color: #ff4d4d;"></i><div style="font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-top: 0.5rem;">Could not map location: ${location}</div>`;
+                        }
+                    }
+                } else {
+                    if (loader) loader.style.display = 'none';
+                }
             }
+
+            // Trigger Flatpickr/Custom Select init for the newly shown face
+            setTimeout(initializeCustomFormElements, 100);
         }
     };
+
+    window.initializeCustomFormElements = function () {
+        // --- CUSTOM SELECTS ---
+        const selects = document.querySelectorAll('.custom-select-wrapper select:not(.custom-initialized)');
+        selects.forEach(select => {
+            if (select.parentElement.querySelector('.custom-dropdown-trigger')) return;
+
+            const wrapper = select.parentElement;
+            const options = Array.from(select.options);
+            const selectedOption = select.options[select.selectedIndex] || options[0];
+
+            const trigger = document.createElement('div');
+            trigger.className = 'custom-dropdown-trigger';
+            trigger.innerHTML = `<span class="selected-text">${selectedOption ? selectedOption.text : 'Select...'}</span><span class="arrow"><i class='bx bx-chevron-down'></i></span>`;
+
+            const menu = document.createElement('div');
+            menu.className = 'custom-dropdown-menu';
+
+            options.forEach(opt => {
+                const optDiv = document.createElement('div');
+                optDiv.className = 'custom-dropdown-option';
+                if (opt.value === select.value) optDiv.classList.add('selected');
+                optDiv.textContent = opt.text;
+                optDiv.dataset.value = opt.value;
+
+                optDiv.onclick = (e) => {
+                    e.stopPropagation();
+                    select.value = opt.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    trigger.querySelector('.selected-text').textContent = opt.text;
+                    menu.querySelectorAll('.custom-dropdown-option').forEach(d => d.classList.remove('selected'));
+                    optDiv.classList.add('selected');
+                    trigger.classList.remove('active');
+                    menu.classList.remove('active');
+                };
+                menu.appendChild(optDiv);
+            });
+
+            trigger.onclick = (e) => {
+                e.stopPropagation();
+                const isActive = trigger.classList.contains('active');
+                // Close others
+                document.querySelectorAll('.custom-dropdown-trigger.active').forEach(t => {
+                    if (t !== trigger) {
+                        t.classList.remove('active');
+                        t.nextElementSibling?.classList.remove('active');
+                    }
+                });
+                trigger.classList.toggle('active');
+                menu.classList.toggle('active');
+            };
+
+            wrapper.appendChild(trigger);
+            wrapper.appendChild(menu);
+            select.classList.add('custom-initialized');
+        });
+
+        // --- FLATPICKR ---
+        if (typeof flatpickr === 'function') {
+            flatpickr(".flatpickr-input:not(.flatpickr-initialized)", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true,
+                theme: "dark",
+                disableMobile: "true",
+                onReady: function (selectedDates, dateStr, instance) {
+                    instance.element.classList.add('flatpickr-initialized');
+                }
+            });
+        }
+    };
+
+    // Global click to close dropdowns
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.custom-dropdown-trigger.active').forEach(t => {
+            t.classList.remove('active');
+            t.nextElementSibling?.classList.remove('active');
+        });
+    });
 
     const btnHostEventDashboard = document.getElementById('btnHostEventDashboard');
     if (btnHostEventDashboard) {
@@ -102,14 +303,28 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     window.openDeleteConfirmModal = function (id, deletePath, token) {
-        const deleteEventForm = document.getElementById('deleteEventForm');
-        const deleteToken = document.getElementById('deleteEventToken');
-        if (deleteEventForm) deleteEventForm.action = deletePath;
-        if (deleteToken) deleteToken.value = token;
+        window.confirmObsidianDelete(async function () {
+            try {
+                const fd = new FormData();
+                fd.append('_token', token);
+                const res = await fetch(deletePath, {
+                    method: 'POST',
+                    body: fd,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
 
-        if (typeof openGlassModal === 'function') {
-            openGlassModal('deleteConfirmModal');
-        }
+                const data = await res.json();
+                if (data.success) {
+                    window.showObsidianNotification('Event Removed', data.message, 'success');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    window.showObsidianNotification('Error', data.message || 'Could not delete event.', 'error');
+                }
+            } catch (err) {
+                console.error('Delete Error:', err);
+                window.showObsidianNotification('Network Error', 'Check your connection.', 'error');
+            }
+        }, 'Delete Event?', 'Are you sure you want to permanently remove this event?');
     };
 
     // if (btnOpenCreate) btnOpenCreate.onclick = () => openGlassModal('createEventModal');
@@ -175,84 +390,19 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
 
-    // --- DELETE CONFIRMATION ---
-    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    const deleteEventForm = document.getElementById('deleteEventForm');
 
-    window.closeDeleteConfirm = function () {
-        if (!deleteConfirmModal) return;
-        deleteConfirmModal.classList.remove('show');
-        // If we opened this from Details, we don't necessarily want to unlockScroll 
-        // if Details is still open, but usually we cover Details with this.
-        // Let's just restore scroll if nothing else is open.
-        if (!detailsModal.classList.contains('show') && !editModal.classList.contains('show')) {
-            unlockScroll();
-        }
-        setTimeout(() => deleteConfirmModal.style.display = 'none', 300);
-    }
-
-    if (btnOpenDeleteConfirm) {
-        btnOpenDeleteConfirm.onclick = function () {
-            if (typeof openGlassModal === 'function') {
-                openGlassModal('deleteConfirmModal');
-            } else {
-                if (!deleteConfirmModal) return;
-                deleteConfirmModal.style.display = 'flex';
-                lockScroll();
-                setTimeout(() => deleteConfirmModal.classList.add('show'), 10);
-            }
-        };
-    }
-
-    if (confirmDeleteBtn && deleteEventForm) {
-        confirmDeleteBtn.onclick = async function () {
-            this.disabled = true;
-            this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Deleting...';
-
-            try {
-                const formData = new FormData(deleteEventForm);
-                const response = await fetch(deleteEventForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    showCoolPopup('Event Removed', data.message, 'success');
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    showCoolPopup('Error', data.message || 'Could not delete event.', 'error');
-                    this.disabled = false;
-                    this.innerHTML = 'Yes, Delete it';
-                }
-            } catch (err) {
-                console.error('Delete Error:', err);
-                showCoolPopup('Network Error', 'Check your connection.', 'error');
-                this.disabled = false;
-                this.innerHTML = 'Yes, Delete it';
-            }
-        };
-    }
-
-
-    // --- PARTICIPATION AJAX ---
-    // Delegation handles both standalone forms and in-card forms
-    document.addEventListener('submit', function (e) {
-        const form = e.target.closest('form[data-ajax="true"]');
-        if (form && form.action.includes('/participation/new')) {
-            e.preventDefault();
-            handleAjaxParticipation(form);
-        }
-    });
+    let isProcessingParticipation = false;
 
     async function handleAjaxParticipation(form) {
+        if (isProcessingParticipation) return;
+
         const btn = form.querySelector('button[type="submit"]');
         if (!btn) return;
-        const originalHTML = btn.innerHTML;
 
+        const originalHTML = btn.innerHTML;
         btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Processing...';
         btn.disabled = true;
+        isProcessingParticipation = true;
 
         try {
             const response = await fetch(form.action, {
@@ -263,18 +413,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const data = await response.json();
             if (data.success) {
-                showCoolPopup('Spot Secured!', data.message, 'success');
+                window.showObsidianNotification('Spot Secured!', data.message, 'success');
                 setTimeout(() => window.location.reload(), 1500);
             } else {
-                showCoolPopup('Error', data.message || 'Submission failed.', 'error');
+                window.showObsidianNotification('Error', data.message || 'Submission failed.', 'error');
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
+                isProcessingParticipation = false;
             }
         } catch (err) {
             console.error('Participation Error:', err);
-            showCoolPopup('Error', 'An unexpected error occurred.', 'error');
+            window.showObsidianNotification('Error', 'An unexpected error occurred.', 'error');
             btn.innerHTML = originalHTML;
             btn.disabled = false;
+            isProcessingParticipation = false;
         }
     }
 
@@ -425,6 +577,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initial render
     renderCalendar();
+    initializeCustomFormElements();
 
     // --- CUSTOM PILL SELECTORS (Status) ---
     function initStatusPills() {
@@ -506,7 +659,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.success) {
                 const title = isEdit ? 'Updated!' : 'Event Live!';
                 const message = isEdit ? 'Your event details have been saved.' : 'Your event has been successfully organized.';
-                showCoolPopup(title, message, 'success');
+                window.showObsidianNotification(title, message, 'success');
 
                 if (!isEdit) {
                     // CREATE: Reset form and close
@@ -545,20 +698,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (data.errors && typeof data.errors === 'object' && !Array.isArray(data.errors)) {
                     if (form.validator) {
                         form.validator.mapErrors(data.errors);
-                        showCoolPopup('Please Correct the Errors', 'Some fields require your attention.', 'error');
+                        window.showObsidianNotification('Please Correct the Errors', 'Some fields require your attention.', 'error');
                     } else {
                         let msg = "Validation failed:<br>";
                         for (let key in data.errors) { msg += `- ${data.errors[key]}<br>`; }
-                        showCoolPopup('Please Correct the Errors', msg, 'error');
+                        window.showObsidianNotification('Please Correct the Errors', msg, 'error');
                     }
                 } else {
                     const errorMsg = data.message || (Array.isArray(data.errors) ? data.errors.join('<br>') : 'Validation failed.');
-                    showCoolPopup('Check your form', errorMsg, 'error');
+                    window.showObsidianNotification('Check your form', errorMsg, 'error');
                 }
             }
         } catch (error) {
             console.error('Event Action Error:', error);
-            showCoolPopup('Network Error', 'Please try again later.', 'error');
+            window.showObsidianNotification('Network Error', 'Please try again later.', 'error');
         } finally {
             btn.innerHTML = originalHTML;
             btn.disabled = false;

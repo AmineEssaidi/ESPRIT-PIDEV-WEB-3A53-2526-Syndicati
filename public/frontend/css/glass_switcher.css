@@ -42,28 +42,38 @@
     opacity: 0;
     pointer-events: none;
     transform: translateY(12px) scale(0.97);
-    overflow-y: auto;
-    overflow-x: hidden;
-    border-radius: inherit;
+    overflow: hidden;
+    visibility: hidden;
+    /* OUT OF FLOW WHEN HIDDEN */
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), visibility 0.4s;
 }
 
 /* ── When a non-main face is ACTIVE ── */
-/* Hide the main face */
+/* Hide the main face and take it out of flow */
 .glass-switcher[class*="active-"]:not(.active-main) .glass-switcher-face-main {
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 0;
+    overflow: hidden;
 }
 
-/* Reveal the active face */
+/* Reveal the active face and bring it INTO flow */
 .glass-switcher.active-extra .glass-switcher-face-extra,
 .glass-switcher.active-details .glass-switcher-face-details,
 .glass-switcher.active-participate .glass-switcher-face-participate,
 .glass-switcher.active-edit .glass-switcher-face-edit {
+    visibility: visible;
+    position: relative;
     opacity: 1;
     pointer-events: auto;
     transform: none;
     z-index: 5;
+    height: auto;
+    overflow: visible;
 }
 
 /* ── SLIDE STYLE (optional class: style-slide) ── */

@@ -1,0 +1,41 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block body %}
+    <h2 style="color: #ff4b5c;">Reclamation Logged</h2>
+    <p>Hello {{ user.firstName }},</p>
+    <p>Your reclamation has been successfully broadcasted to our administrative protocol. Our team will review your request and get back to you shortly.</p>
+
+    <div style="background: rgba(255, 75, 92, 0.03); padding: 30px; border-radius: 20px; border: 1px solid rgba(255, 75, 92, 0.2); margin: 35px 0;">
+        <h3 style="margin-bottom: 12px; color: #ff4b5c; font-size: 18px;">Protocol Entry Summary</h3>
+        <p style="margin-bottom: 8px; font-size: 15px; color: rgba(255, 255, 255, 0.9);">
+            <strong>Subject:</strong> {{ reclamation.titrereclamations }}
+        </p>
+        
+        <div style="margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 12px; border-left: 3px solid #ff4b5c;">
+            <p style="margin-bottom: 0; font-size: 14px; color: rgba(255, 255, 255, 0.8); font-style: italic;">
+                "{{ reclamation.descreclamation|nl2br }}"
+            </p>
+        </div>
+
+        {% if imageUrls is not empty %}
+        <div style="margin: 20px 0;">
+            <p style="font-size: 13px; color: rgba(255, 255, 255, 0.5); margin-bottom: 10px;">Attachments Secured:</p>
+            {% for url in imageUrls %}
+                <div style="display: inline-block; margin-right: 10px; margin-bottom: 10px;">
+                    <img src="{{ url }}" alt="Attachment" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <p style="margin-bottom: 0; font-size: 13px; color: rgba(255, 255, 255, 0.5);">
+            Status: <span style="color: #ff4b5c; font-weight: bold; text-transform: uppercase;">{{ reclamation.statutreclamation }}</span>
+        </p>
+    </div>
+
+    <p style="font-size: 15px; color: rgba(255, 255, 255, 0.6);">Thank you for helping us optimize the <strong>Syndicati</strong> experience.</p>
+{% endblock %}
+
+{% block footer_extra %}
+    <p style="margin-top: 15px; font-style: italic; color: #ff4b5c;">System ID: REC-{{ reclamation.id }} • Active Protocol</p>
+{% endblock %}

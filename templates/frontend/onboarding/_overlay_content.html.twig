@@ -21,12 +21,12 @@
         {% if onboarding.step == 1 %}
             <div class="onboarding-welcome-icon">✨</div>
             <h1 class="onboarding-title">
-                <span data-i18n="Welcome to Syndicati">Welcome to Syndicati</span>
+                <span >{{ 'syndicat.welcome_title'|trans }}</span>
                 <span class="onboarding-user-name">, {{ user.firstName|default('') }} {{ user.lastName|default('') }}</span>
             </h1>
-            <p class="onboarding-subtitle" data-i18n="Personnalisez votre expérience en quelques étapes">Personnalisez votre expérience en quelques étapes</p>
+            <p class="onboarding-subtitle" >{{ 'syndicat.welcome_sub'|trans }}</p>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Langue">Langue</label>
+                <label class="onboarding-label" >{{ 'settings.language_title'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'FR':'🇫🇷 Français','EN':'🇺🇸 English','AR':'🇸🇦 العربية','FR_AR':'🇫🇷🇸🇦 Bilingue FR/AR'} %}
                         <div class="onboarding-opt">
@@ -38,27 +38,27 @@
                 <input type="hidden" name="selected_locale" id="selected_locale" value="{{ prefs.language_preference|default('FR') == 'EN' ? 'en' : (prefs.language_preference|default('FR') == 'AR' ? 'ar' : (prefs.language_preference|default('FR') == 'FR_AR' ? 'fr_ar' : 'fr')) }}">
             </div>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Thème">Thème</label>
+                <label class="onboarding-label" >Thème</label>
                 <div class="onboarding-options">
                     <div class="onboarding-opt">
                         <input type="radio" name="theme_preference" id="theme_light" value="LIGHT" {{ (prefs.theme_preference|default('DARK')) == 'LIGHT' ? 'checked' : '' }}>
-                        <label for="theme_light">☀️ <span data-i18n="Clair">Clair</span></label>
+                        <label for="theme_light">☀️ <span >{{ 'settings.light'|trans }}</span></label>
                     </div>
                     <div class="onboarding-opt">
                         <input type="radio" name="theme_preference" id="theme_dark" value="DARK" {{ (prefs.theme_preference|default('DARK')) == 'DARK' ? 'checked' : '' }}>
-                        <label for="theme_dark">🌙 <span data-i18n="Sombre">Sombre</span></label>
+                        <label for="theme_dark">🌙 <span >{{ 'settings.dark'|trans }}</span></label>
                     </div>
                 </div>
                 <input type="hidden" name="selected_theme" id="selected_theme" value="{{ onboarding.selectedTheme|default('dark') }}">
                 <div class="onboarding-theme-demo">
-                    <p><strong data-i18n="Aperçu :">Aperçu :</strong> <span data-i18n="Voici un aperçu de votre thème sélectionné.">Voici un aperçu de votre thème sélectionné.</span></p>
+                    <p><strong >{{ 'settings.preview'|trans }}</strong> <span >{{ 'settings.preview_desc'|trans }}</span></p>
                 </div>
             </div>
         {% elseif onboarding.step == 2 %}
-            <h1 class="onboarding-title" data-i18n="Notifications">Notifications</h1>
-            <p class="onboarding-subtitle" data-i18n="Comment souhaitez-vous être notifié ?">Comment souhaitez-vous être notifié ?</p>
+            <h1 class="onboarding-title" >{{ 'nav.notifications'|trans }}</h1>
+            <p class="onboarding-subtitle" >{{ 'forms.how_notified'|trans }}</p>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Canal">Canal</label>
+                <label class="onboarding-label" >{{ 'forms.channel'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'EMAIL':'📧 Email','SMS':'📱 SMS','IN_APP':"🔔 Dans l'app",'ALL':'📬 Tous','NONE':'🔕 Aucune'} %}
                         <div class="onboarding-opt">
@@ -69,7 +69,7 @@
                 </div>
             </div>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Fréquence">Fréquence</label>
+                <label class="onboarding-label" >{{ 'forms.frequency'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'INSTANT':'Immédiatement','DAILY_DIGEST':'Résumé quotidien','WEEKLY_DIGEST':'Résumé hebdomadaire','MONTHLY':'Résumé mensuel','IMPORTANT_ONLY':'Urgences uniquement'} %}
                         <div class="onboarding-opt">
@@ -80,10 +80,10 @@
                 </div>
             </div>
         {% elseif onboarding.step == 3 %}
-            <h1 class="onboarding-title" data-i18n="Votre logement">Votre logement</h1>
-            <p class="onboarding-subtitle" data-i18n="Parlez-nous de votre bien">Parlez-nous de votre bien</p>
+            <h1 class="onboarding-title" >{{ 'forms.your_property'|trans }}</h1>
+            <p class="onboarding-subtitle" >{{ 'forms.tell_us_property'|trans }}</p>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Type de bien">Type de bien</label>
+                <label class="onboarding-label" >{{ 'forms.property_type'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'APARTMENT':'Appartement','STUDIO':'Studio','DUPLEX':'Duplex'} %}
                         <div class="onboarding-opt">
@@ -94,7 +94,7 @@
                 </div>
             </div>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Statut d'occupation">Statut d'occupation</label>
+                <label class="onboarding-label" >{{ 'forms.occupancy_status'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'OWNER_OCCUPIED':'Propriétaire occupant','OWNER_RENTING':'Propriétaire loueur','TENANT':'Locataire','TEMPORARY':'Occupant temporaire'} %}
                         <div class="onboarding-opt">
@@ -105,7 +105,7 @@
                 </div>
             </div>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Parking">Parking</label>
+                <label class="onboarding-label" >{{ 'syndicat.parking'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'NONE':'Pas de parking','OUTDOOR':'Extérieur','COVERED':'Couvert','UNDERGROUND':'Sous-sol','MULTIPLE':'Plusieurs places'} %}
                         <div class="onboarding-opt">
@@ -116,10 +116,10 @@
                 </div>
             </div>
         {% elseif onboarding.step == 4 %}
-            <h1 class="onboarding-title" data-i18n="Communication">Communication</h1>
-            <p class="onboarding-subtitle" data-i18n="Vos préférences de communication">Vos préférences de communication</p>
+            <h1 class="onboarding-title" >{{ 'syndicat.communication'|trans }}</h1>
+            <p class="onboarding-subtitle" >{{ 'forms.comm_prefs'|trans }}</p>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Participation aux réunions">Participation aux réunions</label>
+                <label class="onboarding-label" >{{ 'forms.meeting_participation'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'IN_PERSON':'En présentiel','ONLINE':'En ligne','HYBRID':'Hybride','PROXY_ONLY':'Procuration seulement'} %}
                         <div class="onboarding-opt">
@@ -130,7 +130,7 @@
                 </div>
             </div>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Documents">Documents</label>
+                <label class="onboarding-label" >{{ 'syndicat.documents'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'DIGITAL':'Numérique','PAPER':'Papier','BOTH':'Les deux','ECO_FRIENDLY':'Eco-responsable'} %}
                         <div class="onboarding-opt">
@@ -141,7 +141,7 @@
                 </div>
             </div>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Contact préféré">Contact préféré</label>
+                <label class="onboarding-label" >{{ 'forms.pref_contact'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'EMAIL':'Email','PHONE':'Téléphone','WHATSAPP':'WhatsApp','IN_PERSON':'En personne','NO_CONTACT':'Urgence seulement'} %}
                         <div class="onboarding-opt">
@@ -152,10 +152,10 @@
                 </div>
             </div>
         {% elseif onboarding.step == 5 %}
-            <h1 class="onboarding-title" data-i18n="Communauté">Communauté</h1>
-            <p class="onboarding-subtitle" data-i18n="Votre implication">Votre implication</p>
+            <h1 class="onboarding-title" >Communauté</h1>
+            <p class="onboarding-subtitle" >{{ 'forms.your_involvement'|trans }}</p>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Maintenance">Maintenance</label>
+                <label class="onboarding-label" >{{ 'syndicat.maintenance'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'URGENT_ONLY':'Urgences','PREVENTIVE':'Préventive','SCHEDULED':'Planifié','FLEXIBLE':'Flexible'} %}
                         <div class="onboarding-opt">
@@ -166,7 +166,7 @@
                 </div>
             </div>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Engagement communautaire">Engagement communautaire</label>
+                <label class="onboarding-label" >{{ 'forms.comm_engagement'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'VERY_ACTIVE':'Très actif','ACTIVE':'Actif','MODERATE':'Modéré','OBSERVER':'Observateur','MINIMAL':'Minimal'} %}
                         <div class="onboarding-opt">
@@ -177,10 +177,10 @@
                 </div>
             </div>
         {% elseif onboarding.step == 6 %}
-            <h1 class="onboarding-title" data-i18n="Préférences">Préférences</h1>
-            <p class="onboarding-subtitle" data-i18n="Dernières options">Dernières options</p>
+            <h1 class="onboarding-title" >Préférences</h1>
+            <p class="onboarding-subtitle" >{{ 'forms.latest_options'|trans }}</p>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Paiement">Paiement</label>
+                <label class="onboarding-label" >{{ 'forms.payment'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'BANK_TRANSFER':'Virement','CASH':'Espèces','CHECK':'Chèque','ONLINE':'En ligne','AUTO_DEBIT':'Prélèvement auto'} %}
                         <div class="onboarding-opt">
@@ -191,7 +191,7 @@
                 </div>
             </div>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Sensibilité au bruit">Sensibilité au bruit</label>
+                <label class="onboarding-label" >{{ 'forms.noise_sensitivity'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'HIGH':'Sensible','MODERATE':'Modéré','LOW':'Peu sensible','NOT_CONCERNED':'Non concerné'} %}
                         <div class="onboarding-opt">
@@ -202,7 +202,7 @@
                 </div>
             </div>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Animaux">Animaux</label>
+                <label class="onboarding-label" >{{ 'forms.pets'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'NO_PETS':'Aucun','CAT':'Chat','DOG':'Chien','MULTIPLE':'Plusieurs','OTHER':'Autre'} %}
                         <div class="onboarding-opt">
@@ -213,7 +213,7 @@
                 </div>
             </div>
             <div class="onboarding-section">
-                <label class="onboarding-label" data-i18n="Accessibilité">Accessibilité</label>
+                <label class="onboarding-label" >{{ 'forms.accessibility'|trans }}</label>
                 <div class="onboarding-options">
                     {% for val, label in {'NONE':'Aucun','ELEVATOR_REQUIRED':'Ascenseur','WHEELCHAIR':'Fauteuil roulant','VISUAL_IMPAIRMENT':'Déficience visuelle','OTHER':'Autre'} %}
                         <div class="onboarding-opt">
@@ -224,8 +224,8 @@
                 </div>
             </div>
         {% elseif onboarding.step == 7 %}
-            <h1 class="onboarding-title" data-i18n="Presque terminé">Presque terminé&nbsp;!</h1>
-            <p class="onboarding-subtitle" data-i18n="Des suggestions ou commentaires ? (optionnel)">Des suggestions ou commentaires ? (optionnel)</p>
+            <h1 class="onboarding-title" >Presque terminé&nbsp;!</h1>
+            <p class="onboarding-subtitle" >{{ 'forms.suggestions'|trans }}</p>
             <div class="onboarding-section onboarding-suggestions-section">
                 <div class="onboarding-suggestions-wrap">
                     <textarea name="suggestions" class="onboarding-textarea" placeholder="Vos idées, remarques ou attentes...">{{ onboarding.suggestions|default('') }}</textarea>

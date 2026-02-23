@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
-
+use Sensiolabs\GotenbergBundle\GotenbergPdfInterface;
 use App\Entity\Syndicat\Reponse;
 use App\Form\Syndicat\ReponseType;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -18,8 +18,13 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 class SyndicatController extends AbstractController
 {
     #[Route('/syndicat', name: 'frontend_syndicat', methods: ['GET', 'POST'])]
-    public function index(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Repository\User\UserRepository $userRepository): Response
-    {
+    public function index(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        SluggerInterface $slugger,
+        \App\Repository\User\UserRepository $userRepository,
+        \App\Service\Syndicat\SyndicatNotificationService $notificationService
+    ): Response {
         $reclamation = new Reclamation();
         $form = $this->createForm(ReclamationType::class, $reclamation);
         $form->handleRequest($request);
@@ -107,6 +112,9 @@ class SyndicatController extends AbstractController
                 $entityManager->persist($reclamation);
                 $entityManager->flush();
                 error_log("Reclamation successfully persisted. ID: " . $reclamation->getId());
+
+                // Send Confirmation Email
+                $notificationService->notifyReclamationConfirmation($reclamation);
             } catch (\Exception $e) {
                 error_log("Reclamation Persistence Failed: " . $e->getMessage());
                 if ($request->isXmlHttpRequest() || $request->headers->get('Accept') === 'application/json') {
@@ -132,8 +140,14 @@ class SyndicatController extends AbstractController
     }
 
     #[Route('/syndicat/{id}/details', name: 'frontend_reclamation_details', methods: ['GET', 'POST'])]
-    public function details(Request $request, Reclamation $reclamation, EntityManagerInterface $entityManager, \App\Repository\User\UserRepository $userRepository, SluggerInterface $slugger): Response
-    {
+    public function details(
+        Request $request,
+        Reclamation $reclamation,
+        EntityManagerInterface $entityManager,
+        \App\Repository\User\UserRepository $userRepository,
+        SluggerInterface $slugger,
+        \App\Service\Syndicat\SyndicatNotificationService $notificationService
+    ): Response {
         $session = $request->getSession();
         $userSession = $session->get('user');
 
@@ -172,6 +186,9 @@ class SyndicatController extends AbstractController
             $entityManager->persist($reponse);
             $entityManager->flush();
 
+            // Send Reply Notification
+            $notificationService->notifyReclamationReply($reponse);
+
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['success' => true, 'message' => 'Response added!']);
             }
@@ -205,5 +222,32 @@ class SyndicatController extends AbstractController
             'form' => $form->createView(),
             'isAdmin' => $isAdmin,
         ]);
+    }
+
+    #[Route('/syndicat/{id}/pdf', name: 'frontend_reclamation_pdf')]
+    public function pdf(Reclamation $reclamation, GotenbergPdfInterface $gotenbergPdf): Response
+    {
+        $images = [];
+        $imgStr = $reclamation->getImagereclamation();
+        if (is_string($imgStr) && !empty($imgStr)) {
+            $jsonDecoded = json_decode($imgStr, true);
+            if (is_array($jsonDecoded)) {
+                $images = $jsonDecoded;
+            } elseif (!str_contains($imgStr, '[')) {
+                $images = [$imgStr];
+            }
+        }
+
+        $response = $gotenbergPdf->html()
+            ->printBackground()
+            ->content('frontend/syndicat/pdf.html.twig', [
+                'reclamation' => $reclamation,
+                'images' => $images,
+            ])->generate()->stream();
+
+        // Force download
+        $response->headers->set('Content-Disposition', "attachment; filename=\"reclamation_{$reclamation->getId()}.pdf\"");
+
+        return $response;
     }
 }

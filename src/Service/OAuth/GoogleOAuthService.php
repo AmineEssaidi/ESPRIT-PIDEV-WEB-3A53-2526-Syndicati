@@ -15,6 +15,10 @@ use Symfony\Component\HttpFoundation\Request;
 class GoogleOAuthService
 {
     public const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.send';
+    public const USER_INFO_SCOPES = [
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+    ];
 
     public function __construct(
         private readonly OAuthRepository $oauthRepository,
@@ -34,6 +38,32 @@ class GoogleOAuthService
         $client->setAccessType('offline');
         $client->setPrompt('consent');
         $client->setScopes([self::GMAIL_SCOPE]);
+
+        // Fix for local SSL issues (cURL error 60)
+        $httpClient = new \GuzzleHttp\Client([
+            'verify' => false,
+            'timeout' => 10.0,
+        ]);
+        $client->setHttpClient($httpClient);
+
+        return $client;
+    }
+
+    public function createLoginClient(?string $redirectUri = null): GoogleClient
+    {
+        $client = new GoogleClient();
+        $client->setClientId($this->clientId);
+        $client->setClientSecret($this->clientSecret);
+        $client->setRedirectUri($redirectUri ?? $this->redirectUri);
+        $client->setScopes(self::USER_INFO_SCOPES);
+
+        // Fix for local SSL issues (cURL error 60)
+        $httpClient = new \GuzzleHttp\Client([
+            'verify' => false,
+            'timeout' => 10.0,
+        ]);
+        $client->setHttpClient($httpClient);
+
         return $client;
     }
 
@@ -41,6 +71,15 @@ class GoogleOAuthService
     public function getAuthorizationUrl(?string $state = null, ?string $redirectUri = null): string
     {
         $client = $this->createClient($redirectUri);
+        if ($state !== null) {
+            $client->setState($state);
+        }
+        return $client->createAuthUrl();
+    }
+
+    public function getLoginAuthorizationUrl(?string $state = null, ?string $redirectUri = null): string
+    {
+        $client = $this->createLoginClient($redirectUri);
         if ($state !== null) {
             $client->setState($state);
         }
@@ -143,5 +182,50 @@ class GoogleOAuthService
             }
         }
         return $oauth;
+    }
+
+    public function getUserInfo(string $code, ?string $redirectUri = null): array
+    {
+        $logFile = dirname(__DIR__, 3) . '/public/google_auth.log';
+        $log = function ($msg) use ($logFile) {
+            file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] [Service] " . $msg . "\n", FILE_APPEND);
+        };
+
+        $log("getUserInfo started with code: " . substr($code, 0, 10) . "...");
+
+        try {
+            if (!class_exists('\Google\Client')) {
+                $log("ERROR: \Google\Client class NOT FOUND!");
+                throw new \RuntimeException("\Google\Client class not found. Check composer install.");
+            }
+
+            $client = $this->createLoginClient($redirectUri);
+            $log("Client created. Fetching access token...");
+
+            $token = $client->fetchAccessTokenWithAuthCode($code);
+            $log("Token response received: " . (isset($token['error']) ? "ERROR: " . json_encode($token) : "SUCCESS (token received)"));
+
+            if (isset($token['error'])) {
+                throw new \RuntimeException($token['error_description'] ?? $token['error']);
+            }
+
+            $log("Initializing Oauth2 service...");
+            $service = new \Google\Service\Oauth2($client);
+
+            $log("Requesting userinfo from Google...");
+            $userInfo = $service->userinfo->get();
+            $log("User info received from Google: " . ($userInfo ? "YES (ID: " . $userInfo->id . ")" : "NO"));
+
+            return [
+                'id' => $userInfo->id,
+                'email' => $userInfo->email,
+                'firstName' => $userInfo->givenName,
+                'lastName' => $userInfo->familyName,
+                'picture' => $userInfo->picture,
+            ];
+        } catch (\Throwable $e) {
+            $log("SERVICE ERROR: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            throw $e;
+        }
     }
 }

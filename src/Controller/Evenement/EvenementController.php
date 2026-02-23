@@ -19,11 +19,37 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
+use App\Service\WeatherService;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 #[Route('/evenement')]
 class EvenementController extends AbstractController
 {
+    #[Route('/weather/preview', name: 'app_evenement_weather_preview', methods: ['GET'])]
+    public function weatherPreview(Request $request, WeatherService $weatherService): JsonResponse
+    {
+        $lat = $request->query->get('lat');
+        $lng = $request->query->get('lng');
+        $dateStr = $request->query->get('date');
+
+        if (!$lat || !$lng || !$dateStr) {
+            return new JsonResponse(['success' => false, 'message' => 'Missing parameters.'], 400);
+        }
+
+        try {
+            $date = new \DateTime($dateStr);
+            $forecast = $weatherService->getForecast((float) $lat, (float) $lng, $date);
+
+            if ($forecast) {
+                return new JsonResponse(['success' => true, 'data' => $forecast]);
+            }
+
+            return new JsonResponse(['success' => false, 'message' => 'No forecast data available.'], 404);
+        } catch (\Exception $e) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid date format.'], 400);
+        }
+    }
+
     #[Route('/', name: 'app_evenement_index', methods: ['GET', 'POST'])]
     public function index(Request $request, EvenementRepository $evenementRepository, \App\Repository\User\UserRepository $userRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {

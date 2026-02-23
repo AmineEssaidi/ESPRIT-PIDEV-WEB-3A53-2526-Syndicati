@@ -27,7 +27,7 @@ class Reponse
     #[ORM\Column(type: 'string', length: 255, name: 'imagereponse', nullable: true)]
     private $imagereponse;
 
-    #[ORM\ManyToOne(targetEntity: Reclamation::class)]
+    #[ORM\ManyToOne(targetEntity: Reclamation::class, inversedBy: "reponses")]
     #[ORM\JoinColumn(name: 'reclamation_id', referencedColumnName: 'idreclamations', nullable: false)]
     private $reclamation;
 

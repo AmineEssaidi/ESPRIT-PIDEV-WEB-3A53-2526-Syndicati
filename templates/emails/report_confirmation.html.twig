@@ -1,0 +1,36 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block body %}
+    <h2 style="color: #ff4b5c;">Report Logged</h2>
+    <p>Hello {{ user.firstName }},</p>
+    <p>We've received your report regarding a <strong>{{ type }}</strong> in the community forum. Our moderation team has been notified and will review the content shortly.</p>
+
+    <div style="background: rgba(255, 75, 92, 0.03); padding: 30px; border-radius: 20px; border: 1px solid rgba(255, 75, 92, 0.2); margin: 35px 0;">
+        <h3 style="margin-bottom: 12px; color: #ff4b5c; font-size: 18px;">Reporting Summary</h3>
+        <p style="margin-bottom: 8px; font-size: 15px; color: rgba(255, 255, 255, 0.9);">
+            <strong>Subject:</strong> {{ title }}
+        </p>
+        
+        <div style="margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 12px; border-left: 3px solid #ff4b5c;">
+            <p style="margin-bottom: 0; font-size: 14px; color: rgba(255, 255, 255, 0.8); font-style: italic;">
+                "{{ content|nl2br }}"
+            </p>
+        </div>
+
+        {% if imageUrl %}
+        <div style="margin: 20px 0; text-align: center;">
+            <img src="{{ imageUrl }}" alt="Reported Item Image" style="max-width: 100%; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);">
+        </div>
+        {% endif %}
+
+        <p style="margin-bottom: 0; font-size: 15px; color: rgba(255, 255, 255, 0.7);">
+            <strong>Your Reason:</strong> {{ reason }}
+        </p>
+    </div>
+
+    <p style="font-size: 15px; color: rgba(255, 255, 255, 0.6);">Thank you for helping us maintain a safe and respectful environment for everyone in the <strong>Syndicati</strong> community.</p>
+{% endblock %}
+
+{% block footer_extra %}
+    <p style="margin-top: 15px; font-style: italic; color: #ff4b5c;">Community Integrity Protocol Active.</p>
+{% endblock %}

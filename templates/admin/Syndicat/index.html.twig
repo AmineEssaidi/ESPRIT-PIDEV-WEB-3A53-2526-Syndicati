@@ -5,15 +5,6 @@
 {% block stylesheets %}
     <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
     <style>
-        .glass-switcher {
-            position: relative;
-            width: 100%;
-            transition: height 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        .glass-switcher-face {
-            width: 100%;
-        }
-
         /* Hide Scrollbar Global */
         html, body, .admin-shell, .layout-wrapper, .layout-page, .content-wrapper, .container-xxl {
             scrollbar-width: none !important; /* Firefox */
@@ -718,7 +709,7 @@
                 <td><span class="glass-pill">${data[2]}</span></td>
                 <td>${data[3]}</td>
                 <td style="text-align: right;">
-                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewRec(${i})">
+                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="event.stopPropagation(); viewRec(${i})">
                         <i class="bx bx-show"></i> Details
                     </button>
                 </td>
@@ -742,7 +733,7 @@
                 <td><strong>${data[2]}</strong></td>
                 <td>${data[3]}</td>
                 <td style="text-align: right;">
-                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="viewRep(${i})">
+                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="event.stopPropagation(); viewRep(${i})">
                         <i class="bx bx-show"></i> Details
                     </button>
                 </td>
@@ -800,6 +791,13 @@
             if(statusInput) statusInput.value = data[2];
             openModal('rec-edit-modal');
         };
+        // 1. Explicitly mark the modal as active before the switcher starts
+        const vModal = document.getElementById('rec-view-modal');
+        if (vModal) {
+            vModal.style.display = 'flex';
+            void vModal.offsetWidth;
+            vModal.classList.add('active');
+        }
         openModal('rec-view-modal');
     };
 
@@ -813,6 +811,13 @@
         document.getElementById('view-rep-delete-token').value = data[6];
         document.getElementById('view-rep-delete-form').action = deleteRepUrlTemplate.replace('ID_PLACEHOLDER', data[4]);
         
+        // 1. Explicitly mark the modal as active before the switcher starts
+        const vModal = document.getElementById('rep-view-modal');
+        if (vModal) {
+            vModal.style.display = 'flex';
+            void vModal.offsetWidth;
+            vModal.classList.add('active');
+        }
         openModal('rep-view-modal');
     };
 
