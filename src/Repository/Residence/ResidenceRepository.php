@@ -38,4 +38,22 @@ class ResidenceRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    public function NTotalResidences()
+    {
+        return $this->createQueryBuilder('r')
+            ->select('count(r.idResidence)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function NouvellesResidences()
+    {
+         return $this->createQueryBuilder('r')->
+            orderBy('r.dateAjout', 'DESC')->
+            setMaxResults(3)->
+            getQuery()->
+            getResult();      
+  }
+    
 }

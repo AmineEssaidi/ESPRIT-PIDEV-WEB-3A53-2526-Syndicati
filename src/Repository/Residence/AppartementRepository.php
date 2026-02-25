@@ -38,4 +38,28 @@ class AppartementRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    public function NTotalAppartements()
+    {
+        return $this->createQueryBuilder('a')
+            ->select('count(a.idApp)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function SommeAchatAppartements()
+    {
+        return $this->createQueryBuilder('a')
+            ->select('sum(a.prix_vente)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function SommeLocationAppartements()
+    {
+        return $this->createQueryBuilder('a')
+            ->select('sum(a.prix_location)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

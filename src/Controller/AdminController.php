@@ -961,12 +961,17 @@ private function isMaintenanceSufficientlyFilled(\App\Entity\Residence\Maintenan
     }
 
     #[Route('/admin', name: 'admin_dashboard')]
-    public function dashboard(PageStatusService $pageStatusService, Request $request): Response
+    public function dashboard(PageStatusService $pageStatusService, Request $request,
+    
+    UserRepository $userRepository,
+    AppartementRepository $AppartementRepository): Response
     {
         if (!$pageStatusService->isPageOnline('dashboard')) {
             return $this->redirectToRoute('maintenance_with_page', ['pageId' => 'dashboard']);
         }
-
+        $n_utilisateurs=$userRepository->NTotalUsers();
+        $n_appartements=$AppartementRepository->NTotalAppartements();
+        $appartements_achat=$AppartementRepository->SommeAchatAppartements();
         $transactions = [
             [
                 'type' => 'PayPal',
@@ -1014,6 +1019,9 @@ private function isMaintenanceSufficientlyFilled(\App\Entity\Residence\Maintenan
 
         return $this->render('admin/dashboard.html.twig', [
             'transactions' => $transactions,
+            'n_utilisateurs'=>$n_utilisateurs,
+            'n_appartements'=>$n_appartements,
+            'appartements_achat'=>$appartements_achat,
         ]);
     }
 

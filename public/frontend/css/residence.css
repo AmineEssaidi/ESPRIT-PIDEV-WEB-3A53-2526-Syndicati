@@ -24,7 +24,7 @@
     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
     display: flex;
     align-items: center;
-    min-height: 600px;
+    min-height: 400px;
 }
 
 .residence-hero-glow {
@@ -85,9 +85,9 @@
 
 /* Showcase Section */
 .residence-showcase {
-    padding: 6rem 0;
+    padding: 3rem 0;
     background: transparent;
-    max-width: 1600px;
+    max-width: 1800px;
     margin: 0 auto;
 }
 
@@ -331,7 +331,7 @@
 
 .residence-expanded-view .glass-switcher {
     position: relative;
-    min-height: 600px;
+    min-height: 400px;
 }
 
 .residence-expanded-view .glass-switcher-face {

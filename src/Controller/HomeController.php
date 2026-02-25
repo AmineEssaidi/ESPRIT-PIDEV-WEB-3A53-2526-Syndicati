@@ -13,6 +13,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Cache\CacheInterface;
 
+use App\Repository\Residence\AppartementRepository;
+use App\Repository\Residence\ResidenceRepository;
+use App\Repository\Evenement\EvenementRepository;
+
+
 class HomeController extends AbstractController
 {
     public function __construct(
@@ -21,9 +26,11 @@ class HomeController extends AbstractController
     }
 
     #[Route('/', name: 'main_home')]
-    public function mainHome(PageStatusService $pageStatusService, Request $request, UserRepository $userRepository, OnboardingRepository $onboardingRepository, EntityManagerInterface $em): Response
+    public function mainHome(PageStatusService $pageStatusService, Request $request, UserRepository $userRepository, 
+    AppartementRepository $AppartementRepository, ResidenceRepository $ResidenceRepository,
+    EvenementRepository $EvenementRepository,
+    OnboardingRepository $onboardingRepository, EntityManagerInterface $em): Response
     {
-        // Check if main home is offline
         if (!$pageStatusService->isPageOnline('main_home')) {
             return $this->redirectToRoute('maintenance_with_page', ['pageId' => 'main_home']);
         }
@@ -39,7 +46,6 @@ class HomeController extends AbstractController
             if ($user) {
                 $onboarding = $onboardingRepository->findOneByUser($user);
                 if ($onboarding === null) {
-                    // First time we ever see this user on main home: create onboarding record
                     $onboarding = new Onboarding();
                     $onboarding->setUser($user);
                     $onboarding->setStep(1);
@@ -49,7 +55,6 @@ class HomeController extends AbstractController
                     $em->flush();
                 }
 
-                // Show overlay only once per browser session, on the first visit after signup
                 $alreadyShownThisSession = $session->get('onboarding_overlay_shown', false);
                 if (!$onboarding->isCompleted() && !$alreadyShownThisSession) {
                     $showOverlay = true;
@@ -59,14 +64,27 @@ class HomeController extends AbstractController
             }
         }
 
+        $n_appartements=$AppartementRepository->NTotalAppartements();
+        $n_residences=$ResidenceRepository->NTotalResidences();
+        $n_users=$userRepository->NTotalUsers();
+        $n_events=$EvenementRepository->NTotalEvenements();
+
+        $nouvelles_r=$ResidenceRepository->NouvellesResidences();
+        $evennements=$EvenementRepository->EvennementsProchains();
+
         $response = $this->render('frontend/home/main-home.html.twig', [
             'user' => $user,
             'onboarding' => $onboarding,
             'prefs' => $prefs,
             'show_onboarding_overlay' => $showOverlay,
+            'n_appartements'=>$n_appartements,
+            'n_residences'=>$n_residences,
+            'n_users'=>$n_users,
+            'n_evennements'=> $n_events,
+            'nouvelles_r'=>$nouvelles_r,
+            'evennements'=>$evennements,
         ]);
 
-        // Ajouter des en-têtes de cache HTTP pour de meilleures performances
         $response->setPublic();
         $response->setMaxAge(300); // 5 minutes
         $response->headers->addCacheControlDirective('must-revalidate', true);

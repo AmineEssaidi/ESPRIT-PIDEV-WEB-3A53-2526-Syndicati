@@ -12,5 +12,11 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
-    // Add custom query methods if needed
+   public function NTotalUsers()
+    {
+        return $this->createQueryBuilder('u')
+            ->select('count(u.id_user)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

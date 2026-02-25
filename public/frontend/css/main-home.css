@@ -609,24 +609,22 @@ body.settings-page .main-home-ios-theme-toggle {
   --glass-bg: rgba(var(--main-home-accent-rgb), 0.15);
   --glass-border: rgba(var(--main-home-accent-rgb), 0.3);
 
-  /* Premium Glassmorphism for Hero Card */
-  .main-home-glass-hero-card {
-    background: var(--main-home-card-bg) !important;
-    backdrop-filter: blur(24px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-    border-radius: 32px !important;
-    border: 1.5px solid rgba(var(--main-home-accent-rgb), 0.22) !important;
-    padding: 3rem !important;
-    box-shadow:
-      0 32px 80px rgba(0, 0, 0, 0.45),
-      0 0 20px rgba(var(--main-home-accent-rgb), 0.2),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease !important;
-    max-width: 540px !important;
-    width: 100% !important;
-    position: relative;
-    z-index: 2;
-  }
+.main-home-glass-hero-card {
+  background: var(--main-home-card-bg) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  border-radius: 32px !important;
+  border: 1.5px solid rgba(var(--main-home-accent-rgb), 0.22) !important;
+  padding: 2rem !important;
+  margin: 0 auto;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.45),
+    0 0 20px rgba(var(--main-home-accent-rgb), 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease !important;
+  z-index: 2;
+}
+
 
   [data-theme="light"] .main-home-glass-hero-card {
     background: rgba(255, 255, 255, 0.82) !important;
@@ -2688,17 +2686,13 @@ body {
   flex-shrink: 0;
 }
 
-/* Beautiful Landing Page */
 .main-home-landing-section {
-  margin-top: 3rem;
+  margin-top: 1rem;
 }
 
 /* Hero Section */
 .main-home-hero {
-  display: flex;
-  align-items: center;
-  gap: 3rem;
-  margin-bottom: 4rem;
+
   padding: 3rem 0;
 }
 
@@ -2724,7 +2718,6 @@ body {
   color: var(--muted);
   line-height: 1.6;
   margin-bottom: 2rem;
-  max-width: 500px;
 }
 
 .main-home-hero-buttons {
@@ -2913,8 +2906,6 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 2rem;
-  background: var(--main-home-card-bg);
-  backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(var(--main-home-accent-rgb), 0.3);
   border-radius: 20px;
   padding: 3rem 2rem;
@@ -2968,7 +2959,6 @@ body {
 }
 
 .main-home-testimonial-card {
-  background: var(--main-home-card-bg);
   backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(var(--main-home-accent-rgb), 0.3);
   border-radius: 20px;
@@ -4696,7 +4686,7 @@ body {
 .main-home-hero-subtitle {
   font-size: 1.3rem;
   color: var(--main-home-text-secondary);
-  max-width: 600px;
+  max-width: 1000px;
   margin: 0 auto;
   line-height: 1.6;
 }

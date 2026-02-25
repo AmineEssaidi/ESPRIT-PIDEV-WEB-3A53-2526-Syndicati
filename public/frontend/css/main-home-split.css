@@ -1,15 +1,12 @@
-/* Hero split: left text, right image with seam fade (50/50) */
 .main-home-landing-section .main-home-hero.split-hero {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: stretch;
   min-height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .main-home-hero-left {
   padding: 4rem 3rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+
 }
 .main-home-hero-right {
   position: relative;

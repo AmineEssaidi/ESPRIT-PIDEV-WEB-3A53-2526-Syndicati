@@ -16,7 +16,7 @@
         
         <div class="main-home-page-content" style="padding: 2rem 0;">
             <!-- Hero Section -->
-            <div class="event-hero-section">
+            <div class="event-hero-section" style="height:520px;">
                 <div class="event-hero-bg-glow"></div>
                 <div class="event-bg-glow-secondary"></div>
                 
@@ -28,15 +28,54 @@
                             </span>
                             <h1 class="event-hero-title">Discover. Connect.<br>Experience.</h1>
                             <p class="event-hero-subtitle">Join exclusive events, workshops, and gatherings designed for our community. Your next great story starts here.</p>
-                            
-                            <div class="d-flex gap-3 mt-4">
-                                <a href="#events" class="btn-event-action" style="padding: 1rem 2.5rem; font-size: 1rem;">Explore Events</a>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+         <!-- Floating Event Preview -->
+                <div id="calendarEventPreview" class="calendar-event-preview">
+                    <div class="preview-card">
+                        <div class="preview-banner" id="previewBanner"></div>
+                        <div class="preview-content">
+                            <span class="preview-tag" id="previewType"></span>
+                            <h4 class="preview-title" id="previewTitle"></h4>
+                            <div class="preview-meta">
+                                <i class='bx bx-time-five'></i> <span id="previewDate"></span>
+                            </div>
+                            <button class="preview-btn" id="previewViewBtn">View Details</button>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- 2. EVENTS GRID (Below) -->
+                {% if evenements|length > 0 %}
+                    <div style="padding: 0 3rem;">
+                        <div class="mb-4 d-flex justify-content-between align-items-center">
+                            <span class="event-section-pill">
+                                <i class='bx bx-calendar-check'></i> Upcoming Events
+                            </span>
+                            <div class="event-pagination-info" id="eventPaginationInfo">
+                                <span style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Showing <span id="currentEventRange"></span> of {{ evenements|length }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="event-grid" id="eventGrid">
+                            {% for evenement in evenements %}
+                                {% include 'frontend/evenement/_card.html.twig' with {'evenement': evenement} %}
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="event-pagination-controls" id="eventPaginationControls">
+                            <button class="event-pagination-btn" id="prevEventPage" disabled>
+                                <i class='bx bx-chevron-left'></i>
+                            </button>
+                            <div class="event-pagination-pages" id="eventPaginationPages"></div>
+                            <button class="event-pagination-btn" id="nextEventPage">
+                                <i class='bx bx-chevron-right'></i>
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
             <!-- Event Content -->
             <div id="events" class="pb-5">
                 
@@ -211,50 +250,7 @@
                     </div>
                 </div>
 
-                <!-- Floating Event Preview -->
-                <div id="calendarEventPreview" class="calendar-event-preview">
-                    <div class="preview-card">
-                        <div class="preview-banner" id="previewBanner"></div>
-                        <div class="preview-content">
-                            <span class="preview-tag" id="previewType"></span>
-                            <h4 class="preview-title" id="previewTitle"></h4>
-                            <div class="preview-meta">
-                                <i class='bx bx-time-five'></i> <span id="previewDate"></span>
-                            </div>
-                            <button class="preview-btn" id="previewViewBtn">View Details</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. EVENTS GRID (Below) -->
-                {% if evenements|length > 0 %}
-                    <div style="padding: 0 3rem;">
-                        <div class="mb-4 d-flex justify-content-between align-items-center">
-                            <span class="event-section-pill">
-                                <i class='bx bx-calendar-check'></i> Upcoming Events
-                            </span>
-                            <div class="event-pagination-info" id="eventPaginationInfo">
-                                <span style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Showing <span id="currentEventRange"></span> of {{ evenements|length }}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="event-grid" id="eventGrid">
-                            {% for evenement in evenements %}
-                                {% include 'frontend/evenement/_card.html.twig' with {'evenement': evenement} %}
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="event-pagination-controls" id="eventPaginationControls">
-                            <button class="event-pagination-btn" id="prevEventPage" disabled>
-                                <i class='bx bx-chevron-left'></i>
-                            </button>
-                            <div class="event-pagination-pages" id="eventPaginationPages"></div>
-                            <button class="event-pagination-btn" id="nextEventPage">
-                                <i class='bx bx-chevron-right'></i>
-                            </button>
-                        </div>
-                    </div>
-                {% endif %}
+               
             </div>
 
         </div>

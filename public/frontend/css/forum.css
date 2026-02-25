@@ -25,7 +25,7 @@
     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
     display: flex;
     align-items: center;
-    min-height: 500px;
+    min-height: 400px;
     /* Slightly reduced from 600px */
 }
 

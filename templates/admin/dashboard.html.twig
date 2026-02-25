@@ -7,104 +7,98 @@
 
 <div class="admin-dashboard">
     <!-- Top Stat Cards -->
-    <div class="stats-row">
-        <div class="stat-card">
+    <div class="stats-row container row">
+        <div class="stat-card col">
             <div class="stat-card-header">
-                <span class="stat-icon income-icon"></span>
-                <span class="stat-label">Currency income</span>
+                 <i class="bx bx-male" style="font-size:30px; color: var(--main-home-accent-color);"></i>
+                <span class="stat-label">Total number of users</span>
             </div>
-            <div class="stat-value">$2700</div>
+            <div class="stat-value">{{ n_utilisateurs }}</div>
             <div class="stat-sub">+12% vs last month</div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card col">
             <div class="stat-card-header">
-                <span class="stat-icon bills-icon"></span>
-                <span class="stat-label">Bills</span>
+        <i class=" bx bx-building-house" style="font-size:30px; color: var(--main-home-accent-color);"></i>
+                <span class="stat-label">Total number of appartments</span>
             </div>
-            <div class="stat-value">$1250</div>
-            <div class="stat-sub">24 invoices pending</div>
+            <div class="stat-value">{{ n_appartements }}</div>
+            <div class="stat-sub"></div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card col">
             <div class="stat-card-header">
-                <span class="stat-icon balance-icon"></span>
-                <span class="stat-label">Balance</span>
+            <i class="bx bx-money" style="font-size:30px; color: var(--main-home-accent-color);"></i>
+
+                <span class="stat-label">Total worth of appartments</span>
             </div>
-            <div class="stat-value">$3450</div>
-            <div class="stat-sub">All accounts reconciled</div>
+            <div class="stat-value">{{ appartements_achat|number_format(0, '.', ',') }} TND</div>
+            <div class="stat-sub">Amount collected so far</div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-card-header">
-                <span class="stat-icon payment-icon"></span>
-                <span class="stat-label">Pending payment</span>
-            </div>
-            <div class="stat-value">$3428</div>
-            <div class="stat-sub text-warning">5 invoices overdue</div>
-        </div>
+        
     </div>
 
-    <!-- Main Grid -->
+
     <div class="dashboard-main">
-        <!-- Activity / Chart Section -->
-        <section class="activity-card glass-panel">
-            <div class="panel-header">
-                <div>
-                    <h2 class="panel-title">Activity</h2>
-                    <p class="panel-subtitle">Income vs Spent · This year</p>
-                </div>
-                <div class="legend">
-                    <span class="legend-dot income-dot"></span><span>Income</span>
-                    <span class="legend-dot spent-dot ms-3"></span><span>Spent</span>
-                </div>
+        <div class="stats-row container row">
+        <div class="stat-card col">
+            <div class="stat-card-header">
+                 <i class="bx bx-send " style="font-size:30px; color: var(--main-home-accent-color);"></i>
+                <span class="stat-label">Number of Posts</span>
             </div>
-            <div class="activity-chart">
-                <!-- Simple bar chart inspired by the mockup -->
-                {% set months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'] %}
-                <div class="chart-bars">
-                    {% for month in months %}
-                        <div class="chart-bar">
-                            <div class="bar-group">
-                                <div class="bar bar-income"></div>
-                                <div class="bar bar-spent"></div>
+            <div class="stat-value">21</div>
+            <div class="stat-sub">+20% vs last month</div>
+        </div>
+        <div class="stat-card col">
+            <div class="stat-card-header">
+                 <i class=" bx bx-comment-dots" style="font-size:30px; color: var(--main-home-accent-color);"></i>
+                <span class="stat-label">Number of comments</span>
+            </div>
+            <div class="stat-value">57</div>
+            <div class="stat-sub"></div>
+        </div>
+    </div>
+    </div>
+      
+
+    
+    <div class="row">
+        <div class="col">
+<!-- Monthly Billing -->
+            <section class="billing-card glass-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Monthly billing</h2>
+                    <span class="panel-subtitle">Issued vs Received</span>
+                </div>
+                <div class="billing-content">
+                    <div class="billing-gauge">
+                        <div class="gauge-ring">
+                            <div class="gauge-fill"></div>
+                            <div class="gauge-center">
+                                <span class="gauge-label">Total</span>
+                                <span class="gauge-value">2000</span>
                             </div>
-                            <span class="bar-label">{{ month }}</span>
                         </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div class="activity-footer">
-                <div class="activity-metric">
-                    <span class="metric-label">Total income</span>
-                    <span class="metric-value">$124,580</span>
-                </div>
-                <div class="activity-metric">
-                    <span class="metric-label">Total spent</span>
-                    <span class="metric-value">$86,430</span>
-                </div>
-                <div class="activity-metric">
-                    <span class="metric-label">Net balance</span>
-                    <span class="metric-value text-success">+$38,150</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Right Column -->
-        <aside class="dashboard-side">
-            <!-- Upcoming Obligations -->
-            <section class="obligations-card glass-panel">
-                <h2 class="panel-title">Upcoming obligations</h2>
-                <div class="obligation-box">
-                    <h3 class="obligation-title">VAT declaration</h3>
-                    <p class="obligation-text">You have 27 days left to submit the documentation.</p>
-                    <button class="btn btn-sm btn-primary rounded-pill">View details</button>
+                    </div>
+                    <div class="billing-legend">
+                        <div class="legend-row">
+                            <span class="legend-dot issued-dot"></span>
+                            <span>Issued</span>
+                            <span class="legend-amount ms-auto">1350 TND</span>
+                        </div>
+                        <div class="legend-row">
+                            <span class="legend-dot received-dot"></span>
+                            <span>Received</span>
+                            <span class="legend-amount ms-auto">650 TND</span>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <!-- Agenda / Calendar -->
-            <section class="agenda-card glass-panel">
+        </div>
+        <div class="col">
+        <section class="agenda-card glass-panel">
                 <div class="panel-header">
                     <h2 class="panel-title">Agenda</h2>
                     <span class="panel-subtitle">This month</span>
@@ -139,37 +133,28 @@
                     </div>
                 </div>
             </section>
+            </div>
+    </div>
+ 
+    <!-- Main Grid -->
+    
 
-            <!-- Monthly Billing -->
-            <section class="billing-card glass-panel">
-                <div class="panel-header">
-                    <h2 class="panel-title">Monthly billing</h2>
-                    <span class="panel-subtitle">Issued vs Received</span>
-                </div>
-                <div class="billing-content">
-                    <div class="billing-gauge">
-                        <div class="gauge-ring">
-                            <div class="gauge-fill"></div>
-                            <div class="gauge-center">
-                                <span class="gauge-label">Total</span>
-                                <span class="gauge-value">$1450</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="billing-legend">
-                        <div class="legend-row">
-                            <span class="legend-dot issued-dot"></span>
-                            <span>Issued</span>
-                            <span class="legend-amount ms-auto">$950</span>
-                        </div>
-                        <div class="legend-row">
-                            <span class="legend-dot received-dot"></span>
-                            <span>Received</span>
-                            <span class="legend-amount ms-auto">$500</span>
-                        </div>
-                    </div>
+        <!-- Right Column -->
+        <aside class="dashboard-side">
+            <!-- Upcoming Obligations -->
+            <section class="obligations-card glass-panel">
+                <h2 class="panel-title">Upcoming obligations</h2>
+                <div class="obligation-box">
+                    <h3 class="obligation-title">VAT declaration</h3>
+                    <p class="obligation-text">You have 27 days left to submit the documentation.</p>
+                    <button class="btn btn-sm btn-primary rounded-pill">View details</button>
                 </div>
             </section>
+
+            <!-- Agenda / Calendar -->
+            
+
+         
         </aside>
     </div>
 </div>

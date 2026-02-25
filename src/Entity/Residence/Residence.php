@@ -34,7 +34,7 @@ class Residence
     #[Assert\Length(max: 255)]
     private ?string $imageR = null;
 
-    #[ORM\Column(type: 'datetime', name: 'date_ajout')]
+    #[ORM\Column(type: 'datetime', name: '&')]
     private ?\DateTimeInterface $dateAjout = null;
 
     #[ORM\Column(type: 'string', length: 255, name: 'n_appartements', columnDefinition: "ENUM('1', '2', '3', '4', '5', '6', '7', '8', '9', '10')")]
@@ -172,10 +172,12 @@ class Residence
         return $this->appartements;
     }
 
-        public function getTotalAppartements(): int
+    public function getTotalAppartements(): int
     {
         return $totalAppartments = $this->getAppartements()->count();
     }
+
+
     public function addAppartement(Appartement $appartement): self
     {
         if (!$this->appartements->contains($appartement)) {

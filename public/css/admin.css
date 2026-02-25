@@ -5019,7 +5019,6 @@ body {
 
 /* Top stat cards row */
 .stats-row {
-  display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1.5rem;
 }
@@ -5106,7 +5105,6 @@ body {
 /* Main grid: activity + right column */
 .dashboard-main {
   display: grid;
-  grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.1fr);
   gap: 1.75rem;
   align-items: flex-start;
 }

@@ -28,4 +28,21 @@ class EvenementRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function NTotalEvenements()
+    {
+        return $this->createQueryBuilder('e')
+            ->select('count(e.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function EvennementsProchains()
+    {
+         return $this->createQueryBuilder('e')->
+            orderBy('e.date_event', 'DESC')->
+            setMaxResults(3)->
+            getQuery()->
+            getResult();      
+  }
 }
