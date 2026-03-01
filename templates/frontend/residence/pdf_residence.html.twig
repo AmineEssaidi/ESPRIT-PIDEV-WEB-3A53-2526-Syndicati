@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Residence {{ residence.nomR }}</title>
+    <style>
+        :root {
+            --obsidian-dark: #121212;
+            --obsidian-panel: #1e1e1e;
+            --red-accent: #ff4b5c;
+            --text-light: #f5f5f5;
+            --text-muted: #a0a0a0;
+            --border-color: #333333;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--obsidian-dark) !important;
+            color: var(--text-light) !important;
+            margin: 0;
+            padding: 40px;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .header {
+            border-bottom: 2px solid var(--red-accent);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .logo-text {
+            color: var(--red-accent);
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .residence-title {
+            font-size: 28px;
+            margin: 0 0 10px 0;
+            font-weight: bold;
+            color: var(--text-light);
+            text-transform: uppercase;
+        }
+
+        .meta-info {
+            display: table;
+            width: 100%;
+            margin-bottom: 40px;
+            background-color: var(--obsidian-panel);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .meta-row {
+            display: table-row;
+        }
+
+        .meta-label {
+            display: table-cell;
+            padding: 15px 20px;
+            font-weight: bold;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            width: 30%;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .meta-value {
+            display: table-cell;
+            padding: 15px 20px;
+            color: var(--text-light);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .section-title {
+            color: var(--red-accent);
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-bottom: 40px;
+        }
+
+        th {
+            background-color: transparent;
+            color: var(--red-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+        }
+
+        td {
+            padding: 14px 15px;
+            border-bottom: 1px solid #222;
+            color: #d0d0d0;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        tr:nth-child(odd) {
+            background-color: transparent;
+        }
+
+        .badge-parking {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .badge-dispo {
+            background-color: rgba(255, 75, 92, 0.15);
+            color: var(--red-accent);
+            border: 1px solid rgba(255, 75, 92, 0.3);
+        }
+
+        .badge-nodispo {
+            background-color: rgba(160, 160, 160, 0.1);
+            color: var(--text-muted);
+            border: 1px solid rgba(160, 160, 160, 0.2);
+        }
+
+        .price-text {
+            color: var(--text-light);
+            font-weight: bold;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        .email-link {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo-text">Syndicate Hub</div>
+        <h1 class="residence-title">{{ residence.nomR }}</h1>
+    </div>
+
+    <div class="meta-info">
+        <div class="meta-row">
+            <div class="meta-label">Total Appartements</div>
+            <div class="meta-value">{{ appartements|length }}</div>
+        </div>
+        <div class="meta-row">
+            <div class="meta-label">Generated On</div>
+            <div class="meta-value">{{ "now"|date('F j, Y, g:i a') }}</div>
+        </div>
+    </div>
+
+    <div class="section-title">Appartements Disponibles</div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Bloc</th>
+                <th>Etage</th>
+                <th>Numéro</th>
+                <th>Parking</th>
+                <th>Propriétaire</th>
+                <th style="text-align: right;">Prix Location</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set count_dispo = 0 %}
+            {% for a in appartements %}
+                {% if a.disponible %}
+                    {% set count_dispo = count_dispo + 1 %}
+                    <tr>
+                        <td style="font-weight: 500;">{{ a.typeA }}</td>
+                        <td>{{ a.appartementInfo ? a.appartementInfo.bloc : '-' }}</td>
+                        <td>{{ a.appartementInfo ? a.appartementInfo.floor : '-' }}</td>
+                        <td>{{ a.appartementInfo ? a.appartementInfo.number : '-' }}</td>
+                        <td>
+                            {% if a.parking %}
+                                <span class="badge-parking badge-dispo">Disponible</span>
+                            {% else %}
+                                <span class="badge-parking badge-nodispo">Non Disponible</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if a.user and a.user.EmailUser %}
+                                <span class="email-link">{{ a.user.EmailUser }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right;" class="price-text">{{ a.prixLocation|number_format(0, '.', ',') }} <span style="font-size: 10px; color: var(--red-accent);">TND</span></td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+            
+            {% if count_dispo == 0 %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                        Aucun appartement disponible actuellement.
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Generated securely by the Syndicate Central System
+    </div>
+
+</body>
+</html>

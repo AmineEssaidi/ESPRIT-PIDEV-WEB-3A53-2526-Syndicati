@@ -4,11 +4,15 @@ namespace App\Controller\Residence;
 
 use App\Entity\Residence\Residence;
 use App\Form\Residence\ResidenceType;
+use App\Service\SmsGenerator;
 use App\Repository\Residence\ResidenceRepository;
+use App\Repository\User\UserRepository;
 use App\Entity\Residence\Appartement;
 use App\Form\Residence\AppartementType;
 use App\Repository\Residence\AppartementRepository;
+use App\Repository\Residence\MaintenanceRepository;
 use App\Service\PageStatusService;
+use App\Service\RecommendationAppartement;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,11 +23,15 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Form\FormFactoryInterface;
+use Sensiolabs\GotenbergBundle\GotenbergPdfInterface;
+use App\Service\MachineLearning;
+use App\Service\MaintenancePrediction;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 #[Route('/residence')]
 class ResidenceController extends AbstractController
 {
-    #[Route('/', name: 'app_residence_index', methods: ['GET'])]
+    #[Route('/', name: 'app_residence_index', methods: ['GET', 'POST'])]
     public function index(Request $request, ResidenceRepository $residenceRepository, \Knp\Component\Pager\PaginatorInterface $paginator): Response
     {
         $query = $residenceRepository->createQueryBuilder('r')
@@ -37,13 +45,22 @@ class ResidenceController extends AbstractController
         );
 
         return $this->render('frontend/residence/index.html.twig', [
+            'smsSent' => false,
             'residences' => $pagination,
         ]);
     }
 
     #[Route('/admin', name: 'admin_residence')]
-    public function adminIndex(PageStatusService $pageStatusService, Request $request, ResidenceRepository $residenceRepository, AppartementRepository $appartementRepository, FormFactoryInterface $formFactory): Response
-    {
+    public function adminIndex(
+        PageStatusService $pageStatusService,
+        Request $request,
+        ResidenceRepository $residenceRepository,
+        AppartementRepository $appartementRepository,
+        MaintenanceRepository $maintenanceRepository,
+        FormFactoryInterface $formFactory,
+        MachineLearning $predictor,
+        ParameterBagInterface $params
+    ): Response {
         $pageStatusService->setPageStatus('residence', 'online');
 
         // --- Residence Logic ---
@@ -63,9 +80,36 @@ class ResidenceController extends AbstractController
         $residenceEditForm = $formFactory->createNamed('residence_edit', ResidenceType::class, new Residence());
         $appartementEditForm = $formFactory->createNamed('appartement_edit', AppartementType::class, new Appartement());
 
+        // --- AI Predictions ---
+        $modelPath = $params->get('kernel.project_dir') . '/var/models/appartement_prix.model';
+        $predictions = [];
+        if (file_exists($modelPath)) {
+            try {
+                $predictor->loadModel($modelPath);
+                foreach ($appartements as $appartement) {
+                    $prediction = $predictor->predict($appartement);
+                    $predictions[$appartement->getIdApp()] = is_numeric($prediction) ? round((float) $prediction) : 0;
+                }
+            } catch (\Exception $e) {
+                // Model loading failed, predictions remain empty
+            }
+        }
+
+        $predictionsmaintenance = [];
+        foreach ($appartements as $appartement) {
+            $maintenance = $appartement->getMaintenance();
+            $predictionsmaintenance[$appartement->getIdApp()] = $maintenance?->getRecommendationIa();
+        }
+
+        // --- Maintenance Logic ---
+        $maintenances = $maintenanceRepository->findAll();
+
         return $this->render('admin/Residence/index.html.twig', [
             'residences' => $residences,
             'appartements' => $appartements,
+            'maintenances' => $maintenances,
+            'predictions' => $predictions,
+            'predictionsmaintenance' => $predictionsmaintenance,
             'residenceAddForm' => $residenceAddForm->createView(),
             'residenceEditForm' => $residenceEditForm->createView(),
             'appartementAddForm' => $appartementAddForm->createView(),
@@ -244,10 +288,15 @@ class ResidenceController extends AbstractController
                     'status' => $appartement->isDisponible() ? 'Available' : 'Occupied',
                     'isAvailable' => (bool) $appartement->isDisponible(),
                     'image' => $appartement->getImageA() ? '/uploads/images/' . $appartement->getImageA() : '/frontend/images/property-placeholder.jpg',
+                    'superficie' => $appartement->getSuperficie() ?: '—',
+                    'prixLocation' => $appartement->getPrixLocation() ?: '—',
+                    'prixVente' => $appartement->getPrixVente() ?: '—',
+                    'dateConstruction' => $appartement->getDateConstruction() ? $appartement->getDateConstruction()->format('Y-m-d') : '—',
                     'bloc' => $form->get('bloc')->getData(),
                     'floor' => $form->get('floor')->getData(),
                     'number' => $form->get('number')->getData(),
-                    'deleteToken' => $csrfTokenManager->getToken('appartement_delete')->getValue()
+                    'deleteToken' => $csrfTokenManager->getToken('appartement_delete')->getValue(),
+                    'maintenancePrediction' => $appartement->getMaintenance() ? $appartement->getMaintenance()->getRecommendationIa() : null
                 ]
             ]);
         }
@@ -311,6 +360,10 @@ class ResidenceController extends AbstractController
                     'status' => $appartement->isDisponible() ? 'Available' : 'Occupied',
                     'isAvailable' => (bool) $appartement->isDisponible(),
                     'image' => $appartement->getImageA() ? '/uploads/images/' . $appartement->getImageA() : '/frontend/images/property-placeholder.jpg',
+                    'superficie' => $appartement->getSuperficie() ?: '—',
+                    'prixLocation' => $appartement->getPrixLocation() ?: '—',
+                    'prixVente' => $appartement->getPrixVente() ?: '—',
+                    'dateConstruction' => $appartement->getDateConstruction() ? $appartement->getDateConstruction()->format('Y-m-d') : '—',
                     'bloc' => $jsonInfo['bloc'],
                     'floor' => $jsonInfo['floor'],
                     'number' => $jsonInfo['number'],
@@ -359,5 +412,219 @@ class ResidenceController extends AbstractController
             'residence' => $residence,
         ]);
     }
-}
 
+    #[Route('/{id}', name: 'residence_apartments_frame')]
+    public function AfficherAppartements($id, ResidenceRepository $residenceRepository, Request $request): Response
+    {
+        $residence = $residenceRepository->find($id);
+
+        if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
+            return $this->render('frontend/residence/index.html.twig', [
+                'appartements' => $residence->getAppartements(),
+                'residence' => $residence,
+                'targetBlock' => 'apartments'
+            ]);
+        }
+
+        return $this->render('frontend/residence/index.html.twig', [
+            'appartements' => $residence->getAppartements(),
+            'residence' => $residence,
+        ]);
+    }
+
+    #[Route('/{id}/sendSms', name: 'send_sms', methods: ['GET', 'POST'])]
+    public function sendSms(SmsGenerator $smsGenerator, Request $request, UserRepository $userRep, ResidenceRepository $residenceRepository, \Knp\Component\Pager\PaginatorInterface $paginator): Response
+    {
+        $session = $request->getSession();
+        $userId = (int) $session->get('user')['id'];
+        $user = $userRep->find($userId);
+        $name = $user->getFirstName();
+        $text = $user->getEmailUser();
+        $number_test = $_ENV['twilio_to_number'];
+
+        $smsGenerator->sendSms($number_test, $name, $text);
+
+        $query = $residenceRepository->createQueryBuilder('r')
+            ->orderBy('r.dateAjout', 'DESC')
+            ->getQuery();
+
+        $pagination = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            3
+        );
+
+        return $this->render('frontend/residence/index.html.twig', [
+            'smsSent' => true,
+            'residences' => $pagination,
+        ]);
+    }
+
+    #[Route('/appartementform/{id}', name: 'app_appartement_show')]
+    public function showApp($id, Appartement $appartement, RecommendationAppartement $recommender, Request $request): Response
+    {
+        $app_recommende = $recommender->AppartementsSimilaires($appartement, limit: 4);
+
+        if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
+            return $this->render('frontend/residence/index.html.twig', [
+                'appartement' => $appartement,
+                'app_recommende' => $app_recommende,
+                'targetBlock' => 'details'
+            ]);
+        }
+
+        return $this->render('frontend/residence/index.html.twig', [
+            'appartement' => $appartement,
+            'app_recommende' => $app_recommende,
+        ]);
+    }
+
+    #[Route('/pdf/{id}', 'pdf_residence')]
+    public function GenererPDFResidence($id, Request $request, GotenbergPdfInterface $gotenbergPdf, ResidenceRepository $residenceRepository): Response
+    {
+        $residence = $residenceRepository->find($id);
+        $response = $gotenbergPdf->html()
+            ->printBackground(true)
+            ->content('frontend/residence/pdf_residence.html.twig', [
+                'appartements' => $residence->getAppartements(),
+                'residence' => $residence,
+            ])
+            ->generate()
+            ->stream();
+
+        $response->headers->set('Content-Disposition', "attachment; filename=\"residence_{$residence->getIdResidence()}.pdf\"");
+
+        return $response;
+    }
+
+    private ?MachineLearning $cachedPredictor = null;
+
+    #[Route('/admin/prediction', name: 'prediction_prix', methods: ['POST'])]
+    public function predictPrice(
+        Request $request,
+        MachineLearning $predictor,
+        ParameterBagInterface $params
+    ): JsonResponse {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            if (!$data || !isset($data['superficie']) || !isset($data['type'])) {
+                return $this->json([
+                    'success' => false,
+                    'predicted_price' => 0,
+                    'formatted_price' => 'Données invalides'
+                ], 400);
+            }
+
+            $superficie = (float) $data['superficie'];
+            if ($superficie <= 0) {
+                return $this->json([
+                    'success' => false,
+                    'predicted_price' => 0,
+                    'formatted_price' => 'Surface invalide'
+                ], 400);
+            }
+
+            $modelPath = $params->get('kernel.project_dir') . '/var/models/appartement_prix.model';
+
+            if (!file_exists($modelPath)) {
+                return $this->json([
+                    'success' => false,
+                    'predicted_price' => 0,
+                    'formatted_price' => 'Modèle non disponible'
+                ], 404);
+            }
+
+            // Load model only once per request
+            if ($this->cachedPredictor === null) {
+                $predictor->loadModel($modelPath);
+                $this->cachedPredictor = $predictor;
+            }
+
+            $appartement = new Appartement();
+            $appartement->setSuperficie($superficie);
+            $appartement->setTypeA((string) $data['type']);
+
+            $predictedPrice = $this->cachedPredictor->predict($appartement);
+            $predictedPrice = is_numeric($predictedPrice) ? max(0, (float) $predictedPrice) : 0;
+
+            $formattedPrice = number_format($predictedPrice, 0, ',', ' ') . ' TND';
+
+            return $this->json([
+                'success' => true,
+                'predicted_price' => $predictedPrice,
+                'formatted_price' => $formattedPrice
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'predicted_price' => 0,
+                'formatted_price' => 'Erreur de calcul'
+            ], 500);
+        }
+    }
+
+    #[Route('/appartement/{id}/predict-maintenance', name: 'app_appartement_predict_maintenance', methods: ['POST'])]
+    public function predictMaintenance(
+        int $id,
+        AppartementRepository $appartementRepository,
+        MaintenancePrediction $predictor,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $appartement = $appartementRepository->find($id);
+
+        if (!$appartement) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Appartement non trouvé'
+            ], 404);
+        }
+
+        $maintenance = $appartement->getMaintenance();
+        if (!$maintenance) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Aucun enregistrement de maintenance'
+            ], 404);
+        }
+
+        if (!$this->isMaintenanceSufficientlyFilled($maintenance)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Données insuffisantes pour une analyse',
+                'showLink' => true
+            ]);
+        }
+
+        try {
+            $recommendation = $predictor->predict($appartement);
+            $maintenance->setRecommendationIa($recommendation);
+            $em->flush();
+
+            return $this->json([
+                'success' => true,
+                'prediction' => $recommendation
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Erreur lors de la prédiction: ' . $e->getMessage(),
+                'showLink' => true
+            ], 500);
+        }
+    }
+
+    private function isMaintenanceSufficientlyFilled(\App\Entity\Residence\Maintenance $maintenance): bool
+    {
+        $fields = [
+            $maintenance->getEtatApp(),
+            $maintenance->getEtatPlomberie(),
+            $maintenance->getEtatElectricite(),
+            $maintenance->getEtatChauffage(),
+            $maintenance->getDateDerniereMaintenance(),
+            $maintenance->getDescriptionMaint(),
+        ];
+        $filled = array_filter($fields, fn($v) => $v !== null && $v !== '');
+        return count($filled) >= 4;
+    }
+}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="{{ app.request.locale }}" data-theme="dark">
 <head>
     <script>
         window.serverSettings = {{ settings|default({})|json_encode|raw }};
@@ -26,7 +26,8 @@
         window.isLoggedIn = {{ is_logged_in ? 'true' : 'false' }};
     </script>
 </head>
-<body class="settings-page">
+<body class="settings-page" style="background: transparent !important;">
+    {% include 'frontend/shared/_global_video_background.html.twig' %}
 <div class="page-loader" id="pageLoader">
     <div class="loader-content">
         <div class="loader-dots">
@@ -42,20 +43,18 @@
         {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'settings'} %}
 
         <div class="main-home-content-wrapper">
-            <div class="container-xxl flex-grow-1 container-p-y">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="main-home-landing-section">
-                            <h1 class="main-home-hero-title" data-i18n="Settings">Paramètres</h1>
-                            <p class="main-home-hero-subtitle" data-i18n="Settings Description">Personnalisez votre expérience</p>
+            <div class="main-home-content-box">
+                <div class="settings-master-wrapper">
+                            <h1 class="main-home-hero-title" >{{ 'settings.title'|trans }}</h1>
+                            <p class="main-home-hero-subtitle" >{{ 'settings.description'|trans }}</p>
 
                             <div class="settings-container">
                                 <form id="theme-customization-form">
                                     <div class="settings-section">
                                         <div class="settings-section-icon">🎨</div>
                                         <div class="settings-section-content">
-                                            <h3 class="settings-section-title" data-i18n="Mode du thème">Mode du thème</h3>
-                                            <p class="settings-section-desc" data-i18n="Choisissez entre le mode clair et sombre">Choisissez entre le mode clair et sombre</p>
+                                            <h3 class="settings-section-title" >{{ 'settings.theme_mode'|trans }}</h3>
+                                            <p class="settings-section-desc" >{{ 'settings.choose_theme_mode'|trans }}</p>
                                             
                                             <div class="settings-theme-toggles">
                                                 <label class="settings-theme-card">
@@ -63,7 +62,7 @@
                                                     <div class="settings-theme-card-content">
                                                         <div class="settings-theme-icon">☀️</div>
                                                         <div class="settings-theme-info">
-                                                            <span class="settings-theme-name" data-i18n="Clair">Clair</span>
+                                                            <span class="settings-theme-name" >{{ 'settings.light'|trans }}</span>
                                                             <span class="settings-theme-tag">Light</span>
                                                         </div>
                                                         <div class="settings-theme-check"></div>
@@ -75,7 +74,7 @@
                                                     <div class="settings-theme-card-content">
                                                         <div class="settings-theme-icon">🌙</div>
                                                         <div class="settings-theme-info">
-                                                            <span class="settings-theme-name" data-i18n="Sombre">Sombre</span>
+                                                            <span class="settings-theme-name" >{{ 'settings.dark'|trans }}</span>
                                                             <span class="settings-theme-tag">Dark</span>
                                                         </div>
                                                         <div class="settings-theme-check"></div>
@@ -88,21 +87,21 @@
                                     <div class="settings-section">
                                         <div class="settings-section-icon">✨</div>
                                         <div class="settings-section-content">
-                                            <h3 class="settings-section-title" data-i18n="Couleur d'accent">Couleur d'accent</h3>
-                                            <p class="settings-section-desc" data-i18n="Personnalisez l'apparence de votre interface">Personnalisez l'apparence de votre interface</p>
+                                            <h3 class="settings-section-title" >{{ 'settings.accent_color'|trans }}</h3>
+                                            <p class="settings-section-desc" >{{ 'settings.customize_appearance'|trans }}</p>
                                             
                                             <div class="settings-accent-grid">
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)" data-name="Violet" data-i18n="Violet" style="background: linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4);"><span class="settings-accent-check">✓</span></button>
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #ff1493, #8b5cf6, #06b6d4)" data-name="Rose" data-i18n="Rose" style="background: linear-gradient(135deg, #ff1493, #8b5cf6, #06b6d4);"><span class="settings-accent-check">✓</span></button>
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #06b6d4, #6c5ce7, #ff1493)" data-name="Cyan" data-i18n="Cyan" style="background: linear-gradient(135deg, #06b6d4, #6c5ce7, #ff1493);"><span class="settings-accent-check">✓</span></button>
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #800020, #800020)" data-name="Bordeaux" data-i18n="Bordeaux" style="background: linear-gradient(135deg, #800020, #800020);"><span class="settings-accent-check">✓</span></button>
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #ff6b6b, #feca57, #ff9ff3)" data-name="Coral" data-i18n="Coral" style="background: linear-gradient(135deg, #ff6b6b, #feca57, #ff9ff3);"><span class="settings-accent-check">✓</span></button>
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #0abde3, #2e86de, #54a0ff)" data-name="Ocean" data-i18n="Ocean" style="background: linear-gradient(135deg, #0abde3, #2e86de, #54a0ff);"><span class="settings-accent-check">✓</span></button>
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #1dd1a1, #10ac84, #00d2d3)" data-name="Forest" data-i18n="Forest" style="background: linear-gradient(135deg, #1dd1a1, #10ac84, #00d2d3);"><span class="settings-accent-check">✓</span></button>
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #f39c12, #e74c3c, #e67e22)" data-name="Amber" data-i18n="Amber" style="background: linear-gradient(135deg, #f39c12, #e74c3c, #e67e22);"><span class="settings-accent-check">✓</span></button>
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #a29bfe, #6c5ce7, #fd79a8)" data-name="Lavender" data-i18n="Lavender" style="background: linear-gradient(135deg, #a29bfe, #6c5ce7, #fd79a8);"><span class="settings-accent-check">✓</span></button>
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #00b894, #00cec9, #81ecec)" data-name="Mint" data-i18n="Mint" style="background: linear-gradient(135deg, #00b894, #00cec9, #81ecec);"><span class="settings-accent-check">✓</span></button>
-                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)" data-name="Sky High" data-i18n="Sky High" style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)" data-name="Violet"  style="background: linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #ff1493, #8b5cf6, #06b6d4)" data-name="Rose"  style="background: linear-gradient(135deg, #ff1493, #8b5cf6, #06b6d4);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #06b6d4, #6c5ce7, #ff1493)" data-name="Cyan"  style="background: linear-gradient(135deg, #06b6d4, #6c5ce7, #ff1493);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #800020, #800020)" data-name="Bordeaux"  style="background: linear-gradient(135deg, #800020, #800020);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #ff6b6b, #feca57, #ff9ff3)" data-name="Coral"  style="background: linear-gradient(135deg, #ff6b6b, #feca57, #ff9ff3);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #0abde3, #2e86de, #54a0ff)" data-name="Ocean"  style="background: linear-gradient(135deg, #0abde3, #2e86de, #54a0ff);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #1dd1a1, #10ac84, #00d2d3)" data-name="Forest"  style="background: linear-gradient(135deg, #1dd1a1, #10ac84, #00d2d3);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #f39c12, #e74c3c, #e67e22)" data-name="Amber"  style="background: linear-gradient(135deg, #f39c12, #e74c3c, #e67e22);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #a29bfe, #6c5ce7, #fd79a8)" data-name="Lavender"  style="background: linear-gradient(135deg, #a29bfe, #6c5ce7, #fd79a8);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #00b894, #00cec9, #81ecec)" data-name="Mint"  style="background: linear-gradient(135deg, #00b894, #00cec9, #81ecec);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)" data-name="Sky High"  style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);"><span class="settings-accent-check">✓</span></button>
                                             </div>
                                             
                                             <div class="settings-custom-color">
@@ -113,7 +112,7 @@
                                                     </div>
                                                     <input type="text" id="customAccentHex" class="settings-hex-input" placeholder="#6c5ce7" maxlength="9">
                                                 </div>
-                                                <p class="settings-color-hint" data-i18n="Entrez une couleur hexadécimale ou utilisez le sélecteur">Entrez une couleur hexadécimale ou utilisez le sélecteur</p>
+                                                <p class="settings-color-hint" >{{ 'settings.hex_color_hint'|trans }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -121,8 +120,8 @@
                                     <div class="settings-section">
                                         <div class="settings-section-icon">🌍</div>
                                         <div class="settings-section-content">
-                                            <h3 class="settings-section-title" data-i18n="Langue">Langue</h3>
-                                            <p class="settings-section-desc" data-i18n="Sélectionnez votre langue préférée">Sélectionnez votre langue préférée</p>
+                                            <h3 class="settings-section-title" >{{ 'settings.language_title'|trans }}</h3>
+                                            <p class="settings-section-desc" >{{ 'settings.language_hint'|trans }}</p>
                                             
                                             <div class="settings-language-select">
                                                 <select id="languageSelect" class="settings-select">
@@ -137,15 +136,15 @@
                                     <div class="settings-section">
                                         <div class="settings-section-icon">✨</div>
                                         <div class="settings-section-content">
-                                            <h3 class="settings-section-title" data-i18n="Animations">Animations</h3>
-                                            <p class="settings-section-desc" data-i18n="Display animated accent borders">Activer les bordures accentuées animées</p>
+                                            <h3 class="settings-section-title" >{{ 'settings.animations'|trans }}</h3>
+                                            <p class="settings-section-desc" >{{ 'settings.display_borders'|trans }}</p>
                                             
                                             <div class="settings-toggle-wrapper">
                                                 <label class="settings-toggle">
                                                     <input type="checkbox" id="animatedAccentsToggle">
                                                     <span class="settings-toggle-slider"></span>
                                                 </label>
-                                                <span class="settings-toggle-label" data-i18n="Bordures Animées">Bordures Animées</span>
+                                                <span class="settings-toggle-label" >{{ 'settings.animated_borders'|trans }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -153,15 +152,21 @@
                             </div>
 
                             <style>
-                                /* Match header/footer width: they use width calc(100% - 60px) with 30px margin. Content wrapper has 20px padding so inner width is 100% - 40px; we need section to be 20px narrower = viewport - 60px. */
-                                .settings-page .main-home-content-wrapper .container-xxl {
+                                /* Match header/footer width: they use width calc(100% - 60px) with 30px margin. */
+                                .settings-page .main-home-content-wrapper .main-home-content-box {
+                                    width: calc(100% - 60px);
+                                    margin: 30px auto;
                                     max-width: none;
+                                    background: rgba(0, 0, 0, 0.2);
+                                    backdrop-filter: blur(20px);
+                                    border: 1px solid rgba(255, 255, 255, 0.1);
                                 }
-                                .settings-page .main-home-landing-section {
-                                    width: calc(100% - 20px);
-                                    max-width: none;
-                                    margin-left: auto;
-                                    margin-right: auto;
+                                .settings-master-wrapper {
+                                    width: 100%;
+                                    display: flex;
+                                    flex-direction: column;
+                                    align-items: center;
+                                    padding: 2rem 0;
                                 }
 
                                 .settings-page .main-home-hero-title {
@@ -187,44 +192,56 @@
                                 }
 
                                 .settings-container {
+                                    width: 100%;
                                     display: flex;
                                     flex-direction: column;
+                                    align-items: center;
                                 }
 
                                 #theme-customization-form {
                                     display: flex;
                                     flex-direction: column;
-                                    gap: 2.5rem;
+                                    align-items: center;
+                                    width: 100%;
+                                    gap: 3rem;
                                 }
 
                                 .settings-section {
                                     display: flex;
-                                    gap: 1.5rem;
-                                    padding: 1.5rem;
-                                    background: rgba(0, 0, 0, 0.3);
-                                    border: 1px solid rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.2);
-                                    border-radius: 20px;
-                                    backdrop-filter: blur(10px);
-                                    transition: all 0.3s ease;
+                                    flex-direction: row;
+                                    align-items: flex-start;
+                                    gap: 3rem;
+                                    padding: 3rem 4.5rem;
+                                    background: rgba(255, 255, 255, 0.03);
+                                    border: 1px solid rgba(255, 255, 255, 0.1);
+                                    border-radius: 40px;
+                                    backdrop-filter: blur(30px);
+                                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                                    margin: 0 auto 3rem auto;
+                                    width: 96%;
+                                    max-width: 1500px;
+                                    box-sizing: border-box;
                                 }
 
                                 .settings-section:hover {
-                                    background: rgba(0, 0, 0, 0.4);
-                                    border-color: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.4);
-                                    box-shadow: 0 8px 32px rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.15);
+                                    background: rgba(255, 255, 255, 0.06);
+                                    border-color: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.5);
+                                    transform: translateY(-10px);
+                                    box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.6);
                                 }
 
                                 .settings-section-icon {
-                                    font-size: 2rem;
+                                    font-size: 2.2rem;
                                     flex-shrink: 0;
-                                    width: 60px;
-                                    height: 60px;
+                                    width: 70px;
+                                    height: 70px;
                                     display: flex;
                                     align-items: center;
                                     justify-content: center;
-                                    background: linear-gradient(135deg, rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.2), rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.1));
-                                    border-radius: 15px;
-                                    border: 1px solid rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.3);
+                                    background: linear-gradient(135deg, rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.15), rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.05));
+                                    border-radius: 20px;
+                                    border: 1px solid rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.25);
+                                    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
                                 }
 
                                 .settings-section-content {
@@ -232,15 +249,17 @@
                                 }
 
                                 .settings-section-title {
-                                    font-size: 1.3rem;
-                                    font-weight: 700;
+                                    font-size: 1.6rem;
+                                    font-weight: 800;
                                     margin: 0 0 0.5rem 0;
-                                    background: var(--main-home-accent-gradient, linear-gradient(120deg, #6c5ce7, #8b5cf6, #06b6d4));
+                                    background: var(--main-home-accent-gradient);
                                     -webkit-background-clip: text;
                                     -webkit-text-fill-color: transparent;
                                     background-clip: text;
                                     background-size: 300% 300%;
                                     transition: background-position 0.4s ease;
+                                    letter-spacing: -0.5px;
+                                    text-align: left;
                                 }
 
                                 html.accents-animated .settings-section-title {
@@ -249,14 +268,18 @@
 
                                 .settings-section-desc {
                                     color: rgba(255, 255, 255, 0.6);
-                                    font-size: 0.95rem;
-                                    margin: 0 0 1.5rem 0;
+                                    font-size: 1.1rem;
+                                    margin: 0 0 2.5rem 0;
+                                    max-width: none;
+                                    line-height: 1.6;
                                 }
 
                                 .settings-theme-toggles {
                                     display: flex;
-                                    gap: 1rem;
+                                    gap: 1.5rem;
                                     flex-wrap: wrap;
+                                    width: 100%;
+                                    justify-content: flex-start;
                                 }
 
                                 .settings-theme-card {
@@ -584,7 +607,8 @@
                                 @media (max-width: 768px) {
                                     .settings-section {
                                         flex-direction: column;
-                                        gap: 1rem;
+                                        gap: 1.2rem;
+                                        padding: 1.5rem;
                                     }
 
                                     .settings-section-icon {
@@ -658,8 +682,6 @@
                                     color: #1a1a2e;
                                 }
                             </style>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -849,5 +871,8 @@
                                         updateSelectArrowColor();
                                     });
 </script>
+
+<script src="{{ asset('frontend/js/syndicati-agent.js') }}" defer></script>
+
 </body>
 </html>

@@ -1,0 +1,15 @@
+framework:
+    http_client:
+        scoped_clients:
+            gotenberg.client:
+                base_uri: 'https://demo.gotenberg.dev'
+                # or you can leverage this endpoint for fast testing without Docker
+                # base_uri: 
+
+sensiolabs_gotenberg:
+    http_client: 'gotenberg.client'
+#    default_options:
+#        pdf:
+#            html:
+#                metadata:
+#                    Keywords: 'Symfony'

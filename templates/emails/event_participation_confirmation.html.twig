@@ -1,0 +1,50 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block body %}
+    <h2 style="color: #ff4b5c;">Spot Secured!</h2>
+    <p>Hello {{ user.firstName }},</p>
+    <p>You're officially on the list! Your participation in <strong>{{ evenement.titreEvent }}</strong> has been confirmed. Get ready for an exceptional experience.</p>
+
+    <div style="background: rgba(255, 75, 92, 0.03); padding: 30px; border-radius: 24px; border: 1px solid rgba(255, 75, 92, 0.2); margin: 35px 0;">
+        <h3 style="margin-bottom: 20px; color: #ff4b5c; font-size: 20px; letter-spacing: -0.5px;">Event Intelligence</h3>
+        
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+            <tr>
+                <td style="padding-bottom: 15px;">
+                    <p style="margin: 0; font-size: 13px; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 1px;">Location</p>
+                    <p style="margin: 5px 0 0 0; font-size: 16px; color: #ffffff; font-weight: 600;">{{ evenement.lieuEvent }}</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding-bottom: 15px;">
+                    <p style="margin: 0; font-size: 13px; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 1px;">Date & Time</p>
+                    <p style="margin: 5px 0 0 0; font-size: 16px; color: #ffffff; font-weight: 600;">{{ evenement.dateEvent|date('F d, Y @ H:i') }}</p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <p style="margin: 0; font-size: 13px; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 1px;">Your Guest List</p>
+                    <p style="margin: 5px 0 0 0; font-size: 16px; color: #ffffff; font-weight: 600;">{{ participation.nbAccompagnants + 1 }} Person(s) Total</p>
+                </td>
+            </tr>
+        </table>
+
+        <div style="margin-top: 25px; padding: 20px; background: rgba(0,0,0,0.4); border-radius: 16px; border-left: 4px solid #ff4b5c;">
+            <p style="margin: 0; font-size: 14px; color: rgba(255, 255, 255, 0.7); font-style: italic; line-height: 1.6;">
+                "Looking forward to seeing you there! If your plans change, please update your status through the platform."
+            </p>
+        </div>
+    </div>
+
+    <div class="button-container">
+        <a href="{{ url('app_evenement_index') }}" class="button">View Event Dashboard</a>
+    </div>
+
+    <p style="font-size: 14px; color: rgba(255, 255, 255, 0.4); text-align: center; margin-top: 40px;">
+        Need help? Contact the event organizer or reply to this protocol.
+    </p>
+{% endblock %}
+
+{% block footer_extra %}
+    <p style="margin-top: 15px; font-style: italic; color: #ff4b5c; font-size: 11px;">Access Token: EVT-{{ evenement.id }}-{{ participation.id }} • Secure Reservation</p>
+{% endblock %}

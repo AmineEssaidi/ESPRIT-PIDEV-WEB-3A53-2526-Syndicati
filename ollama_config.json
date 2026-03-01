@@ -1,0 +1,19 @@
+{
+  "ollama_executable": "ollama",
+  "base_url": "http://127.0.0.1:11434",
+  "model": "phi4-mini:3.8b",
+  "health_check_interval": 30,
+  "startup_timeout": 60,
+  "max_restart_attempts": 3,
+  "auto_start": true,
+  "auto_restart": true,
+  "log_level": "INFO",
+  "description": "Configuration for Ollama Auto-Manager",
+  "settings": {
+    "health_check_interval": "How often to check if Ollama is running (seconds)",
+    "startup_timeout": "How long to wait for Ollama to start (seconds)",
+    "max_restart_attempts": "Maximum number of restart attempts before giving up",
+    "auto_start": "Automatically start Ollama when manager starts",
+    "auto_restart": "Automatically restart Ollama if it crashes"
+  }
+}

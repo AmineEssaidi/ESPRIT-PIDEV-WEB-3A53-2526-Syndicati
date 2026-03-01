@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reclamation #{{ reclamation.id }} - {{ reclamation.titrereclamations }}</title>
+    <style>
+        :root {
+            --obsidian-dark: #121212;
+            --obsidian-panel: #1e1e1e;
+            --red-accent: #ff4b5c;
+            --text-light: #f5f5f5;
+            --text-muted: #a0a0a0;
+            --border-color: #333333;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--obsidian-dark) !important;
+            color: var(--text-light) !important;
+            margin: 0;
+            padding: 40px;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .header {
+            border-bottom: 2px solid var(--red-accent);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .logo-text {
+            color: var(--red-accent);
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .reclamation-title {
+            font-size: 28px;
+            margin: 0 0 10px 0;
+            font-weight: bold;
+            color: var(--text-light);
+        }
+
+        .meta-info {
+            display: table;
+            width: 100%;
+            margin-bottom: 30px;
+            background-color: var(--obsidian-panel);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .meta-row {
+            display: table-row;
+        }
+
+        .meta-label {
+            display: table-cell;
+            padding: 15px 20px;
+            font-weight: bold;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            width: 30%;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .meta-value {
+            display: table-cell;
+            padding: 15px 20px;
+            color: var(--text-light);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .status-badge {
+            background-color: rgba(255, 75, 92, 0.1);
+            color: var(--red-accent);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 75, 92, 0.3);
+            display: inline-block;
+        }
+
+        .section-title {
+            color: var(--red-accent);
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .description-box {
+            background-color: var(--obsidian-panel);
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            line-height: 1.6;
+            margin-bottom: 40px;
+            font-size: 14px;
+            white-space: pre-wrap;
+            border-left: 4px solid var(--red-accent);
+        }
+
+        .images-section {
+            page-break-inside: avoid;
+        }
+
+        .image-container {
+            display: inline-block;
+            margin-right: 15px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            background-color: var(--obsidian-panel);
+        }
+
+        .evidence-img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 4px;
+            display: block;
+        }
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo-text">Syndicate Hub</div>
+        <h1 class="reclamation-title">{{ reclamation.titrereclamations }}</h1>
+    </div>
+
+    <div class="meta-info">
+        <div class="meta-row">
+            <div class="meta-label">Date Submitted</div>
+            <div class="meta-value">{{ reclamation.createdAt|date('F j, Y, g:i a') }}</div>
+        </div>
+        <div class="meta-row">
+            <div class="meta-label">Current Status</div>
+            <div class="meta-value">
+                <span class="status-badge">{{ reclamation.statutreclamation|default('En Attente') }}</span>
+            </div>
+        </div>
+        <div class="meta-row">
+            <div class="meta-label">Submitted By</div>
+            <div class="meta-value">
+                {% if reclamation.user %}
+                    {{ reclamation.user.firstName }} {{ reclamation.user.lastName }} ({{ reclamation.user.emailUser }})
+                {% else %}
+                    N/A
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title">Case Description</div>
+    <div class="description-box">{{ reclamation.descreclamation }}</div>
+
+    {% if images is defined and images is not empty %}
+        <div class="images-section">
+            <div class="section-title">Attached Evidence</div>
+            <div>
+                {% for img in images %}
+                    <div class="image-container">
+                        {# In Gotenberg context, you often need absolute URL or base64 for images, but asset() with absolute=true usually works #}
+                        <img src="{{ absolute_url(asset('reclamation_images/' ~ img)) }}" class="evidence-img">
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="footer">
+        Generated securely by the Syndicate Central System
+    </div>
+
+</body>
+</html>

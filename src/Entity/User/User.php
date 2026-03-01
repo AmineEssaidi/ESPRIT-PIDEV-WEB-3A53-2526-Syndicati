@@ -6,12 +6,15 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Scheb\TwoFactorBundle\Model\Totp\TwoFactorInterface as TotpTwoFactorInterface;
+use Scheb\TwoFactorBundle\Model\Totp\TotpConfigurationInterface;
+use Scheb\TwoFactorBundle\Model\Totp\TotpConfiguration;
 
 #[ORM\Entity(repositoryClass: \App\Repository\User\UserRepository::class)]
 #[ORM\Table(name: 'user')]
 #[ORM\HasLifecycleCallbacks]
 #[UniqueEntity(fields: ['email_user'], message: 'This email is already registered.')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwoFactorInterface
 {
     /**
      * Allowed roles for user (ENUM-like)
@@ -68,6 +71,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private $is_verified = false;
+
+    #[ORM\Column(name: 'authCode', type: 'string', length: 50, nullable: true)]
+    private $authCode;
+
+    #[ORM\Column(name: 'authCode_expires_at', type: 'datetime', nullable: true)]
+    private $authCode_expires_at;
+
+    #[ORM\Column(name: 'two_factor_enabled', type: 'boolean', options: ['default' => false])]
+    private $twoFactorEnabled = false;
+
+    #[ORM\Column(name: 'totp_secret', type: 'string', length: 255, nullable: true)]
+    private $totpSecret;
+
+    #[ORM\Column(name: 'google_id', type: 'string', length: 255, nullable: true)]
+    private ?string $google_id = null;
+
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    private $phone;
 
     #[ORM\Column(type: 'datetime')]
     private $created_at;
@@ -145,6 +166,40 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->is_verified = $is_verified;
         return $this;
     }
+
+    public function getAuthCode(): ?string
+    {
+        return $this->authCode;
+    }
+
+    public function setAuthCode(?string $authCode): self
+    {
+        $this->authCode = $authCode;
+        return $this;
+    }
+
+    public function getAuthCodeExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->authCode_expires_at;
+    }
+
+    public function setAuthCodeExpiresAt(?\DateTimeInterface $authCode_expires_at): self
+    {
+        $this->authCode_expires_at = $authCode_expires_at;
+        return $this;
+    }
+
+    /**
+     * True if user has a non-expired auth code (for 2FA / email verification).
+     */
+    public function isAuthCodeValid(): bool
+    {
+        if ($this->authCode === null || $this->authCode === '' || $this->authCode_expires_at === null) {
+            return false;
+        }
+        return $this->authCode_expires_at > new \DateTime();
+    }
+
     public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->created_at;
@@ -203,5 +258,70 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getPassword(): ?string
     {
         return $this->password_user;
+    }
+
+    // Two-Factor Authentication Methods
+    public function isTwoFactorEnabled(): bool
+    {
+        return $this->twoFactorEnabled;
+    }
+
+    public function setTwoFactorEnabled(bool $twoFactorEnabled): self
+    {
+        $this->twoFactorEnabled = $twoFactorEnabled;
+        return $this;
+    }
+
+    public function getTotpSecret(): ?string
+    {
+        return $this->totpSecret;
+    }
+
+    public function setTotpSecret(?string $totpSecret): self
+    {
+        $this->totpSecret = $totpSecret;
+        return $this;
+    }
+
+    public function getGoogleId(): ?string
+    {
+        return $this->google_id;
+    }
+
+    public function setGoogleId(?string $google_id): self
+    {
+        $this->google_id = $google_id;
+        return $this;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): self
+    {
+        $this->phone = $phone;
+        return $this;
+    }
+
+    // TotpTwoFactorInterface methods
+    public function isTotpAuthenticationEnabled(): bool
+    {
+        return $this->twoFactorEnabled && $this->totpSecret !== null;
+    }
+
+    public function getTotpAuthenticationUsername(): string
+    {
+        return $this->email_user;
+    }
+
+    public function getTotpAuthenticationConfiguration(): ?TotpConfigurationInterface
+    {
+        if (!$this->totpSecret) {
+            return null;
+        }
+
+        return new TotpConfiguration($this->totpSecret, TotpConfiguration::ALGORITHM_SHA1, 30, 6);
     }
 }

@@ -1,0 +1,295 @@
+{% extends 'base_symfony.html.twig' %}
+
+{% block title %}Video Spotlight - {{ conference.roomToken }}{% endblock %}
+
+{% block body %}
+<div class="main-home-layout-wrapper py-5">
+    <!-- Mesh Background Glows -->
+    <div class="confer-bg-glow primary" style="position: fixed;"></div>
+    <div class="confer-bg-glow secondary" style="position: fixed;"></div>
+
+    <div class="container-xxl position-relative" style="z-index: 2;">
+        <div class="row g-4 h-100">
+            <!-- Left Side: Video Feed Area -->
+            <div class="col-lg-8">
+                <div class="confer-overhaul-container w-100" style="min-height: 600px; height: 75vh;">
+                    <div class="glass-modal-header border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="confer-status-pill">
+                                <span class="pulse-dot"></span>
+                                <span id="confer-status-text">Spotlight Session</span>
+                            </div>
+                            <h2 class="glass-modal-title mb-0" style="font-size: 1.25rem; color: #fff;">Live Stream</h2>
+                        </div>
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 px-3 py-2 rounded-pill" id="participant-count">
+                            <i class="bx bx-user me-1"></i> 1 Participant
+                        </span>
+                    </div>
+                    
+                    <div class="glass-modal-body p-4 h-100">
+                        <div id="video-grid-container" class="confer-spotlight-display h-100">
+                            <div id="video-grid" class="w-100 h-100">
+                                <div class="confer-video-wrapper spotlight-active" id="local-video-wrapper">
+                                    <video id="localVideo" autoplay muted playsinline class="confer-video-el"></video>
+                                    <div class="confer-video-label">
+                                        <span class="label-role">You</span>
+                                    </div>
+                                    <div class="confer-waiting-state" id="local-waiting-state">
+                                        <div class="confer-waiting-loader">
+                                            <span></span><span></span><span></span>
+                                        </div>
+                                        <p>Connecting...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Floating Controls -->
+                            <div class="confer-controls-wrapper">
+                                <div class="confer-controls-glass">
+                                    <button id="toggleAudio" class="confer-ctrl-btn" title="Toggle Microphone">
+                                        <i class="bx bx-microphone"></i>
+                                    </button>
+                                    <button id="toggleVideo" class="confer-ctrl-btn" title="Toggle Camera">
+                                        <i class="bx bx-video"></i>
+                                    </button>
+                                    <div class="confer-ctrl-divider" style="width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 0.5rem;"></div>
+                                    <button id="endCall" class="confer-ctrl-btn btn-danger-soft">
+                                        <i class="bx bx-phone-off"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Side: Sidebar -->
+            <div class="col-lg-4">
+                <div class="confer-sidebar h-100 w-100 border-0 rounded-4" style="background: rgba(255,255,255,0.02); backdrop-filter: blur(20px);">
+                    <div class="confer-sidebar-content">
+                        <!-- Invite / Stats -->
+                        <div class="confer-sidebar-card shadow-lg">
+                            <h5 class="confer-sidebar-title">Session Access</h5>
+                            <div class="confer-qr-container mx-auto" id="qrcode"></div>
+                            <div class="confer-copy-box mt-3">
+                                <input type="text" id="joinLink" class="confer-copy-input" value="{{ joinUrl }}" readonly>
+                                <button class="confer-copy-btn" onclick="copyJoinLink()"><i class="bx bx-copy"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Participants List -->
+                        <div class="confer-sidebar-card mt-3 flex-grow-1 d-flex flex-column shadow-lg">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="confer-sidebar-title mb-0">Participants</h5>
+                                <div id="live-indicator" class="confer-live-tag">LIVE</div>
+                            </div>
+                            <div id="participants-list" class="confer-participants-scroll">
+                                <div class="confer-empty-state">
+                                    <i class="bx bx-loader-alt bx-spin"></i>
+                                    <p>Syncing...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Host Info -->
+                        <div class="confer-sidebar-card mt-3 shadow-lg">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(138,43,226,0.1); display: flex; align-items: center; justify-content: center; color: #8a2be2;">
+                                    <i class="bx bx-crown"></i>
+                                </div>
+                                <div>
+                                    <div class="text-white-50" style="font-size: 0.7rem;">Session Host</div>
+                                    <div class="text-white small fw-bold">{{ conference.user.firstName }} {{ conference.user.lastName }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* --- SYNCED OVERHAUL STYLES --- */
+.confer-overhaul-container {
+    background: rgba(10, 10, 15, 0.6) !important;
+    backdrop-filter: blur(30px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+}
+
+.confer-bg-glow {
+    width: 600px; height: 600px; filter: blur(150px); opacity: 0.1; pointer-events: none; z-index: 0;
+}
+.confer-bg-glow.primary { top: -200px; left: -200px; background: #8a2be2; }
+.confer-bg-glow.secondary { bottom: -200px; right: -200px; background: #00d2ff; }
+
+.confer-status-pill {
+    background: rgba(0, 210, 255, 0.1); border: 1px solid rgba(0, 210, 255, 0.2);
+    padding: 0.35rem 0.85rem; border-radius: 100px; color: #00d2ff; font-size: 0.75rem; font-weight: 700;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.pulse-dot { width: 8px; height: 8px; background: #00d2ff; border-radius: 50%; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+
+.confer-spotlight-display { background: #000; border-radius: 20px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
+.confer-video-wrapper { width: 100%; height: 100%; position: relative; background: #000; transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+.confer-video-el { width: 100%; height: 100%; object-fit: cover; }
+.confer-video-label { position: absolute; bottom: 1.5rem; left: 1.5rem; padding: 0.5rem 1rem; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); border-radius: 12px; color: #fff; font-size: 0.8rem; font-weight: 600; z-index: 10; border: 1px solid rgba(255,255,255,0.1); }
+
+.pip-mode { position: absolute !important; width: 240px !important; height: 135px !important; bottom: 2rem !important; right: 2rem !important; border-radius: 16px !important; overflow: hidden !important; z-index: 100 !important; border: 2px solid rgba(255,255,255,0.2) !important; box-shadow: 0 20px 40px rgba(0,0,0,0.5) !important; }
+.pip-mode .confer-video-label { bottom: 0.5rem; left: 0.5rem; padding: 0.25rem 0.5rem; transform: scale(0.8); }
+
+.confer-controls-wrapper { position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%); z-index: 150; }
+.confer-controls-glass { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; background: rgba(15,15,20,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
+.confer-ctrl-btn { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; transition: all 0.2s; }
+.confer-ctrl-btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+.confer-ctrl-btn.active-off { background: rgba(255,71,71,0.2); color: #ff4747; }
+.confer-ctrl-btn.btn-danger-soft { background: rgba(255,71,71,0.15); color: #ff4747; }
+.confer-ctrl-btn.btn-danger-soft:hover { background: #ff4747; color: #fff; }
+
+.confer-sidebar { padding: 1rem; display: flex; flex-direction: column; }
+.confer-sidebar-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 1.5rem; margin-bottom: 1rem; }
+.confer-sidebar-title { font-size: 0.8rem; font-weight: 800; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
+.confer-copy-box { display: flex; background: rgba(0,0,0,0.2); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+.confer-copy-input { flex: 1; background: transparent; border: none; padding: 0.6rem 1rem; color: #fff; font-size: 0.75rem; outline: none; }
+.confer-copy-btn { background: #8a2be2; border: none; color: #fff; padding: 0 0.75rem; transition: 0.2s; }
+.confer-copy-btn:hover { background: #a044ff; }
+
+.confer-live-tag { background: #ff0055; color: #fff; font-size: 0.6rem; font-weight: 900; padding: 2px 6px; border-radius: 4px; animation: blink 1s infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.confer-participants-scroll { max-height: 300px; overflow-y: auto; }
+.confer-participants-scroll::-webkit-scrollbar { width: 4px; }
+.confer-participants-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+.confer-waiting-state { position: absolute; inset: 0; background: #000; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.confer-waiting-loader { display: flex; gap: 5px; margin-bottom: 10px; }
+.confer-waiting-loader span { width: 6px; height: 6px; background: #fff; border-radius: 50%; animation: dotPulse 1.4s infinite; }
+@keyframes dotPulse { 0%, 80%, 100% { transform: scale(0.3); opacity: 0.3; } 40% { transform: scale(1); opacity: 1; } }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<script src="{{ asset('frontend/js/webrtc-manager.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const qrContainer = document.getElementById("qrcode");
+        if (qrContainer) {
+            const checkQR = setInterval(() => {
+                if (typeof QRCode !== 'undefined') {
+                    new QRCode(qrContainer, { text: "{{ joinUrl }}", width: 140, height: 140 });
+                    clearInterval(checkQR);
+                }
+            }, 100);
+        }
+        initMedia();
+    });
+
+    let localStream = null;
+    let isAudioOn = true;
+    let isVideoOn = true;
+
+    async function initMedia() {
+        try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error("Camera API requires secure context (HTTPS/localhost)");
+            }
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('localVideo').srcObject = localStream;
+            document.getElementById('local-waiting-state').style.display = 'none';
+            startTracking();
+        } catch (e) {
+            console.error('Media init failed', e);
+            localStream = null; // Explicitly null for fallback recvonly
+            const msg = e.name === 'NotAllowedError' ? 'Access Denied' : 'No Camera (LAN HTTP)';
+            document.getElementById('local-waiting-state').innerHTML = `<p class="text-danger small text-center px-3"><i class='bx bx-camera-off fs-3 mb-2 d-block'></i>${msg}</p>`;
+            // CRITICAL: We MUST start tracking even if camera fails so they can watch the host
+            startTracking();
+        }
+    }
+
+    function startTracking() {
+        const roomToken = "{{ conference.roomToken }}";
+        window.isConfHost = {{ isHost ? 'true' : 'false' }};
+        if (!window.myConfPeerId) window.myConfPeerId = 'peer_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+
+        const update = async () => {
+            try {
+                const res = await fetch("/video-conference/participants/" + roomToken);
+                const data = await res.json();
+                if (data.participants) {
+                    processWebrtcSignals(data.participants, localStream, 'video-grid', roomToken, window.isConfHost);
+                    renderList(data.participants);
+                }
+            } catch (e) { }
+        };
+
+        const heartbeat = async () => {
+            try {
+                const r = await fetch("/video-conference/heartbeat/" + roomToken, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ peerId: window.myConfPeerId })
+                });
+                const d = await r.json();
+                if (d.sessionId) window.myConfSessionId = d.sessionId;
+            } catch (e) { console.error('HB Error', e); }
+        };
+
+        const initSync = async () => {
+            await heartbeat();
+            await update();
+            setInterval(heartbeat, 5000);
+            setInterval(update, 5000);
+        };
+        initSync();
+    }
+
+    function renderList(participants) {
+        const list = document.getElementById('participants-list');
+        const count = document.getElementById('participant-count');
+        if (!list) return;
+        
+        count.innerHTML = `<i class="bx bx-user me-1"></i> ${participants.length + 1} Member${participants.length !== 0 ? 's' : ''}`;
+        
+        if (participants.length === 0) {
+            list.innerHTML = '<div class="confer-empty-state"><p>Waiting for guests...</p></div>';
+            return;
+        }
+
+        list.innerHTML = participants.map(p => `
+            <div class="d-flex align-items-center justify-content-between p-3 rounded-4 mb-2" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #8a2be2, #00d2ff); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; color: #fff;">
+                        ${p.name.charAt(0).toUpperCase()}
+                    </div>
+                    <span class="text-white small fw-600">${p.name}</span>
+                </div>
+                ${p.isHost ? '<span style="font-size: 0.6rem; color: #ffc107; border: 1px solid #ffc10744; padding: 2px 6px; border-radius: 4px;">HOST</span>' : ''}
+            </div>
+        `).join('');
+    }
+
+    function copyJoinLink() {
+        navigator.clipboard.writeText("{{ joinUrl }}");
+        alert("Link copied!");
+    }
+
+    document.getElementById('toggleAudio').onclick = function() {
+        const e = localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
+        this.classList.toggle('active-off', !e);
+        this.innerHTML = e ? '<i class="bx bx-microphone"></i>' : '<i class="bx bx-microphone-off"></i>';
+    };
+
+    document.getElementById('toggleVideo').onclick = function() {
+        const e = localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled;
+        this.classList.toggle('active-off', !e);
+        this.innerHTML = e ? '<i class="bx bx-video"></i>' : '<i class="bx bx-video-off"></i>';
+    };
+
+    document.getElementById('endCall').onclick = () => confirm('Leave this session?') && (window.location.href = "{{ path('main_home') }}");
+</script>
+{% endblock %}

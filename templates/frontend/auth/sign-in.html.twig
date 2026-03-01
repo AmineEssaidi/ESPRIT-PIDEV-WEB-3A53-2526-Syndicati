@@ -21,8 +21,11 @@
     <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
     <link href="{{ asset('frontend/css/scroll-pill.css') }}" rel="stylesheet">
     <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
+    {% if hcaptcha_site_key is defined and hcaptcha_site_key %}
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    {% endif %}
 </head>
-<body>
+<body class="sign-in-page">
 <!-- Page Loader -->
 <div class="page-loader" id="pageLoader">
     <div class="loader-content">
@@ -36,17 +39,87 @@
 
 {% include 'shared/_access_denied_popup.html.twig' %}
 
+<!-- TOTP 2FA popup (authenticator app code) - matches sign-in card UI -->
+<div id="totp-2fa-overlay" class="totp-2fa-overlay" style="display: {{ show_totp_popup|default(false) ? 'flex' : 'none' }};" aria-hidden="{{ show_totp_popup|default(false) ? 'false' : 'true' }}">
+    <div class="totp-2fa-popup">
+        <div class="totp-2fa-popup-inner">
+            <h2 class="totp-2fa-title">Two-Factor Authentication</h2>
+            <p class="totp-2fa-subtitle">Enter the 6-digit code from your authenticator app</p>
+            <div id="totp-2fa-error" class="totp-2fa-error" style="display: none;"></div>
+            <div class="totp-2fa-form">
+                <input type="text" id="totp-2fa-code" class="totp-2fa-input main-home-form-input" placeholder="000000" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code" />
+                <div class="totp-2fa-actions">
+                    <button type="button" id="totp-2fa-verify-btn" class="main-home-btn main-home-btn-auth-submit totp-2fa-btn">Verify</button>
+                    <button type="button" class="main-home-forgot-btn totp-2fa-cancel" id="totp-2fa-cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email OTP 2FA popup (code sent to user's email) -->
+<div id="email-otp-2fa-overlay" class="totp-2fa-overlay" style="display: none;" data-otp-mode="login">
+    <div class="totp-2fa-popup">
+        <div class="totp-2fa-popup-inner">
+            <h2 class="totp-2fa-title">Check your email</h2>
+            <p class="totp-2fa-subtitle">Enter the 6-digit code we sent to your email address</p>
+            <div id="email-otp-2fa-error" class="totp-2fa-error" style="display: none;"></div>
+            <div class="totp-2fa-form">
+                <input type="text" id="email-otp-2fa-code" class="totp-2fa-input main-home-form-input" placeholder="000000" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code" />
+                <div class="totp-2fa-actions">
+                    <button type="button" id="email-otp-2fa-verify-btn" class="main-home-btn main-home-btn-auth-submit totp-2fa-btn">Verify</button>
+                    <button type="button" class="main-home-forgot-btn totp-2fa-cancel" id="email-otp-2fa-cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- OTP Channel Selection Overlay -->
+<div id="otp-channel-selection-overlay" class="totp-2fa-overlay" style="display: none;">
+    <div class="totp-2fa-popup">
+        <div class="totp-2fa-popup-inner">
+            <h2 class="totp-2fa-title">Choose Verification Method</h2>
+            <p class="totp-2fa-subtitle">Select how you want to receive your 6-digit code</p>
+            <div class="totp-2fa-actions" style="flex-direction: column; gap: 0.75rem;">
+                <button type="button" id="otp-send-email-btn" class="main-home-btn main-home-btn-auth-submit totp-2fa-btn" style="width: 100%;">
+                    <i class="bx bx-envelope"></i> Send to Email
+                </button>
+                <button type="button" id="otp-send-sms-btn" class="main-home-btn main-home-btn-auth-submit totp-2fa-btn" style="width: 100%; border-color: rgba(var(--syndicat-accent-rgb), 0.3);">
+                    <i class="bx bx-phone"></i> Send to SMS (<span id="otp-phone-preview">****</span>)
+                </button>
+                <button type="button" class="main-home-forgot-btn totp-2fa-cancel" id="otp-channel-cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Confirmation Popup (for password reset complete) -->
+<div id="success-confirmation-overlay" class="totp-2fa-overlay" style="display: none;">
+    <div class="totp-2fa-popup">
+        <div class="totp-2fa-popup-inner">
+            <div class="totp-2fa-icon" style="color: #ff4b5c; font-size: 3rem; margin-bottom: 1rem; text-align: center;">
+                <i class="bx bx-check-shield"></i>
+            </div>
+            <h2 class="totp-2fa-title">Access Restored</h2>
+            <p id="success-confirmation-message" class="totp-2fa-subtitle">Your credentials have been updated. Check your email for your new password.</p>
+            <div class="totp-2fa-actions">
+                <button type="button" id="success-confirmation-btn" class="main-home-btn main-home-btn-auth-submit totp-2fa-btn">Got it</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Layout Wrapper -->
 <div class="main-home-layout-wrapper">
     <div class="main-home-page">
         <!-- Include Shared Navbar -->
         {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'sign_in'} %}
 
-
         <!-- Auth Content -->
         <div class="main-home-content-wrapper">
             <div class="main-home-auth-container">
-                <div class="main-home-auth-card {{ show_destination_choice|default(false) ? 'main-home-auth-card--destination' : '' }}" style="max-width: 850px; padding: 1.25rem 3rem;">
+                <div class="main-home-auth-card {{ show_destination_choice|default(false) ? 'main-home-auth-card--destination' : 'main-home-auth-card--signin' }}" id="signin-auth-card">
                     {% if show_destination_choice|default(false) %}
                         <div class="main-home-auth-destination">
                             <div class="main-home-auth-destination-header">
@@ -66,83 +139,284 @@
                             </div>
                         </div>
                     {% else %}
-                        <div class="main-home-auth-form-wrap">
-                            <div class="main-home-auth-header" style="margin-bottom: 1rem;">
-                                <h1 class="main-home-auth-title" style="font-size: 1.8rem; margin-bottom: 0;">Welcome Back</h1>
-                                <p class="main-home-auth-subtitle" style="font-size: 1rem;">Sign in to continue</p>
+                        <div class="main-home-auth-flex-container">
+                            <div class="main-home-auth-form-column">
+                                <div class="main-home-auth-form-wrap">
+                                    <div class="main-home-auth-header" style="margin-bottom: 1rem;">
+                                        <h1 class="main-home-auth-title" style="font-size: 1.8rem; margin-bottom: 0;">Welcome Back</h1>
+                                        <p class="main-home-auth-subtitle" style="font-size: 1rem;">Sign in to continue</p>
+                                    </div>
+
+                                    <div id="signin-ajax-error" class="main-home-auth-error" style="display: {{ (error is defined and error) ? 'block' : 'none' }};">{{ error|default('') }}</div>
+
+                                    <form id="signin-form" class="main-home-auth-form" action="{{ path('auth_sign_in') }}" method="POST" novalidate data-no-page-loader style="gap: 0.75rem;">
+                                        <div class="main-home-form-row">
+                                            <div class="main-home-form-group main-home-form-half">
+                                                <label for="email" class="main-home-form-label">Email</label>
+                                                <input 
+                                                    type="email" 
+                                                    id="email" 
+                                                    name="email" 
+                                                    class="main-home-form-input" 
+                                                    placeholder="Enter your email"
+                                                    value="{{ last_email|default('') }}"
+                                                />
+                                            </div>
+
+                                            <div class="main-home-form-group main-home-form-half">
+                                                <label for="password" class="main-home-form-label">Password</label>
+                                                <div class="main-home-password-wrapper">
+                                                    <input 
+                                                        type="password" 
+                                                        id="password" 
+                                                        name="password" 
+                                                        class="main-home-form-input" 
+                                                        placeholder="Enter your password"
+                                                    />
+                                                    <button type="button" class="main-home-password-toggle" onclick="togglePassword('password')">
+                                                        <span class="main-home-eye-icon">👁️</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {% if hcaptcha_site_key is defined and hcaptcha_site_key %}
+                                        <div class="main-home-forgot-captcha-row">
+                                            <div class="main-home-hcaptcha-wrap">
+                                                <div class="h-captcha" data-sitekey="{{ hcaptcha_site_key }}" data-theme="dark"></div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        <!-- OTP Request Section -->
+                                        <div id="otp-request-section" class="main-home-form-group" style="display: none; margin-top: 0.75rem;">
+                                            <div class="d-flex align-items-center gap-2" style="padding: 0.75rem; background: rgba(var(--syndicat-accent-rgb), 0.1); border-radius: 8px; border: 1px solid rgba(var(--syndicat-accent-rgb), 0.2);">
+                                                <input 
+                                                    type="text" 
+                                                    id="otp-code-input" 
+                                                    name="otp_code" 
+                                                    class="main-home-form-input" 
+                                                    placeholder="Enter 6-digit OTP code"
+                                                    maxlength="6"
+                                                    pattern="[0-9]{6}"
+                                                    style="flex: 1; text-align: center; font-size: 1.25rem; letter-spacing: 0.5rem; font-family: 'Courier New', monospace;"
+                                                />
+                                                <button type="button" class="main-home-btn main-home-btn-primary" id="otp-verify-btn" style="min-width: 100px; padding: 0.6rem 1rem;">
+                                                    Verify
+                                                </button>
+                                            </div>
+                                            <div class="text-center" style="margin-top: 0.5rem;">
+                                                <button type="button" class="main-home-auth-link" id="otp-resend-btn" style="font-size: 0.85rem;">Resend Code</button>
+                                                <span style="color: rgba(255,255,255,0.5); margin: 0 0.5rem;">|</span>
+                                                <button type="button" class="main-home-auth-link" id="otp-cancel-btn" style="font-size: 0.85rem;">Cancel</button>
+                                            </div>
+                                        </div>
+
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                                        <div class="main-home-auth-submit-row">
+                                            <div class="main-home-auth-buttons-line">
+                                                <button type="submit" class="main-home-btn main-home-btn-auth-submit" id="signin-submit-btn">Sign In</button>
+                                                <a href="#" class="main-home-forgot-btn" id="forgot-password-link">Forgot Password?</a>
+                                                <button type="button" class="main-home-forgot-btn" id="request-otp-btn" style="display: none;">Request OTP Code</button>
+                                                <a href="{{ path('auth_google_connect') }}" class="main-home-social-btn main-home-social-google" style="text-decoration: none;">
+                                                    <span class="main-home-social-icon">G</span>
+                                                    <span>Google</span>
+                                                </a>
+                                                <button type="button" class="main-home-social-btn main-home-social-github">
+                                                    <span class="main-home-social-icon">⚡</span>
+                                                    <span>GitHub</span>
+                                                </button>
+                                            </div>
+
+                                            <div class="main-home-auth-biometric-line">
+                                                <button type="button" id="webauthn-login-btn" class="main-home-social-btn main-home-biometric-btn">
+                                                    <i class="bx bx-fingerprint"></i>
+                                                    <span>Login with Passkey</span>
+                                                </button>
+                                                <button type="button" id="faceid-login-btn" class="main-home-social-btn main-home-biometric-btn">
+                                                    <i class="bx bx-camera-home"></i>
+                                                    <span>Login with local Face ID</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    <p class="main-home-auth-footer" style="margin-top: 1.5rem; text-align: center;">
+                                        Don't have an account? 
+                                        <a href="{{ path('user_signup') }}" class="main-home-auth-link">Sign Up</a>
+                                    </p>
+                                </div>
                             </div>
 
-                            {% if error is defined and error %}
-                                <div class="main-home-auth-error">
-                                    {{ error }}
-                                </div>
-                            {% endif %}
-
-                            <form class="main-home-auth-form" action="{{ path('auth_sign_in') }}" method="POST" style="gap: 0.75rem;">
-                                <div class="main-home-form-row">
-                                    <div class="main-home-form-group main-home-form-half">
-                                        <label for="email" class="main-home-form-label">Email</label>
-                                        <input 
-                                            type="email" 
-                                            id="email" 
-                                            name="email" 
-                                            class="main-home-form-input" 
-                                            placeholder="Enter your email"
-                                            value="{{ last_email|default('') }}"
-                                            required
-                                        />
+                            <!-- Face ID panel: compact, no scroll, all elements fit -->
+                            <div class="main-home-auth-faceid-column" id="faceid-panel">
+                                <div class="faceid-panel-inner">
+                                    <div class="faceid-header">
+                                        <h2 class="faceid-title">Face ID</h2>
+                                        <button type="button" class="faceid-close" id="faceid-panel-close" aria-label="Close">&times;</button>
                                     </div>
-
-                                    <div class="main-home-form-group main-home-form-half">
-                                        <label for="password" class="main-home-form-label">Password</label>
-                                        <div class="main-home-password-wrapper">
-                                            <input 
-                                                type="password" 
-                                                id="password" 
-                                                name="password" 
-                                                class="main-home-form-input" 
-                                                placeholder="Enter your password"
-                                                required
-                                            />
-                                            <button type="button" class="main-home-password-toggle" onclick="togglePassword('password')">
-                                                <span class="main-home-eye-icon">👁️</span>
-                                            </button>
+                                    <div class="faceid-media-section">
+                                        <div class="faceid-video-wrapper">
+                                            <video id="faceid-auth-video" autoplay muted playsinline></video>
+                                            <div class="faceid-overlay">
+                                                <div class="scanner-frame"></div>
+                                            </div>
+                                        </div>
+                                        <div id="faceid-auth-liveness-hint" class="faceid-status-hint">
+                                            <i class="bx bx-scan"></i> <span>Initializing...</span>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div class="main-home-form-options" style="margin-top: -0.5rem;">
-                                    <label class="main-home-checkbox-wrapper">
-                                        <input type="checkbox" name="_remember_me" class="main-home-checkbox"/>
-                                        <span class="main-home-checkbox-label">Remember me</span>
-                                    </label>
-                                    <a href="#" class="main-home-forgot-link">Forgot Password?</a>
-                                </div>
-
-                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-
-                                <div class="main-home-auth-submit-row" style="display: flex; gap: 1.5rem; align-items: center; margin-top: 0.5rem;">
-                                    <button type="submit" class="main-home-btn main-home-btn-auth-submit" style="flex: 1; margin: 0;">
-                                        Sign In
-                                    </button>
-                                    
-                                    <div class="main-home-auth-social-compact" style="display: flex; gap: 0.75rem; flex: 1;">
-                                        <button type="button" class="main-home-social-btn main-home-social-google" style="margin: 0; flex: 1; padding: 0.6rem;">
-                                            <span class="main-home-social-icon">G</span>
-                                            <span>Google</span>
-                                        </button>
-                                        <button type="button" class="main-home-social-btn main-home-social-github" style="margin: 0; flex: 1; padding: 0.6rem;">
-                                            <span class="main-home-social-icon">⚡</span>
-                                            <span>GitHub</span>
-                                        </button>
+                                    <div class="faceid-controls">
+                                        <div class="faceid-camera-row">
+                                            <select id="faceid-auth-camera-select" class="faceid-custom-select" style="display: none;">
+                                                <option value="">Default Camera</option>
+                                            </select>
+                                            <button type="button" id="faceid-auth-switch-camera" class="faceid-switch-btn" style="display: none;">
+                                                <i class="bx bx-sync"></i> Switch
+                                            </button>
+                                        </div>
+                                        <div class="faceid-input-wrap">
+                                            <label class="faceid-input-label">PIN</label>
+                                            <input type="password" id="faceid-auth-pin" class="faceid-modern-input" placeholder="Enter PIN">
+                                        </div>
+                                        <button type="button" class="faceid-verify-btn" id="faceid-auth-verify-btn">Verify</button>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
+                        </div>
 
-                            <p class="main-home-auth-footer" style="margin-top: 1.5rem; text-align: center;">
-                                Don't have an account? 
-                                <a href="{{ path('user_signup') }}" class="main-home-auth-link">Sign Up</a>
-                            </p>
+                        <!-- Face ID Scripts -->
+                        <script src="{{ asset('vendor/face-api/face-api.min.js') }}"></script>
+                        <script src="{{ asset('frontend/js/face-id.js') }}"></script>
+
+                            <script src="{{ asset('frontend/js/webauthn.js') }}"></script>
+                            <script>
+                                (function() {
+                                    // WebAuthn Login
+                                    document.getElementById('webauthn-login-btn')?.addEventListener('click', async () => {
+                                        const email = document.getElementById('email').value;
+                                        if (!email) {
+                                            alert('Please enter your email first to use biometrics.');
+                                            return;
+                                        }
+                                        
+                                        const btn = document.getElementById('webauthn-login-btn');
+                                        const originalContent = btn.innerHTML;
+                                        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Authenticating...';
+                                        btn.disabled = true;
+
+                                        try {
+                                            const success = await WebAuthn.authenticate(email);
+                                            if (success) {
+                                                window.location.href = "{{ path('main_home') }}";
+                                            }
+                                        } catch (err) {
+                                            console.error(err);
+                                            alert(err.message || 'Authentication failed');
+                                        } finally {
+                                            btn.innerHTML = originalContent;
+                                            btn.disabled = false;
+                                        }
+                                    });
+
+                                    // Face ID: expands right side of the same sign-in card
+                                    const faceLoginBtn = document.getElementById('faceid-login-btn');
+                                    const card = document.getElementById('signin-auth-card') || document.querySelector('.main-home-auth-card');
+                                    const panelCloseBtn = document.getElementById('faceid-panel-close');
+                                    const video = document.getElementById('faceid-auth-video');
+                                    const livenessHint = document.getElementById('faceid-auth-liveness-hint');
+                                    const verifyBtn = document.getElementById('faceid-auth-verify-btn');
+                                    const pinInput = document.getElementById('faceid-auth-pin');
+                                    const cameraSelect = document.getElementById('faceid-auth-camera-select');
+                                    const switchBtn = document.getElementById('faceid-auth-switch-camera');
+
+                                    let stream = null;
+                                    let currentDeviceId = null;
+
+                                    async function getCameras() {
+                                        try {
+                                            const devices = await navigator.mediaDevices.enumerateDevices();
+                                            const videoDevices = devices.filter(d => d.kind === 'videoinput');
+                                            if (videoDevices.length > 1) {
+                                                cameraSelect.innerHTML = videoDevices.map(d => `<option value="${d.deviceId}">${d.label || 'Camera ' + d.deviceId.slice(0,5)}</option>`).join('');
+                                                cameraSelect.style.display = 'block';
+                                                switchBtn.style.display = 'block';
+                                            } else {
+                                                cameraSelect.style.display = 'none';
+                                                switchBtn.style.display = 'none';
+                                            }
+                                        } catch (e) { console.warn('Cam list error:', e); }
+                                    }
+
+                                    async function startStream(deviceId = null) {
+                                        if (stream) { stream.getTracks().forEach(t => t.stop()); }
+                                        const constraints = {
+                                            video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'user' }
+                                        };
+                                        stream = await navigator.mediaDevices.getUserMedia(constraints);
+                                        video.srcObject = stream;
+                                        currentDeviceId = deviceId;
+                                    }
+
+                                    function closeFacePanel() {
+                                        if (card) card.classList.remove('faceid-active');
+                                        if (stream) {
+                                            stream.getTracks().forEach(t => t.stop());
+                                            stream = null;
+                                        }
+                                    }
+
+                                    faceLoginBtn?.addEventListener('click', async () => {
+                                        const email = document.getElementById('email').value;
+                                        if (!email) {
+                                            alert('Please enter your email first.');
+                                            return;
+                                        }
+                                        if (card) card.classList.add('faceid-active');
+                                        try {
+                                            await startStream();
+                                            await getCameras();
+                                            livenessHint.innerHTML = '<i class="bx bx-scan"></i> <span>Awaiting facial signature...</span>';
+                                        } catch (e) {
+                                            alert('Camera access denied or error: ' + e.message);
+                                            closeFacePanel();
+                                        }
+                                    });
+
+                                    if (panelCloseBtn) panelCloseBtn.addEventListener('click', closeFacePanel);
+
+                                    switchBtn.onclick = async () => {
+                                        const nextId = cameraSelect.value;
+                                        if (nextId === currentDeviceId) return;
+                                        try { await startStream(nextId); } catch (e) { alert('Failed to switch camera'); }
+                                    };
+
+                                    cameraSelect.onchange = () => switchBtn.click();
+
+                                    verifyBtn.onclick = async () => {
+                                        const email = document.getElementById('email').value;
+                                        const pin = pinInput.value;
+                                        if (!pin) { alert('Please enter your PIN'); return; }
+
+                                        verifyBtn.disabled = true;
+                                        verifyBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Verifying...';
+
+                                        try {
+                                            const result = await FaceID.authenticate(video, email, pin);
+                                            if (result.status === 'ok') {
+                                                window.location.href = "{{ path('main_home') }}";
+                                            }
+                                        } catch (e) {
+                                            alert(e.message);
+                                        } finally {
+                                            verifyBtn.disabled = false;
+                                            verifyBtn.innerHTML = 'Verify & Authenticate';
+                                        }
+                                    };
+                                })();
+                            </script>
+
                         </div> {# auth-form-wrap #}
                     {% endif %}
                 </div> {# auth-card #}
@@ -156,10 +430,17 @@
 
 <!-- Scroll pill + JavaScript Dependencies -->
 {% include 'frontend/shared/_scroll_pill.html.twig' %}
+        // OTP verification logic moved to consolidated script at the bottom of the file.
+    })();
+</script>
+
 <script src="{{ asset('frontend/js/scroll-pill.js') }}" defer></script>
 <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}" defer></script>
 <script src="{{ asset('frontend/js/main-home.js') }}" defer></script>
 <script src="{{ asset('js/page-loader.js') }}"></script>
+{% if hcaptcha_site_key is defined and hcaptcha_site_key %}
+<script src="{{ asset('frontend/js/hcaptcha-signin.js') }}" defer></script>
+{% endif %}
 <script>
     // Password toggle
     function togglePassword(inputId) {
@@ -183,85 +464,889 @@
 {% include 'frontend/shared/_global_video_background.html.twig' %}
 
 <style>
-/* Surgical transparency for auth pages */
-html, 
-body, 
-.main-home-layout-wrapper, 
-.main-home-page, 
-.main-home-content-wrapper,
-.main-home-auth-container {
-    background: transparent !important;
+/* Sign-in card: fills available space between header and footer (max-height 100% of middle section) */
+.main-home-auth-card--signin {
+    width: 100% !important;
+    max-width: 820px !important;
+    min-height: 280px !important;
+    max-height: 100% !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: stretch !important;
+    overflow: hidden !important;
+    background: rgba(10, 10, 10, 0.85) !important;
+    backdrop-filter: blur(30px) saturate(200%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 28px !important;
+    border-top-left-radius: 28px !important;
+    border-top-right-radius: 28px !important;
+    border-bottom-left-radius: 28px !important;
+    border-bottom-right-radius: 28px !important;
+    margin: 0 auto !important;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.8) !important;
+    transition: max-width 0.5s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.35s ease !important;
+    position: relative !important;
+    z-index: 2 !important;
 }
 
-/* Aggressive vertical compression to eliminate scrolling */
-body {
-    overflow: hidden !important;
-    height: 100vh !important;
+/* When Face ID opens: card gets BIGGER but still fits in middle section */
+.main-home-auth-card--signin.faceid-active {
+    max-width: 1280px !important;
+    min-height: 320px !important;
+    max-height: 100% !important;
+    border-color: rgba(var(--main-home-accent-rgb), 0.35) !important;
 }
-.main-home-layout-wrapper, .main-home-page {
-    height: 100vh !important;
-    min-height: 100vh !important;
-    overflow: hidden !important;
+
+/* Flex container: fills card, rounded; enough padding so content isn’t cramped */
+.main-home-auth-card--signin .main-home-auth-flex-container {
+    display: flex;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 28px;
+    padding: 2rem 2.5rem;
+    box-sizing: border-box;
 }
-.main-home-navbar {
-    margin: 10px auto !important;
-    height: 70px !important;
-    padding: 0.75rem 2rem !important;
+
+.main-home-auth-card--signin.faceid-active .main-home-auth-flex-container {
+    overflow: hidden;
 }
-.main-home-content-wrapper {
-    padding-top: 5px !important;
-    padding-bottom: 5px !important;
+
+.main-home-auth-card--signin .main-home-auth-form-column {
+    flex: 1 1 100%;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-}
-.main-home-auth-container {
-    min-height: auto !important;
-    padding: 5px 0 !important;
-    flex: 1;
-}
-.main-home-auth-card {
-    background: rgba(10, 10, 10, 0.8) !important;
-    backdrop-filter: blur(12px) saturate(160%) !important;
-    -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 
-        0 30px 60px -12px rgba(0, 0, 0, 0.5),
-        inset 0 0 20px rgba(255, 255, 255, 0.02) !important;
-    border-radius: 32px !important;
-    transform: scale(0.95);
-    margin: 0 auto;
-}
-.main-home-footer-wrapper {
-    margin: 5px auto !important;
-}
-.main-home-footer-island {
-    margin: 5px auto 10px auto !important;
-    padding: 0.6rem 2rem !important;
-}
-.scroll-down-pill-wrapper, .scroll-down-pill, .scroll-pill-container, .scroll-indicator, #scrollIndicator, .main-home-scroll-pill {
-    display: none !important;
+    justify-content: center;
+    padding: 0.25rem 0;
+    transition: flex-basis 0.5s cubic-bezier(0.4, 0, 0.2, 1), padding 0.5s cubic-bezier(0.4, 0, 0.2, 1), border 0.3s ease !important;
 }
 
-.main-home-hero-bg-fixed {
+.main-home-auth-card--signin.faceid-active .main-home-auth-form-column {
+    flex: 0 0 46%;
+    padding-right: 2rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Face ID panel: slides in from right, smooth expand */
+.main-home-auth-card--signin .main-home-auth-faceid-column {
+    flex: 0 0 0;
+    min-width: 0;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: flex-basis 0.5s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.5s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease 0.15s, padding 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    padding-left: 0;
+}
+
+/* Face ID column: no scroll, content fits */
+.main-home-auth-card--signin.faceid-active .main-home-auth-faceid-column {
+    flex: 0 0 54%;
+    min-width: 300px;
+    max-width: 54%;
+    opacity: 1;
+    visibility: visible;
+    overflow: hidden;
+    padding: 1rem 1.5rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Panel inner: flex column, fills height, no overflow */
+.faceid-panel-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    max-width: 100%;
+    gap: 0.75rem;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.faceid-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.faceid-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.faceid-close {
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    cursor: pointer;
+    line-height: 1;
+}
+.faceid-close:hover {
+    background: rgba(var(--main-home-accent-rgb), 0.2);
+    border-color: var(--main-home-accent);
+}
+
+/* Media: video + hint, can shrink to fit */
+.faceid-media-section {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.faceid-video-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    flex: 1 1 0;
+    min-height: 180px;
+    max-height: 260px;
+    background: #000;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#faceid-auth-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.faceid-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.scanner-frame {
+    position: absolute;
+    inset: 12px;
+    border: 1px dashed rgba(var(--main-home-accent-rgb), 0.25);
+    border-radius: 8px;
+}
+
+.faceid-status-hint {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--main-home-accent);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(var(--main-home-accent-rgb), 0.08);
+    padding: 0.4rem 0.75rem;
+    border-radius: 100px;
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.15);
+}
+
+/* Controls: compact row + PIN + Verify, no scroll */
+.faceid-controls {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.faceid-camera-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.faceid-custom-select {
+    flex: 1;
+    min-width: 0;
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    padding: 0.45rem 0.75rem !important;
+    font-size: 0.8rem !important;
+    max-width: 100%;
+}
+
+.faceid-switch-btn {
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    border-radius: 10px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+.faceid-switch-btn:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.faceid-input-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.faceid-input-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.faceid-modern-input {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    padding: 0.6rem 0.75rem !important;
+    font-size: 1rem !important;
+    text-align: center;
+    letter-spacing: 0.2em;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+.faceid-modern-input:focus {
+    border-color: var(--main-home-accent) !important;
+    outline: none;
+}
+
+.faceid-verify-btn {
+    background: linear-gradient(145deg, rgba(var(--main-home-accent-rgb), 0.95), var(--main-home-accent));
+    color: #fff !important;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    box-shadow:
+        0 4px 14px rgba(var(--main-home-accent-rgb), 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+.faceid-verify-btn:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 24px rgba(var(--main-home-accent-rgb), 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    filter: brightness(1.1);
+}
+.faceid-verify-btn:active {
+    transform: translateY(0);
+    box-shadow:
+        0 2px 8px rgba(var(--main-home-accent-rgb), 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Captcha row: only hCaptcha when enabled, centered */
+.main-home-forgot-captcha-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Sign In + Forgot Password + Google + GitHub in one line */
+.main-home-auth-submit-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.main-home-auth-buttons-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+}
+
+.main-home-auth-buttons-line .main-home-btn-auth-submit {
+    flex: 1;
+    min-width: 100px;
+    margin: 0;
+}
+
+.main-home-auth-buttons-line .main-home-forgot-btn {
+    flex: 0 0 auto;
+}
+
+.main-home-auth-buttons-line .main-home-social-btn {
+    flex: 1;
+    min-width: 80px;
+    margin: 0;
+    padding: 0.6rem 0.75rem;
+}
+
+/* Passkey + Face ID side by side */
+.main-home-auth-biometric-line {
+    display: flex;
+    gap: 0.6rem;
+    width: 100%;
+}
+
+.main-home-biometric-btn {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+    background: rgba(var(--main-home-accent-rgb), 0.1);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.3);
+    padding: 0.6rem 0.75rem;
+}
+.main-home-biometric-btn i {
+    font-size: 1.15rem;
+}
+
+.main-home-forgot-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    background: rgba(var(--main-home-accent-rgb), 0.2);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.5);
+    box-shadow: 0 2px 8px rgba(var(--main-home-accent-rgb), 0.15);
+    transition: transform 0.2s ease, box-shadow 0.25s ease, background 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.main-home-forgot-btn:hover {
+    background: rgba(var(--main-home-accent-rgb), 0.35);
+    border-color: var(--main-home-accent);
+    box-shadow: 0 4px 16px rgba(var(--main-home-accent-rgb), 0.3);
+    transform: translateY(-1px);
+    color: #fff;
+}
+
+/* No big box: just the hCaptcha widget, thin and centered */
+.main-home-hcaptcha-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    max-width: 220px;
+}
+
+.main-home-hcaptcha-wrap .h-captcha {
+    display: block;
+    transform: scale(0.95);
+    transform-origin: center center;
+}
+
+.main-home-hcaptcha-wrap iframe {
+    border-radius: 6px;
+}
+
+/* Sign-in page: no scroll, header + card + footer fit in viewport. Flex-based so card fits the middle. */
+.sign-in-page,
+.sign-in-page html {
+    margin: 0;
+    padding: 0;
+    height: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+}
+.sign-in-page { background: transparent !important; }
+
+.sign-in-page .main-home-layout-wrapper {
+    min-height: 100vh !important;
+    height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+.sign-in-page .main-home-page {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+/* Shrink header/footer margins on sign-in so the middle gets more space */
+.sign-in-page .main-home-navbar {
+    flex-shrink: 0 !important;
+    margin-top: 12px !important;
+    margin-bottom: 12px !important;
+}
+.sign-in-page .main-home-footer-wrapper {
+    flex-shrink: 0 !important;
+    margin-top: 12px !important;
+    margin-bottom: 12px !important;
+}
+.sign-in-page .main-home-footer-island {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* Middle section: takes remaining space; card is constrained to this height */
+.sign-in-page .main-home-content-wrapper {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0.75rem 1.5rem !important;
+    overflow: hidden !important;
+}
+
+.sign-in-page .main-home-auth-container {
+    width: 100% !important;
+    max-width: 1400px !important;
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0 1rem !important;
+}
+
+/* TOTP 2FA popup - matches sign-in card */
+.totp-2fa-overlay {
     position: fixed;
     inset: 0;
-    z-index: -2;
-    overflow: hidden;
-    pointer-events: none;
-    background: #000;
-    transform: translateZ(0);
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    box-sizing: border-box;
 }
-.main-home-hero-bg-img {
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-    filter: brightness(0.7);
-    display: block;
+.totp-2fa-popup {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(10, 10, 10, 0.92);
+    backdrop-filter: blur(30px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 28px;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+    padding: 2rem 2.5rem;
 }
-[data-theme="light"] .main-home-hero-bg-img {
-    filter: brightness(0.9);
+.totp-2fa-popup-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.totp-2fa-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+.totp-2fa-subtitle {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+}
+.totp-2fa-error {
+    padding: 0.6rem 0.75rem;
+    background: rgba(220, 53, 69, 0.15);
+    border: 1px solid rgba(220, 53, 69, 0.4);
+    border-radius: 10px;
+    color: #f8d7da;
+    font-size: 0.9rem;
+}
+.totp-2fa-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.totp-2fa-input {
+    text-align: center !important;
+    font-size: 1.5rem !important;
+    letter-spacing: 0.5rem !important;
+    font-family: 'Courier New', monospace !important;
+}
+.totp-2fa-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.totp-2fa-btn {
+    flex: 1;
+    min-width: 120px;
+}
+.totp-2fa-cancel {
+    text-decoration: none;
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const requestOtpBtn = document.getElementById('request-otp-btn');
+    const otpRequestSection = document.getElementById('otp-request-section');
+    const otpCodeInput = document.getElementById('otp-code-input');
+    const otpVerifyBtn = document.getElementById('otp-verify-btn');
+    const otpResendBtn = document.getElementById('otp-resend-btn');
+    const otpCancelBtn = document.getElementById('otp-cancel-btn');
+    const emailInput = document.getElementById('email');
+    const signinForm = document.getElementById('signin-form');
+    const signinSubmitBtn = document.getElementById('signin-submit-btn');
+    const authErrorEl = document.getElementById('signin-ajax-error');
+    
+    const forgotLink = document.getElementById('forgot-password-link');
+    const otpOverlay = document.getElementById('email-otp-2fa-overlay');
+    const otpInput = document.getElementById('email-otp-2fa-code');
+    const otpVerifyBtnOverlay = document.getElementById('email-otp-2fa-verify-btn');
+    const otpCancelBtnOverlay = document.getElementById('email-otp-2fa-cancel-btn');
+    const otpErrorOverlay = document.getElementById('email-otp-2fa-error');
+
+    // Forgot Password Flow
+    forgotLink?.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const email = emailInput?.value.trim();
+        if (!email) {
+            if (authErrorEl) { authErrorEl.textContent = 'Please enter your email first to reset your password.'; authErrorEl.style.display = 'block'; }
+            return;
+        }
+
+        forgotLink.style.opacity = '0.5';
+        forgotLink.style.pointerEvents = 'none';
+        forgotLink.textContent = 'Processing...';
+
+        try {
+            const response = await fetch("{{ path('auth_forgot_password_request') }}", {
+                method: 'POST',
+                body: JSON.stringify({ email }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                otpOverlay?.setAttribute('data-otp-mode', 'reset');
+                const title = otpOverlay?.querySelector('.totp-2fa-title');
+                const subtitle = otpOverlay?.querySelector('.totp-2fa-subtitle');
+                if (title) title.textContent = 'Reset Password';
+                if (subtitle) subtitle.textContent = 'Enter the 6-digit code to reset your password';
+                
+                if (otpOverlay) otpOverlay.style.display = 'flex';
+                if (authErrorEl) authErrorEl.style.display = 'none';
+            } else {
+                if (authErrorEl) { authErrorEl.textContent = data.message; authErrorEl.style.display = 'block'; }
+            }
+        } catch (err) {
+            if (authErrorEl) { authErrorEl.textContent = 'An error occurred. Please try again.'; authErrorEl.style.display = 'block'; }
+        } finally {
+            forgotLink.style.opacity = '1';
+            forgotLink.style.pointerEvents = 'auto';
+            forgotLink.textContent = 'Forgot Password?';
+        }
+    });
+
+    // Verification Logic (Shared for Overlay)
+    otpVerifyBtnOverlay?.addEventListener('click', async () => {
+        const email = emailInput?.value.trim();
+        const code = otpInput?.value.trim();
+        const mode = otpOverlay?.getAttribute('data-otp-mode') || 'login';
+
+        if (!code || code.length !== 6) {
+            if (otpErrorOverlay) { otpErrorOverlay.textContent = 'Please enter a valid 6-digit code.'; otpErrorOverlay.style.display = 'block'; }
+            return;
+        }
+
+        otpVerifyBtnOverlay.disabled = true;
+        otpVerifyBtnOverlay.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Verifying...';
+
+        try {
+            const endpoint = mode === 'reset' 
+                ? "{{ path('auth_forgot_password_verify') }}" 
+                : "{{ path('2fa_verify_otp_login') }}";
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                body: JSON.stringify({ email, code }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                if (otpOverlay) otpOverlay.style.display = 'none';
+                if (otpInput) otpInput.value = '';
+                
+                if (mode === 'reset') {
+                    const successOverlay = document.getElementById('success-confirmation-overlay');
+                    const successMessage = document.getElementById('success-confirmation-message');
+                    if (successOverlay && successMessage) {
+                        successMessage.textContent = data.message;
+                        successOverlay.style.display = 'flex';
+                    } else {
+                        alert(data.message);
+                    }
+                } else if (data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                if (otpErrorOverlay) { otpErrorOverlay.textContent = data.message; otpErrorOverlay.style.display = 'block'; }
+            }
+        } catch (err) {
+            if (otpErrorOverlay) { otpErrorOverlay.textContent = 'Verification error. Please try again.'; otpErrorOverlay.style.display = 'block'; }
+        } finally {
+            otpVerifyBtnOverlay.disabled = false;
+            otpVerifyBtnOverlay.innerHTML = 'Verify';
+        }
+    });
+
+    document.getElementById('success-confirmation-btn')?.addEventListener('click', () => {
+        document.getElementById('success-confirmation-overlay').style.display = 'none';
+    });
+
+    // AJAX sign-in
+    if (signinForm && signinSubmitBtn) {
+        signinForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = emailInput?.value.trim();
+            const password = document.getElementById('password')?.value;
+            if (!email || !password) {
+                if (authErrorEl) { authErrorEl.textContent = 'Please enter your email and password.'; authErrorEl.style.display = 'block'; }
+                return;
+            }
+            if (authErrorEl) authErrorEl.style.display = 'none';
+            var btnHtml = signinSubmitBtn.innerHTML;
+            signinSubmitBtn.disabled = true;
+            signinSubmitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Signing in...';
+            try {
+                var formData = new FormData(signinForm);
+                var response = await fetch('{{ path("auth_sign_in") }}', {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                });
+                var data = await response.json().catch(function() { return {}; });
+                if (data.requireTotp) {
+                    var overlay = document.getElementById('totp-2fa-overlay');
+                    var codeInput = document.getElementById('totp-2fa-code');
+                    if (overlay) overlay.style.display = 'flex';
+                    if (codeInput) { codeInput.value = ''; codeInput.focus(); }
+                } else if (data.requireEmailOtp) {
+                    otpOverlay?.setAttribute('data-otp-mode', 'login');
+                    if (otpOverlay) otpOverlay.style.display = 'flex';
+                    if (otpInput) { otpInput.value = ''; otpInput.focus(); }
+                } else if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                } else if (data.success === false && data.error) {
+                    if (authErrorEl) { authErrorEl.textContent = data.error; authErrorEl.style.display = 'block'; }
+                }
+            } catch (err) {
+                if (authErrorEl) { authErrorEl.textContent = 'Something went wrong. Please try again.'; authErrorEl.style.display = 'block'; }
+            } finally {
+                signinSubmitBtn.disabled = false;
+                signinSubmitBtn.innerHTML = btnHtml;
+            }
+        });
+    }
+
+    // Show request OTP button when email is entered
+    if (emailInput) {
+        emailInput.addEventListener('input', function() {
+            const email = this.value.trim();
+            if (email && email.includes('@')) {
+                if (requestOtpBtn) requestOtpBtn.style.display = 'inline-flex';
+            } else {
+                if (requestOtpBtn) requestOtpBtn.style.display = 'none';
+            }
+        });
+    }
+
+    // Request OTP code
+    if (requestOtpBtn) {
+        requestOtpBtn.addEventListener('click', async function() {
+            const email = emailInput?.value.trim();
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid email address in the Email box first');
+                return;
+            }
+
+            const originalHtml = this.innerHTML;
+            this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Checking...';
+            this.disabled = true;
+
+            try {
+                const channelCheck = await fetch('{{ path("2fa_check_channels") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const channelData = await channelCheck.json();
+                if (channelData.success && channelData.channels && channelData.channels.length > 1) {
+                    const selectionOverlay = document.getElementById('otp-channel-selection-overlay');
+                    const phonePreview = document.getElementById('otp-phone-preview');
+                    if (phonePreview) phonePreview.textContent = channelData.phone || '****';
+                    
+                    if (selectionOverlay) {
+                        selectionOverlay.style.display = 'flex';
+                        const emailBtn = document.getElementById('otp-send-email-btn');
+                        const smsBtn = document.getElementById('otp-send-sms-btn');
+                        const cancelBtn = document.getElementById('otp-channel-cancel-btn');
+
+                        const sendCodeFunc = async (channel) => {
+                            selectionOverlay.style.display = 'none';
+                            this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Sending...';
+                            await performOtpRequest(email, channel, this, originalHtml);
+                        };
+
+                        emailBtn.onclick = () => sendCodeFunc('email');
+                        smsBtn.onclick = () => sendCodeFunc('sms');
+                        cancelBtn.onclick = () => {
+                            selectionOverlay.style.display = 'none';
+                            this.innerHTML = originalHtml;
+                            this.disabled = false;
+                        };
+                    }
+                } else {
+                    this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Sending...';
+                    await performOtpRequest(email, 'email', this, originalHtml);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.innerHTML = originalHtml;
+                this.disabled = false;
+                await performOtpRequest(email, 'email', this, originalHtml);
+            }
+        });
+    }
+
+    async function performOtpRequest(email, channel, btn, originalHtml) {
+        try {
+            const response = await fetch('{{ path("2fa_request_otp") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ email: email, channel: channel })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                otpOverlay?.setAttribute('data-otp-mode', 'login');
+                const title = otpOverlay?.querySelector('.totp-2fa-title');
+                const subtitle = otpOverlay?.querySelector('.totp-2fa-subtitle');
+                const targetText = channel === 'sms' ? 'phone' : 'email';
+                if (title) title.textContent = channel === 'sms' ? 'Check your phone' : 'Check your email';
+                if (subtitle) subtitle.textContent = 'Enter the 6-digit code we sent to your ' + targetText;
+                
+                if (otpOverlay) otpOverlay.style.display = 'flex';
+                if (otpInput) { otpInput.value = ''; otpInput.focus(); }
+                if (otpErrorOverlay) otpErrorOverlay.style.display = 'none';
+                
+                if (typeof showCoolPopup === 'function') {
+                    showCoolPopup('Code sent', 'Verification code sent to your ' + targetText, 'success');
+                }
+            } else {
+                alert(data.message || 'Failed to send OTP code');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to send OTP code. Please try again.');
+        } finally {
+            if (btn) { btn.innerHTML = originalHtml; btn.disabled = false; }
+        }
+    }
+
+    if (otpResendBtn) {
+        otpResendBtn.addEventListener('click', function() {
+            requestOtpBtn?.click();
+        });
+    }
+
+    if (otpCancelBtn) {
+        otpCancelBtn.addEventListener('click', function() {
+            if (otpRequestSection) otpRequestSection.style.display = 'none';
+            if (signinSubmitBtn) signinSubmitBtn.style.display = 'inline-flex';
+            if (otpCodeInput) otpCodeInput.value = '';
+        });
+    }
+
+    // Biometrics
+    const totpOverlay = document.getElementById('totp-2fa-overlay');
+    const totp2faCodeInput = document.getElementById('totp-2fa-code');
+    const totp2faVerifyBtn = document.getElementById('totp-2fa-verify-btn');
+    const totp2faCancelBtn = document.getElementById('totp-2fa-cancel-btn');
+    const totpErrorEl = document.getElementById('totp-2fa-error');
+
+    if (totpOverlay && totp2faCodeInput && totp2faVerifyBtn) {
+        totp2faCancelBtn?.addEventListener('click', async function() {
+            try { await fetch('{{ path("2fa_cancel_login") }}', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } }); } catch (e) {}
+            totpOverlay.style.display = 'none';
+            if (totp2faCodeInput) totp2faCodeInput.value = '';
+        });
+        totp2faCodeInput.addEventListener('input', function() { this.value = this.value.replace(/\D/g, '').slice(0, 6); });
+        totp2faVerifyBtn.addEventListener('click', async function() {
+            const code = totp2faCodeInput.value.trim();
+            if (code.length !== 6) return;
+            const originalHtml = totp2faVerifyBtn.innerHTML;
+            totp2faVerifyBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Verifying...';
+            totp2faVerifyBtn.disabled = true;
+            try {
+                const response = await fetch('{{ path("2fa_verify_totp_login") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ code: code })
+                });
+                const data = await response.json();
+                if (data.success && data.redirect) { window.location.href = data.redirect; return; }
+                if (totpErrorEl) { totpErrorEl.textContent = data.message || 'Invalid code.'; totpErrorEl.style.display = 'block'; }
+            } catch (err) {
+                if (totpErrorEl) { totpErrorEl.textContent = 'Something went wrong.'; totpErrorEl.style.display = 'block'; }
+            } finally {
+                totp2faVerifyBtn.innerHTML = originalHtml;
+                totp2faVerifyBtn.disabled = false;
+            }
+        });
+    }
+});
+</script>
+
+<script src="{{ asset('frontend/js/syndicati-agent.js') }}" defer></script>
+
 </body>
 </html>

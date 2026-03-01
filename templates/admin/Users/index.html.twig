@@ -5,15 +5,6 @@
 {% block stylesheets %}
     <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
     <style>
-        .glass-switcher {
-            position: relative;
-            width: 100%;
-            transition: height 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        .glass-switcher-face {
-            width: 100%;
-        }
-
         /* Hide Scrollbar Global */
         /* Hide Scrollbar Global */
         html, body, .admin-shell, .layout-wrapper, .layout-page, .content-wrapper, .container-xxl {
@@ -972,6 +963,16 @@
                         const btn = e.target.closest('.users-btn-view-details');
                         if (btn && btn.dataset.userId) { 
                             e.preventDefault(); 
+                            e.stopPropagation();
+                            
+                            // 1. Explicitly mark the modal as active before the switcher starts
+                            const vModal = document.getElementById('user-view-modal');
+                            if (vModal) {
+                                vModal.style.display = 'flex';
+                                void vModal.offsetWidth;
+                                vModal.classList.add('active');
+                            }
+                            
                             openViewModal(btn.dataset.userId); 
                         }
                     });

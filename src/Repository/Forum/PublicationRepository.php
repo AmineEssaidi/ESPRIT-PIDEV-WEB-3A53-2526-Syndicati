@@ -63,4 +63,22 @@ class PublicationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findByCategory(?string $category): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->leftJoin('p.user', 'u')
+            ->addSelect('u')
+            ->orderBy('p.date_creation_pub', 'DESC');
+
+        if ($category === 'Announcement') {
+            $qb->andWhere('p.categorie_pub = :cat')
+                ->setParameter('cat', 'Announcement');
+        } elseif ($category === 'General') {
+            $qb->andWhere('p.categorie_pub != :cat')
+                ->setParameter('cat', 'Announcement');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

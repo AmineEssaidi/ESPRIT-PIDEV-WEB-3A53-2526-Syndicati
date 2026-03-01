@@ -19,11 +19,37 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
+use App\Service\WeatherService;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 #[Route('/evenement')]
 class EvenementController extends AbstractController
 {
+    #[Route('/weather/preview', name: 'app_evenement_weather_preview', methods: ['GET'])]
+    public function weatherPreview(Request $request, WeatherService $weatherService): JsonResponse
+    {
+        $lat = $request->query->get('lat');
+        $lng = $request->query->get('lng');
+        $dateStr = $request->query->get('date');
+
+        if (!$lat || !$lng || !$dateStr) {
+            return new JsonResponse(['success' => false, 'message' => 'Missing parameters.'], 400);
+        }
+
+        try {
+            $date = new \DateTime($dateStr);
+            $forecast = $weatherService->getForecast((float) $lat, (float) $lng, $date);
+
+            if ($forecast) {
+                return new JsonResponse(['success' => true, 'data' => $forecast]);
+            }
+
+            return new JsonResponse(['success' => false, 'message' => 'No forecast data available.'], 404);
+        } catch (\Exception $e) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid date format.'], 400);
+        }
+    }
+
     #[Route('/', name: 'app_evenement_index', methods: ['GET', 'POST'])]
     public function index(Request $request, EvenementRepository $evenementRepository, \App\Repository\User\UserRepository $userRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
@@ -31,46 +57,44 @@ class EvenementController extends AbstractController
         $form = $this->createForm(EvenementType::class, $evenement);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
-            if ($form->isValid()) {
-                $user = $this->getUser();
-                if (!$user) {
-                    $sessionUser = $request->getSession()->get('user');
-                    if ($sessionUser) {
-                        $userId = is_array($sessionUser) ? ($sessionUser['id_user'] ?? $sessionUser['id'] ?? null) : null;
-                        if ($userId) {
-                            $user = $userRepository->find($userId);
+        if ($form->isSubmitted() && $request->isXmlHttpRequest()) {
+            try {
+                if ($form->isValid()) {
+                    $user = $this->resolveUser($request, $userRepository);
+                    if ($user) {
+                        $evenement->setUser($user);
+                    } else {
+                        return new JsonResponse(['success' => false, 'message' => 'You must be logged in to create an event.'], 401);
+                    }
+
+                    $imageFile = $form->get('image_event')->getData();
+                    if ($imageFile) {
+                        $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                        $safeFilename = $slugger->slug($originalFilename);
+                        $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+                        try {
+                            $imageFile->move($this->getParameter('event_images_directory'), $newFilename);
+                            $evenement->setImageEvent($newFilename);
+                        } catch (\Exception $e) {
+                            // Fallback if move fails (e.g. permission or dir missing)
                         }
                     }
+
+                    $entityManager->persist($evenement);
+                    $entityManager->flush();
+
+                    return new JsonResponse(['success' => true, 'message' => 'Event created successfully!']);
                 }
 
-                if ($user) {
-                    $evenement->setUser($user);
+                $errors = [];
+                foreach ($form->getErrors(true) as $error) {
+                    $fieldName = $error->getOrigin()->getName();
+                    $errors[$fieldName] = $error->getMessage();
                 }
-
-                $imageFile = $form->get('image_event')->getData();
-                if ($imageFile) {
-                    $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                    $safeFilename = $slugger->slug($originalFilename);
-                    $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
-                    try {
-                        $imageFile->move($this->getParameter('event_images_directory'), $newFilename);
-                        $evenement->setImageEvent($newFilename);
-                    } catch (\Exception $e) {
-                    }
-                }
-
-                $entityManager->persist($evenement);
-                $entityManager->flush();
-
-                return new JsonResponse(['success' => true, 'message' => 'Event created successfully!']);
+                return new JsonResponse(['success' => false, 'errors' => $errors], 400);
+            } catch (\Exception $e) {
+                return new JsonResponse(['success' => false, 'message' => 'A server error occurred: ' . $e->getMessage()], 500);
             }
-
-            $errors = [];
-            foreach ($form->getErrors(true) as $error) {
-                $errors[] = $error->getMessage();
-            }
-            return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
         }
 
         $participatedEventIds = [];
@@ -309,45 +333,55 @@ class EvenementController extends AbstractController
     }
 
     #[Route('/new', name: 'app_evenement_new', methods: ['POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): JsonResponse
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Repository\User\UserRepository $userRepository): JsonResponse
     {
-        $evenement = new Evenement();
-        $user = $this->getUser();
-        if ($user) {
-            $evenement->setUser($user);
-        }
+        try {
+            $evenement = new Evenement();
+            $form = $this->createForm(EvenementType::class, $evenement);
+            $form->handleRequest($request);
 
-        $form = $this->createForm(EvenementType::class, $evenement);
-        $form->handleRequest($request);
+            if ($form->isSubmitted()) {
+                if ($form->isValid()) {
+                    $user = $this->resolveUser($request, $userRepository);
+                    if ($user) {
+                        $evenement->setUser($user);
+                    } else {
+                        return new JsonResponse(['success' => false, 'message' => 'Session expired. Please log in again.'], 401);
+                    }
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            /** @var UploadedFile $imageFile */
-            $imageFile = $form->get('image_event')->getData();
+                    /** @var UploadedFile $imageFile */
+                    $imageFile = $form->get('image_event')->getData();
 
-            if ($imageFile) {
-                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+                    if ($imageFile) {
+                        $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                        $safeFilename = $slugger->slug($originalFilename);
+                        $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
-                try {
-                    $imageFile->move($this->getParameter('event_images_directory'), $newFilename);
-                    $evenement->setImageEvent($newFilename);
-                } catch (\Exception $e) {
+                        try {
+                            $imageFile->move($this->getParameter('event_images_directory'), $newFilename);
+                            $evenement->setImageEvent($newFilename);
+                        } catch (\Exception $e) {
+                        }
+                    }
+
+                    $entityManager->persist($evenement);
+                    $entityManager->flush();
+
+                    return new JsonResponse(['success' => true, 'message' => 'Event created successfully!']);
                 }
+
+                $errors = [];
+                foreach ($form->getErrors(true) as $error) {
+                    $fieldName = $error->getOrigin()->getName();
+                    $errors[$fieldName] = $error->getMessage();
+                }
+                return new JsonResponse(['success' => false, 'errors' => $errors], 400);
             }
 
-            $entityManager->persist($evenement);
-            $entityManager->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Event created successfully!']);
+            return new JsonResponse(['success' => false, 'message' => 'Form not submitted correctly.'], 400);
+        } catch (\Exception $e) {
+            return new JsonResponse(['success' => false, 'message' => 'An unexpected error occurred: ' . $e->getMessage()], 500);
         }
-
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $fieldName = $error->getOrigin()->getName();
-            $errors[$fieldName] = $error->getMessage();
-        }
-        return new JsonResponse(['success' => false, 'errors' => $errors], 400);
     }
 
     #[Route('/{id}', name: 'app_evenement_show', methods: ['GET'])]
@@ -357,52 +391,79 @@ class EvenementController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_evenement_edit', methods: ['POST'])]
-    public function edit(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, SluggerInterface $slugger): JsonResponse
+    public function edit(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Repository\User\UserRepository $userRepository): JsonResponse
     {
-        $form = $this->createForm(EvenementType::class, $evenement, [
-            'is_edit' => true
-        ]);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            /** @var UploadedFile $imageFile */
-            $imageFile = $form->get('image_event')->getData();
-
-            if ($imageFile) {
-                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
-
-                try {
-                    $imageFile->move($this->getParameter('event_images_directory'), $newFilename);
-                    $evenement->setImageEvent($newFilename);
-                } catch (\Exception $e) {
-                }
+        try {
+            $user = $this->resolveUser($request, $userRepository);
+            if (!$user) {
+                return new JsonResponse(['success' => false, 'message' => 'Unauthorized.'], 401);
             }
 
-            $entityManager->flush();
+            $form = $this->createForm(EvenementType::class, $evenement, [
+                'is_edit' => true
+            ]);
+            $form->handleRequest($request);
 
-            return new JsonResponse(['success' => true, 'message' => 'Event updated successfully!']);
-        }
+            if ($form->isSubmitted() && $form->isValid()) {
+                /** @var UploadedFile $imageFile */
+                $imageFile = $form->get('image_event')->getData();
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $fieldName = $error->getOrigin()->getName();
-            $errors[$fieldName] = $error->getMessage();
+                if ($imageFile) {
+                    $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                    $safeFilename = $slugger->slug($originalFilename);
+                    $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+
+                    try {
+                        $imageFile->move($this->getParameter('event_images_directory'), $newFilename);
+                        $evenement->setImageEvent($newFilename);
+                    } catch (\Exception $e) {
+                    }
+                }
+
+                $entityManager->flush();
+                return new JsonResponse(['success' => true, 'message' => 'Event updated successfully!']);
+            }
+
+            $errors = [];
+            foreach ($form->getErrors(true) as $error) {
+                $fieldName = $error->getOrigin()->getName();
+                $errors[$fieldName] = $error->getMessage();
+            }
+            return new JsonResponse(['success' => false, 'errors' => $errors], 400);
+        } catch (\Exception $e) {
+            return new JsonResponse(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         }
-        return new JsonResponse(['success' => false, 'errors' => $errors], 400);
     }
 
     #[Route('/{id}', name: 'app_evenement_delete', methods: ['POST'])]
     public function delete(Request $request, Evenement $evenement, EntityManagerInterface $entityManager): JsonResponse
     {
-        if ($this->isCsrfTokenValid('delete' . $evenement->getId(), $request->request->get('_token'))) {
-            $entityManager->remove($evenement);
-            $entityManager->flush();
-            return new JsonResponse(['success' => true, 'message' => 'Event deleted successfully!']);
-        }
+        try {
+            if ($this->isCsrfTokenValid('delete' . $evenement->getId(), $request->request->get('_token'))) {
+                $entityManager->remove($evenement);
+                $entityManager->flush();
+                return new JsonResponse(['success' => true, 'message' => 'Event deleted successfully!']);
+            }
 
-        return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+            return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+        } catch (\Exception $e) {
+            return new JsonResponse(['success' => false, 'message' => 'Delete failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    private function resolveUser(Request $request, \App\Repository\User\UserRepository $userRepository): ?User
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            $sessionUser = $request->getSession()->get('user');
+            if ($sessionUser) {
+                $userId = is_array($sessionUser) ? ($sessionUser['id_user'] ?? $sessionUser['id'] ?? null) : null;
+                if ($userId) {
+                    $user = $userRepository->find($userId);
+                }
+            }
+        }
+        return $user instanceof User ? $user : null;
     }
 }
 

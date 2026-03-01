@@ -1,0 +1,440 @@
+{# templates/shared/_obsidian_modals.html.twig #}
+
+<!-- 1. GLOBAL DELETE MODAL (Obsidian Style) -->
+<div id="obsidianDeleteModal" class="obsidian-modal-overlay">
+    <div class="obsidian-modal-backdrop" onclick="window.closeObsidianDeleteModal()"></div>
+    <div class="obsidian-modal-glass obsidian-modal-confirm">
+        <div class="obsidian-icon-wrapper red-pulse">
+            <i class="bx bx-trash-alt obsidian-icon"></i>
+        </div>
+        
+        <h3 class="obsidian-modal-title" id="obsidianDeleteTitle">Delete Item?</h3>
+        <p class="obsidian-modal-text" id="obsidianDeleteMessage">
+            This action cannot be undone. <br>
+            Are you sure you want to permanently delete this?
+        </p>
+
+        <div class="obsidian-modal-actions">
+            <button type="button" class="obsidian-btn obsidian-btn-cancel" onclick="window.closeObsidianDeleteModal()">
+                Cancel
+            </button>
+            <button type="button" class="obsidian-btn obsidian-btn-confirm" id="obsidianConfirmDeleteBtn">
+                <i class="bx bx-trash"></i> Confirm Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 3. GLOBAL LIGHTBOX (Obsidian Style) -->
+<div id="obsidianLightbox" class="obsidian-lightbox-overlay" onclick="window.closeObsidianLightbox()">
+    <div class="obsidian-lightbox-backdrop"></div>
+    <div class="obsidian-lightbox-container">
+        <img id="obsidianLightboxImage" src="" alt="Enlarged view">
+        <button type="button" class="obsidian-lightbox-close">
+            <i class="bx bx-x"></i>
+        </button>
+    </div>
+</div>
+
+<!-- 2. GLOBAL NOTIFICATION POPUP (Obsidian Style) -->
+<div id="obsidianNotification" class="obsidian-notification-overlay">
+    <div class="obsidian-modal-glass obsidian-notification-glass">
+        <div id="obsidianNotificationIconWrapper" class="obsidian-icon-wrapper-small">
+            <i id="obsidianNotificationIcon" class="bx bx-check obsidian-icon"></i>
+        </div>
+        <div class="obsidian-notification-content">
+            <h4 id="obsidianNotificationTitle" class="obsidian-notification-title">Success</h4>
+            <p id="obsidianNotificationMessage" class="obsidian-notification-text">Operation completed successfully.</p>
+        </div>
+        <button type="button" class="obsidian-notification-close" onclick="window.closeObsidianNotification()">
+            <i class="bx bx-x"></i>
+        </button>
+    </div>
+</div>
+
+<style>
+/* OBSIDIAN UI CORE */
+.obsidian-modal-overlay,
+.obsidian-notification-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20000000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.obsidian-modal-overlay.active,
+.obsidian-notification-overlay.active {
+    display: flex;
+}
+
+.obsidian-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.obsidian-modal-overlay.active .obsidian-modal-backdrop {
+    opacity: 1;
+}
+
+/* Glass Card - True Obsidian */
+.obsidian-modal-glass {
+    background: #000000; /* Pure Black base */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    border-radius: 28px;
+    position: relative;
+    z-index: 2;
+    will-change: transform, opacity;
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.obsidian-modal-confirm {
+    padding: 3rem 2.5rem;
+    width: 90%;
+    max-width: 440px;
+    text-align: center;
+    transform: scale(0.9) translateY(40px);
+}
+
+.obsidian-modal-overlay.active .obsidian-modal-glass {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+/* Icon Wrappers */
+.obsidian-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.obsidian-icon-wrapper.red-pulse {
+    background: rgba(255, 75, 92, 0.1);
+    border-color: rgba(255, 75, 92, 0.3);
+    box-shadow: 0 0 30px rgba(255, 75, 92, 0.2);
+    animation: obsidian-red-pulse 2s infinite;
+}
+
+.obsidian-icon-wrapper.green-pulse {
+    background: rgba(74, 222, 128, 0.1);
+    border-color: rgba(74, 222, 128, 0.3);
+    box-shadow: 0 0 30px rgba(74, 222, 128, 0.2);
+    animation: obsidian-green-pulse 2s infinite;
+}
+
+.obsidian-icon {
+    font-size: 2.8rem;
+}
+
+.red-pulse .obsidian-icon { color: #ff4b5c; }
+.green-pulse .obsidian-icon { color: #4ade80; }
+
+/* Notification Specific */
+.obsidian-notification-overlay {
+    inset: auto 2rem 2rem auto;
+    width: auto;
+    height: auto;
+}
+
+.obsidian-notification-glass {
+    width: 380px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transform: translateX(50px);
+}
+
+.obsidian-notification-overlay.active .obsidian-notification-glass {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.obsidian-icon-wrapper-small {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.5rem;
+}
+
+.obsidian-notification-content {
+    flex: 1;
+}
+
+.obsidian-notification-title {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+}
+
+.obsidian-notification-text {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.obsidian-notification-close {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.obsidian-notification-close:hover {
+    color: #fff;
+}
+
+/* Typography */
+.obsidian-modal-title {
+    color: #fff;
+    font-size: 1.7rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.5px;
+}
+
+.obsidian-modal-text {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+}
+
+/* Actions */
+.obsidian-modal-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.obsidian-btn {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.obsidian-btn-cancel {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.obsidian-btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.obsidian-btn-confirm {
+    background: rgba(255, 75, 92, 0.15);
+    border: 1px solid rgba(255, 75, 92, 0.4);
+    color: #ff4b5c;
+}
+
+.obsidian-btn-confirm:hover {
+    background: #ff4b5c;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 75, 92, 0.4);
+}
+
+@keyframes obsidian-red-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 75, 92, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(255, 75, 92, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 75, 92, 0); }
+}
+
+@keyframes obsidian-green-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(74, 222, 128, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+
+/* Lightbox Specific */
+.obsidian-lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 21000000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.9);
+    cursor: zoom-out;
+}
+
+.obsidian-lightbox-overlay.active {
+    display: flex;
+}
+
+.obsidian-lightbox-container {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: scale(0.9);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.obsidian-lightbox-overlay.active .obsidian-lightbox-container {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.obsidian-lightbox-container img {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.obsidian-lightbox-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+@media (max-width: 480px) {
+    .obsidian-notification-glass { width: 90vw; }
+}
+</style>
+
+<script>
+(function() {
+    const deleteModal = document.getElementById('obsidianDeleteModal');
+    const notification = document.getElementById('obsidianNotification');
+    const confirmBtn = document.getElementById('obsidianConfirmDeleteBtn');
+    let deleteCallback = null;
+    let notificationTimeout = null;
+
+    // --- DELETE MODAL API ---
+    window.confirmObsidianDelete = function(callback, title, message) {
+        if (!deleteModal) return;
+        deleteCallback = callback;
+        
+        if (title) document.getElementById('obsidianDeleteTitle').textContent = title;
+        if (message) document.getElementById('obsidianDeleteMessage').innerHTML = message;
+
+        deleteModal.style.display = 'flex';
+        deleteModal.offsetHeight; // reflow
+        deleteModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeObsidianDeleteModal = function() {
+        if (!deleteModal) return;
+        deleteModal.classList.remove('active');
+        setTimeout(() => {
+            deleteModal.style.display = 'none';
+            document.body.style.overflow = '';
+            deleteCallback = null;
+        }, 500);
+    };
+
+    if (confirmBtn) {
+        confirmBtn.onclick = function() {
+            if (typeof deleteCallback === 'function') {
+                deleteCallback();
+            }
+            window.closeObsidianDeleteModal();
+        };
+    }
+
+    // --- NOTIFICATION API ---
+    window.showObsidianNotification = function(title, message, type = 'success') {
+        if (!notification) return;
+        
+        const titleEl = document.getElementById('obsidianNotificationTitle');
+        const msgEl = document.getElementById('obsidianNotificationMessage');
+        const iconWrapper = document.getElementById('obsidianNotificationIconWrapper');
+        const icon = document.getElementById('obsidianNotificationIcon');
+
+        titleEl.textContent = title;
+        msgEl.textContent = message;
+
+        // Thematic styling
+        if (type === 'success') {
+            iconWrapper.className = 'obsidian-icon-wrapper-small green-pulse';
+            icon.className = 'bx bx-check obsidian-icon';
+        } else {
+            iconWrapper.className = 'obsidian-icon-wrapper-small red-pulse';
+            icon.className = 'bx bx-error-circle obsidian-icon';
+        }
+
+        notification.style.display = 'flex';
+        notification.offsetHeight;
+        notification.classList.add('active');
+
+        if (notificationTimeout) clearTimeout(notificationTimeout);
+        notificationTimeout = setTimeout(window.closeObsidianNotification, 4000);
+    };
+
+    window.closeObsidianNotification = function() {
+        if (!notification) return;
+        notification.classList.remove('active');
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 500);
+    };
+
+    // --- LIGHTBOX API ---
+    const lightbox = document.getElementById('obsidianLightbox');
+    const lightboxImg = document.getElementById('obsidianLightboxImage');
+
+    window.openObsidianLightbox = function(src) {
+        if (!lightbox || !lightboxImg) return;
+        lightboxImg.src = src;
+        lightbox.style.display = 'flex';
+        lightbox.offsetHeight;
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeObsidianLightbox = function() {
+        if (!lightbox) return;
+        lightbox.classList.remove('active');
+        setTimeout(() => {
+            lightbox.style.display = 'none';
+            document.body.style.overflow = '';
+        }, 400);
+    };
+})();
+</script>

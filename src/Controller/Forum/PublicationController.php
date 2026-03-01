@@ -8,6 +8,9 @@ use App\Repository\Forum\PublicationRepository;
 use App\Entity\Forum\Commentaire;
 use App\Form\Forum\CommentaireType;
 use App\Repository\Forum\CommentaireRepository;
+use App\Entity\Forum\Reaction;
+use App\Form\Forum\ReactionType;
+use App\Repository\Forum\ReactionRepository;
 use App\Service\PageStatusService;
 use App\Entity\User\User;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,7 +21,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Form\FormFactoryInterface;
-use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 #[Route('/publication')]
 class PublicationController extends AbstractController
@@ -30,53 +32,11 @@ class PublicationController extends AbstractController
     }
 
     #[Route('/admin', name: 'admin_forum')]
-    public function adminIndex(
-        PageStatusService $pageStatusService,
-        Request $request,
-        PublicationRepository $publicationRepository,
-        CommentaireRepository $commentaireRepository,
-        FormFactoryInterface $formFactory,
-        CsrfTokenManagerInterface $csrfTokenManager
-    ): Response {
+    public function adminIndex(PageStatusService $pageStatusService, Request $request, PublicationRepository $publicationRepository, CommentaireRepository $commentaireRepository, ReactionRepository $reactionRepository, FormFactoryInterface $formFactory): Response
+    {
         $publications = $publicationRepository->findBy([], ['date_creation_pub' => 'DESC']);
         $commentaires = $commentaireRepository->findBy([], ['created_at' => 'DESC']);
-
-        // Fetch Global Counts for Admin Table
-        $pubIds = array_map(fn($p) => $p->getId(), $publications);
-        $globalCounts = [];
-        foreach ($pubIds as $id) {
-            $globalCounts[$id] = ['likes' => 0, 'dislikes' => 0, 'reports' => 0];
-        }
-
-        if (!empty($pubIds)) {
-            $em = $publicationRepository->getEntityManager();
-            
-            // Reactions
-            $allReactions = $em->getRepository(\App\Entity\Forum\PublicationReaction::class)
-                ->createQueryBuilder('r')
-                ->where('r.publication IN (:ids)')
-                ->setParameter('ids', $pubIds)
-                ->getQuery()
-                ->getResult();
-            
-            foreach ($allReactions as $r) {
-                $pid = $r->getPublication()->getId();
-                if ($r->getReactionType() === 'like') $globalCounts[$pid]['likes']++;
-                elseif ($r->getReactionType() === 'dislike') $globalCounts[$pid]['dislikes']++;
-            }
-
-            // Reports
-            $allReports = $em->getRepository(\App\Entity\Forum\PublicationReport::class)
-                ->createQueryBuilder('rep')
-                ->where('rep.publication IN (:ids)')
-                ->setParameter('ids', $pubIds)
-                ->getQuery()
-                ->getResult();
-            
-            foreach ($allReports as $rep) {
-                $globalCounts[$rep->getPublication()->getId()]['reports']++;
-            }
-        }
+        $reactions = $reactionRepository->findBy([], ['created_at' => 'DESC']);
 
         $pubEditForm = $formFactory->createNamed('publication_edit', PublicationType::class, new Publication());
         $pubAddForm = $formFactory->createNamed('publication_add', PublicationType::class, new Publication(), [
@@ -84,95 +44,21 @@ class PublicationController extends AbstractController
             'method' => 'POST',
         ]);
         $commentEditForm = $formFactory->createNamed('comment_edit', CommentaireType::class, new Commentaire());
-
-        // Fetch Global Counts for Comments
-        $commentIds = array_map(fn($c) => $c->getIdCommentaire(), $commentaires);
-        $commentCounts = [];
-        foreach ($commentIds as $id) {
-            $commentCounts[$id] = ['likes' => 0, 'dislikes' => 0, 'reports' => 0];
-        }
-
-        if (!empty($commentIds)) {
-            $em = $commentaireRepository->getEntityManager();
-            
-            // Comment Reactions
-            $allCReactions = $em->getRepository(\App\Entity\Forum\CommentReaction::class)
-                ->createQueryBuilder('cr')
-                ->where('cr.comment IN (:ids)')
-                ->setParameter('ids', $commentIds)
-                ->getQuery()
-                ->getResult();
-            
-            foreach ($allCReactions as $cr) {
-                $cid = $cr->getComment()->getIdCommentaire();
-                if ($cr->getReactionType() === 'like') $commentCounts[$cid]['likes']++;
-                elseif ($cr->getReactionType() === 'dislike') $commentCounts[$cid]['dislikes']++;
-            }
-
-            // Comment Reports
-            $allCReports = $em->getRepository(\App\Entity\Forum\CommentReport::class)
-                ->createQueryBuilder('crep')
-                ->where('crep.comment IN (:ids)')
-                ->setParameter('ids', $commentIds)
-                ->getQuery()
-                ->getResult();
-            
-            foreach ($allCReports as $crep) {
-                $commentCounts[$crep->getComment()->getIdCommentaire()]['reports']++;
-            }
-        }
-
-        // Prepare Data for JS
-        $pubData = [];
-        foreach ($publications as $p) {
-            $pid = $p->getId();
-            $pubData[] = [
-                'topic' => $p->getTitrePub(),
-                'category' => $p->getCategoriePub(),
-                'author' => $p->getUser() ? ($p->getUser()->getFirstName() . ' ' . $p->getUser()->getLastName()) : '—',
-                'date' => $p->getDateCreationPub()->format('Y-m-d H:i'),
-                'id' => $pid,
-                'description' => $p->getDescriptionPub(),
-                'image' => $p->getImagePub(),
-                'token' => $csrfTokenManager->getToken('delete_publication' . $pid)->getValue(),
-                'likes' => $globalCounts[$pid]['likes'] ?? 0,
-                'dislikes' => $globalCounts[$pid]['dislikes'] ?? 0,
-                'reports' => $globalCounts[$pid]['reports'] ?? 0,
-            ];
-        }
-
-        $commData = [];
-        foreach ($commentaires as $c) {
-            $cid = $c->getIdCommentaire();
-            $commData[] = [
-                'text' => substr($c->getDescriptionCommentaire() ?? '', 0, 50) . '...',
-                'pub' => $c->getPublication() ? $c->getPublication()->getTitrePub() : 'Deleted',
-                'author' => $c->getUser() ? ($c->getUser()->getFirstName() . ' ' . $c->getUser()->getLastName()) : '—',
-                'date' => $c->getCreatedAt() ? $c->getCreatedAt()->format('Y-m-d H:i') : '—',
-                'id' => $cid,
-                'fullText' => $c->getDescriptionCommentaire(),
-                'visibility' => $c->isVisibility() ? 'true' : 'false',
-                'image' => $c->getImageCommentaire(),
-                'token' => $csrfTokenManager->getToken('delete_comment' . $cid)->getValue(),
-                'likes' => $commentCounts[$cid]['likes'] ?? 0,
-                'dislikes' => $commentCounts[$cid]['dislikes'] ?? 0,
-                'reports' => $commentCounts[$cid]['reports'] ?? 0,
-            ];
-        }
+        $reactionEditForm = $formFactory->createNamed('reaction_edit', ReactionType::class, new Reaction());
 
         return $this->render('admin/Forum/index.html.twig', [
             'publications' => $publications,
             'commentaires' => $commentaires,
-            'pubData' => $pubData,
-            'commData' => $commData,
+            'reactions' => $reactions,
             'pubEditForm' => $pubEditForm->createView(),
             'pubAddForm' => $pubAddForm->createView(),
-            'commentEditForm' => $commentEditForm->createView()
+            'commentEditForm' => $commentEditForm->createView(),
+            'reactionEditForm' => $reactionEditForm->createView()
         ]);
     }
 
     #[Route('/admin/add', name: 'admin_forum_pub_add', methods: ['POST'])]
-    public function adminAdd(Request $request, EntityManagerInterface $em, SluggerInterface $slugger, FormFactoryInterface $formFactory, \App\Service\MailNotificationService $mailNotificationService): JsonResponse
+    public function adminAdd(Request $request, EntityManagerInterface $em, SluggerInterface $slugger, FormFactoryInterface $formFactory, \App\Service\Forum\ForumNotificationService $notificationService): JsonResponse
     {
         $publication = new Publication();
         $form = $formFactory->createNamed('publication_add', PublicationType::class, $publication);
@@ -216,9 +102,9 @@ class PublicationController extends AbstractController
             $em->persist($publication);
             $em->flush();
 
-            // Send email notification ONLY for Announcements
+            // Notify if Announcement
             if ($publication->getCategoriePub() === 'Announcement') {
-                $mailNotificationService->sendNewPublicationNotification($publication);
+                $notificationService->notifyNewAnnouncement($publication);
             }
 
             return new JsonResponse([
@@ -331,8 +217,60 @@ class PublicationController extends AbstractController
         return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
     }
 
+    #[Route('/admin/reaction/{id}/edit', name: 'admin_forum_reaction_edit', methods: ['POST'])]
+    public function reactionEdit(int $id, Request $request, ReactionRepository $reactionRepository, EntityManagerInterface $em, FormFactoryInterface $formFactory): JsonResponse
+    {
+        $reaction = $reactionRepository->find($id);
+        if (!$reaction) {
+            return new JsonResponse(['success' => false, 'message' => 'Reaction not found.'], 404);
+        }
+
+        $form = $formFactory->createNamed('reaction_edit', ReactionType::class, $reaction);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Reaction updated successfully.',
+                'reaction' => [
+                    'id' => $reaction->getIdReaction(),
+                    'kind' => $reaction->getKind(),
+                    'emoji' => $reaction->getEmoji(),
+                    'reason' => $reaction->getReportReason()
+                ]
+            ]);
+        }
+
+        $errors = [];
+        foreach ($form->getErrors(true) as $error) {
+            $errors[] = $error->getMessage();
+        }
+        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+    }
+
+    #[Route('/admin/reaction/{id}/delete', name: 'admin_forum_reaction_delete', methods: ['POST'])]
+    public function reactionDelete(int $id, Request $request, ReactionRepository $reactionRepository, EntityManagerInterface $em): JsonResponse
+    {
+        $reaction = $reactionRepository->find($id);
+        if (!$reaction) {
+            return new JsonResponse(['success' => false, 'message' => 'Reaction not found.'], 404);
+        }
+
+        // CSRF check
+        if (!$this->isCsrfTokenValid('delete' . $reaction->getIdReaction(), $request->request->get('_token'))) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+        }
+
+        $em->remove($reaction);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Reaction deleted successfully.']);
+    }
+
     #[Route('/new', name: 'app_publication_new', methods: ['POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Service\MailNotificationService $mailNotificationService): JsonResponse
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Service\Forum\ForumNotificationService $notificationService): JsonResponse
     {
         $publication = new Publication();
         $user = $this->getUser();
@@ -365,9 +303,9 @@ class PublicationController extends AbstractController
             $entityManager->persist($publication);
             $entityManager->flush();
 
-            // Send email notification ONLY for Announcements
+            // Notify if Announcement
             if ($publication->getCategoriePub() === 'Announcement') {
-                $mailNotificationService->sendNewPublicationNotification($publication);
+                $notificationService->notifyNewAnnouncement($publication);
             }
 
             return new JsonResponse([
@@ -432,59 +370,15 @@ class PublicationController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_publication_delete', methods: ['POST'])]
-    public function delete(
-        int $id,
-        Request $request,
-        PublicationRepository $publicationRepository,
-        EntityManagerInterface $entityManager,
-        CsrfTokenManagerInterface $csrfTokenManager
-    ): JsonResponse {
-        $publication = $publicationRepository->find($id);
-        $userSession = $request->getSession()->get('user');
-
-        if (!$publication || !$userSession) {
-            return new JsonResponse(['success' => false, 'message' => 'Publication not found or not logged in'], 404);
+    public function delete(Request $request, Publication $publication, EntityManagerInterface $entityManager): JsonResponse
+    {
+        if ($this->isCsrfTokenValid('delete' . $publication->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($publication);
+            $entityManager->flush();
+            return new JsonResponse(['success' => true, 'message' => 'Publication deleted successfully.']);
         }
 
-        // CSRF Check
-        if (!$csrfTokenManager->isTokenValid(new \Symfony\Component\Security\Csrf\CsrfToken('delete_publication' . $publication->getId(), $request->request->get('_token')))) {
-            return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
-        }
-
-        // --- Authorization ---
-        $currentUserId = null;
-        if (is_array($userSession)) {
-            $currentUserId = $userSession['id_user'] ?? $userSession['id'] ?? null;
-        } elseif (is_object($userSession)) {
-            $currentUserId = method_exists($userSession, 'getIdUser') ? $userSession->getIdUser() : (method_exists($userSession, 'getId') ? $userSession->getId() : null);
-        }
-
-        $currentUserRole = null;
-        if (is_array($userSession)) {
-            $currentUserRole = $userSession['role'] ?? $userSession['role_user'] ?? null;
-        } elseif (is_object($userSession)) {
-            if (method_exists($userSession, 'getRoleUser')) {
-                $currentUserRole = $userSession->getRoleUser();
-            } elseif (method_exists($userSession, 'getRoles')) {
-                $roles = $userSession->getRoles();
-                $currentUserRole = is_array($roles) ? ($roles[0] ?? null) : $roles;
-            } elseif (method_exists($userSession, 'getRole')) {
-                $currentUserRole = $userSession->getRole();
-            }
-        }
-
-        $moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'];
-        $isAuthor = ($publication->getUser() && $publication->getUser()->getIdUser() == $currentUserId);
-        $isModerator = $currentUserRole && in_array($currentUserRole, $moderatorRoles, true);
-
-        if (!$isAuthor && !$isModerator) {
-            return new JsonResponse(['success' => false, 'message' => 'Unauthorized. Admin or Author access required.'], 403);
-        }
-
-        $entityManager->remove($publication);
-        $entityManager->flush();
-
-        return new JsonResponse(['success' => true, 'message' => 'Publication deleted successfully.']);
+        return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
     }
 }
 

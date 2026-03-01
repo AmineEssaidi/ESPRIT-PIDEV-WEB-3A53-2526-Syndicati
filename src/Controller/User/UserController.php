@@ -25,6 +25,8 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use App\Service\TwoFactor\TwoFactorService;
 
 class UserController extends AbstractController
 {
@@ -105,27 +107,145 @@ class UserController extends AbstractController
     }
 
     #[Route('/sign-in', name: 'auth_sign_in', methods: ['GET', 'POST'])]
-    public function signIn(Request $request, UserRepository $userRepository, ProfileRepository $profileRepository, OnboardingRepository $onboardingRepository, UserPasswordHasherInterface $passwordHasher): Response
-    {
+    public function signIn(
+        Request $request,
+        UserRepository $userRepository,
+        ProfileRepository $profileRepository,
+        OnboardingRepository $onboardingRepository,
+        UserPasswordHasherInterface $passwordHasher,
+        HttpClientInterface $httpClient,
+        TwoFactorService $twoFactorService,
+        EntityManagerInterface $em,
+        #[Autowire(param: 'hcaptcha_site_key')]
+        string $hcaptchaSiteKey = '',
+        #[Autowire(param: 'hcaptcha_secret_key')]
+        string $hcaptchaSecretKey = '',
+    ): Response {
         $session = $request->getSession();
         $error = null;
         $lastEmail = '';
 
         if ($session->get('is_logged_in')) {
+            if ($request->query->get('destination') === 'choice') {
+                return $this->render('frontend/auth/sign-in.html.twig', [
+                    'error' => null,
+                    'last_email' => '',
+                    'show_destination_choice' => true,
+                    'hcaptcha_site_key' => $hcaptchaSiteKey,
+                ]);
+            }
             return $this->redirectToRoute('main_home');
         }
+
+        // After POST with error we redirect to GET (PRG) so refresh doesn't resubmit and cause reload loop
+        if ($request->isMethod('GET') && $session->has('signin_error')) {
+            $error = $session->get('signin_error');
+            $lastEmail = (string) $session->get('signin_last_email', '');
+            $session->remove('signin_error');
+            $session->remove('signin_last_email');
+            return $this->render('frontend/auth/sign-in.html.twig', [
+                'error' => $error,
+                'last_email' => $lastEmail,
+                'hcaptcha_site_key' => $hcaptchaSiteKey,
+            ]);
+        }
+
+        // Redirect 127.0.0.1 → localhost so WebAuthn works (browsers often reject "This is an invalid domain" on 127.0.0.1)
+        if ($request->getHost() === '127.0.0.1' && $request->isMethod('GET')) {
+            $port = $request->getPort();
+            $scheme = $request->getScheme();
+            $url = $scheme . '://localhost' . ($port && $port !== 80 && $port !== 443 ? ':' . $port : '') . $request->getRequestUri();
+            return $this->redirect($url, Response::HTTP_MOVED_PERMANENTLY);
+        }
+
+        // GET with pending 2FA TOTP session: show sign-in with popup so user can enter app code (e.g. after refresh)
+        if ($request->isMethod('GET')) {
+            $pending2faUserId = $session->get('2fa_user_id');
+            $pending2faEmail = $session->get('2fa_email');
+            if ($pending2faUserId && $pending2faEmail) {
+                $conn = $em->getConnection();
+                $twoFaRow = $conn->fetchAssociative(
+                    'SELECT two_factor_enabled, totp_secret FROM user WHERE id_user = :id',
+                    ['id' => $pending2faUserId],
+                    ['id' => \PDO::PARAM_INT]
+                );
+                $totpConfigured = $twoFaRow && isset($twoFaRow['totp_secret']) && $twoFaRow['totp_secret'] !== '' && $twoFaRow['totp_secret'] !== null;
+                if ($totpConfigured) {
+                    $user = $userRepository->find($pending2faUserId);
+                    if ($user && $user->getEmailUser() === $pending2faEmail) {
+                        return $this->render('frontend/auth/sign-in.html.twig', [
+                            'error' => null,
+                            'last_email' => $pending2faEmail,
+                            'show_totp_popup' => true,
+                            'hcaptcha_site_key' => $hcaptchaSiteKey,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        $isAjax = $request->isXmlHttpRequest();
 
         if ($request->isMethod('POST')) {
             $email = trim((string) $request->request->get('email'));
             $password = $request->request->get('password');
             $lastEmail = $email;
 
-            if ($email !== '' && $password !== null) {
+            // Require hCaptcha verification when keys are configured
+            if ($hcaptchaSecretKey !== '' && $hcaptchaSiteKey !== '') {
+                $captchaResponse = $request->request->get('h-captcha-response');
+                if ($captchaResponse === null || trim((string) $captchaResponse) === '') {
+                    $error = 'Please complete the security verification (captcha) before signing in.';
+                } else {
+                    $verified = $this->verifyHcaptcha($httpClient, $hcaptchaSecretKey, (string) $captchaResponse);
+                    if (!$verified) {
+                        $error = 'Security verification failed. Please try again.';
+                    }
+                }
+            }
+
+            if ($error === null && $email !== '' && $password !== null) {
                 $user = $userRepository->findOneBy(['email_user' => $email]);
                 if ($user !== null && $passwordHasher->isPasswordValid($user, $password)) {
                     if (!$user->getIsVerified()) {
                         $error = 'Your account is not yet verified by an administrator. You cannot log in until your account is verified.';
                     } else {
+                        // Check 2FA from DB so we always use current state (same as profile / 2fa status)
+                        $conn = $em->getConnection();
+                        $twoFaRow = $conn->fetchAssociative(
+                            'SELECT two_factor_enabled, totp_secret FROM user WHERE id_user = :id',
+                            ['id' => $user->getIdUser()],
+                            ['id' => \PDO::PARAM_INT]
+                        );
+                        $twoFactorEnabled = $twoFaRow ? (bool) ($twoFaRow['two_factor_enabled'] ?? false) : false;
+                        $totpConfigured = $twoFaRow && isset($twoFaRow['totp_secret']) && $twoFaRow['totp_secret'] !== '' && $twoFaRow['totp_secret'] !== null;
+
+                        if ($twoFactorEnabled) {
+                            if ($totpConfigured) {
+                                // Authenticator app: set session and either return JSON (AJAX) or render with popup
+                                $session->set('2fa_user_id', $user->getIdUser());
+                                $session->set('2fa_email', $user->getEmailUser());
+                                if ($isAjax) {
+                                    return $this->json(['success' => true, 'requireTotp' => true]);
+                                }
+                                return $this->render('frontend/auth/sign-in.html.twig', [
+                                    'error' => null,
+                                    'last_email' => $lastEmail,
+                                    'show_totp_popup' => true,
+                                    'hcaptcha_site_key' => $hcaptchaSiteKey,
+                                ]);
+                            }
+                            // Email OTP only: send code (stored in user.authCode), show OTP popup or redirect
+                            $twoFactorService->sendCode($user);
+                            $session->set('2fa_user_id', $user->getIdUser());
+                            $session->set('2fa_email', $user->getEmailUser());
+                            if ($isAjax) {
+                                return $this->json(['success' => true, 'requireEmailOtp' => true]);
+                            }
+                            return $this->redirectToRoute('2fa_verify');
+                        }
+
+                        // No 2FA: proceed with normal login
                         $profile = $profileRepository->findOneByUser($user);
                         $avatar = $profile?->getAvatar();
 
@@ -147,31 +267,71 @@ class UserController extends AbstractController
                             'settings' => $userSettings,
                         ]);
                         $onboarding = $onboardingRepository->findOneByUser($user);
+                        $redirectUrl = $this->generateUrl('main_home');
                         if ($onboarding === null || !$onboarding->isCompleted()) {
-                            return $this->redirectToRoute('onboarding');
+                            $redirectUrl = $this->generateUrl('onboarding');
+                        } else {
+                            $adminRoles = ['OWNER', 'ADMIN', 'SYNDIC', 'SUPERADMIN'];
+                            if (in_array($user->getRoleUser(), $adminRoles, true)) {
+                                $redirectUrl = $this->generateUrl('auth_sign_in', ['destination' => 'choice']);
+                            }
                         }
-                        $adminRoles = ['OWNER', 'ADMIN', 'SYNDIC', 'SUPERADMIN'];
-                        if (in_array($user->getRoleUser(), $adminRoles, true)) {
-                            return $this->render('frontend/auth/sign-in.html.twig', [
-                                'error' => null,
-                                'last_email' => $lastEmail,
-                                'show_destination_choice' => true,
-                            ]);
+                        if ($isAjax) {
+                            return $this->json(['success' => true, 'redirect' => $redirectUrl]);
+                        }
+                        if ($redirectUrl !== $this->generateUrl('main_home')) {
+                            if ($redirectUrl === $this->generateUrl('auth_sign_in', ['destination' => 'choice'])) {
+                                return $this->render('frontend/auth/sign-in.html.twig', [
+                                    'error' => null,
+                                    'last_email' => $lastEmail,
+                                    'show_destination_choice' => true,
+                                    'hcaptcha_site_key' => $hcaptchaSiteKey,
+                                ]);
+                            }
+                            return $this->redirect($redirectUrl);
                         }
                         return $this->redirectToRoute('main_home');
                     }
                 } else {
                     $error = 'Invalid email or password.';
                 }
-            } else {
+            } elseif ($error === null) {
                 $error = 'Please enter your email and password.';
             }
+
+            if ($isAjax) {
+                return $this->json(['success' => false, 'error' => $error], 400);
+            }
+            // PRG: redirect to GET with error in session so browser doesn't resubmit POST on refresh
+            $session->set('signin_error', $error);
+            $session->set('signin_last_email', $lastEmail);
+            return $this->redirectToRoute('auth_sign_in', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('frontend/auth/sign-in.html.twig', [
             'error' => $error,
             'last_email' => $lastEmail,
+            'hcaptcha_site_key' => $hcaptchaSiteKey,
         ]);
+    }
+
+    private function verifyHcaptcha(HttpClientInterface $httpClient, string $secret, string $response): bool
+    {
+        if ($secret === '' || $response === '') {
+            return false;
+        }
+        try {
+            $result = $httpClient->request('POST', 'https://hcaptcha.com/siteverify', [
+                'body' => [
+                    'secret' => $secret,
+                    'response' => $response,
+                ],
+            ]);
+            $data = $result->toArray();
+            return isset($data['success']) && $data['success'] === true;
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     #[Route('/logout', name: 'auth_logout')]
@@ -201,11 +361,16 @@ class UserController extends AbstractController
         OnboardingRepository $onboardingRepository,
         ReclamationRepository $reclamationRepository,
         \App\Repository\Forum\PublicationRepository $publicationRepository,
+        \App\Repository\Forum\CommentaireRepository $commentaireRepository,
+        \App\Repository\Forum\ReactionRepository $reactionRepository,
         \App\Repository\Evenement\EvenementRepository $evenementRepository,
         \App\Repository\Residence\AppartementRepository $appartementRepository,
+        \App\Repository\OAuth\OAuthRepository $oauthRepository,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $em,
-        SluggerInterface $slugger
+        SluggerInterface $slugger,
+        #[\Symfony\Component\DependencyInjection\Attribute\Autowire(param: 'mailer_oauth_user_id')]
+        int $mailerOauthUserId = 0
     ): Response {
         if (!$pageStatusService->isPageOnline('profile')) {
             return $this->redirectToRoute('maintenance_with_page', ['pageId' => 'profile']);
@@ -225,6 +390,19 @@ class UserController extends AbstractController
             $this->addFlash('danger', 'User not found.');
             return $this->redirectToRoute('auth_sign_in');
         }
+
+        // Read 2FA state directly from DB so it stays correct after TOTP verify
+        $conn = $em->getConnection();
+        $twoFaRow = $conn->fetchAssociative(
+            'SELECT two_factor_enabled, totp_secret FROM user WHERE id_user = :id',
+            ['id' => $userId],
+            ['id' => \PDO::PARAM_INT]
+        );
+        $twoFactorEnabled = $twoFaRow ? (bool) ($twoFaRow['two_factor_enabled'] ?? false) : false;
+        $totpConfigured = $twoFaRow && isset($twoFaRow['totp_secret']) && $twoFaRow['totp_secret'] !== '' && $twoFaRow['totp_secret'] !== null;
+
+        $gmailOauthConnected = $oauthRepository->findOneByUserId($userId) !== null;
+        $isMailerOauthUser = $mailerOauthUserId > 0 && $userId === $mailerOauthUserId;
 
         $profile = $profileRepository->findOneByUser($user);
         if (!$profile) {
@@ -390,78 +568,17 @@ class UserController extends AbstractController
 
         if ($isAdmin) {
             $publications = $publicationRepository->findAllLatest();
+            $commentaires = $commentaireRepository->findBy([], ['created_at' => 'DESC']);
+            $reactions = $reactionRepository->findBy([], ['created_at' => 'DESC']);
             $events = $evenementRepository->findAllWithUser();
             $appartements = $appartementRepository->findAll();
         } else {
             $publications = $publicationRepository->findBy(['user' => $user], ['date_creation_pub' => 'DESC']);
+            $commentaires = $commentaireRepository->findBy(['user' => $user], ['created_at' => 'DESC']);
+            $reactions = $reactionRepository->findBy(['user' => $user], ['created_at' => 'DESC']);
             $events = $evenementRepository->findBy(['user' => $user], ['date_event' => 'DESC']);
             $appartements = $appartementRepository->findBy(['user' => $user]);
         }
-
-        // Fetch bookmarked publications for any user
-        $bookmarks = $em->getRepository(\App\Entity\Forum\PublicationBookmark::class)->findBy(['user' => $user]);
-        $bookmarkedPublications = array_map(fn($bm) => $bm->getPublication(), $bookmarks);
-
-        // --- Fetch Social Interactions & Counts ---
-        $userInteractions = [
-            'reactions' => [],
-            'bookmarks' => [],
-            'reports' => []
-        ];
-
-        $allProfilePubs = array_merge($publications, $bookmarkedPublications);
-        $pubIds = array_unique(array_map(fn($p) => $p->getId(), $allProfilePubs));
-
-        $globalCounts = [];
-        foreach ($pubIds as $id) {
-            $globalCounts[$id] = ['likes' => 0, 'dislikes' => 0, 'reports' => 0];
-        }
-
-        if (!empty($pubIds)) {
-            // Global Counts
-            $allReactions = $em->getRepository(\App\Entity\Forum\PublicationReaction::class)
-                ->createQueryBuilder('r')
-                ->where('r.publication IN (:ids)')
-                ->setParameter('ids', $pubIds)
-                ->getQuery()
-                ->getResult();
-            
-            foreach ($allReactions as $r) {
-                if ($r->getReactionType() === 'like') $globalCounts[$r->getPublication()->getId()]['likes']++;
-                elseif ($r->getReactionType() === 'dislike') $globalCounts[$r->getPublication()->getId()]['dislikes']++;
-            }
-
-            $allReports = $em->getRepository(\App\Entity\Forum\PublicationReport::class)
-                ->createQueryBuilder('rep')
-                ->where('rep.publication IN (:ids)')
-                ->setParameter('ids', $pubIds)
-                ->getQuery()
-                ->getResult();
-            
-            foreach ($allReports as $rep) {
-                $globalCounts[$rep->getPublication()->getId()]['reports']++;
-            }
-
-            // User Specific states
-            if ($user) {
-                $reactions = $em->getRepository(\App\Entity\Forum\PublicationReaction::class)->findBy(['user' => $user, 'publication' => $pubIds]);
-                foreach ($reactions as $r) {
-                    $userInteractions['reactions'][$r->getPublication()->getId()] = $r->getReactionType();
-                }
-
-                $bookmarksUser = $em->getRepository(\App\Entity\Forum\PublicationBookmark::class)->findBy(['user' => $user, 'publication' => $pubIds]);
-                foreach ($bookmarksUser as $b) {
-                    $userInteractions['bookmarks'][$b->getPublication()->getId()] = true;
-                }
-
-                $reportsUser = $em->getRepository(\App\Entity\Forum\PublicationReport::class)->findBy(['user' => $user, 'publication' => $pubIds]);
-                foreach ($reportsUser as $rep) {
-                    $userInteractions['reports'][$rep->getPublication()->getId()] = true;
-                }
-            }
-        }
-
-        $sessionUser = $request->getSession()->get('user');
 
         $response = $this->render('frontend/profile/profile.html.twig', [
             'user' => $user,
@@ -471,16 +588,21 @@ class UserController extends AbstractController
             'onboardingForm' => $onboardingFormView,
             'reclamations' => $reclamations,
             'publications' => $publications,
-            'bookmarkedPublications' => $bookmarkedPublications,
+            'commentaires' => $commentaires,
+            'reactions' => $reactions,
             'events' => $events,
             'appartements' => $appartements,
             'isAdmin' => $isAdmin,
-            'globalCounts' => $globalCounts,
-            'userInteractions' => $userInteractions,
-            'currentUser' => $sessionUser,
+            'two_factor_enabled' => $twoFactorEnabled,
+            'totp_configured' => $totpConfigured,
+            'gmail_oauth_connected' => $gmailOauthConnected,
+            'is_mailer_oauth_user' => $isMailerOauthUser,
         ]);
         $response->setPrivate();
         $response->setMaxAge(0);
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('Expires', '0');
         return $response;
     }
 

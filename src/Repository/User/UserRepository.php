@@ -12,5 +12,33 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
-    // Add custom query methods if needed
+    /**
+     * Find user by email (case-insensitive), for sign-in and OTP.
+     */
+    public function findOneByEmail(string $email): ?User
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->where('LOWER(u.email_user) = LOWER(:email)')
+            ->setParameter('email', $email)
+            ->setMaxResults(1);
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    /**
+     * Find user by auth code (for 2FA / email verification).
+     * Optionally restrict to non-expired codes.
+     */
+    public function findOneByAuthCode(string $authCode, bool $onlyValid = true): ?User
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->andWhere('u.authCode = :code')
+            ->setParameter('code', $authCode);
+
+        if ($onlyValid) {
+            $qb->andWhere('u.authCode_expires_at > :now')
+                ->setParameter('now', new \DateTime());
+        }
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
 }

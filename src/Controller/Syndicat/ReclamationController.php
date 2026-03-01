@@ -76,33 +76,61 @@ class ReclamationController extends AbstractController
     }
 
     #[Route('/new', name: 'app_reclamation_new', methods: ['POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): JsonResponse
-    {
+    public function new(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        SluggerInterface $slugger,
+        \App\Service\Syndicat\SyndicatNotificationService $notificationService
+    ): JsonResponse {
         $reclamation = new Reclamation();
         $form = $this->createForm(ReclamationType::class, $reclamation);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $userSession = $request->getSession()->get('user');
+            if ($userSession) {
+                $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($userSession['id_user'] ?? $userSession['id']);
+                if ($user) {
+                    $reclamation->setUser($user);
+                }
+            }
+
             $imageFile = $form->get('imagereclamation')->getData();
 
             if ($imageFile) {
-                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+                // ... (existing image logic)
+                if (is_array($imageFile)) {
+                    $savedNames = [];
+                    foreach ($imageFile as $file) {
+                        $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                        $safeFilename = $slugger->slug($originalFilename);
+                        $newFilename = $safeFilename . '-' . uniqid() . '.' . $file->guessExtension();
+                        try {
+                            $file->move($this->getParameter('reclamations_directory'), $newFilename);
+                            $savedNames[] = $newFilename;
+                        } catch (FileException $e) {
+                        }
+                    }
+                    $reclamation->setImagereclamation(json_encode($savedNames));
+                } else {
+                    $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                    $safeFilename = $slugger->slug($originalFilename);
+                    $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
-                try {
-                    $imageFile->move(
-                        $this->getParameter('reclamations_directory'),
-                        $newFilename
-                    );
-                    $reclamation->setImagereclamation($newFilename);
-                } catch (FileException $e) {
+                    try {
+                        $imageFile->move($this->getParameter('reclamations_directory'), $newFilename);
+                        $reclamation->setImagereclamation($newFilename);
+                    } catch (FileException $e) {
+                    }
                 }
             }
 
             $reclamation->setCreatedAt(new \DateTime());
             $entityManager->persist($reclamation);
             $entityManager->flush();
+
+            // Send Confirmation Email
+            $notificationService->notifyReclamationConfirmation($reclamation);
 
             return new JsonResponse(['success' => true, 'message' => 'Reclamation submitted successfully.']);
         }

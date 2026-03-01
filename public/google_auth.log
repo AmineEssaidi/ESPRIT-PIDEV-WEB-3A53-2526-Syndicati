@@ -1,0 +1,104 @@
+[2026-02-23 02:35:26] Callback triggered with URL: http://localhost:8000/auth/google/callback?authuser=2&code=4%2F0AfrIepCe-dfwNqMLdOi24UpECgyx18dlzkKAmFyfmbDSYd4VMId2EzfYPiK1k5VXsdMuiQ&prompt=consent&scope=email%20profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email%20openid
+[2026-02-23 02:35:26] Fetching user info for code (redirect_uri: http://localhost:8000/auth/google/callback)
+[2026-02-23 02:38:51] Callback triggered with URL: http://localhost:8000/auth/google/callback?authuser=2&code=4%2F0AfrIepCjSvMVjprQCrk6hDCyYeCZIPSKyqYEwOR2wGSow5tIF-1nlr5bLBQ1_2mOvQop6w&prompt=consent&scope=email%20profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email%20openid
+[2026-02-23 02:38:51] Fetching user info for code (redirect_uri: http://localhost:8000/auth/google/callback)
+[2026-02-23 02:38:51] [Service] getUserInfo started with code: 4/0AfrIepC...
+[2026-02-23 02:38:51] [Service] Client created. Fetching access token...
+[2026-02-23 02:38:51] [Service] SERVICE ERROR: cURL error 60: SSL certificate OpenSSL verify result: unable to get local issuer certificate (20) (see https://curl.haxx.se/libcurl/c/libcurl-errors.html) for https://oauth2.googleapis.com/token
+#0 C:\wamp64\www\Horizon\vendor\guzzlehttp\guzzle\src\Handler\CurlFactory.php(207): GuzzleHttp\Handler\CurlFactory::createRejection(Object(GuzzleHttp\Handler\EasyHandle), Array)
+#1 C:\wamp64\www\Horizon\vendor\guzzlehttp\guzzle\src\Handler\CurlFactory.php(159): GuzzleHttp\Handler\CurlFactory::finishError(Object(GuzzleHttp\Handler\CurlHandler), Object(GuzzleHttp\Handler\EasyHandle), Object(GuzzleHttp\Handler\CurlFactory))
+#2 C:\wamp64\www\Horizon\vendor\guzzlehttp\guzzle\src\Handler\CurlHandler.php(47): GuzzleHttp\Handler\CurlFactory::finish(Object(GuzzleHttp\Handler\CurlHandler), Object(GuzzleHttp\Handler\EasyHandle), Object(GuzzleHttp\Handler\CurlFactory))
+#3 C:\wamp64\www\Horizon\vendor\guzzlehttp\guzzle\src\Handler\Proxy.php(28): GuzzleHttp\Handler\CurlHandler->__invoke(Object(GuzzleHttp\Psr7\Request), Array)
+#4 C:\wamp64\www\Horizon\vendor\guzzlehttp\guzzle\src\Handler\Proxy.php(48): GuzzleHttp\Handler\Proxy::{closure:GuzzleHttp\Handler\Proxy::wrapSync():27}(Object(GuzzleHttp\Psr7\Request), Array)
+#5 C:\wamp64\www\Horizon\vendor\guzzlehttp\guzzle\src\PrepareBodyMiddleware.php(64): GuzzleHttp\Handler\Proxy::{closure:GuzzleHttp\Handler\Proxy::wrapStreaming():47}(Object(GuzzleHttp\Psr7\Request), Array)
+#6 C:\wamp64\www\Horizon\vendor\guzzlehttp\guzzle\src\Middleware.php(31): GuzzleHttp\PrepareBodyMiddleware->__invoke(Object(GuzzleHttp\Psr7\Request), Array)
+#7 C:\wamp64\www\Horizon\vendor\guzzlehttp\guzzle\src\RedirectMiddleware.php(71): GuzzleHttp\Middleware::{closure:{closure:GuzzleHttp\Middleware::cookies():28}:29}(Object(GuzzleHttp\Psr7\Request), Array)
+#8 C:\wamp64\www\Horizon\vendor\guzzlehttp\guzzle\src\Middleware.php(63): GuzzleHttp\RedirectMiddleware->__invoke(Object(GuzzleHttp\Psr7\Request), Array)
+#9 C:\wamp64\www\Horizon\vendor\guzzlehttp\guzzle\src\HandlerStack.php(75): GuzzleHttp\Middleware::{closure:{closure:GuzzleHttp\Middleware::httpErrors():60}:61}(Object(GuzzleHttp\Psr7\Request), Array)
+#10 C:\wamp64\www\Horizon\vendor\guzzlehttp\guzzle\src\Client.php(333): GuzzleHttp\HandlerStack->__invoke(Object(GuzzleHttp\Psr7\Request), Array)
+#11 C:\wamp64\www\Horizon\vendor\guzzlehttp\guzzle\src\Client.php(106): GuzzleHttp\Client->transfer(Object(GuzzleHttp\Psr7\Request), Array)
+#12 C:\wamp64\www\Horizon\vendor\guzzlehttp\guzzle\src\Client.php(124): GuzzleHttp\Client->sendAsync(Object(GuzzleHttp\Psr7\Request), Array)
+#13 C:\wamp64\www\Horizon\vendor\google\auth\src\HttpHandler\Guzzle6HttpHandler.php(65): GuzzleHttp\Client->send(Object(GuzzleHttp\Psr7\Request), Array)
+#14 C:\wamp64\www\Horizon\vendor\google\auth\src\OAuth2.php(678): Google\Auth\HttpHandler\Guzzle6HttpHandler->__invoke(Object(GuzzleHttp\Psr7\Request))
+#15 C:\wamp64\www\Horizon\vendor\google\apiclient\src\Client.php(299): Google\Auth\OAuth2->fetchAuthToken(Object(Google\Auth\HttpHandler\Guzzle7HttpHandler))
+#16 C:\wamp64\www\Horizon\src\Service\OAuth\GoogleOAuthService.php(189): Google\Client->fetchAccessTokenWithAuthCode('4/0AfrIepCjSvMV...')
+#17 C:\wamp64\www\Horizon\src\Controller\Auth\SocialAuthController.php(72): App\Service\OAuth\GoogleOAuthService->getUserInfo('4/0AfrIepCjSvMV...', 'http://localhos...')
+#18 C:\wamp64\www\Horizon\vendor\symfony\http-kernel\HttpKernel.php(181): App\Controller\Auth\SocialAuthController->googleCallback(Object(Symfony\Component\HttpFoundation\Request))
+#19 C:\wamp64\www\Horizon\vendor\symfony\http-kernel\HttpKernel.php(76): Symfony\Component\HttpKernel\HttpKernel->handleRaw(Object(Symfony\Component\HttpFoundation\Request), 1)
+#20 C:\wamp64\www\Horizon\vendor\symfony\http-kernel\Kernel.php(208): Symfony\Component\HttpKernel\HttpKernel->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#21 C:\wamp64\www\Horizon\vendor\symfony\runtime\Runner\Symfony\HttpKernelRunner.php(35): Symfony\Component\HttpKernel\Kernel->handle(Object(Symfony\Component\HttpFoundation\Request))
+#22 C:\wamp64\www\Horizon\vendor\autoload_runtime.php(29): Symfony\Component\Runtime\Runner\Symfony\HttpKernelRunner->run()
+#23 C:\wamp64\www\Horizon\public\index.php(5): require_once('C:\\wamp64\\www\\H...')
+#24 {main}
+[2026-02-23 02:40:19] Callback triggered with URL: http://localhost:8000/auth/google/callback?authuser=2&code=4%2F0AfrIepBXoOBrXvYQP-yWCnejoub0hwqHXRXT_IixN2yUn3dtNu9NoqrlGSBHd-QR5rhUMg&prompt=consent&scope=email%20profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email%20openid
+[2026-02-23 02:40:19] Fetching user info for code (redirect_uri: http://localhost:8000/auth/google/callback)
+[2026-02-23 02:40:19] [Service] getUserInfo started with code: 4/0AfrIepB...
+[2026-02-23 02:40:19] [Service] Client created. Fetching access token...
+[2026-02-23 02:40:20] [Service] Token response received: SUCCESS (token received)
+[2026-02-23 02:40:20] [Service] Initializing Oauth2 service...
+[2026-02-23 02:40:20] [Service] Requesting userinfo from Google...
+[2026-02-23 02:40:21] [Service] User info received from Google: YES (ID: 112378988393889074136)
+[2026-02-23 02:40:21] User info received: ID=112378988393889074136, Email=slayminogg2017@gmail.com
+[2026-02-23 02:41:49] Callback triggered with URL: http://localhost:8000/auth/google/callback?authuser=2&code=4%2F0AfrIepCsZj3Vtp7k_-lqV-osAeliI8GB0gIuuXm6Xh8KZWeZMUn1I3_vDbB7NuIelHyuRg&prompt=none&scope=email%20profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%20openid
+[2026-02-23 02:41:49] Fetching user info for code (redirect_uri: http://localhost:8000/auth/google/callback)
+[2026-02-23 02:41:49] [Service] getUserInfo started with code: 4/0AfrIepC...
+[2026-02-23 02:41:49] [Service] Client created. Fetching access token...
+[2026-02-23 02:41:49] [Service] Token response received: SUCCESS (token received)
+[2026-02-23 02:41:49] [Service] Initializing Oauth2 service...
+[2026-02-23 02:41:49] [Service] Requesting userinfo from Google...
+[2026-02-23 02:41:49] [Service] User info received from Google: YES (ID: 112378988393889074136)
+[2026-02-23 02:41:49] User info received: ID=112378988393889074136, Email=slayminogg2017@gmail.com
+[2026-02-23 02:41:49] Searching for user by google_id: 112378988393889074136
+[2026-02-23 02:41:49] CRITICAL ERROR: Unrecognized field: App\Entity\User\User::$google_id
+Trace: #0 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\Persisters\Entity\BasicEntityPersister.php(1771): Doctrine\ORM\Persisters\Exception\UnrecognizedField::byFullyQualifiedName('App\\Entity\\User...', 'google_id')
+#1 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\Persisters\Entity\BasicEntityPersister.php(1635): Doctrine\ORM\Persisters\Entity\BasicEntityPersister->getSelectConditionStatementColumnSQL('google_id', NULL)
+#2 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\Persisters\Entity\BasicEntityPersister.php(1788): Doctrine\ORM\Persisters\Entity\BasicEntityPersister->getSelectConditionStatementSQL('google_id', '112378988393889...', NULL)
+#3 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\Persisters\Entity\BasicEntityPersister.php(1136): Doctrine\ORM\Persisters\Entity\BasicEntityPersister->getSelectConditionSQL(Array, NULL)
+#4 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\Persisters\Entity\BasicEntityPersister.php(736): Doctrine\ORM\Persisters\Entity\BasicEntityPersister->getSelectSQL(Array, NULL, NULL, 1, NULL, NULL)
+#5 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\EntityRepository.php(125): Doctrine\ORM\Persisters\Entity\BasicEntityPersister->load(Array, NULL, NULL, Array, NULL, 1, NULL)
+#6 C:\wamp64\www\Horizon\vendor\doctrine\doctrine-bundle\src\Repository\ServiceEntityRepositoryProxy.php(81): Doctrine\ORM\EntityRepository->findOneBy(Array, NULL)
+#7 C:\wamp64\www\Horizon\src\Controller\Auth\SocialAuthController.php(80): Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepositoryProxy->findOneBy(Array)
+#8 C:\wamp64\www\Horizon\vendor\symfony\http-kernel\HttpKernel.php(181): App\Controller\Auth\SocialAuthController->googleCallback(Object(Symfony\Component\HttpFoundation\Request))
+#9 C:\wamp64\www\Horizon\vendor\symfony\http-kernel\HttpKernel.php(76): Symfony\Component\HttpKernel\HttpKernel->handleRaw(Object(Symfony\Component\HttpFoundation\Request), 1)
+#10 C:\wamp64\www\Horizon\vendor\symfony\http-kernel\Kernel.php(208): Symfony\Component\HttpKernel\HttpKernel->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#11 C:\wamp64\www\Horizon\vendor\symfony\runtime\Runner\Symfony\HttpKernelRunner.php(35): Symfony\Component\HttpKernel\Kernel->handle(Object(Symfony\Component\HttpFoundation\Request))
+#12 C:\wamp64\www\Horizon\vendor\autoload_runtime.php(29): Symfony\Component\Runtime\Runner\Symfony\HttpKernelRunner->run()
+#13 C:\wamp64\www\Horizon\public\index.php(5): require_once('C:\\wamp64\\www\\H...')
+#14 {main}
+[2026-02-23 02:45:06] Callback triggered with URL: http://localhost:8000/auth/google/callback?authuser=2&code=4%2F0AfrIepBSbyQTwjl0GKxiuCcLg9BOlGQgp_BU25IQgLNfS7yf_QwmckwiU85kbkoIr6NFhw&prompt=none&scope=email%20profile%20openid%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile
+[2026-02-23 02:45:06] Fetching user info for code (redirect_uri: http://localhost:8000/auth/google/callback)
+[2026-02-23 02:45:06] [Service] getUserInfo started with code: 4/0AfrIepB...
+[2026-02-23 02:45:06] [Service] Client created. Fetching access token...
+[2026-02-23 02:45:06] [Service] Token response received: SUCCESS (token received)
+[2026-02-23 02:45:06] [Service] Initializing Oauth2 service...
+[2026-02-23 02:45:06] [Service] Requesting userinfo from Google...
+[2026-02-23 02:45:06] [Service] User info received from Google: YES (ID: 112378988393889074136)
+[2026-02-23 02:45:06] User info received: ID=112378988393889074136, Email=slayminogg2017@gmail.com
+[2026-02-23 02:45:06] Searching for user by googleId: 112378988393889074136
+[2026-02-23 02:45:06] CRITICAL ERROR: Unrecognized field: App\Entity\User\User::$googleId
+Trace: #0 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\Persisters\Entity\BasicEntityPersister.php(1771): Doctrine\ORM\Persisters\Exception\UnrecognizedField::byFullyQualifiedName('App\\Entity\\User...', 'googleId')
+#1 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\Persisters\Entity\BasicEntityPersister.php(1635): Doctrine\ORM\Persisters\Entity\BasicEntityPersister->getSelectConditionStatementColumnSQL('googleId', NULL)
+#2 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\Persisters\Entity\BasicEntityPersister.php(1788): Doctrine\ORM\Persisters\Entity\BasicEntityPersister->getSelectConditionStatementSQL('googleId', '112378988393889...', NULL)
+#3 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\Persisters\Entity\BasicEntityPersister.php(1136): Doctrine\ORM\Persisters\Entity\BasicEntityPersister->getSelectConditionSQL(Array, NULL)
+#4 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\Persisters\Entity\BasicEntityPersister.php(736): Doctrine\ORM\Persisters\Entity\BasicEntityPersister->getSelectSQL(Array, NULL, NULL, 1, NULL, NULL)
+#5 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\EntityRepository.php(125): Doctrine\ORM\Persisters\Entity\BasicEntityPersister->load(Array, NULL, NULL, Array, NULL, 1, NULL)
+#6 C:\wamp64\www\Horizon\vendor\doctrine\doctrine-bundle\src\Repository\ServiceEntityRepositoryProxy.php(81): Doctrine\ORM\EntityRepository->findOneBy(Array, NULL)
+#7 C:\wamp64\www\Horizon\src\Controller\Auth\SocialAuthController.php(80): Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepositoryProxy->findOneBy(Array)
+#8 C:\wamp64\www\Horizon\vendor\symfony\http-kernel\HttpKernel.php(181): App\Controller\Auth\SocialAuthController->googleCallback(Object(Symfony\Component\HttpFoundation\Request))
+#9 C:\wamp64\www\Horizon\vendor\symfony\http-kernel\HttpKernel.php(76): Symfony\Component\HttpKernel\HttpKernel->handleRaw(Object(Symfony\Component\HttpFoundation\Request), 1)
+#10 C:\wamp64\www\Horizon\vendor\symfony\http-kernel\Kernel.php(208): Symfony\Component\HttpKernel\HttpKernel->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true)
+#11 C:\wamp64\www\Horizon\vendor\symfony\runtime\Runner\Symfony\HttpKernelRunner.php(35): Symfony\Component\HttpKernel\Kernel->handle(Object(Symfony\Component\HttpFoundation\Request))
+#12 C:\wamp64\www\Horizon\vendor\autoload_runtime.php(29): Symfony\Component\Runtime\Runner\Symfony\HttpKernelRunner->run()
+#13 C:\wamp64\www\Horizon\public\index.php(5): require_once('C:\\wamp64\\www\\H...')
+#14 {main}
+[2026-02-23 02:48:14] Callback triggered with URL: http://localhost:8000/auth/google/callback?authuser=2&code=4%2F0AfrIepCea-8N8OCNZoP2_j3zQC2VfA1O_sajXo2FG-nSZIWTkHuEqppaDzlLZkAVKa8sAg&prompt=none&scope=email%20profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%20openid
+[2026-02-23 02:48:14] Fetching user info for code (redirect_uri: http://localhost:8000/auth/google/callback)
+[2026-02-23 02:48:14] [Service] getUserInfo started with code: 4/0AfrIepC...
+[2026-02-23 02:48:14] [Service] Client created. Fetching access token...
+[2026-02-23 02:48:14] [Service] Token response received: SUCCESS (token received)
+[2026-02-23 02:48:14] [Service] Initializing Oauth2 service...
+[2026-02-23 02:48:14] [Service] Requesting userinfo from Google...
+[2026-02-23 02:48:14] [Service] User info received from Google: YES (ID: 112378988393889074136)
+[2026-02-23 02:48:14] User info received: ID=112378988393889074136, Email=slayminogg2017@gmail.com
+[2026-02-23 02:48:14] Searching for user by google_id: 112378988393889074136
+[2026-02-23 02:48:15] User NOT found by google_id, searching by email: slayminogg2017@gmail.com

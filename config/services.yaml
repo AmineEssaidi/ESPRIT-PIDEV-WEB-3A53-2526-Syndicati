@@ -11,6 +11,22 @@ parameters:
     residences_directory: '%kernel.project_dir%/public/residence_images'
     appartements_directory: '%kernel.project_dir%/public/appartement_images'
     reponse_images_directory: '%kernel.project_dir%/public/reponse_images'
+    mailer_from_email: '%env(string:MAILER_FROM_EMAIL)%'
+    mailer_from_name: '%env(string:MAILER_FROM_NAME)%'
+    mailer_dsn: '%env(MAILER_DSN)%'
+    mistral_api_key: '%env(string:MISTRAL_API_KEY)%'
+    twilio_account_sid: '%env(string:TWILIO_ACCOUNT_SID)%'
+    twilio_auth_token: '%env(string:TWILIO_AUTH_TOKEN)%'
+    twilio_phone_number: '%env(string:TWILIO_PHONE_NUMBER)%'
+    # Gmail OAuth (optional – for sending mail via Gmail API instead of SMTP)
+    google_oauth_client_id_default: ''
+    google_oauth_client_secret_default: ''
+    google_oauth_redirect_uri_default: ''
+    mailer_oauth_user_id_default: 0
+    google_oauth_client_id: '%env(default:google_oauth_client_id_default:GOOGLE_OAUTH_CLIENT_ID)%'
+    google_oauth_client_secret: '%env(default:google_oauth_client_secret_default:GOOGLE_OAUTH_CLIENT_SECRET)%'
+    google_oauth_redirect_uri: '%env(default:google_oauth_redirect_uri_default:GOOGLE_OAUTH_REDIRECT_URI)%'
+    mailer_oauth_user_id: '%env(int:default:mailer_oauth_user_id_default:MAILER_OAUTH_USER_ID)%'
 
 services:
     # default configuration for services in *this* file
@@ -22,6 +38,122 @@ services:
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
+
+    # Two-Factor Email Mailer
+    App\Service\TwoFactor\EmailAuthCodeMailer:
+        arguments:
+            $fromEmail: '%mailer_from_email%'
+            $fromName: '%mailer_from_name%'
+
+    # Two-Factor Service
+    App\Service\TwoFactor\TwoFactorService:
+        arguments:
+            $fromEmail: '%mailer_from_email%'
+            $fromName: '%mailer_from_name%'
+            $mailerDsn: '%mailer_dsn%'
+
+    # Gmail OAuth
+    App\Service\OAuth\GoogleOAuthService:
+        arguments:
+            $clientId: '%google_oauth_client_id%'
+            $clientSecret: '%google_oauth_client_secret%'
+            $redirectUri: '%google_oauth_redirect_uri%'
+
+    App\Service\OAuth\GmailOAuthMailer:
+        arguments:
+            $oauthUserId: '%mailer_oauth_user_id%'
+            $fromName: '%mailer_from_name%'
+
+    App\Controller\Auth\SocialAuthController:
+        arguments:
+            $fromEmail: '%mailer_from_email%'
+            $fromName: '%mailer_from_name%'
+
+    # Agent Controller
+    App\Controller\AgentController:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    # Syndicati Agent Service
+    App\Service\SyndicatiAgent:
+        public: true
+        arguments:
+            $ollamaUrl: '%env(default::OLLAMA_BASE_URL)%'
+            $model: '%env(default::OLLAMA_MODEL)%'
+
+    # Smart Route Mapping Service
+    App\Service\SmartRouteMappingService:
+        public: true
+
+    # Deep Codebase Scanner
+    App\Service\DeepCodebaseScanner:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    # Internal Knowledge Service
+    App\Service\InternalKnowledgeService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Service\SyndicatiNativeAgentRuntime:
+        public: true
+        arguments:
+            $routes: '@App\Service\SmartRouteMappingService'
+
+    App\Controller\SyndicatiNativeAgentController:
+        public: true
+
+    App\Service\PlaywrightToolServerManager:
+        public: true
+
+    App\Controller\SyndicatiAgentBootstrapController:
+        public: true
+
+    App\Service\LangGraphClient:
+        autowire: true
+
+    App\Service\PlaywrightService:
+        autowire: true
+
+    # Forum Notification Service
+    App\Service\Forum\ForumNotificationService:
+        arguments:
+            $fromEmail: '%mailer_from_email%'
+            $fromName: '%mailer_from_name%'
+            $mailerDsn: '%mailer_dsn%'
+
+    # Syndicat Notification Service
+    App\Service\Syndicat\SyndicatNotificationService:
+        arguments:
+            $fromEmail: '%mailer_from_email%'
+            $fromName: '%mailer_from_name%'
+            $mailerDsn: '%mailer_dsn%'
+
+    # Residence Notification Service
+    App\Service\Residence\ResidenceNotificationService:
+        arguments:
+            $fromEmail: '%mailer_from_email%'
+            $fromName: '%mailer_from_name%'
+            $mailerDsn: '%mailer_dsn%'
+
+    # Evenement Notification Service
+    App\Service\Evenement\EvenementNotificationService:
+        arguments:
+            $fromEmail: '%mailer_from_email%'
+            $fromName: '%mailer_from_name%'
+            $mailerDsn: '%mailer_dsn%'
+
+    # Maintenance Prediction (Mistral AI)
+    App\Service\MaintenancePrediction:
+        arguments:
+            $mistralApiKey: '%mistral_api_key%'
+
+    # Twilio Service
+    App\Service\Twilio\TwilioService:
+        arguments:
+            $accountSid: '%twilio_account_sid%'
+            $authToken: '%twilio_auth_token%'
+            $fromNumber: '%twilio_phone_number%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

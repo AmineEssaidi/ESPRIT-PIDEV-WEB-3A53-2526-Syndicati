@@ -9,7 +9,9 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
@@ -75,6 +77,26 @@ class AppartementType extends AbstractType
                 'label' => 'Available',
                 'required' => false,
             ])
+            ->add('superficie', NumberType::class, [
+                'label' => 'Surface area (m²)',
+                'required' => false,
+                'attr' => ['step' => '0.01'],
+            ])
+            ->add('prix_location', NumberType::class, [
+                'label' => 'Monthly Rent (TND)',
+                'required' => false,
+                'attr' => ['step' => '0.01'],
+            ])
+            ->add('prix_vente', NumberType::class, [
+                'label' => 'Sale Price (TND)',
+                'required' => false,
+                'attr' => ['step' => '0.01'],
+            ])
+            ->add('date_construction', DateType::class, [
+                'label' => 'Construction Date',
+                'widget' => 'single_text',
+                'required' => false,
+            ])
             ->add('imageA', FileType::class, [
                 'label' => 'Image (Optional)',
                 'mapped' => false,
@@ -96,6 +118,10 @@ class AppartementType extends AbstractType
                 'choice_label' => 'emailUser', // Correct property path for getEmailUser()
                 'label' => 'Owner / User',
                 'placeholder' => 'Select Owner',
+            ])
+            ->add('maintenance', \App\Form\Residence\MaintenanceType::class, [
+                'label' => false,
+                'required' => false,
             ])
         ;
     }

@@ -1,26 +1,153 @@
-Home: Accueil
-Services: Services
-About: À propos
-Our Team: Notre équipe
-Company: Entreprise
-Contact: Contact
-Residence: Résidence
-Forum: Forum
-Syndicat: Syndicat
-Evenement: Événement
-Sign In: Connexion
-Sign Up: Créer un compte
-My Profile: Mon profil
-Dashboard: Tableau de bord
-Settings: Paramètres
-Billing: Facturation
-Log Out: Déconnexion
-Documentation: Documentation
-Support: Support
-GitHub: GitHub
-License: Licence
-Made with: Fait avec
-by: par
-Notifications: Notifications
-new messages: nouveaux messages
-Close: Fermer
+settings:
+    title: "Paramètres"
+    description: "Personnalisez votre expérience"
+    theme_mode: "Mode du thème"
+    choose_theme_mode: "Choisissez entre le mode clair et sombre"
+    light: "Clair"
+    dark: "Sombre"
+    accent_color: "Couleur d'accent"
+    customize_appearance: "Personnalisez l'apparence de votre interface"
+    purple: "Violet"
+    pink: "Rose"
+    cyan: "Cyan"
+    bordeaux: "Bordeaux"
+    hex_color_hint: "Entrez une couleur hexadécimale ou utilisez le sélecteur"
+    language_title: "Langue"
+    language_hint: "Sélectionnez votre langue préférée"
+    animations: "Animations"
+    display_borders: "Activer les bordures accentuées animées"
+    animated_borders: "Bordures Animées"
+    sky_high: "Ciel Étoilé"
+    preview: "Aperçu :"
+    preview_desc: "Voici un aperçu de votre thème sélectionné."
+
+nav:
+    search: "Rechercher"
+    home: "Accueil"
+    services: "Services"
+    residence: "Résidence"
+    forum: "Forum"
+    syndicat: "Syndicat"
+    evenement: "Événement"
+    about: "À propos"
+    our_team: "Notre équipe"
+    company: "Entreprise"
+    contact: "Contact"
+    notifications: "Notifications"
+    new_messages: "nouveaux messages"
+    new_message: "Nouveau message"
+    unread_notifications: "notifications non lues"
+    close: "Fermer"
+    sign_in: "Connexion"
+    sign_up: "Créer un compte"
+    my_profile: "Mon profil"
+    dashboard: "Tableau de bord"
+    billing: "Facturation"
+    log_out: "Déconnexion"
+
+footer:
+    made_with: "Fait avec"
+    by: "par"
+    documentation: "Documentation"
+    support: "Support"
+    github: "GitHub"
+    license: "Licence"
+
+syndicat:
+    management: "Gestion des Syndicats"
+    management_desc: "Simplifiez la gestion de votre résidence. Gérez les blocs, appartements, résidents, événements et participations en un seul endroit."
+    view_complex: "Voir le Complexe"
+    events: "Événements"
+    blocks: "Blocs"
+    apartments: "Appartements"
+    residents: "Résidents"
+    our_complex: "Notre Complexe Résidentiel"
+    complex_overview: "Résidence Les Jardins de Carthage - Vue d'ensemble des blocs"
+    block_a: "Bloc A - Jasmin"
+    block_a_apts: "12 appartements"
+    block_a_res: "38 résidents"
+    block_a_avail: "2 disponibles"
+    block_a_desc: "4 étages • Ascenseur • Parking souterrain"
+    block_b: "Bloc B - Rose"
+    block_b_apts: "12 appartements"
+    block_b_res: "42 résidents"
+    block_b_avail: "0 disponibles"
+    block_c: "Bloc C - Olivier"
+    block_c_res: "36 résidents"
+    block_c_avail: "1 disponible"
+    block_d: "Bloc D - Palmier"
+    block_d_res: "40 résidents"
+    block_d_avail: "1 disponible"
+    services_title: "Services du Syndicat"
+    financial_management: "Gestion Financière"
+    financial_desc: "Suivi des charges, budget annuel, paiements en ligne"
+    maintenance: "Maintenance"
+    maintenance_desc: "Signalement de problèmes, suivi des interventions"
+    communication: "Communication"
+    communication_desc: "Annonces, notifications, messagerie résidents"
+    documents: "Documents"
+    documents_desc: "Règlement, PV d'assemblées, contrats"
+    parking: "Parking"
+    parking_desc: "Gestion des places, badges d'accès"
+    statistics: "Statistiques"
+    statistics_desc: "Rapports, taux de participation, historique"
+    need_assistance: "Besoin d'Assistance?"
+    assistance_desc: "Notre équipe de gestion est là pour vous aider. Contactez le syndic ou signalez un problème."
+    contact_syndic: "Contacter le Syndic"
+    report_problem: "Signaler un Problème"
+    welcome_title: "Bienvenue sur Syndicati"
+    welcome_sub: "Personnalisez votre expérience en quelques étapes"
+
+events:
+    upcoming: "Événements à Venir"
+    join_activities: "Participez aux activités de la résidence"
+    urgent: "Urgent"
+    assembly: "Assemblée Générale Annuelle"
+    assembly_date: "25 Janvier 2026 - 18h00"
+    assembly_desc: "Vote du budget 2026, élection du nouveau syndic, discussion travaux de rénovation du hall."
+    assembly_conf: "42/48 confirmés"
+    community: "Communautaire"
+    neighbors_party: "Fête des Voisins"
+    party_date: "15 Février 2026 - 16h00"
+    party_desc: "Grande fête dans le jardin commun. Barbecue, musique et jeux pour enfants."
+    party_reg: "78/156 inscrits"
+    elevator: "Travaux Ascenseur Bloc A"
+    elevator_date: "1-3 Février 2026"
+    elevator_desc: "Maintenance préventive de l'ascenseur. Escaliers uniquement pendant 3 jours."
+    block_concerned: "Bloc A concerné"
+
+residents:
+    new_title: "Nouveaux Résidents"
+    welcome_neighbors: "Bienvenue à nos nouveaux voisins"
+    fam_benali: "Famille Benali"
+    fam_benali_apt: "Bloc A - Apt 4B"
+    fam_benali_arr: "Arrivée: Janvier 2026"
+    mrs_trabelsi: "Mme. Trabelsi"
+    mrs_trabelsi_apt: "Bloc C - Apt 2A"
+    mrs_trabelsi_arr: "Arrivée: Décembre 2025"
+    fam_khelifi: "Famille Khelifi"
+    fam_khelifi_apt: "Bloc B - Apt 3C"
+
+forms:
+    how_notified: "Comment souhaitez-vous être notifié ?"
+    channel: "Canal"
+    frequency: "Fréquence"
+    your_property: "Votre logement"
+    tell_us_property: "Parlez-nous de votre bien"
+    property_type: "Type de bien"
+    occupancy_status: "Statut d'occupation"
+    comm_prefs: "Vos préférences de communication"
+    meeting_participation: "Participation aux réunions"
+    pref_contact: "Contact préféré"
+    your_involvement: "Votre implication"
+    comm_engagement: "Engagement communautaire"
+    latest_options: "Dernières options"
+    payment: "Paiement"
+    noise_sensitivity: "Sensibilité au bruit"
+    pets: "Animaux"
+    accessibility: "Accessibilité"
+    almost_done: "Presque terminé !"
+    suggestions: "Des suggestions ou commentaires ? (optionnel)"
+    previous: "Précédent"
+    next: "Suivant"
+    finish: "Terminer"

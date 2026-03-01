@@ -113,19 +113,25 @@
 
 /* Event Card */
 .event-card {
-    background: rgba(20, 20, 30, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.7);
+    /* Obsidian base */
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 32px;
     overflow: hidden;
     transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     display: flex;
     flex-direction: column;
-    height: 540px;
-    /* Locked height to prevent expansion */
-    backdrop-filter: blur(12px);
-
-    will-change: transform;
+    min-height: 480px;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    will-change: transform, box-shadow;
     position: relative;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* When a non-main face is active, auto-size */
+.event-card[class*="active-"]:not(.active-main) {
+    height: auto;
 }
 
 .event-card::before {
@@ -143,16 +149,18 @@
 }
 
 .event-card:hover {
-    transform: translateY(-12px);
-    border-color: rgba(var(--main-home-accent-rgb), 0.3);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    background: rgba(25, 25, 40, 0.6);
+    transform: translateY(-8px) scale(1.01);
+    border-color: rgba(var(--main-home-accent-rgb), 0.4);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(var(--main-home-accent-rgb), 0.2);
+    background: rgba(5, 5, 10, 0.75);
 }
 
 .event-card-image {
     position: relative;
-    height: 240px;
+    height: 220px;
+    min-height: 220px;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .event-card-image img {
@@ -247,11 +255,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.2rem 1.8rem;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 24px;
-    margin: 0 1.5rem 1.5rem 1.5rem;
+    padding: 1rem 1.7rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    margin: auto 1.5rem 1.5rem 1.5rem;
     transition: all 0.3s ease;
 }
 
@@ -329,20 +337,28 @@
 .empty-state-right {
     position: relative;
     z-index: 2;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 40px;
-    padding: 3rem;
-    backdrop-filter: blur(8px);
+    background: transparent;
+    border: none;
+    padding: 0;
+    backdrop-filter: none;
 }
 
-/* Glass Calendar UI */
-.glass-calendar {
-    margin-top: 1.5rem;
-    background: rgba(0, 0, 0, 0.3);
+/* Glass Dashboard Card (unified) */
+.glass-dashboard-card {
+    background: rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
-    padding: 1.5rem;
+    border-radius: 32px;
+    padding: 2.5rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.glass-calendar {
+    margin-top: 1rem;
+    background: transparent;
+    border: none;
+    padding: 0;
     color: #fff;
 }
 
@@ -785,4 +801,91 @@
 .glass-switcher-content-scroll::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
+}
+
+/* ==========================================================================
+   EVENT CARD ↔ GLASS SWITCHER INTEGRATION
+   Ensures non-main faces have proper backgrounds, sizing, and readability
+   ========================================================================== */
+
+/* Non-main faces inside event cards need an opaque obsidian background */
+.event-card .glass-switcher-face-details,
+.event-card .glass-switcher-face-participate,
+.event-card .glass-switcher-face-edit {
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-radius: 32px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Ensure the main face doesn't overflow in its default state */
+.event-card .glass-switcher-face-main {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* When active, give faces proper min-height to fill the card */
+.event-card.active-details .glass-switcher-face-details,
+.event-card.active-participate .glass-switcher-face-participate,
+.event-card.active-edit .glass-switcher-face-edit {
+    min-height: 480px;
+}
+
+/* Dashboard switcher panel */
+.empty-state-right.glass-switcher {
+    min-height: 420px;
+}
+
+.empty-state-right .glass-switcher-face-extra {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 40px;
+}
+
+/* Light theme: event card faces */
+[data-theme="light"] .event-card .glass-switcher-face-details,
+[data-theme="light"] .event-card .glass-switcher-face-participate,
+[data-theme="light"] .event-card .glass-switcher-face-edit {
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="light"] .event-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .event-card:hover {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    border-color: rgba(var(--main-home-accent-rgb), 0.2);
+}
+
+[data-theme="light"] .event-card-footer {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .event-card-desc {
+    color: #666;
+}
+
+[data-theme="light"] .event-meta {
+    color: #888;
+}
+
+[data-theme="light"] .forum-empty-state {
+    background: #fafafa;
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .empty-state-right {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .glass-calendar {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.06);
 }

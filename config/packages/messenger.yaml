@@ -21,6 +21,7 @@ framework:
             messenger.bus.default: []
 
         routing:
+            # Send emails immediately (no worker needed). Use async if you run messenger:consume.
             Symfony\Component\Mailer\Messenger\SendEmailMessage: sync
             Symfony\Component\Notifier\Message\ChatMessage: async
             Symfony\Component\Notifier\Message\SmsMessage: async
