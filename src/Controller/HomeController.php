@@ -98,7 +98,6 @@ class HomeController extends AbstractController
     {
         $response = $this->render('frontend/about/our-team.html.twig');
 
-        // Contenu statique, mise en cache plus longue
         $response->setPublic();
         $response->setMaxAge(3600); // 1 hour
         $response->setEtag(md5($response->getContent()));

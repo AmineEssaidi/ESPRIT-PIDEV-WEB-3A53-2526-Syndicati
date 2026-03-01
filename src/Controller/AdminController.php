@@ -11,6 +11,7 @@ use App\Entity\Residence\Maintenance;
 
 use App\Form\Onboarding\OnboardingType;
 use App\Form\Profile\ProfileType;
+use App\Form\Residence\AppartementType;
 use App\Form\User\UserType;
 use App\Repository\Onboarding\OnboardingRepository;
 use App\Repository\Profile\ProfileRepository;
@@ -31,6 +32,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\Form\FormFactoryInterface;
 
 use App\Service\PageStatusService;
 use App\Service\MachineLearning;
