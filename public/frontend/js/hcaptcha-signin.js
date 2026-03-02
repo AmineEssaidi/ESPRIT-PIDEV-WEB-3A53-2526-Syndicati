@@ -30,7 +30,7 @@
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
-                alert('Please complete the security verification (captcha) before signing in.');
+                window.pushNotif('Please complete the security verification (captcha) before signing in.', 'WARNING');
                 var loader = document.getElementById('pageLoader');
                 if (loader) {
                     loader.classList.add('fade-out');

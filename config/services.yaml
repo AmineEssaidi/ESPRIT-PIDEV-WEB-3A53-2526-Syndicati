@@ -15,9 +15,10 @@ parameters:
     mailer_from_name: '%env(string:MAILER_FROM_NAME)%'
     mailer_dsn: '%env(MAILER_DSN)%'
     mistral_api_key: '%env(string:MISTRAL_API_KEY)%'
-    twilio_account_sid: '%env(string:TWILIO_ACCOUNT_SID)%'
-    twilio_auth_token: '%env(string:TWILIO_AUTH_TOKEN)%'
-    twilio_phone_number: '%env(string:TWILIO_PHONE_NUMBER)%'
+    twilio_account_sid: '%env(default::twilio_account_sid)%'
+    twilio_auth_token: '%env(default::twilio_auth_token)%'
+    twilio_phone_number: '%env(default::twilio_from_number)%'
+    twilio_verify_service_sid: '%env(default::TWILIO_VERIFY_SERVICE_SID)%'
     # Gmail OAuth (optional – for sending mail via Gmail API instead of SMTP)
     google_oauth_client_id_default: ''
     google_oauth_client_secret_default: ''
@@ -27,6 +28,9 @@ parameters:
     google_oauth_client_secret: '%env(default:google_oauth_client_secret_default:GOOGLE_OAUTH_CLIENT_SECRET)%'
     google_oauth_redirect_uri: '%env(default:google_oauth_redirect_uri_default:GOOGLE_OAUTH_REDIRECT_URI)%'
     mailer_oauth_user_id: '%env(int:default:mailer_oauth_user_id_default:MAILER_OAUTH_USER_ID)%'
+    livekit_url: '%env(string:LIVEKIT_URL)%'
+    livekit_api_key: '%env(string:LIVEKIT_API_KEY)%'
+    livekit_api_secret: '%env(string:LIVEKIT_API_SECRET)%'
 
 services:
     # default configuration for services in *this* file
@@ -154,6 +158,23 @@ services:
             $accountSid: '%twilio_account_sid%'
             $authToken: '%twilio_auth_token%'
             $fromNumber: '%twilio_phone_number%'
+            $verifyServiceSid: '%twilio_verify_service_sid%'
+
+    # LiveKit Service
+    App\Service\VideoConference\LiveKitService:
+        arguments:
+            $apiKey: '%livekit_api_key%'
+            $apiSecret: '%livekit_api_secret%'
+            $liveKitUrl: '%livekit_url%'
+
+    # Activity Listener
+    App\EventListener\ActivityListener:
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # Activity Log API
+    App\Controller\Api\ActivityLogController:
+        tags: ['controller.service_arguments']
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

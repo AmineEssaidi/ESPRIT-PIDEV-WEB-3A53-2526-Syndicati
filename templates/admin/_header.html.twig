@@ -27,37 +27,62 @@
             </div>
 
 
-            <!-- Dynamic Island Notification (from frontend) -->
-            <div class="main-home-notification-circle">
-                <div class="main-home-dynamic-island" id="dynamicIsland" title="Notifications">
-                    <span class="main-home-notification-icon">🔔</span>
-                    <span class="main-home-notification-badge">3</span>
-                    <!-- Dynamic Content -->
-                    <div class="main-home-dynamic-content">
-                        <p class="main-home-dynamic-text" data-i18n="Notifications">Notifications</p>
-                        <p class="main-home-dynamic-subtext"><span data-i18n="3">3</span> <span data-i18n="new messages">nouveaux messages</span></p>
-                    </div>
-                    <!-- Notification Popup Content -->
-                    <div class="main-home-notification-popup-content" style="display: none;">
-                        <div class="main-home-notification-popup-icon">📱</div>
-                        <div class="main-home-notification-popup-text">
-                            <p class="main-home-notification-popup-title" data-i18n="New Message">New Message</p>
-                            <p class="main-home-notification-popup-message"><span data-i18n="You have">You have</span> 3 <span data-i18n="unread notifications">unread notifications</span></p>
-                        </div>
-                    </div>
-                    <!-- Multiple Notifications Container -->
-                    <div class="main-home-notifications-container" style="display: none;">
-                        <div class="main-home-notifications-scroll">
-                            <!-- Notifications will be dynamically added here -->
-                        </div>
-                    </div>
+            <!-- Unified Notification Hub -->
+            <div class="notif-wrapper">
+                <div class="notif-bell" id="notifBell" title="Notifications">
+                    <i class="bx bx-bell" style="font-size: 20px;"></i>
+                    <span class="notif-badge" id="notifBadge" style="display: none;">0</span>
                 </div>
-                <!-- Animated Close Button -->
-                <button class="main-home-dynamic-close-btn" id="dynamicCloseBtn" title="Close">✕</button>
+                
+                <div class="notif-hub" id="notifHub">
+                    <div class="notif-hub-header">
+                        <h5>{{ 'nav.notifications'|trans|default('Notifications') }}</h5>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button id="notifMarkAllRead" class="notif-action-btn">{{ 'nav.mark_all_read'|trans|default('Tout lu') }}</button>
+                            <button id="notifCloseHub" class="notif-close-btn"><i class="bx bx-x"></i></button>
+                        </div>
+                    </div>
+                    <div class="notif-hub-body scrollbar-hide" id="notifScroll"></div>
+                </div>
             </div>
 
-            <!-- Enhanced User Profile -->
-            <script src="/admin/js/dynamic-island.js"></script>
+            <!-- Enhanced User Profile Toggle Logic -->
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const bell = document.getElementById('notifBell');
+                const hub = document.getElementById('notifHub');
+                const closeBtn = document.getElementById('notifCloseHub');
+
+                if (bell && hub) {
+                    bell.onclick = function(e) {
+                        e.stopPropagation();
+                        const isActive = hub.classList.contains('active');
+                        if (isActive) {
+                            hub.classList.remove('active');
+                            hub.style.display = 'none';
+                        } else {
+                            hub.style.display = 'flex';
+                            hub.classList.add('active');
+                        }
+                    };
+
+                    if (closeBtn) {
+                        closeBtn.onclick = function(e) {
+                            e.stopPropagation();
+                            hub.classList.remove('active');
+                            hub.style.display = 'none';
+                        };
+                    }
+
+                    document.onclick = function(e) {
+                        if (hub.classList.contains('active') && !hub.contains(e.target) && !bell.contains(e.target)) {
+                            hub.classList.remove('active');
+                            hub.style.display = 'none';
+                        }
+                    };
+                }
+            });
+            </script>
             <div class="user-profile-dropdown">
                 <div class="user-info">
                     <div class="user-details">

@@ -10,8 +10,10 @@ use App\Form\User\UserType;
 use App\Repository\Onboarding\OnboardingRepository;
 use App\Repository\Profile\ProfileRepository;
 use App\Repository\User\UserRepository;
+use App\Repository\UserRelationship\UserRelationshipRepository;
 use App\Repository\Syndicat\ReclamationRepository;
 use App\Service\PageStatusService;
+use App\Service\UserStanding\UserStandingService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -27,17 +29,29 @@ use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Service\TwoFactor\TwoFactorService;
+use App\Service\FormErrorHelperTrait;
 
 class UserController extends AbstractController
 {
+    use FormErrorHelperTrait;
     public function __construct(
-        private readonly CacheInterface $cache
+        private readonly CacheInterface $cache,
+        private readonly UserStandingService $userStandingService,
+        private readonly \App\Service\User\NotificationService $notifService
     ) {
     }
 
     #[Route('/signup', name: 'user_signup', methods: ['GET', 'POST'])]
-    public function signup(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
-    {
+    public function signup(
+        Request $request,
+        EntityManagerInterface $em,
+        UserPasswordHasherInterface $passwordHasher,
+        HttpClientInterface $httpClient,
+        #[Autowire(param: 'hcaptcha_site_key')]
+        string $hcaptchaSiteKey = '',
+        #[Autowire(param: 'hcaptcha_secret_key')]
+        string $hcaptchaSecretKey = '',
+    ): Response {
         $user = new User();
         $form = $this->createForm(UserType::class, $user, [
             'signup' => true,
@@ -47,6 +61,35 @@ class UserController extends AbstractController
 
         if ($form->isSubmitted()) {
             $isAjax = $request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
+
+            // Verify hCaptcha if configured
+            if ($hcaptchaSecretKey !== '' && $hcaptchaSiteKey !== '') {
+                $captchaResponse = $request->request->get('h-captcha-response');
+                if ($captchaResponse === null || trim((string) $captchaResponse) === '') {
+                    $error = 'Please complete the security verification (captcha) before creating an account.';
+                    if ($isAjax) {
+                        return $this->json(['success' => false, 'message' => $error], 400);
+                    }
+                    $this->addFlash('danger', $error);
+                    return $this->render('frontend/signup.html.twig', [
+                        'form' => $form->createView(),
+                        'hcaptcha_site_key' => $hcaptchaSiteKey,
+                    ]);
+                }
+
+                $verified = $this->verifyHcaptcha($httpClient, $hcaptchaSecretKey, (string) $captchaResponse);
+                if (!$verified) {
+                    $error = 'Security verification failed. Please try again.';
+                    if ($isAjax) {
+                        return $this->json(['success' => false, 'message' => $error], 400);
+                    }
+                    $this->addFlash('danger', $error);
+                    return $this->render('frontend/signup.html.twig', [
+                        'form' => $form->createView(),
+                        'hcaptcha_site_key' => $hcaptchaSiteKey,
+                    ]);
+                }
+            }
 
             if ($form->isValid()) {
                 $existingUser = $em->getRepository(User::class)->findOneBy(['email_user' => $user->getEmailUser()]);
@@ -80,23 +123,18 @@ class UserController extends AbstractController
                     $this->addFlash('success', 'Account created successfully!');
                     return $this->redirectToRoute('auth_sign_in');
                 }
-            } else {
-                $errorMessages = [];
-                foreach ($form->getErrors(true) as $error) {
-                    $errorMessages[] = $error->getMessage();
-                }
-
                 if ($isAjax) {
-                    return $this->json(['success' => false, 'errors' => $errorMessages], 400);
+                    return $this->json(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
                 }
 
-                $this->addFlash('error_popup', implode('|', $errorMessages));
+                $this->addFlash('error_popup', implode('|', $this->getFormErrors($form)));
                 $this->addFlash('danger', 'Please correct the errors in the form.');
             }
         }
 
         return $this->render('frontend/signup.html.twig', [
             'form' => $form->createView(),
+            'hcaptcha_site_key' => $hcaptchaSiteKey,
         ]);
     }
 
@@ -369,6 +407,8 @@ class UserController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $em,
         SluggerInterface $slugger,
+        \App\Repository\UserStanding\UserStandingRepository $userStandingRepository,
+        \App\Repository\UserRelationship\UserRelationshipRepository $userRelationshipRepository,
         #[\Symfony\Component\DependencyInjection\Attribute\Autowire(param: 'mailer_oauth_user_id')]
         int $mailerOauthUserId = 0
     ): Response {
@@ -428,6 +468,42 @@ class UserController extends AbstractController
             }
         }
 
+        $userStanding = $userStandingRepository->findOneBy(['user' => $user]);
+        if (!$userStanding) {
+            $userStanding = new \App\Entity\UserStanding\UserStanding();
+            $userStanding->setUser($user);
+            $userStanding->setLevel(1);
+            $userStanding->setPoints(0);
+            $userStanding->setStandingLabel('NORMAL');
+            $userStanding->setUpdatedAt(new \DateTime());
+            $em->persist($userStanding);
+            $em->flush();
+        }
+
+        $friendCount = $userRelationshipRepository->countFriends($user);
+        $pendingFriendCount = $userRelationshipRepository->countPendingRequests($user);
+        $sampleFriends = $userRelationshipRepository->findFriends($user, 6);
+        $pendingRequests = $userRelationshipRepository->findPendingRequestsFor($user);
+
+        // Build a map of userId -> avatar URL for friends
+        $friendAvatarMap = [];
+        foreach ($sampleFriends as $friend) {
+            $fp = $profileRepository->findOneByUser($friend);
+            $friendAvatarMap[$friend->getIdUser()] = $fp && $fp->getAvatar()
+                ? ($fp->getAvatar())
+                : null;
+        }
+
+        // Build a map of userId -> avatar URL for pending request senders
+        $pendingAvatarMap = [];
+        foreach ($pendingRequests as $rel) {
+            $sender = $rel->getStatus() === 'PENDING_FIRST_SECOND' ? $rel->getUserFirst() : $rel->getUserSecond();
+            if ($sender && !isset($pendingAvatarMap[$sender->getIdUser()])) {
+                $sp = $profileRepository->findOneByUser($sender);
+                $pendingAvatarMap[$sender->getIdUser()] = $sp && $sp->getAvatar() ? $sp->getAvatar() : null;
+            }
+        }
+
         $profileForm = $this->createForm(ProfileType::class, $profile);
         $profileForm->handleRequest($request);
         if ($profileForm->isSubmitted() && $profileForm->isValid()) {
@@ -478,11 +554,7 @@ class UserController extends AbstractController
         }
 
         if (($profileForm->isSubmitted() && !$profileForm->isValid()) && ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest')) {
-            $errors = [];
-            foreach ($profileForm->getErrors(true) as $error) {
-                $errors[] = $error->getMessage();
-            }
-            return $this->json(['success' => false, 'message' => 'Validation failed.', 'errors' => $errors], 400);
+            return $this->json(['success' => false, 'errors' => $this->getFormErrors($profileForm)], 400);
         }
 
         $onboardingFormView = null;
@@ -597,6 +669,13 @@ class UserController extends AbstractController
             'totp_configured' => $totpConfigured,
             'gmail_oauth_connected' => $gmailOauthConnected,
             'is_mailer_oauth_user' => $isMailerOauthUser,
+            'userStanding' => $userStanding,
+            'friendCount' => $friendCount,
+            'pendingFriendCount' => $pendingFriendCount,
+            'sampleFriends' => $sampleFriends,
+            'pendingRequests' => $pendingRequests,
+            'friendAvatarMap' => $friendAvatarMap,
+            'pendingAvatarMap' => $pendingAvatarMap,
         ]);
         $response->setPrivate();
         $response->setMaxAge(0);
@@ -665,7 +744,7 @@ class UserController extends AbstractController
         }
 
         if ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest') {
-            return $this->json(['success' => false, 'message' => 'Invalid form submission.'], 400);
+            return $this->json(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
         }
 
         $this->addFlash('danger', 'Invalid form.');
@@ -755,6 +834,240 @@ class UserController extends AbstractController
         }
         $existingUser = $em->getRepository(User::class)->findOneBy(['email_user' => $email]);
         return new JsonResponse(['exists' => $existingUser !== null]);
+    }
+
+    #[Route('/profile/search-residents', name: 'frontend_profile_search_residents', methods: ['POST'])]
+    public function searchResidents(
+        Request $request,
+        UserRepository $userRepository,
+        UserRelationshipRepository $userRelationshipRepository,
+        ProfileRepository $profileRepository
+    ): JsonResponse {
+        $session = $request->getSession();
+        if (!$session->get('is_logged_in') || !($userId = $session->get('user')['id'] ?? null)) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $query = trim((string) $request->request->get('query'));
+        if (strlen($query) < 2) {
+            return $this->json(['success' => true, 'residents' => []]);
+        }
+
+        $currentUser = $userRepository->find($userId);
+        if (!$currentUser)
+            return $this->json(['success' => false, 'message' => 'User not found'], 404);
+
+        $results = $userRepository->searchByName($query, $userId, 10);
+        $residents = [];
+
+        foreach ($results as $resident) {
+            $rel = $userRelationshipRepository->findRelationship($currentUser, $resident);
+            if (!$rel) {
+                $residentProfile = $profileRepository->findOneByUser($resident);
+                $avatarUrl = null;
+                if ($residentProfile && $residentProfile->getAvatar()) {
+                    $av = $residentProfile->getAvatar();
+                    $avatarUrl = str_starts_with($av, 'http') ? $av : '/' . ltrim($av, '/');
+                }
+                $residents[] = [
+                    'id' => $resident->getIdUser(),
+                    'name' => $resident->getFirstName() . ' ' . $resident->getLastName(),
+                    'avatar' => $avatarUrl ?? 'https://ui-avatars.com/api/?name=' . urlencode($resident->getFirstName() . '+' . $resident->getLastName()) . '&background=random&color=fff&bold=true'
+                ];
+            }
+        }
+
+        return $this->json(['success' => true, 'residents' => $residents]);
+    }
+
+    #[Route('/profile/add-resident', name: 'frontend_profile_add_resident', methods: ['POST'])]
+    public function addResident(
+        Request $request,
+        UserRepository $userRepository,
+        UserRelationshipRepository $userRelationshipRepository,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $session = $request->getSession();
+        if (!$session->get('is_logged_in') || !($userId = $session->get('user')['id'] ?? null)) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $targetId = (int) $request->request->get('targetId');
+        if (!$targetId || $targetId === $userId) {
+            return $this->json(['success' => false, 'message' => 'Invalid target'], 400);
+        }
+
+        $currentUser = $userRepository->find($userId);
+        $targetUser = $userRepository->find($targetId);
+
+        if (!$currentUser || !$targetUser) {
+            return $this->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        $existing = $userRelationshipRepository->findRelationship($currentUser, $targetUser);
+        if ($existing) {
+            return $this->json(['success' => false, 'message' => 'Relationship already exists'], 400);
+        }
+
+        $relationship = new \App\Entity\UserRelationship\UserRelationship();
+        $relationship->setUserFirst($currentUser);
+        $relationship->setUserSecond($targetUser);
+        $relationship->setStatus('PENDING_FIRST_SECOND');
+
+        $em->persist($relationship);
+        $em->flush();
+
+        // Create notification for target user
+        $this->notifService->notify(
+            $targetUser,
+            'FRIEND_REQUEST',
+            'RELATIONSHIP',
+            $relationship->getId(),
+            'Nouvelle invitation',
+            $currentUser->getFirstName() . ' souhaite devenir votre ami.'
+        );
+
+        // Feedback for current user (Push to island)
+        $this->notifService->notify(
+            $currentUser,
+            'SUCCESS',
+            'RELATIONSHIP',
+            $relationship->getId(),
+            'Invitation envoyée',
+            'Votre demande a été transmise à ' . $targetUser->getFirstName() . '.'
+        );
+
+        // Points removed
+
+        return $this->json(['success' => true, 'message' => 'Request sent!']);
+    }
+
+    #[Route('/profile/accept-resident', name: 'frontend_profile_accept_resident', methods: ['POST'])]
+    public function acceptResident(
+        Request $request,
+        UserRepository $userRepository,
+        UserRelationshipRepository $userRelationshipRepository,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $session = $request->getSession();
+        if (!$session->get('is_logged_in') || !($userId = $session->get('user')['id'] ?? null)) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        $relationshipId = (int) $request->request->get('relationshipId');
+        $relationship = $userRelationshipRepository->find($relationshipId);
+        if (!$relationship) {
+            return $this->json(['success' => false, 'message' => 'Request not found'], 404);
+        }
+        $isRecipient = (
+            ($relationship->getStatus() === 'PENDING_FIRST_SECOND' && $relationship->getUserSecond()?->getIdUser() === $userId) ||
+            ($relationship->getStatus() === 'PENDING_SECOND_FIRST' && $relationship->getUserFirst()?->getIdUser() === $userId)
+        );
+        if (!$isRecipient) {
+            return $this->json(['success' => false, 'message' => 'Forbidden'], 403);
+        }
+        $currentUser = $userRepository->find($userId);
+        $relationship->setStatus('FRIENDS');
+        $em->flush();
+
+        $sender = ($relationship->getUserFirst()->getIdUser() === $userId) ? $relationship->getUserSecond() : $relationship->getUserFirst();
+
+        // Notify the person who sent the request
+        $this->notifService->notify(
+            $sender,
+            'RELATIONSHIP_ACCEPTED',
+            'RELATIONSHIP',
+            $relationship->getId(),
+            'Invitation acceptée',
+            $currentUser->getFirstName() . ' a accepté votre invitation.'
+        );
+
+        // Confirmation for current user
+        $this->notifService->notify(
+            $currentUser,
+            'SUCCESS',
+            'RELATIONSHIP',
+            $relationship->getId(),
+            'Ami ajouté',
+            'Vous êtes maintenant ami avec ' . $sender->getFirstName() . '.'
+        );
+        return $this->json(['success' => true, 'message' => 'Friend request accepted!']);
+    }
+
+    #[Route('/profile/decline-resident', name: 'frontend_profile_decline_resident', methods: ['POST'])]
+    public function declineResident(
+        Request $request,
+        UserRepository $userRepository,
+        UserRelationshipRepository $userRelationshipRepository,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $session = $request->getSession();
+        if (!$session->get('is_logged_in') || !($userId = $session->get('user')['id'] ?? null)) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        $relationshipId = (int) $request->request->get('relationshipId');
+        $relationship = $userRelationshipRepository->find($relationshipId);
+        if (!$relationship) {
+            return $this->json(['success' => false, 'message' => 'Request not found'], 404);
+        }
+        $isRecipient = (
+            ($relationship->getStatus() === 'PENDING_FIRST_SECOND' && $relationship->getUserSecond()?->getIdUser() === $userId) ||
+            ($relationship->getStatus() === 'PENDING_SECOND_FIRST' && $relationship->getUserFirst()?->getIdUser() === $userId)
+        );
+        if (!$isRecipient) {
+            return $this->json(['success' => false, 'message' => 'Forbidden'], 403);
+        }
+        $em->remove($relationship);
+        $em->flush();
+        return $this->json(['success' => true, 'message' => 'Request declined.']);
+    }
+
+    #[Route('/profile/friend-info/{id}', name: 'frontend_profile_friend_info', methods: ['GET'])]
+    public function friendInfo(
+        int $id,
+        Request $request,
+        UserRepository $userRepository,
+        ProfileRepository $profileRepository,
+        \App\Repository\UserStanding\UserStandingRepository $userStandingRepository,
+        UserRelationshipRepository $userRelationshipRepository
+    ): JsonResponse {
+        $session = $request->getSession();
+        if (!$session->get('is_logged_in') || !($myId = $session->get('user')['id'] ?? null)) {
+            return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $me = $userRepository->find($myId);
+        $friend = $userRepository->find($id);
+        if (!$friend) {
+            return $this->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        // Only return info if they are actually friends or it's the current user
+        if ($id !== $myId) {
+            $rel = $userRelationshipRepository->findRelationship($me, $friend);
+            if (!$rel || $rel->getStatus() !== 'FRIENDS') {
+                return $this->json(['success' => false, 'message' => 'Not a friend'], 403);
+            }
+        }
+
+        $fp = $profileRepository->findOneByUser($friend);
+        $standing = $userStandingRepository->findOneBy(['user' => $friend]);
+
+        $avatarUrl = null;
+        if ($fp && $fp->getAvatar()) {
+            $av = $fp->getAvatar();
+            $avatarUrl = str_starts_with($av, 'http') ? $av : '/' . ltrim($av, '/');
+        }
+
+        return $this->json([
+            'success' => true,
+            'name' => $friend->getFirstName() . ' ' . $friend->getLastName(),
+            'email' => $friend->getEmailUser(),
+            'role' => $friend->getRoleUser(),
+            'created' => $friend->getCreatedAt()?->format('d/m/Y'),
+            'xp' => $standing ? $standing->getPoints() : 0,
+            'level' => $standing ? $standing->getLevel() : 1,
+            'avatar' => $avatarUrl,
+        ]);
     }
 }
 

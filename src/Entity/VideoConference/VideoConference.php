@@ -27,9 +27,23 @@ class VideoConference
     #[ORM\Column(type: 'string', columnDefinition: "SET('pending', 'live', 'ended', '')")]
     private ?string $status = 'pending';
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $roomName = null;
+
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id_user', nullable: false)]
     private ?User $user = null;
+
+    public function getRoomName(): ?string
+    {
+        return $this->roomName;
+    }
+
+    public function setRoomName(?string $roomName): self
+    {
+        $this->roomName = $roomName;
+        return $this;
+    }
 
     public function getIdvidconf(): ?int
     {

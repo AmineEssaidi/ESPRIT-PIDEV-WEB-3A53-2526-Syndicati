@@ -15,6 +15,10 @@ use Doctrine\ORM\EntityManagerInterface;
 #[Route('/forum/reaction')]
 class ReactionController extends AbstractController
 {
+    public function __construct(
+        private readonly \App\Service\User\NotificationService $notifService
+    ) {
+    }
     #[Route('/toggle/{publicationId}/{kind}', name: 'app_forum_reaction_toggle', methods: ['POST'])]
     public function toggle(
         int $publicationId,
@@ -86,6 +90,19 @@ class ReactionController extends AbstractController
 
         $entityManager->persist($reaction);
         $entityManager->flush();
+
+        // Notify content owner
+        $author = $publication->getUser();
+        if ($author && $author->getIdUser() !== $user->getIdUser()) {
+            $this->notifService->notify(
+                $author,
+                'REACTION_NEW',
+                'REACTION',
+                $reaction->getIdReaction(),
+                'Nouvelle réaction',
+                $user->getFirstName() . ' a réagi (' . $kind . ') à votre publication.'
+            );
+        }
 
         return new JsonResponse([
             'success' => true,
@@ -160,6 +177,19 @@ class ReactionController extends AbstractController
         }
 
         $entityManager->flush();
+
+        // Notify content owner
+        $author = $publication->getUser();
+        if ($author && $author->getIdUser() !== $user->getIdUser()) {
+            $this->notifService->notify(
+                $author,
+                'REACTION_NEW',
+                'REACTION',
+                ($existing ? $existing->getIdReaction() : ($reaction->getIdReaction() ?? 0)),
+                'Nouvelle réaction',
+                $user->getFirstName() . ' a réagi avec ' . $emoji . ' à votre publication.'
+            );
+        }
         return new JsonResponse([
             'success' => true,
             'action' => 'added',
@@ -292,6 +322,19 @@ class ReactionController extends AbstractController
         $entityManager->persist($reaction);
         $entityManager->flush();
 
+        // Notify comment owner
+        $commentAuthor = $comment->getUser();
+        if ($commentAuthor && $commentAuthor->getIdUser() !== $user->getIdUser()) {
+            $this->notifService->notify(
+                $commentAuthor,
+                'REACTION_NEW',
+                'REACTION',
+                $reaction->getIdReaction(),
+                'Nouvelle réaction',
+                $user->getFirstName() . ' a réagi (' . $kind . ') à votre commentaire.'
+            );
+        }
+
         return new JsonResponse([
             'success' => true,
             'action' => 'added',
@@ -335,6 +378,20 @@ class ReactionController extends AbstractController
         }
 
         $entityManager->flush();
+
+        // Notify comment owner
+        $commentAuthor = $comment->getUser();
+        if ($commentAuthor && $commentAuthor->getIdUser() !== $user->getIdUser()) {
+            $this->notifService->notify(
+                $commentAuthor,
+                'REACTION_NEW',
+                'REACTION',
+                ($existing ? $existing->getIdReaction() : ($reaction->getIdReaction() ?? 0)),
+                'Nouvelle réaction',
+                $user->getFirstName() . ' a réagi avec ' . $emoji . ' à votre commentaire.'
+            );
+        }
+
         return new JsonResponse([
             'success' => true,
             'action' => 'added',

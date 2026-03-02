@@ -11,9 +11,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
+use App\Service\FormErrorHelperTrait;
+
 #[Route('/api/syndicat/reclamation')]
 class ReclamationApiController extends AbstractController
 {
+    use FormErrorHelperTrait;
     #[Route('/update/{id}', name: 'api_reclamation_update', methods: ['POST'])]
     public function update(
         int $id,

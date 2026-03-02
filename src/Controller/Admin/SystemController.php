@@ -78,16 +78,26 @@ class SystemController extends AbstractController
         }
 
         // Map URLs to page names
-        if (strpos($url, '/admin/placeholder-1') !== false) {
-            return 'Placeholder 1';
-        } elseif (strpos($url, '/admin/placeholder-2') !== false) {
-            return 'Placeholder 2';
+        if (strpos($url, '/admin/super-dashboard') !== false) {
+            return 'Super Dashboard';
         } elseif (strpos($url, '/admin/users') !== false) {
             return 'Users';
-        } elseif (strpos($url, '/admin/super-dashboard') !== false) {
-            return 'Super Dashboard';
+        } elseif (strpos($url, '/publication/admin') !== false) {
+            return 'Forum Admin';
+        } elseif (strpos($url, '/syndicat/reclamation/admin') !== false) {
+            return 'Syndicat Admin';
+        } elseif (strpos($url, '/evenement/admin') !== false) {
+            return 'Events Admin';
         } elseif (strpos($url, '/admin') !== false) {
             return 'Dashboard';
+        } elseif (strpos($url, '/forum') !== false) {
+            return 'Forum';
+        } elseif (strpos($url, '/syndicat') !== false) {
+            return 'Syndicat';
+        } elseif (strpos($url, '/evenement') !== false) {
+            return 'Evenements';
+        } elseif (strpos($url, '/residence') !== false) {
+            return 'Residences';
         } elseif (strpos($url, '/profile') !== false) {
             return 'Profile';
         } elseif (strpos($url, '/') !== false) {
@@ -105,11 +115,16 @@ class SystemController extends AbstractController
         $pageNames = [
             'main_home' => 'Main Home',
             'profile' => 'Profile',
+            'forum' => 'Forum',
+            'syndicat' => 'Syndicat',
+            'evenement' => 'Evenements',
+            'residence' => 'Residences',
             'dashboard' => 'Dashboard',
             'super_dashboard' => 'Super Dashboard',
             'users' => 'Users',
-            'placeholder_1' => 'Placeholder 1',
-            'placeholder_2' => 'Placeholder 2'
+            'admin_forum' => 'Forum Admin',
+            'admin_syndicat' => 'Syndicat Admin',
+            'admin_evenement' => 'Events Admin',
         ];
 
         return $pageNames[$pageId] ?? 'Page';
@@ -123,11 +138,16 @@ class SystemController extends AbstractController
         $defaultReferrers = [
             'main_home' => '/',
             'profile' => '/',
-            'dashboard' => '/admin/super-dashboard',
-            'super_dashboard' => '/admin',
-            'users' => '/admin/super-dashboard',
-            'placeholder_1' => '/admin/super-dashboard',
-            'placeholder_2' => '/admin/super-dashboard'
+            'forum' => '/forum',
+            'syndicat' => '/syndicat',
+            'evenement' => '/evenement',
+            'residence' => '/residence',
+            'dashboard' => '/admin',
+            'super_dashboard' => '/admin/super-dashboard',
+            'users' => '/admin/users',
+            'admin_forum' => '/publication/admin',
+            'admin_syndicat' => '/syndicat/reclamation/admin',
+            'admin_evenement' => '/evenement/admin',
         ];
 
         return $defaultReferrers[$pageId] ?? '/admin/super-dashboard';

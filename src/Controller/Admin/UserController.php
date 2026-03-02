@@ -24,9 +24,12 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
+use App\Service\FormErrorHelperTrait;
+
 #[Route('/admin')]
 class UserController extends AbstractController
 {
+    use FormErrorHelperTrait;
     #[Route('/users', name: 'admin_users')]
     public function users(Request $request, UserRepository $userRepository, ProfileRepository $profileRepository, OnboardingRepository $onboardingRepository): Response
     {
@@ -80,11 +83,7 @@ class UserController extends AbstractController
             return new JsonResponse(['success' => true, 'message' => 'Profile updated successfully.']);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        return new JsonResponse(['success' => false, 'message' => 'Validation failed.', 'errors' => $errors], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 
     #[Route('/users/add', name: 'admin_users_add', methods: ['POST'])]
@@ -108,11 +107,7 @@ class UserController extends AbstractController
             return new JsonResponse(['success' => true, 'message' => 'User added successfully.']);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        return new JsonResponse(['success' => false, 'message' => 'Validation failed.', 'errors' => $errors], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 
     #[Route('/users/{id}/edit', name: 'admin_users_edit', methods: ['POST'])]
@@ -148,11 +143,7 @@ class UserController extends AbstractController
             return new JsonResponse(['success' => true, 'message' => 'User updated successfully.']);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        return new JsonResponse(['success' => false, 'message' => 'Validation failed.', 'errors' => $errors], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 
     #[Route('/users/{id}/delete', name: 'admin_users_delete', methods: ['POST'])]
@@ -209,10 +200,6 @@ class UserController extends AbstractController
             return new JsonResponse(['success' => true, 'message' => 'Onboarding updated successfully.']);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        return new JsonResponse(['success' => false, 'message' => 'Validation failed.', 'errors' => $errors], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 }

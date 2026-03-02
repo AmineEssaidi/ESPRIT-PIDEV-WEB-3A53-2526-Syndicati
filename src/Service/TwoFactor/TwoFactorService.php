@@ -31,21 +31,39 @@ class TwoFactorService
         return str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
     }
 
-    /**
-     * Send OTP code to the user's email address or phone via SMS.
-     */
     public function sendCode(User $user, string $channel = 'email'): string
     {
-        $code = $this->generateCode();
+        if ($channel === 'sms') {
+            try {
+                // Attempt to send via Twilio Verify (Preferred)
+                return $this->sendSms($user);
+            } catch (\RuntimeException $e) {
+                // If it's a configuration error (missing SID), we fall back to standard SMS
+                // If it's an API error (Trial restriction, invalid number), we catch it below
+                if (str_contains($e->getMessage(), 'not configured')) {
+                    // Fallback to manual code generation + standard SMS
+                    $code = $this->generateCode();
+                    $user->setAuthCode($code);
+                    $user->setAuthCodeExpiresAt((new \DateTime())->modify('+15 minutes'));
+                    $this->em->flush();
 
-        // Store code in user entity (expires in 15 minutes)
+                    try {
+                        $this->twilioService->sendSms($user->getPhone(), sprintf('Your verification code is: %s. Valid for 15 minutes.', $code));
+                        return 'SENT_VIA_SMS_FALLBACK';
+                    } catch (\Exception $smsEx) {
+                        throw new \RuntimeException("SMS Fallback failed: " . $smsEx->getMessage());
+                    }
+                }
+
+                // If it was an actual Twilio API error during Verify attempt, propagate it
+                throw $e;
+            }
+        }
+
+        $code = $this->generateCode();
         $user->setAuthCode($code);
         $user->setAuthCodeExpiresAt((new \DateTime())->modify('+15 minutes'));
         $this->em->flush();
-
-        if ($channel === 'sms') {
-            return $this->sendSms($user, $code);
-        }
 
         return $this->sendEmail($user, $code);
     }
@@ -80,7 +98,7 @@ class TwoFactorService
         );
     }
 
-    private function sendSms(User $user, string $code): string
+    private function sendSms(User $user): string
     {
         $phone = $user->getPhone();
 
@@ -88,10 +106,9 @@ class TwoFactorService
             throw new \RuntimeException('No phone number configured.');
         }
 
-        $message = sprintf('Your verification code is: %s. Valid for 15 minutes.', $code);
-        $this->twilioService->sendSms($phone, $message);
+        $this->twilioService->sendVerification($phone);
 
-        return $code;
+        return 'SENT_VIA_SMS';
     }
 
     /**
@@ -99,20 +116,21 @@ class TwoFactorService
      */
     public function verifyCode(User $user, string $code): bool
     {
-        if (!$user->isAuthCodeValid()) {
-            return false;
+        // 1. Try internal verification (Email codes)
+        if ($user->isAuthCodeValid() && $user->getAuthCode() === $code) {
+            $user->setAuthCode(null);
+            $user->setAuthCodeExpiresAt(null);
+            $this->em->flush();
+            return true;
         }
 
-        if ($user->getAuthCode() !== $code) {
-            return false;
+        // 2. Try Twilio Verify (SMS codes)
+        $phone = $user->getPhone();
+        if ($phone && $this->twilioService->checkVerification($phone, $code)) {
+            return true;
         }
 
-        // Clear code after successful verification
-        $user->setAuthCode(null);
-        $user->setAuthCodeExpiresAt(null);
-        $this->em->flush();
-
-        return true;
+        return false;
     }
 
     /**

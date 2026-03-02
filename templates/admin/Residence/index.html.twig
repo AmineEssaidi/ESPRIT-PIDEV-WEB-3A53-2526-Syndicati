@@ -422,15 +422,27 @@
                                 {% if residenceEditForm is defined %}
                                 {{ form_start(residenceEditForm, { 'attr': { 'id': 'res-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
                                 
-                                {{ form_row(residenceEditForm.nomR, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
-                                {{ form_row(residenceEditForm.adresse, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                {{ form_row(residenceEditForm.nomR, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'minlength': '3' } }) }}
+                                <div class="validation-container" data-field="nomR"></div>
+                                {{ form_row(residenceEditForm.adresse, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required' } }) }}
+                                <div class="validation-container" data-field="adresse"></div>
                                 
                                 <div class="row">
-                                    <div class="col-md-4">{{ form_row(residenceEditForm.nAppartements, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-4">{{ form_row(residenceEditForm.nEtages, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-4">{{ form_row(residenceEditForm.nBlocs, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-4">
+                                        {{ form_row(residenceEditForm.nAppartements, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="nAppartements"></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form_row(residenceEditForm.nEtages, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="nEtages"></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form_row(residenceEditForm.nBlocs, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="nBlocs"></div>
+                                    </div>
                                 </div>
                                 {{ form_row(residenceEditForm.imageR, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                <div class="validation-container" data-field="imageR"></div>
                                 
                                 <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
                                     <button type="button" class="users-btn-cancel" onclick="closeModal('res-edit-modal')"><i class="bx bx-x"></i> Discard</button>
@@ -455,15 +467,27 @@
                                 {% if residenceAddForm is defined %}
                                 {{ form_start(residenceAddForm, { 'attr': { 'id': 'res-add-form', 'method': 'post', 'action': path('admin_residence_add'), 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
                                 
-                                {{ form_row(residenceAddForm.nomR, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
-                                {{ form_row(residenceAddForm.adresse, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                {{ form_row(residenceAddForm.nomR, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'minlength': '3' } }) }}
+                                <div class="validation-container" data-field="nomR"></div>
+                                {{ form_row(residenceAddForm.adresse, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required' } }) }}
+                                <div class="validation-container" data-field="adresse"></div>
                                 
                                 <div class="row">
-                                    <div class="col-md-4">{{ form_row(residenceAddForm.nAppartements, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-4">{{ form_row(residenceAddForm.nEtages, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-4">{{ form_row(residenceAddForm.nBlocs, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-4">
+                                        {{ form_row(residenceAddForm.nAppartements, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="nAppartements"></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form_row(residenceAddForm.nEtages, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="nEtages"></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form_row(residenceAddForm.nBlocs, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="nBlocs"></div>
+                                    </div>
                                 </div>
                                 {{ form_row(residenceAddForm.imageR, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                <div class="validation-container" data-field="imageR"></div>
                                 
                                 <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
                                     <button type="button" class="users-btn-cancel" onclick="closeModal('res-add-modal')"><i class="bx bx-x"></i> Discard</button>
@@ -586,22 +610,50 @@
                                 {% if appartementEditForm is defined %}
                                 {{ form_start(appartementEditForm, { 'attr': { 'id': 'app-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
                                 
-                                {{ form_row(appartementEditForm.residence, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                {{ form_row(appartementEditForm.residence, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required' } }) }}
+                                <div class="validation-container" data-field="residence"></div>
                                 
                                 <div class="row">
-                                    <div class="col-md-4">{{ form_row(appartementEditForm.bloc, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-4">{{ form_row(appartementEditForm.floor, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-4">{{ form_row(appartementEditForm.number, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-4">
+                                        {{ form_row(appartementEditForm.bloc, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="bloc"></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form_row(appartementEditForm.floor, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="floor"></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form_row(appartementEditForm.number, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="number"></div>
+                                    </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-6">{{ form_row(appartementEditForm.typeA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-6">{{ form_row(appartementEditForm.user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-6">
+                                        {{ form_row(appartementEditForm.typeA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="typeA"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form_row(appartementEditForm.user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="user"></div>
+                                    </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-3">{{ form_row(appartementEditForm.superficie, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-3">{{ form_row(appartementEditForm.prix_location, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-3">{{ form_row(appartementEditForm.prix_vente, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-3">{{ form_row(appartementEditForm.date_construction, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-3">
+                                        {{ form_row(appartementEditForm.superficie, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'min': '1' } }) }}
+                                        <div class="validation-container" data-field="superficie"></div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ form_row(appartementEditForm.prix_location, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="prix_location"></div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ form_row(appartementEditForm.prix_vente, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="prix_vente"></div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ form_row(appartementEditForm.date_construction, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="date_construction"></div>
+                                    </div>
                                 </div>
 
                                 <div class="glass-view-row" style="border: 1px solid rgba(0, 198, 255, 0.2); background: rgba(0, 198, 255, 0.03); margin-top: 1rem;">
@@ -640,7 +692,8 @@
                                 {% if appartementAddForm is defined %}
                                 {{ form_start(appartementAddForm, { 'attr': { 'id': 'app-add-form', 'method': 'post', 'action': path('app_appartement_new'), 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
                                 
-                                {{ form_row(appartementAddForm.residence, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'id': 'app-residence-select' } }) }}
+                                {{ form_row(appartementAddForm.residence, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'id': 'app-residence-select', 'required': 'required' } }) }}
+                                <div class="validation-container" data-field="residence"></div>
                                 
                                 <div class="row">
                                     <div class="col-md-4">
@@ -650,6 +703,7 @@
                                                 <option value="">Select Bloc</option>
                                             </select>
                                             {{ form_widget(appartementAddForm.bloc, { 'attr': { 'style': 'display:none;', 'id': 'app-bloc-field' } }) }}
+                                            <div class="validation-container" data-field="bloc"></div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -659,6 +713,7 @@
                                                 <option value="">Select Floor</option>
                                             </select>
                                             {{ form_widget(appartementAddForm.floor, { 'attr': { 'style': 'display:none;', 'id': 'app-floor-field' } }) }}
+                                            <div class="validation-container" data-field="floor"></div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -668,18 +723,37 @@
                                                 <option value="">Select Apartment</option>
                                             </select>
                                             {{ form_widget(appartementAddForm.number, { 'attr': { 'style': 'display:none;', 'id': 'app-number-field' } }) }}
+                                            <div class="validation-container" data-field="number"></div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-6">{{ form_row(appartementAddForm.typeA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-6">{{ form_row(appartementAddForm.user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-6">
+                                        {{ form_row(appartementAddForm.typeA, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="typeA"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form_row(appartementAddForm.user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="user"></div>
+                                    </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-3">{{ form_row(appartementAddForm.superficie, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-3">{{ form_row(appartementAddForm.prix_location, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-3">{{ form_row(appartementAddForm.prix_vente, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-3">{{ form_row(appartementAddForm.date_construction, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-3">
+                                        {{ form_row(appartementAddForm.superficie, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'min': '1' } }) }}
+                                        <div class="validation-container" data-field="superficie"></div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ form_row(appartementAddForm.prix_location, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="prix_location"></div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ form_row(appartementAddForm.prix_vente, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="prix_vente"></div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ form_row(appartementAddForm.date_construction, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="date_construction"></div>
+                                    </div>
                                 </div>
 
                                 <div class="glass-view-row" style="border: 1px solid rgba(0, 198, 255, 0.2); background: rgba(0, 198, 255, 0.03); margin-top: 1rem;">
@@ -695,14 +769,27 @@
                                         <i class="bx bx-home-heart"></i> Apartment Conditions (for AI)
                                     </div>
                                     <div class="row">
-                                        <div class="col-md-6">{{ form_row(appartementAddForm.maintenance.etat_app, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                        <div class="col-md-6">{{ form_row(appartementAddForm.maintenance.etat_plomberie, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                        <div class="col-md-6">
+                                            {{ form_row(appartementAddForm.maintenance.etat_app, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                            <div class="validation-container" data-field="maintenance.etat_app"></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            {{ form_row(appartementAddForm.maintenance.etat_plomberie, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                            <div class="validation-container" data-field="maintenance.etat_plomberie"></div>
+                                        </div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-md-6">{{ form_row(appartementAddForm.maintenance.etat_electricite, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                        <div class="col-md-6">{{ form_row(appartementAddForm.maintenance.etat_chauffage, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                        <div class="col-md-6">
+                                            {{ form_row(appartementAddForm.maintenance.etat_electricite, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                            <div class="validation-container" data-field="maintenance.etat_electricite"></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            {{ form_row(appartementAddForm.maintenance.etat_chauffage, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                            <div class="validation-container" data-field="maintenance.etat_chauffage"></div>
+                                        </div>
                                     </div>
                                     {{ form_row(appartementAddForm.maintenance.description_maint, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'rows': 3, 'placeholder': 'Describe current state...' } }) }}
+                                    <div class="validation-container" data-field="maintenance.description_maint"></div>
                                     <div style="display:none;">
                                         {{ form_widget(appartementAddForm.maintenance.date_derniere_maintenance) }}
                                         {{ form_widget(appartementAddForm.maintenance.appartement) }}

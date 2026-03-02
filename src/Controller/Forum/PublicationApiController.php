@@ -18,7 +18,8 @@ class PublicationApiController extends AbstractController
         int $id,
         Request $request,
         PublicationRepository $publicationRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        \Symfony\Component\Validator\Validator\ValidatorInterface $validator
     ): JsonResponse {
         $publication = $publicationRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -35,12 +36,12 @@ class PublicationApiController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Unauthorized. Admin access required.'], 403);
         }
 
-        $title = $request->request->get('title');
-        $description = $request->request->get('description');
-        $category = $request->request->get('category');
+        $title = $request->request->get('titre_pub');
+        $description = $request->request->get('description_pub');
+        $category = $request->request->get('categorie_pub');
 
         if (empty($title) || empty($description) || empty($category)) {
-            return new JsonResponse(['success' => false, 'message' => 'All fields (title, description, category) are required.'], 400);
+            return new JsonResponse(['success' => false, 'message' => 'All fields (titre_pub, description_pub, categorie_pub) are required.'], 400);
         }
 
         if (!in_array($category, Publication::CATEGORIES, true)) {
@@ -50,6 +51,17 @@ class PublicationApiController extends AbstractController
         $publication->setTitrePub($title);
         $publication->setDescriptionPub($description);
         $publication->setCategoriePub($category);
+
+        $errors = $validator->validate($publication);
+        if (count($errors) > 0) {
+            $errArray = [];
+            foreach ($errors as $error) {
+                $prop = $error->getPropertyPath();
+                $propLabel = $prop === 'titre_pub' ? 'Title' : ($prop === 'description_pub' ? 'Description' : ucfirst($prop));
+                $errArray[] = $propLabel . ': ' . $error->getMessage();
+            }
+            return new JsonResponse(['success' => false, 'errors' => $errArray], 400);
+        }
 
         $entityManager->flush();
 

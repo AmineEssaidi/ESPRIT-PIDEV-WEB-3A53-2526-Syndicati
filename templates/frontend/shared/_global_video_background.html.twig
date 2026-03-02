@@ -1,6 +1,6 @@
 <!-- Global Premium Video Background -->
 <div class="global-video-bg-container">
-    <video id="heroVideoGlobal" autoplay loop muted playsinline class="global-video-element">
+    <video id="heroVideoGlobal" autoplay loop muted playsinline class="global-video-element" style="background: #000;">
         <source src="{{ asset('videos/syndicati.mp4') }}" type="video/mp4">
         Your browser does not support the video tag.
     </video>
@@ -18,7 +18,7 @@
     z-index: -1 !important; /* Changed from -9999 to -1 to ensure visibility */
     overflow: hidden;
     pointer-events: none;
-    background: transparent; /* Removed black fallback */
+    background: transparent;
 }
 
 .global-video-element {
@@ -68,9 +68,21 @@ html, body,
         video.muted = true;
         
         const playVideo = () => {
-            video.play().catch(e => console.log("Global video autoplay blocked:", e));
+            video.play()
+                .then(() => {
+                    console.log("Global video playback started");
+                })
+                .catch(err => {
+                    console.warn("Autoplay blocked or failed:", err);
+                });
         };
 
+        // Emit signal when actually rendering frames to avoid black/gray flashes
+        video.onplaying = () => {
+            window.videoBgReady = true;
+            document.dispatchEvent(new CustomEvent('video-bg-ready'));
+            console.log("Video BG Signal: READY (Flag Set)");
+        };
         video.addEventListener('ended', playVideo);
         playVideo();
         

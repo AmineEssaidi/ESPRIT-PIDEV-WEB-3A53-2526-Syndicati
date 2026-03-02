@@ -48,7 +48,7 @@ class Reclamation
     #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id_user', nullable: false)]
     private $user;
 
-    #[ORM\OneToMany(mappedBy: 'reclamation', targetEntity: Reponse::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(mappedBy: 'reclamation', targetEntity: Reponse::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private $reponses;
 
     public function __construct()

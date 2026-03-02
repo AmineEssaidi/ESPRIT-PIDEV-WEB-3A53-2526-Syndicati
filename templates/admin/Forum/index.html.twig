@@ -432,18 +432,22 @@
                                 <button type="button" class="users-edit-modal-close" onclick="closeModal('pub-edit-modal')" aria-label="Close"><i class="bx bx-x"></i></button>
                             </div>
                             <div class="users-edit-modal-body">
-                                {% if publicationEditForm is defined %}
-                                {{ form_start(publicationEditForm, { 'attr': { 'id': 'pub-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
+                                {% if pubEditForm is defined %}
+                                {{ form_start(pubEditForm, { 'attr': { 'id': 'pub-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
                                 
-                                {{ form_row(pubEditForm.titre_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
-                                {{ form_row(pubEditForm.description_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 120px;' } }) }}
+                                {{ form_row(pubEditForm.titre_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'minlength': '5' } }) }}
+                                <div class="validation-container" data-field="titre_pub"></div>
+                                {{ form_row(pubEditForm.description_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 120px;', 'required': 'required', 'minlength': '20' } }) }}
+                                <div class="validation-container" data-field="description_pub"></div>
                                 
                                 <div class="row">
                                     <div class="col-md-6">
                                         {{ form_row(pubEditForm.categorie_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="categorie_pub"></div>
                                     </div>
                                     <div class="col-md-6">
                                         {{ form_row(pubEditForm.image_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="image_pub"></div>
                                     </div>
                                 </div>
                                 
@@ -470,18 +474,22 @@
                                 <button type="button" class="users-edit-modal-close" onclick="closeModal('pub-add-modal')" aria-label="Close"><i class="bx bx-x"></i></button>
                             </div>
                             <div class="users-edit-modal-body">
-                                {% if publicationAddForm is defined %}
-                                {{ form_start(publicationAddForm, { 'attr': { 'id': 'pub-add-form', 'method': 'post', 'action': path('app_publication_new'), 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
+                                {% if pubAddForm is defined %}
+                                {{ form_start(pubAddForm, { 'attr': { 'id': 'pub-add-form', 'method': 'post', 'action': path('admin_forum_pub_add'), 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh', 'enctype': 'multipart/form-data' } }) }}
                                 
-                                {{ form_row(pubAddForm.titre_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
-                                {{ form_row(pubAddForm.description_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 120px;' } }) }}
+                                {{ form_row(pubAddForm.titre_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'minlength': '5' } }) }}
+                                <div class="validation-container" data-field="titre_pub"></div>
+                                {{ form_row(pubAddForm.description_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 120px;', 'required': 'required', 'minlength': '20' } }) }}
+                                <div class="validation-container" data-field="description_pub"></div>
                                 
                                 <div class="row">
                                     <div class="col-md-6">
                                         {{ form_row(pubAddForm.categorie_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="categorie_pub"></div>
                                     </div>
                                     <div class="col-md-6">
                                         {{ form_row(pubAddForm.image_pub, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="image_pub"></div>
                                     </div>
                                 </div>
                                 
@@ -608,8 +616,10 @@
                                 {% if commentEditForm is defined %}
                                 {{ form_start(commentEditForm, { 'attr': { 'id': 'comment-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh' } }) }}
                                 
-                                {{ form_row(commentEditForm.description_commentaire, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 120px;' } }) }}
+                                {{ form_row(commentEditForm.description_commentaire, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 120px;', 'required': 'required', 'minlength': '5' } }) }}
+                                <div class="validation-container" data-field="description_commentaire"></div>
                                 {{ form_row(commentEditForm.visibility, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                <div class="validation-container" data-field="visibility"></div>
                                 
                                 <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
                                     <button type="button" class="users-btn-cancel" onclick="closeModal('comment-edit-modal')"><i class="bx bx-x"></i> Discard</button>
@@ -739,8 +749,11 @@
                                 {{ form_start(reactionEditForm, { 'attr': { 'id': 'reaction-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh' } }) }}
                                 
                                 {{ form_row(reactionEditForm.kind, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                <div class="validation-container" data-field="kind"></div>
                                 {{ form_row(reactionEditForm.emoji, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                <div class="validation-container" data-field="emoji"></div>
                                 {{ form_row(reactionEditForm.report_reason, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                <div class="validation-container" data-field="report_reason"></div>
                                 
                                 <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
                                     <button type="button" class="users-btn-cancel" onclick="closeModal('reaction-edit-modal')"><i class="bx bx-x"></i> Discard</button>

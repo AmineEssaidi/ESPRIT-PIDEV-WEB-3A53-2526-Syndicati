@@ -20,11 +20,20 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use App\Service\WeatherService;
+use App\Service\UserStanding\UserStandingService;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+
+use App\Service\FormErrorHelperTrait;
 
 #[Route('/evenement')]
 class EvenementController extends AbstractController
 {
+    use FormErrorHelperTrait;
+    public function __construct(
+        private readonly UserStandingService $userStandingService,
+        private readonly \App\Service\User\NotificationService $notifService
+    ) {
+    }
     #[Route('/weather/preview', name: 'app_evenement_weather_preview', methods: ['GET'])]
     public function weatherPreview(Request $request, WeatherService $weatherService): JsonResponse
     {
@@ -82,6 +91,15 @@ class EvenementController extends AbstractController
 
                     $entityManager->persist($evenement);
                     $entityManager->flush();
+
+                    $this->notifService->notify(
+                        $user,
+                        'SUCCESS',
+                        'EVENT',
+                        $evenement->getId(),
+                        'Événement créé',
+                        'Votre événement "' . $evenement->getTitreEvent() . '" a été publié.'
+                    );
 
                     return new JsonResponse(['success' => true, 'message' => 'Event created successfully!']);
                 }
@@ -156,8 +174,12 @@ class EvenementController extends AbstractController
     }
 
     #[Route('/admin/add', name: 'admin_evenement_add', methods: ['POST'])]
-    public function adminNewEvenement(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Repository\User\UserRepository $userRepository): JsonResponse
-    {
+    public function adminNewEvenement(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        SluggerInterface $slugger,
+        \App\Repository\User\UserRepository $userRepository
+    ): JsonResponse {
         $evenement = new Evenement();
         $user = $this->getUser();
         if (!$user) {
@@ -193,14 +215,21 @@ class EvenementController extends AbstractController
             $entityManager->persist($evenement);
             $entityManager->flush();
 
+            if ($user instanceof User) {
+                $this->notifService->notify(
+                    $user,
+                    'SUCCESS',
+                    'EVENT',
+                    $evenement->getId(),
+                    'Événement créé',
+                    'L\'événement a été créé avec succès par l\'administration.'
+                );
+            }
+
             return new JsonResponse(['success' => true, 'message' => 'Event created successfully!']);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 
     #[Route('/admin/{id}/edit', name: 'admin_evenement_edit', methods: ['POST'])]
@@ -216,15 +245,23 @@ class EvenementController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+
+            $user = $this->getUser();
+            if ($user) {
+                $this->notifService->notify(
+                    $user,
+                    'SUCCESS',
+                    'EVENT',
+                    $evenement->getId(),
+                    'Événement modifié',
+                    'Les modifications de l\'événement ont été enregistrées.'
+                );
+            }
+
             return new JsonResponse(['success' => true, 'message' => 'Event updated successfully.']);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-
-        return new JsonResponse(['success' => false, 'message' => implode(', ', $errors)], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 
     #[Route('/admin/{id}/delete', name: 'admin_evenement_delete', methods: ['POST'])]
@@ -248,6 +285,18 @@ class EvenementController extends AbstractController
 
             $em->remove($evenement);
             $em->flush();
+
+            $user = $this->getUser();
+            if ($user) {
+                $this->notifService->notify(
+                    $user,
+                    'SUCCESS',
+                    'EVENT',
+                    $id,
+                    'Événement supprimé',
+                    'L\'événement a été supprimé ainsi que ses participations.'
+                );
+            }
 
             return new JsonResponse(['success' => true, 'message' => 'Event and its participations deleted successfully.']);
         } catch (\Exception $e) {
@@ -296,15 +345,23 @@ class EvenementController extends AbstractController
             }
 
             $em->flush();
+
+            $participantUser = $participation->getUser();
+            if ($participantUser) {
+                $this->notifService->notify(
+                    $participantUser,
+                    'EVENT_UPDATE',
+                    'PARTICIPATION',
+                    $participation->getId(),
+                    'Statut de participation mis à jour',
+                    'Votre participation à l\'événement "' . $evenement->getTitreEvent() . '" est maintenant: ' . $newStatus
+                );
+            }
+
             return new JsonResponse(['success' => true, 'message' => 'Participation updated successfully.']);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-
-        return new JsonResponse(['success' => false, 'message' => implode(', ', $errors)], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 
     #[Route('/admin/participation/{id}/delete', name: 'admin_participation_delete', methods: ['POST'])]
@@ -329,12 +386,28 @@ class EvenementController extends AbstractController
         $em->remove($participation);
         $em->flush();
 
+        $participantUser = $participation->getUser();
+        if ($participantUser) {
+            $this->notifService->notify(
+                $participantUser,
+                'WARNING',
+                'PARTICIPATION',
+                $id,
+                'Participation supprimée',
+                'Votre participation à l\'événement a été annulée par l\'administration.'
+            );
+        }
+
         return new JsonResponse(['success' => true, 'message' => 'Participation deleted successfully.']);
     }
 
     #[Route('/new', name: 'app_evenement_new', methods: ['POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Repository\User\UserRepository $userRepository): JsonResponse
-    {
+    public function new(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        SluggerInterface $slugger,
+        \App\Repository\User\UserRepository $userRepository
+    ): JsonResponse {
         try {
             $evenement = new Evenement();
             $form = $this->createForm(EvenementType::class, $evenement);
@@ -366,6 +439,17 @@ class EvenementController extends AbstractController
 
                     $entityManager->persist($evenement);
                     $entityManager->flush();
+
+                    if ($user instanceof User) {
+                        $this->notifService->notify(
+                            $user,
+                            'SUCCESS',
+                            'EVENT',
+                            $evenement->getId(),
+                            'Événement créé',
+                            'Votre événement "' . $evenement->getTitreEvent() . '" est en ligne.'
+                        );
+                    }
 
                     return new JsonResponse(['success' => true, 'message' => 'Event created successfully!']);
                 }
@@ -421,6 +505,18 @@ class EvenementController extends AbstractController
                 }
 
                 $entityManager->flush();
+
+                if ($user instanceof User) {
+                    $this->notifService->notify(
+                        $user,
+                        'SUCCESS',
+                        'EVENT',
+                        $evenement->getId(),
+                        'Événement modifié',
+                        'Votre événement a été mis à jour avec succès.'
+                    );
+                }
+
                 return new JsonResponse(['success' => true, 'message' => 'Event updated successfully!']);
             }
 
@@ -436,12 +532,25 @@ class EvenementController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_evenement_delete', methods: ['POST'])]
-    public function delete(Request $request, Evenement $evenement, EntityManagerInterface $entityManager): JsonResponse
+    public function delete(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, \App\Repository\User\UserRepository $userRepository): JsonResponse
     {
         try {
             if ($this->isCsrfTokenValid('delete' . $evenement->getId(), $request->request->get('_token'))) {
                 $entityManager->remove($evenement);
                 $entityManager->flush();
+
+                $user = $this->resolveUser($request, $userRepository);
+                if ($user) {
+                    $this->notifService->notify(
+                        $user,
+                        'SUCCESS',
+                        'EVENT',
+                        $evenement->getId(),
+                        'Événement supprimé',
+                        'L\'événement a été retiré.'
+                    );
+                }
+
                 return new JsonResponse(['success' => true, 'message' => 'Event deleted successfully!']);
             }
 

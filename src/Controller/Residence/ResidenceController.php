@@ -2,6 +2,8 @@
 
 namespace App\Controller\Residence;
 
+use App\Service\FormErrorHelperTrait;
+
 use App\Entity\Residence\Residence;
 use App\Form\Residence\ResidenceType;
 use App\Service\SmsGenerator;
@@ -13,6 +15,7 @@ use App\Repository\Residence\AppartementRepository;
 use App\Repository\Residence\MaintenanceRepository;
 use App\Service\PageStatusService;
 use App\Service\RecommendationAppartement;
+use App\Service\User\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,6 +34,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 #[Route('/residence')]
 class ResidenceController extends AbstractController
 {
+    use FormErrorHelperTrait;
     #[Route('/', name: 'app_residence_index', methods: ['GET', 'POST'])]
     public function index(Request $request, ResidenceRepository $residenceRepository, \Knp\Component\Pager\PaginatorInterface $paginator): Response
     {
@@ -167,12 +171,11 @@ class ResidenceController extends AbstractController
             ]);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
+        if ($form->isSubmitted()) {
+            return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
         }
 
-        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+        return new JsonResponse(['success' => false, 'message' => 'Form submission failed.'], 400);
     }
 
     #[Route('/admin/{id}/edit', name: 'admin_residence_edit', methods: ['POST'])]
@@ -209,12 +212,11 @@ class ResidenceController extends AbstractController
             return new JsonResponse(['success' => true, 'message' => 'Residence updated successfully.']);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
+        if ($form->isSubmitted()) {
+            return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
         }
 
-        return new JsonResponse(['success' => false, 'message' => implode(', ', $errors)], 400);
+        return new JsonResponse(['success' => false, 'message' => 'Form submission failed.'], 400);
     }
 
     #[Route('/admin/{id}/delete', name: 'admin_residence_delete', methods: ['POST'])]
@@ -301,11 +303,11 @@ class ResidenceController extends AbstractController
             ]);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
+        if ($form->isSubmitted()) {
+            return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
         }
-        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+
+        return new JsonResponse(['success' => false, 'message' => 'Form submission failed.'], 400);
     }
 
     #[Route('/appartement/{idApp}/edit', name: 'app_appartement_edit', methods: ['POST'])]
@@ -372,11 +374,11 @@ class ResidenceController extends AbstractController
             ]);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
+        if ($form->isSubmitted()) {
+            return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
         }
-        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+
+        return new JsonResponse(['success' => false, 'message' => 'Form submission failed.'], 400);
     }
 
     #[Route('/appartement/{idApp}/delete', name: 'app_appartement_delete', methods: ['POST'])]
@@ -433,17 +435,75 @@ class ResidenceController extends AbstractController
     }
 
     #[Route('/{id}/sendSms', name: 'send_sms', methods: ['GET', 'POST'])]
-    public function sendSms(SmsGenerator $smsGenerator, Request $request, UserRepository $userRep, ResidenceRepository $residenceRepository, \Knp\Component\Pager\PaginatorInterface $paginator): Response
+    public function sendSms(int $id, SmsGenerator $smsGenerator, Request $request, UserRepository $userRep, AppartementRepository $appartementRepository, ResidenceRepository $residenceRepository, \Knp\Component\Pager\PaginatorInterface $paginator, NotificationService $notificationService): Response
     {
         $session = $request->getSession();
-        $userId = (int) $session->get('user')['id'];
-        $user = $userRep->find($userId);
-        $name = $user->getFirstName();
-        $text = $user->getEmailUser();
-        $number_test = $_ENV['twilio_to_number'];
+        $userData = $session->get('user');
 
-        $smsGenerator->sendSms($number_test, $name, $text);
+        if (!$userData) {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['status' => 'error', 'message' => 'Non authentifié'], 401);
+            }
+            return $this->redirectToRoute('auth_sign_in');
+        }
 
+        $user = $userRep->find($userData['id']);
+        if (!$user) {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['status' => 'error', 'message' => 'Utilisateur non trouvé'], 404);
+            }
+            return $this->redirectToRoute('auth_sign_in');
+        }
+
+        $destNumber = $user->getPhone();
+        if (!$destNumber) {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['status' => 'error', 'message' => 'Veuillez ajouter un numéro de téléphone à votre profil pour recevoir le SMS.'], 400);
+            }
+            $this->addFlash('error', 'Veuillez ajouter un numéro de téléphone à votre profil.');
+            return $this->redirectToRoute('app_residence_index');
+        }
+
+        $appartement = $appartementRepository->find($id);
+
+        $name = $user->getFirstName() . ' ' . $user->getLastName();
+        $text = "Intéressé par l'appartement " . ($appartement ? $appartement->getTypeA() . " à " . $appartement->getResidence()->getNomR() : "ID: " . $id);
+        $text .= " - Contact: " . $user->getEmailUser();
+
+        try {
+            $smsGenerator->sendSms($destNumber, $name, $text);
+
+            // Create a persistence notification
+            $notificationService->notify(
+                $user,
+                'SUCCESS',
+                'residence_sms',
+                $id,
+                'SMS Envoyé',
+                "Votre demande pour l'appartement " . ($appartement ? $appartement->getTypeA() : "proposé") . " a été envoyée par SMS."
+            );
+
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['status' => 'success', 'message' => 'SMS envoyé avec succès à votre numéro (' . $destNumber . ') !']);
+            }
+        } catch (\Exception $e) {
+            // Log error in database too
+            $notificationService->notify(
+                $user,
+                'ERROR',
+                'residence_sms',
+                $id,
+                'Échec SMS',
+                "L'envoi du SMS a échoué: " . $e->getMessage()
+            );
+
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['status' => 'error', 'message' => 'Échec de l\'envoi du SMS: ' . $e->getMessage()], 500);
+            }
+            $this->addFlash('error', 'Échec de l\'envoi du SMS: ' . $e->getMessage());
+        }
+
+        // Fallback for non-AJAX calls
         $query = $residenceRepository->createQueryBuilder('r')
             ->orderBy('r.dateAjout', 'DESC')
             ->getQuery();

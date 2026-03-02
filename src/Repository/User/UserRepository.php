@@ -41,4 +41,19 @@ class UserRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getOneOrNullResult();
     }
+
+    /**
+     * Search users by first name or last name.
+     */
+    public function searchByName(string $query, int $excludeUserId, int $limit = 5): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.id_user != :excludeId')
+            ->andWhere('LOWER(u.first_name) LIKE LOWER(:query) OR LOWER(u.last_name) LIKE LOWER(:query)')
+            ->setParameter('excludeId', $excludeUserId)
+            ->setParameter('query', '%' . $query . '%')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -20,7 +20,7 @@
       border: 1px solid rgba(255, 255, 255, 0.1) !important;
       border-radius: 50% !important;
       cursor: pointer !important;
-      z-index: 2147483647 !important;
+      z-index: 2147483000 !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -45,7 +45,7 @@
       border: 1px solid rgba(255, 255, 255, 0.1) !important;
       border-radius: 28px !important;
       box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(255, 255, 255, 0.02) !important;
-      z-index: 2147483646 !important;
+      z-index: 2147483100 !important;
       display: none !important;
       flex-direction: column !important;
       overflow: hidden !important;
@@ -450,9 +450,113 @@
   // Create trigger button
   const trigger = document.createElement('button');
   trigger.id = 'syndicati-agent-trigger';
-  trigger.innerHTML = '🤖';
   trigger.title = 'Syndicati Agent';
+
+  // Create Net Canvas
+  const netCanvas = document.createElement('canvas');
+  netCanvas.id = 'syndicati-net-canvas';
+  netCanvas.style.position = 'absolute';
+  netCanvas.style.top = '0';
+  netCanvas.style.left = '0';
+  netCanvas.style.width = '100%';
+  netCanvas.style.height = '100%';
+  netCanvas.style.pointerEvents = 'none';
+  netCanvas.style.borderRadius = '50%';
+  netCanvas.style.opacity = '0.8';
+  trigger.appendChild(netCanvas);
+
+  const iconSpan = document.createElement('span');
+  iconSpan.innerHTML = '🤖';
+  iconSpan.style.position = 'relative';
+  iconSpan.style.zIndex = '2';
+  trigger.appendChild(iconSpan);
+
   document.body.appendChild(trigger);
+
+  // Bubble Net Animation Engine
+  (function initBubbleNet() {
+    const ctx = netCanvas.getContext('2d');
+    let width, height;
+    let particles = [];
+    let isHovering = false;
+    const particleCount = 12;
+    const connectionDist = 35;
+
+    function resize() {
+      width = netCanvas.width = 128; // Higher res for retina
+      height = netCanvas.height = 128;
+    }
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * 128;
+        this.y = Math.random() * 128;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.radius = 1 + Math.random() * 1.5;
+      }
+      update() {
+        let speedMult = isHovering ? 2.5 : 1;
+        this.x += this.vx * speedMult;
+        this.y += this.vy * speedMult;
+
+        if (this.x < 0 || this.x > 128) this.vx *= -1;
+        if (this.y < 0 || this.y > 128) this.vy *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = isHovering ? '#fff' : 'rgba(255, 255, 255, 0.5)';
+        ctx.fill();
+      }
+    }
+
+    function init() {
+      resize();
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, 128, 128);
+
+      // Draw Connections
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < connectionDist) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            let alpha = 1 - (dist / connectionDist);
+            ctx.strokeStyle = `rgba(120, 80, 255, ${alpha * (isHovering ? 0.8 : 0.4)})`;
+            ctx.stroke();
+          }
+        }
+      }
+
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    trigger.addEventListener('mouseenter', () => isHovering = true);
+    trigger.addEventListener('mouseleave', () => isHovering = false);
+
+    init();
+    animate();
+  })();
 
   // Create panel
   const panel = document.createElement('div');

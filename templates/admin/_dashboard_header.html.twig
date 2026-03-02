@@ -18,6 +18,25 @@
         </div>
 
         <div class="dashboard-header-right">
+            <!-- Unified Notification Hub -->
+            <div class="notif-wrapper">
+                <div class="notif-bell" id="notifBell" title="Notifications">
+                    <i class="bx bx-bell" style="font-size: 20px;"></i>
+                    <span class="notif-badge" id="notifBadge" style="display: none;">0</span>
+                </div>
+                
+                <div class="notif-hub" id="notifHub">
+                    <div class="notif-hub-header">
+                        <h5>{{ 'nav.notifications'|trans|default('Notifications') }}</h5>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button id="notifMarkAllRead" class="notif-action-btn">{{ 'nav.mark_all_read'|trans|default('Tout lu') }}</button>
+                            <button id="notifCloseHub" class="notif-close-btn"><i class="bx bx-x"></i></button>
+                        </div>
+                    </div>
+                    <div class="notif-hub-body scrollbar-hide" id="notifScroll"></div>
+                </div>
+            </div>
+
             <div class="header-profile">
                 <div class="header-profile-text">
                     <span class="header-profile-name">{{ _user_name }}</span>
@@ -76,6 +95,7 @@
     });
 
     function updateCurrentDateTime() {
+        // ... (existing date/time logic)
         const dateElement = document.getElementById('currentDate');
         const timeElement = document.getElementById('currentTime');
 
@@ -98,4 +118,40 @@
             timeElement.textContent = `${hours}:${minutes}:${seconds}`;
         }
     }
+
+    // Notification Hub Toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const bell = document.getElementById('notifBell');
+        const hub = document.getElementById('notifHub');
+        const closeBtn = document.getElementById('notifCloseHub');
+
+        if (bell && hub) {
+            bell.onclick = function(e) {
+                e.stopPropagation();
+                const isActive = hub.classList.contains('active');
+                if (isActive) {
+                    hub.classList.remove('active');
+                    hub.style.display = 'none';
+                } else {
+                    hub.style.display = 'flex';
+                    hub.classList.add('active');
+                }
+            };
+
+            if (closeBtn) {
+                closeBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    hub.classList.remove('active');
+                    hub.style.display = 'none';
+                };
+            }
+
+            document.onclick = function(e) {
+                if (hub && hub.classList.contains('active') && !hub.contains(e.target) && !bell.contains(e.target)) {
+                    hub.classList.remove('active');
+                    hub.style.display = 'none';
+                }
+            };
+        }
+    });
 </script>

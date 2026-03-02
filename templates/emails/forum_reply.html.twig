@@ -1,17 +1,81 @@
 {% extends 'emails/base_email.html.twig' %}
 
-{% block body %}
-    <h2>Hello {{ author.firstName }},</h2>
-    <p><strong>{{ senderName }}</strong> just engaged with your protocol:</p>
-    <p style="font-style: italic; color: #ff4b5c; font-weight: 700;">"{{ comment.publication.titrePub }}"</p>
+{% block extra_css %}
+<style>
+    .post-label {
+        display: inline-block;
+        background: rgba(255, 75, 92, 0.08);
+        border: 1px solid rgba(255, 75, 92, 0.25);
+        color: #ff4b5c;
+        padding: 6px 14px;
+        border-radius: 100px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 24px;
+    }
+    .post-title {
+        font-size: 22px;
+        font-weight: 900;
+        color: #ffffff;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.5px;
+    }
+    .comment-block {
+        background: rgba(255, 75, 92, 0.03);
+        padding: 28px 30px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 75, 92, 0.15);
+        border-left: 4px solid #ff4b5c;
+        margin: 28px 0;
+        box-shadow: inset 0 0 30px rgba(0,0,0,0.4);
+    }
+    .commenter-tag {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #ff4b5c;
+        margin-bottom: 12px;
+        display: block;
+    }
+    .comment-text {
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.88);
+        line-height: 1.7;
+        margin: 0;
+        font-style: italic;
+    }
+    .divider {
+        border: none;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        margin: 32px 0;
+    }
+</style>
+{% endblock %}
 
-    <div style="background: rgba(255, 75, 92, 0.03); padding: 30px; border-radius: 20px; border-left: 5px solid #ff4b5c; margin: 35px 0; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
-        <p style="margin-bottom: 0; font-size: 16px; color: rgba(255, 255, 255, 0.9); line-height: 1.6;">"{{ comment.descriptionCommentaire }}"</p>
+{% block body %}
+    <span class="post-label">💬 New Comment</span>
+
+    <h2 style="margin-top: 0;">Hello, {{ author.firstName }}.</h2>
+    <p>Someone just commented on your post. Here's what they said:</p>
+
+    <p class="post-title">{{ comment.publication.titrePub }}</p>
+    <p style="font-size: 13px; color: rgba(255,255,255,0.3); margin-top: 0;">Your post · {{ comment.createdAt|date('M d, Y') }}</p>
+
+    <hr class="divider">
+
+    <div class="comment-block">
+        <span class="commenter-tag">{{ senderName }} replied</span>
+        <p class="comment-text">{{ comment.descriptionCommentaire }}</p>
     </div>
 
     <div class="button-container">
-        <a href="{{ forumUrl }}" class="button">View Reaction</a>
+        <a href="{{ forumUrl }}" class="button">View in Forum</a>
     </div>
 
-    <p style="font-size: 14px; color: rgba(255, 255, 255, 0.3); text-align: center;">Keep the conversation alive and maintain the momentum.</p>
+    <p style="font-size: 13px; color: rgba(255,255,255,0.25); text-align: center; margin-top: 32px;">
+        You received this because someone replied to your post. Keep the conversation going.
+    </p>
 {% endblock %}

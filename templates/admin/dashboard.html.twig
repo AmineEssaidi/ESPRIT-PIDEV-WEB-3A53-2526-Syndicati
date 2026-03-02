@@ -1,184 +1,527 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Dashboard - Liquid Glass Admin{% endblock %}
+{% block title %}Dashboard — Horizon Admin{% endblock %}
 
 {% block content %}
-{% include 'admin/_dashboard_header.html.twig' with { 'title': 'Dashboard' } %}
+{% include 'admin/_dashboard_header.html.twig' with { 'title': 'Admin Overview' } %}
 
-<div class="admin-dashboard">
-    <!-- Top Stat Cards -->
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-card-header">
-                <span class="stat-icon income-icon"></span>
-                <span class="stat-label">Currency income</span>
-            </div>
-            <div class="stat-value">$2700</div>
-            <div class="stat-sub">+12% vs last month</div>
-        </div>
+<div class="hz-dashboard">
 
-        <div class="stat-card">
-            <div class="stat-card-header">
-                <span class="stat-icon bills-icon"></span>
-                <span class="stat-label">Bills</span>
+    {# ── SWITCHER NAVIGATION ────────────────────────────────── #}
+    <div class="users-pagination-wrapper" style="display: flex; justify-content: center; position: relative; z-index: 20;">
+        <div class="premium-switcher-container" style="padding:4px;background:rgba(10, 10, 10, 0.45);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255, 255, 255, 0.1);border-radius:100px;box-shadow:0 10px 40px rgba(0, 0, 0, 0.4);position:relative;z-index:10;min-width:600px;">
+            <div class="premium-switcher-pill" style="display:flex;position:relative;width:100%;height:38px;">
+                <div class="premium-switcher-slider" id="switcher-slider" style="position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg, #a78bfa 0%, #7c3aed 100%);border-radius:100px;box-shadow:0 4px 20px rgba(124, 58, 237, 0.4);transition:all 0.5s cubic-bezier(0.23, 1, 0.32, 1);z-index:1;pointer-events:none;"></div>
+                <button class="premium-switcher-tab active" data-page="1" style="flex:1;position:relative;z-index:2;background:transparent;border:none;color:rgba(255,255,255,0.55);font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.3s ease;">General</button>
+                <button class="premium-switcher-tab" data-page="2" style="flex:1;position:relative;z-index:2;background:transparent;border:none;color:rgba(255,255,255,0.55);font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.3s ease;">Users</button>
+                <button class="premium-switcher-tab" data-page="3" style="flex:1;position:relative;z-index:2;background:transparent;border:none;color:rgba(255,255,255,0.55);font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.3s ease;">Forum</button>
+                <button class="premium-switcher-tab" data-page="4" style="flex:1;position:relative;z-index:2;background:transparent;border:none;color:rgba(255,255,255,0.55);font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.3s ease;">Syndicat</button>
+                <button class="premium-switcher-tab" data-page="5" style="flex:1;position:relative;z-index:2;background:transparent;border:none;color:rgba(255,255,255,0.55);font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.3s ease;">Residence</button>
+                <button class="premium-switcher-tab" data-page="6" style="flex:1;position:relative;z-index:2;background:transparent;border:none;color:rgba(255,255,255,0.55);font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.3s ease;">Evenement</button>
             </div>
-            <div class="stat-value">$1250</div>
-            <div class="stat-sub">24 invoices pending</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-card-header">
-                <span class="stat-icon balance-icon"></span>
-                <span class="stat-label">Balance</span>
-            </div>
-            <div class="stat-value">$3450</div>
-            <div class="stat-sub">All accounts reconciled</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-card-header">
-                <span class="stat-icon payment-icon"></span>
-                <span class="stat-label">Pending payment</span>
-            </div>
-            <div class="stat-value">$3428</div>
-            <div class="stat-sub text-warning">5 invoices overdue</div>
         </div>
     </div>
 
-    <!-- Main Grid -->
-    <div class="dashboard-main">
-        <!-- Activity / Chart Section -->
-        <section class="activity-card glass-panel">
-            <div class="panel-header">
-                <div>
-                    <h2 class="panel-title">Activity</h2>
-                    <p class="panel-subtitle">Income vs Spent · This year</p>
+    {# ── PAGE 1: GENERAL STATS (WITH SUB-PAGINATION) ────────── #}
+    <div class="dashboard-page-content" data-page="1">
+        
+        {# Sub-Navigation for General Tab (Floating Island Effect) #}
+        <style>
+            @keyframes subNavDropIn {
+                0% { opacity: 0; transform: translateY(-10px) scale(0.98); }
+                100% { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            .gen-sub-tab:hover:not(.active) {
+                background: rgba(255, 255, 255, 0.05) !important;
+                color: #fff !important;
+            }
+        </style>
+        <div style="display:flex; justify-content:center; margin-top: 4px; margin-bottom: 2rem; position: relative; z-index: 15; animation: subNavDropIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+            <div style="display:inline-flex; gap: 0.25rem; background: rgba(15, 15, 17, 0.65); backdrop-filter: blur(24px) saturate(200%); -webkit-backdrop-filter: blur(24px) saturate(200%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 6px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+                <button class="gen-sub-tab active" data-sub="overview" style="background: rgba(167, 139, 250, 0.2); color: #fff; border: 1px solid rgba(167, 139, 250, 0.3); padding: 5px 16px; border-radius: 12px; cursor: pointer; font-size: 0.75rem; font-weight: 700; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px;">Overview</button>
+                <button class="gen-sub-tab" data-sub="engagement" style="background: transparent; color: rgba(255,255,255,0.4); border: 1px solid transparent; padding: 5px 16px; border-radius: 12px; cursor: pointer; font-size: 0.75rem; font-weight: 700; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px;">Engagement</button>
+                <button class="gen-sub-tab" data-sub="system" style="background: transparent; color: rgba(255,255,255,0.4); border: 1px solid transparent; padding: 5px 16px; border-radius: 12px; cursor: pointer; font-size: 0.75rem; font-weight: 700; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px;">System</button>
+            </div>
+        </div>
+
+        {# ── SUB-PAGE: OVERVIEW ──────────────────────────────── #}
+        <div class="gen-sub-page" data-sub="overview" style="animation: fade-in-up 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);">
+            <div class="hz-stat-grid" style="margin-bottom: 2rem;">
+                <div class="hz-stat-card hz-stat-purple">
+                    <div class="hz-stat-icon"><i class='bx bx-group'></i></div>
+                    <div class="hz-stat-body">
+                        <p class="hz-stat-label">Total Residents</p>
+                        <p class="hz-stat-num" data-count="{{ stats.total_users }}" data-live="total_users">{{ stats.total_users }}</p>
+                        <p class="hz-stat-sub"><span class="hz-pill hz-pill-purple"><span data-live="new_users_week">{{ stats.new_users_week }}</span> active this week</span></p>
+                    </div>
+                    <div class="hz-stat-glow hz-glow-purple"></div>
                 </div>
-                <div class="legend">
-                    <span class="legend-dot income-dot"></span><span>Income</span>
-                    <span class="legend-dot spent-dot ms-3"></span><span>Spent</span>
+
+                <div class="hz-stat-card hz-stat-green">
+                    <div class="hz-stat-icon"><i class='bx bx-user-check'></i></div>
+                    <div class="hz-stat-body">
+                        <p class="hz-stat-label">Active Today</p>
+                        <p class="hz-stat-num" data-count="{{ stats.active_today }}" data-live="active_today">{{ stats.active_today }}</p>
+                        <p class="hz-stat-sub"><span class="hz-pill hz-pill-green">Unique users online</span></p>
+                    </div>
+                    <div class="hz-stat-glow hz-glow-green"></div>
+                </div>
+
+                <div class="hz-stat-card hz-stat-blue">
+                    <div class="hz-stat-icon"><i class='bx bx-pulse'></i></div>
+                    <div class="hz-stat-body">
+                        <p class="hz-stat-label">Interactions Today</p>
+                        <p class="hz-stat-num" data-count="{{ stats.interactions_today }}" data-live="interactions_today">{{ stats.interactions_today }}</p>
+                        <p class="hz-stat-sub"><span class="hz-pill hz-pill-blue">Events logged</span></p>
+                    </div>
+                    <div class="hz-stat-glow hz-glow-blue"></div>
+                </div>
+
+                <div class="hz-stat-card hz-stat-amber">
+                    <div class="hz-stat-icon"><i class='bx bx-broadcast'></i></div>
+                    <div class="hz-stat-body">
+                        <p class="hz-stat-label">Community Pulse</p>
+                        <p class="hz-stat-num">{{ community.new_posts + community.new_events }}</p>
+                        <p class="hz-stat-sub">
+                            <span class="hz-pill hz-pill-amber">{{ community.new_posts }} posts · {{ community.new_events }} events</span>
+                        </p>
+                    </div>
+                    <div class="hz-stat-glow hz-glow-amber"></div>
                 </div>
             </div>
-            <div class="activity-chart">
-                <!-- Simple bar chart inspired by the mockup -->
-                {% set months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'] %}
-                <div class="chart-bars">
-                    {% for month in months %}
-                        <div class="chart-bar">
-                            <div class="bar-group">
-                                <div class="bar bar-income"></div>
-                                <div class="bar bar-spent"></div>
+
+            <div class="hz-main-grid">
+                <div class="hz-left-col">
+                    {# Activity Chart #}
+                    <section class="hz-glass hz-chart-card">
+                        <div class="hz-panel-head">
+                            <div>
+                                <h2 class="hz-panel-title">Activity Pulse</h2>
+                                <p class="hz-panel-sub">Page Views <span style="color:#a78bfa">■</span> &nbsp;UI Clicks <span style="color:#34d399">■</span> — Last 7 Days</p>
                             </div>
-                            <span class="bar-label">{{ month }}</span>
                         </div>
-                    {% endfor %}
-                </div>
-            </div>
 
-            <div class="activity-footer">
-                <div class="activity-metric">
-                    <span class="metric-label">Total income</span>
-                    <span class="metric-value">$124,580</span>
-                </div>
-                <div class="activity-metric">
-                    <span class="metric-label">Total spent</span>
-                    <span class="metric-value">$86,430</span>
-                </div>
-                <div class="activity-metric">
-                    <span class="metric-label">Net balance</span>
-                    <span class="metric-value text-success">+$38,150</span>
-                </div>
-            </div>
-        </section>
+                        {% if trends|length > 0 %}
+                            {% set max_val = 1 %}
+                            {% for day in trends %}
+                                {% if day.views > max_val %}{% set max_val = day.views %}{% endif %}
+                                {% if day.clicks > max_val %}{% set max_val = day.clicks %}{% endif %}
+                            {% endfor %}
 
-        <!-- Right Column -->
-        <aside class="dashboard-side">
-            <!-- Upcoming Obligations -->
-            <section class="obligations-card glass-panel">
-                <h2 class="panel-title">Upcoming obligations</h2>
-                <div class="obligation-box">
-                    <h3 class="obligation-title">VAT declaration</h3>
-                    <p class="obligation-text">You have 27 days left to submit the documentation.</p>
-                    <button class="btn btn-sm btn-primary rounded-pill">View details</button>
-                </div>
-            </section>
+                            <div class="hz-chart-wrap">
+                                {% for day in trends %}
+                                <div class="hz-bar-col">
+                                    <div class="hz-bar-pair">
+                                        {% set vh = ((day.views / max_val) * 100)|round %}{% set vh = vh < 4 ? 4 : vh %}
+                                        <div class="hz-bar hz-bar-view" style="--h: {{ vh }}%"></div>
+                                        {% set ch = ((day.clicks / max_val) * 100)|round %}{% set ch = ch < 4 ? 4 : ch %}
+                                        <div class="hz-bar hz-bar-click" style="--h: {{ ch }}%"></div>
+                                    </div>
+                                    <span class="hz-bar-lbl">{{ day.log_date|date('D')|slice(0,3)|upper }}</span>
+                                    <span class="hz-bar-lbl" style="color:rgba(255,255,255,0.3);font-size:0.6rem">{{ day.log_date|date('d/m') }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="hz-empty-state">
+                                <i class='bx bx-line-chart' style="font-size:2.5rem;opacity:0.2"></i>
+                                <p>No activity data yet — start navigating!</p>
+                            </div>
+                        {% endif %}
 
-            <!-- Agenda / Calendar -->
-            <section class="agenda-card glass-panel">
-                <div class="panel-header">
-                    <h2 class="panel-title">Agenda</h2>
-                    <span class="panel-subtitle">This month</span>
-                </div>
-                <div class="agenda-content">
-                    <div class="mini-calendar">
-                        <div class="calendar-header">
-                            <span class="month-label">February 2026</span>
+                        <div class="hz-chart-footer">
+                            <div class="hz-metric">
+                                <i class='bx bx-news' style="color:#a78bfa"></i>
+                                <span class="hz-metric-label">New Posts</span>
+                                <span class="hz-metric-val">+{{ community.new_posts }}</span>
+                            </div>
+                            <div class="hz-metric">
+                                <i class='bx bx-calendar-event' style="color:#34d399"></i>
+                                <span class="hz-metric-label">New Events</span>
+                                <span class="hz-metric-val">+{{ community.new_events }}</span>
+                            </div>
+                            <div class="hz-metric">
+                                <i class='bx bx-trending-up' style="color:#60a5fa"></i>
+                                <span class="hz-metric-label">Engagement</span>
+                                <span class="hz-metric-val" style="color:#34d399">▲ High</span>
+                            </div>
                         </div>
-                        <div class="calendar-grid">
-                            <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
-                            {% for i in 1..28 %}
-                                <button class="calendar-day {{ i == 10 ? 'is-today' : '' }}">{{ i }}</button>
+                    </section>
+                </div>
+                
+                <aside class="hz-side-col">
+                    {# Top Users #}
+                    <section class="hz-glass hz-users-card" style="padding:1.25rem">
+                        <div class="hz-panel-head" style="margin-bottom:1rem">
+                            <h2 class="hz-panel-title"><i class='bx bx-star' style="color:#fbbf24;margin-right:6px"></i>Top Active Citizens</h2>
+                        </div>
+                        <div class="hz-users-list">
+                            {% for user in topUsers %}
+                            <div class="hz-user-row" style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:6px;border-radius:8px;background:rgba(255,255,255,0.02)">
+                                <div class="hz-avatar-circle" style="width:32px;height:32px;background:rgba(251,191,36,0.15);color:#fbbf24;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">{{ user.first_name|slice(0,1)|upper }}</div>
+                                <div style="flex:1">
+                                    <p style="margin:0;font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.85)">{{ user.first_name }} {{ user.last_name }}</p>
+                                    <p style="margin:0;font-size:0.65rem;color:#fbbf24">{{ user.role_user }}</p>
+                                </div>
+                                <div style="font-size:0.8rem;font-weight:700;color:#fff">{{ user.activity_count }} <span style="font-size:0.6rem;color:rgba(255,255,255,0.4)">pts</span></div>
+                            </div>
+                            {% else %}
+                            <p class="hz-empty-state">No active users yet.</p>
                             {% endfor %}
                         </div>
-                    </div>
-                    <div class="agenda-list">
-                        <div class="agenda-item">
-                            <div>
-                                <p class="agenda-title">Meeting with Everis</p>
-                                <p class="agenda-meta">Zoom · 09:00</p>
-                            </div>
-                            <span class="agenda-badge">Today</span>
-                        </div>
-                        <div class="agenda-item">
-                            <div>
-                                <p class="agenda-title">Board review</p>
-                                <p class="agenda-meta">HQ · 15:30</p>
-                            </div>
-                            <span class="agenda-badge badge-soft">Tomorrow</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                    </section>
+                </aside>
+            </div>
+        </div>
 
-            <!-- Monthly Billing -->
-            <section class="billing-card glass-panel">
-                <div class="panel-header">
-                    <h2 class="panel-title">Monthly billing</h2>
-                    <span class="panel-subtitle">Issued vs Received</span>
+        {# ── SUB-PAGE: ENGAGEMENT ────────────────────────────── #}
+        <div class="gen-sub-page" data-sub="engagement" style="display:none; animation: fade-in-up 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);">
+            <div class="hz-main-grid">
+                <div class="hz-left-col">
+                    {# Top Pages #}
+                    <section class="hz-glass hz-locations-card">
+                        <div class="hz-panel-head">
+                            <h2 class="hz-panel-title"><i class='bx bx-map-pin' style="color:#a78bfa;margin-right:6px"></i>Top Pages</h2>
+                            <span class="hz-panel-sub">Most visited routes</span>
+                        </div>
+                        <div class="hz-locations-list" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            {% set rank_colors = ['#a78bfa','#60a5fa','#34d399','#fbbf24','#f87171'] %}
+                            {% for page in topPages %}
+                            {% set i = loop.index0 %}
+                            {% set clean_route = page.route|replace({'/admin/': '', '/api/': 'API: ', '/frontend/': 'Frontend: '})|trim('/') %}
+                            {% set clean_route = clean_route ?: 'Home / Landing' %}
+                            <div class="hz-location-row" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div style="display:flex; align-items:center; gap: 0.5rem;">
+                                        <span class="hz-rank-dot" style="background:{{ rank_colors[i]|default('#94a3b8') }}">{{ loop.index }}</span>
+                                        <span class="hz-location-name" style="font-weight:600; color:#fff;">{{ clean_route|length > 25 ? clean_route|slice(0,25) ~ '…' : clean_route }}</span>
+                                    </div>
+                                    <span class="hz-location-badge" style="color:{{ rank_colors[i]|default('#94a3b8') }}; font-weight:700;">{{ page.visit_count }} <span style="font-size:0.6rem;opacity:0.5">views</span></span>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="hz-empty-state" style="grid-column: 1 / -1; padding:2rem 0">
+                                <i class='bx bx-map' style="font-size:2rem;opacity:0.2"></i>
+                                <p style="font-size:0.9rem">No page views logged yet</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </section>
+
+                    {# Recent Signups #}
+                    <section class="hz-glass hz-users-card" style="padding:1.5rem; margin-top:1.5rem;">
+                        <div class="hz-panel-head" style="margin-bottom:1rem">
+                            <h2 class="hz-panel-title"><i class='bx bx-user-plus' style="color:#60a5fa;margin-right:6px"></i>Recent Arrivals</h2>
+                        </div>
+                        <div class="hz-users-list" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            {% for curr_user in recentSignups %}
+                            <div class="hz-user-row" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                                <div class="hz-avatar-circle" style="width:40px;height:40px;background:rgba(96,165,250,0.15);color:#60a5fa;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;">{{ curr_user.firstName|slice(0,1)|upper }}</div>
+                                <div style="flex:1">
+                                    <p style="margin:0;font-size:0.85rem;font-weight:600;color:#fff">{{ curr_user.firstName }} {{ curr_user.lastName }}</p>
+                                    <p style="margin:0;font-size:0.7rem;color:#60a5fa">{{ curr_user.roleUser|title }}</p>
+                                </div>
+                                <div style="font-size:0.7rem;color:rgba(255,255,255,0.4)"><i class='bx bx-time-five'></i> {{ curr_user.createdAt|date('M d') }}</div>
+                            </div>
+                            {% else %}
+                            <p class="hz-empty-state" style="grid-column: 1 / -1;">No recent signups.</p>
+                            {% endfor %}
+                        </div>
+                    </section>
                 </div>
-                <div class="billing-content">
-                    <div class="billing-gauge">
-                        <div class="gauge-ring">
-                            <div class="gauge-fill"></div>
-                            <div class="gauge-center">
-                                <span class="gauge-label">Total</span>
-                                <span class="gauge-value">$1450</span>
+
+                <aside class="hz-side-col">
+                    {# Top Clicks #}
+                    {% if topClicks|length > 0 %}
+                    <section class="hz-glass hz-clicks-card">
+                        <div class="hz-panel-head">
+                            <h2 class="hz-panel-title"><i class='bx bx-mouse-alt' style="color:#fbbf24;margin-right:6px"></i>Hot Buttons</h2>
+                            <span class="hz-panel-sub">Most clicked elements</span>
+                        </div>
+                        <div class="hz-clicks-list">
+                            {% for click in topClicks %}
+                            {% set el = click.element_text|default(click.target|replace({'#': '', '.': ' '})|default('Element')) %}
+                            {% set el = el|length > 30 ? el|slice(0,30) ~ '…' : el %}
+                            <div class="hz-click-row" style="margin-bottom: 1rem;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+                                    <span class="hz-click-name" style="font-size: 0.8rem; font-weight: 500; color: #fff;">{{ el }}</span>
+                                    <span class="hz-click-count" style="font-size: 0.8rem; font-weight: 700; color: #fbbf24;">{{ click.click_count }}×</span>
+                                </div>
+                                <div class="hz-click-bar-wrap" style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 999px; overflow: hidden;">
+                                    <div class="hz-click-bar" style="height: 100%; background: #fbbf24; width:{{ topClicks[0].click_count > 0 ? ((click.click_count / topClicks[0].click_count) * 100)|round : 0 }}%"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </section>
+                    {% endif %}
+                </aside>
+            </div>
+        </div>
+
+        {# ── SUB-PAGE: SYSTEM LOGS ───────────────────────────── #}
+        <div class="gen-sub-page" data-sub="system" style="display:none; animation: fade-in-up 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);">
+            <div class="hz-main-grid">
+                <div class="hz-left-col">
+                    {# Recent Activity #}
+                    <section class="hz-glass hz-activity-card">
+                        <div class="hz-panel-head" style="margin-bottom: 1.5rem;">
+                            <h2 class="hz-panel-title"><i class='bx bx-radio-circle-marked' style="color:#34d399;margin-right:6px;animation:hz-blink 1.5s infinite"></i>Live Navigation Log</h2>
+                            <span class="hz-live-badge">REAL-TIME</span>
+                        </div>
+                        <div class="hz-activity-list" style="display:flex; flex-direction:column; gap:0.75rem;">
+                            {% for log in recentActivity %}
+                            {% set is_view  = log.eventType == 'PAGE_VIEW' %}
+                            {% set is_click = log.eventType == 'UI_CLICK' %}
+                            {% set icon  = is_view  ? 'bx-show' : (is_click ? 'bx-mouse' : 'bx-bolt-circle') %}
+                            {% set color = is_view  ? '#a78bfa' : (is_click ? '#34d399' : '#fbbf24') %}
+                            {% set label = is_view  ? 'Page View' : (is_click ? 'UI Click' : log.eventType|replace({'_':' '})|title) %}
+                            {% set name  = log.user ? log.user.firstName ~ ' ' ~ log.user.lastName : 'Visitor' %}
+                            <div class="hz-activity-item" style="display:flex; align-items:center; gap:1rem; background:rgba(255,255,255,0.02); padding:1rem; border-radius:12px; border-left:3px solid {{ color }};">
+                                <div class="hz-activity-icon-wrap" style="width:40px; height:40px; border-radius:50%; background:{{ color }}15; color:{{ color }}; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                                    <i class='bx {{ icon }}'></i>
+                                </div>
+                                <div class="hz-activity-info" style="flex:1;">
+                                    <p class="hz-activity-who" style="margin:0; font-weight:600; color:#fff;">{{ name }}</p>
+                                    <p class="hz-activity-what" style="margin:0; font-size:0.75rem; color:rgba(255,255,255,0.5);">
+                                        <span style="color:{{ color }}; font-weight:600;">{{ label }}</span> 
+                                        {% if is_view %}
+                                            · {{ log.metadata.route|default('Unknown Route') }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div style="text-align:right;">
+                                    <span class="hz-activity-time" style="display:block; font-size:0.8rem; font-weight:700; color:#fff;">{{ log.createdAt|date('H:i') }}</span>
+                                    <span style="font-size:0.65rem; color:rgba(255,255,255,0.4);">{{ log.createdAt|date('M d') }}</span>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="hz-empty-state" style="padding:2rem 0">
+                                <i class='bx bx-ghost' style="font-size:2rem;opacity:0.2"></i>
+                                <p>Waiting for activity…</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="hz-side-col">
+                    {# Device Stats #}
+                    <section class="hz-glass hz-device-card" style="padding:1.5rem 1.75rem;">
+                        <div class="hz-panel-head">
+                            <h2 class="hz-panel-title"><i class='bx bx-devices' style="color:#34d399;margin-right:6px"></i>System Access</h2>
+                            <span class="hz-panel-sub">Last 30 days</span>
+                        </div>
+                        
+                        <div style="display:flex;gap:1rem;margin:1rem 0">
+                            <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:12px;padding:1rem;text-align:center">
+                                <i class='bx bx-laptop' style="font-size:1.5rem;color:#a78bfa;margin-bottom:5px"></i>
+                                <div style="font-size:1.2rem;font-weight:800;color:#fff">{{ deviceStats.desktop_pct }}%</div>
+                                <div style="font-size:0.65rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px">Desktop</div>
+                            </div>
+                            <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:12px;padding:1rem;text-align:center">
+                                <i class='bx bx-mobile-alt' style="font-size:1.5rem;color:#34d399;margin-bottom:5px"></i>
+                                <div style="font-size:1.2rem;font-weight:800;color:#fff">{{ deviceStats.mobile_pct }}%</div>
+                                <div style="font-size:0.65rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px">Mobile</div>
                             </div>
                         </div>
-                    </div>
-                    <div class="billing-legend">
-                        <div class="legend-row">
-                            <span class="legend-dot issued-dot"></span>
-                            <span>Issued</span>
-                            <span class="legend-amount ms-auto">$950</span>
+
+                        <div style="display:flex;flex-direction:column;gap:12px;margin-top:2rem">
+                            <h3 style="font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:1px; margin-bottom: 0.5rem;">Browser Usage</h3>
+                            {% for name, pct in deviceStats.browsers %}
+                                {% set bar_color = name == 'Chrome' ? '#fbbf24' : (name == 'Safari' ? '#60a5fa' : (name == 'Firefox' ? '#f87171' : (name == 'Edge' ? '#34d399' : '#94a3b8'))) %}
+                                <div style="display:flex;align-items:center;gap:10px">
+                                    <span style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.7);width:50px">{{ name }}</span>
+                                    <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:999px;overflow:hidden">
+                                        <div style="height:100%;width:{{ pct }}%;background:{{ bar_color }};border-radius:999px"></div>
+                                    </div>
+                                    <span style="font-size:0.75rem;font-weight:700;color:{{ bar_color }};width:30px;text-align:right">{{ pct }}%</span>
+                                </div>
+                            {% endfor %}
                         </div>
-                        <div class="legend-row">
-                            <span class="legend-dot received-dot"></span>
-                            <span>Received</span>
-                            <span class="legend-amount ms-auto">$500</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </aside>
+                    </section>
+                </aside>
+            </div>
+        </div>
+        
+    </div><!-- End Page 1 (General) -->
+
+    {# ── PAGE 2: USERS ──────────────────────────────────────── #}
+    <div class="dashboard-page-content" data-page="2" style="display:none; padding-top: 2rem;">
+        {% include 'admin/dashboard/_tabs.html.twig' with {'module': 'users', 'stats': usersStats} %}
     </div>
-</div>
 
+    {# ── PAGE 3: FORUM ──────────────────────────────────────── #}
+    <div class="dashboard-page-content" data-page="3" style="display:none; padding-top: 2rem;">
+        {% include 'admin/dashboard/_tabs.html.twig' with {'module': 'forum', 'stats': forumStats} %}
+    </div>
+
+    {# ── PAGE 4: SYNDICAT ───────────────────────────────────── #}
+    <div class="dashboard-page-content" data-page="4" style="display:none; padding-top: 2rem;">
+        {% include 'admin/dashboard/_tabs.html.twig' with {'module': 'syndicat', 'stats': syndicatStats} %}
+    </div>
+
+    {# ── PAGE 5: RESIDENCE ──────────────────────────────────── #}
+    <div class="dashboard-page-content" data-page="5" style="display:none; padding-top: 2rem;">
+        {% include 'admin/dashboard/_tabs.html.twig' with {'module': 'residence', 'stats': residenceStats} %}
+    </div>
+
+    {# ── PAGE 6: EVENEMENT ──────────────────────────────────── #}
+    <div class="dashboard-page-content" data-page="6" style="display:none; padding-top: 2rem;">
+        {% include 'admin/dashboard/_tabs.html.twig' with {'module': 'evenement', 'stats': evenementStats} %}
+    </div>
+
+</div>
 {% endblock %}
 
 {% block javascripts %}
 <script>
-// Keep the live date & time in the dashboard header.
-// Date/Time logic moved to _dashboard_header.html.twig
+document.addEventListener('DOMContentLoaded', () => {
+    // ── Switcher UI Logic
+    const slider = document.getElementById('switcher-slider');
+    const tabs = document.querySelectorAll('.premium-switcher-tab');
+    
+    // Set initial active state styling
+    const updateActiveColors = () => {
+        tabs.forEach(t => {
+            if (t.classList.contains('active')) {
+                t.style.color = '#fff';
+                t.style.textShadow = '0 0 10px rgba(255,255,255,0.3)';
+            } else {
+                t.style.color = 'rgba(255,255,255,0.55)';
+                t.style.textShadow = 'none';
+            }
+        });
+    };
+
+    function updateSlider(activeTab) {
+        slider.style.width = activeTab.offsetWidth + 'px';
+        slider.style.left = activeTab.offsetLeft + 'px';
+    }
+
+    function showDashboardPage(page) {
+        document.querySelectorAll('.dashboard-page-content').forEach(div => {
+            div.style.display = div.dataset.page == page ? 'block' : 'none';
+        });
+    }
+
+    // Initialize first main tab
+    const firstTab = document.querySelector('.premium-switcher-tab.active');
+    if (firstTab) { updateSlider(firstTab); updateActiveColors(); }
+
+    // ── General Tab Sub-Navigation Logic ──
+    const subTabs = document.querySelectorAll('.gen-sub-tab');
+    const subPages = document.querySelectorAll('.gen-sub-page');
+
+    subTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            if(this.classList.contains('active')) return;
+            
+            // Reset all sub tabs
+            subTabs.forEach(t => {
+                t.classList.remove('active');
+                t.style.background = 'transparent';
+                t.style.color = 'rgba(255,255,255,0.5)';
+                t.style.border = '1px solid transparent';
+            });
+            
+            // Activate clicked sub tab
+            this.classList.add('active');
+            this.style.background = 'rgba(167, 139, 250, 0.2)';
+            this.style.color = '#fff';
+            this.style.border = '1px solid rgba(167, 139, 250, 0.3)';
+
+            // Show corresponding sub page
+            const targetSub = this.dataset.sub;
+            subPages.forEach(page => {
+                if (page.dataset.sub === targetSub) {
+                    page.style.opacity = '0';
+                    page.style.display = 'block';
+                    setTimeout(() => page.style.opacity = '1', 10);
+                } else {
+                    page.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            if(this.classList.contains('active')) return;
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            updateSlider(this);
+            updateActiveColors();
+            showDashboardPage(this.dataset.page);
+            fetchLiveStats(this.dataset.page); // Fetch live stats immediately when switched
+        });
+        
+        // Hover effects matching the pure CSS version
+        tab.addEventListener('mouseenter', function() {
+            if(!this.classList.contains('active')) this.style.color = '#fff';
+        });
+        tab.addEventListener('mouseleave', function() {
+            if(!this.classList.contains('active')) this.style.color = 'rgba(255,255,255,0.55)';
+        });
+    });
+
+    // ── Live Stats Fetching Logic
+    let statsInterval;
+    
+    function fetchLiveStats(pageId) {
+        const moduleMap = { '1': 'general', '2': 'users', '3': 'forum', '4': 'syndicat', '5': 'residence', '6': 'evenement' };
+        const moduleName = moduleMap[pageId] || 'general';
+        
+        fetch(`/admin/dashboard/live?module=${moduleName}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.html) {
+                const container = document.querySelector(`.dashboard-page-content[data-page="${pageId}"]`);
+                if (container && pageId !== '1') {
+                    container.innerHTML = data.html;
+                }
+            }
+            
+            // For general tab numeric bindings
+            if (pageId === '1' && data.stats) {
+                document.querySelectorAll('.hz-stat-num[data-live]').forEach(el => {
+                    const key = el.getAttribute('data-live');
+                    if (data.stats[key] !== undefined) el.textContent = data.stats[key];
+                });
+            }
+        })
+        .catch(console.error);
+    }
+
+    // Start polling every 10 seconds
+    statsInterval = setInterval(() => {
+        const activeTab = document.querySelector('.premium-switcher-tab.active');
+        if (activeTab) {
+            fetchLiveStats(activeTab.dataset.page);
+        }
+    }, 10000);
+});
+</script>
+<script>
+// Animated counters
+document.querySelectorAll('.hz-stat-num[data-count]').forEach(el => {
+    const target = parseInt(el.dataset.count, 10);
+    if (!target) return;
+    let start = 0;
+    const step = Math.ceil(target / 40);
+    const timer = setInterval(() => {
+        start = Math.min(start + step, target);
+        el.textContent = start.toLocaleString();
+        if (start >= target) clearInterval(timer);
+    }, 30);
+});
+
+// Bar height animation – CSS custom property `--h` is set inline, trigger animation via class
+document.querySelectorAll('.hz-bar').forEach((bar, i) => {
+    bar.style.height = '0%';
+    setTimeout(() => { bar.style.height = bar.style.getPropertyValue('--h') || getComputedStyle(bar).getPropertyValue('--h'); }, 150 + i * 60);
+});
 </script>
 {% endblock %}

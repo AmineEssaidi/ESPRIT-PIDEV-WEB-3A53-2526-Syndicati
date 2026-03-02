@@ -1,0 +1,13 @@
+services:
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: livekit-server
+    restart: always
+    command: --config /etc/livekit.yaml
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882"
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml
+    network_mode: "bridge"

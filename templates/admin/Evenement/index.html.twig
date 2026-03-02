@@ -380,25 +380,42 @@
                                 
                                 <div class="row">
                                     <div class="col-md-8">
-                                        {{ form_row(evenementEditForm.titre_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        {{ form_row(evenementEditForm.titre_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'minlength': '4' } }) }}
+                                        <div class="validation-container" data-field="titre_event"></div>
                                     </div>
                                     <div class="col-md-4">
-                                        {{ form_row(evenementEditForm.date_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        {{ form_row(evenementEditForm.date_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required' } }) }}
+                                        <div class="validation-container" data-field="date_event"></div>
                                     </div>
                                 </div>
 
-                                {{ form_row(evenementEditForm.lieu_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
-                                {{ form_row(evenementEditForm.description_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 100px;' } }) }}
+                                {{ form_row(evenementEditForm.lieu_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required' } }) }}
+                                <div class="validation-container" data-field="lieu_event"></div>
+                                {{ form_row(evenementEditForm.description_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 100px;', 'required': 'required', 'minlength': '10' } }) }}
+                                <div class="validation-container" data-field="description_event"></div>
                                 
                                 <div class="row">
-                                    <div class="col-md-6">{{ form_row(evenementEditForm.type_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-6">{{ form_row(evenementEditForm.statut_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-6">
+                                        {{ form_row(evenementEditForm.type_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="type_event"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form_row(evenementEditForm.statut_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="statut_event"></div>
+                                    </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-6">{{ form_row(evenementEditForm.nb_places, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-6">{{ form_row(evenementEditForm.nb_restants, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-6">
+                                        {{ form_row(evenementEditForm.nb_places, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="nb_places"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form_row(evenementEditForm.nb_restants, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="nb_restants"></div>
+                                    </div>
                                 </div>
                                 {{ form_row(evenementEditForm.image_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                <div class="validation-container" data-field="image_event"></div>
                                 
                                 <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
                                     <button type="button" class="users-btn-cancel" onclick="closeModal('event-edit-modal')"><i class="bx bx-x"></i> Discard</button>
@@ -425,25 +442,42 @@
                                 
                                 <div class="row">
                                     <div class="col-md-8">
-                                        {{ form_row(evenementAddForm.titre_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        {{ form_row(evenementAddForm.titre_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'minlength': '4' } }) }}
+                                        <div class="validation-container" data-field="titre_event"></div>
                                     </div>
                                     <div class="col-md-4">
-                                        {{ form_row(evenementAddForm.date_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        {{ form_row(evenementAddForm.date_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required' } }) }}
+                                        <div class="validation-container" data-field="date_event"></div>
                                     </div>
                                 </div>
 
-                                {{ form_row(evenementAddForm.lieu_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
-                                {{ form_row(evenementAddForm.description_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 100px;' } }) }}
+                                {{ form_row(evenementAddForm.lieu_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required' } }) }}
+                                <div class="validation-container" data-field="lieu_event"></div>
+                                {{ form_row(evenementAddForm.description_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 100px;', 'required': 'required', 'minlength': '10' } }) }}
+                                <div class="validation-container" data-field="description_event"></div>
                                 
                                 <div class="row">
-                                    <div class="col-md-6">{{ form_row(evenementAddForm.type_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-6">{{ form_row(evenementAddForm.statut_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-6">
+                                        {{ form_row(evenementAddForm.type_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="type_event"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form_row(evenementAddForm.statut_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="statut_event"></div>
+                                    </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-6">{{ form_row(evenementAddForm.nb_places, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-6">{{ form_row(evenementAddForm.nb_restants, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-6">
+                                        {{ form_row(evenementAddForm.nb_places, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="nb_places"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form_row(evenementAddForm.nb_restants, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="nb_restants"></div>
+                                    </div>
                                 </div>
                                 {{ form_row(evenementAddForm.image_event, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                <div class="validation-container" data-field="image_event"></div>
                                 
                                 <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
                                     <button type="button" class="users-btn-cancel" onclick="closeModal('event-add-modal')"><i class="bx bx-x"></i> Discard</button>
@@ -540,10 +574,17 @@
                                 {% if participationEditForm is defined %}
                                 {{ form_start(participationEditForm, { 'attr': { 'id': 'part-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'softRefresh' } }) }}
                                 <div class="row">
-                                    <div class="col-md-6">{{ form_row(participationEditForm.nb_accompagnants, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
-                                    <div class="col-md-6">{{ form_row(participationEditForm.statut_participation, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}</div>
+                                    <div class="col-md-6">
+                                        {{ form_row(participationEditForm.nb_accompagnants, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="nb_accompagnants"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form_row(participationEditForm.statut_participation, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                        <div class="validation-container" data-field="statut_participation"></div>
+                                    </div>
                                 </div>
                                 {{ form_row(participationEditForm.commentaire_participation, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 100px;' } }) }}
+                                <div class="validation-container" data-field="commentaire_participation"></div>
                                 
                                 <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
                                     <button type="button" class="users-btn-cancel" onclick="closeModal('part-edit-modal')"><i class="bx bx-x"></i> Discard</button>

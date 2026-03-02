@@ -1,0 +1,76 @@
+/* 
+ * Premium Global Validation Styles 
+ * Standardized for the entire Horizon Platform
+ */
+
+/* Input States */
+.input-error {
+    border-color: #ff4757 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 71, 87, 0.15) !important;
+    background-color: rgba(255, 71, 87, 0.05) !important;
+}
+
+.input-success {
+    border-color: #2ed573 !important;
+    box-shadow: 0 0 0 0.2rem rgba(46, 213, 115, 0.15) !important;
+    background-color: rgba(46, 213, 115, 0.05) !important;
+}
+
+/* Validation Message Containers */
+.main-home-validation-message,
+.validation-container {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+    min-height: 1.2rem;
+    display: block;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 500;
+    line-height: 1.4;
+    opacity: 0;
+    transform: translateY(-5px);
+    pointer-events: none;
+}
+
+.main-home-validation-message.active,
+.validation-container.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Error State */
+.main-home-validation-message.error,
+.validation-container.error {
+    color: #ff4757 !important;
+    text-shadow: 0 0 10px rgba(255, 71, 87, 0.2);
+}
+
+/* Success State */
+.main-home-validation-message.success,
+.validation-container.success {
+    color: #2ed573 !important;
+    text-shadow: 0 0 10px rgba(46, 213, 115, 0.2);
+}
+
+/* Warning State */
+.main-home-validation-message.warning,
+.validation-container.warning {
+    color: #ffa502 !important;
+    text-shadow: 0 0 10px rgba(255, 165, 2, 0.2);
+}
+
+/* Icon integration for messages */
+.main-home-validation-message i,
+.validation-container i {
+    margin-right: 6px;
+    font-size: 1rem;
+    vertical-align: middle;
+}
+
+/* Accessibility: Hide validation messages but keep them in DOM for layout stability if needed */
+.main-home-validation-message:empty,
+.validation-container:empty {
+    opacity: 0;
+    margin-top: 0;
+}

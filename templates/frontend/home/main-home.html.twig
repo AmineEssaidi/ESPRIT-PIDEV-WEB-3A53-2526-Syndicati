@@ -486,30 +486,12 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         {% endif %}
 
-        <!-- Hero Image Background at Top of Page -->
+        <!-- Hero Video Background -->
         <div class="main-home-hero-bg-fixed">
-            <video id="heroVideo" autoplay loop muted playsinline class="main-home-hero-bg-img">
+            <video id="heroVideo" autoplay loop muted playsinline class="main-home-hero-bg-img" poster="{{ asset('images/hero-fallback.jpg') }}">
                 <source src="{{ asset('videos/syndicati.mp4') }}" type="video/mp4">
-                Your browser does not support the video tag.
             </video>
-            <script>
-            (function() {
-                const video = document.getElementById('heroVideo');
-                if (video) {
-                    video.playbackRate = 0.5;
-                    // Robust fallback for loop attribute
-                    video.addEventListener('ended', function() {
-                        video.play();
-                    }, false);
-                    
-                    // Safari/Chrome fix: sometimes autoplay is blocked if page wasn't touched
-                    // We attempt to play on first interaction or just force it here if muted
-                    video.play().catch(e => console.log("Autoplay prevented:", e));
-                }
-            })();
-            </script>
-            <div class="main-home-hero-bg-gradient"></div>
-            <div class="main-home-hero-fade"></div>
+            <div class="main-home-hero-overlay"></div>
         </div>
         <style>
         .main-home-hero-bg-fixed {
@@ -580,21 +562,114 @@ document.addEventListener('DOMContentLoaded', function() {
             background: transparent !important;
         }
         </style>
-        <!-- Hero Section (text and content) -->
-        <div class="main-home-landing-section">
-            <!-- Welcome to Syndicati Card -->
-            
-            <div class="main-home-hero split-hero" style="min-height:90vh; position:relative; background:transparent;">
-                <div class="main-home-hero-left" style="padding:10vh 40px; display:flex; flex-direction:column; justify-content:center; position:relative; z-index:2;">
-                    <div class="main-home-glass-hero-card">
-                        <div class="main-home-testimonial-content">
-                            <h1 class="main-home-hero-title main-home-content-title hero-card-title">Welcome to Syndicati</h1>
-                            <p class="main-home-hero-subtitle hero-card-desc">Syndicati is your modern platform for community management, collaboration, and innovation. Join us to experience a new era of digital living and seamless communication.</p>
-                        </div>
+        <!-- Hero Content -->
+        <div class="main-home-landing-section hero-visual-container">
+            <div class="main-home-hero">
+                <div class="obsidian-hero-card">
+                    <div class="obsidian-badge">
+                        <i class='bx bxs-bolt-circle'></i> Innovation Immobilière
+                    </div>
+                    <h1 class="obsidian-title">Syndicati <span class="accent-dot">.</span></h1>
+                    <p class="obsidian-desc">
+                        L'excellence de la gestion de complexe résidentiel. Une plateforme tout-en-un pour la communication, la maintenance et l'engagement communautaire.
+                    </p>
+                    <div class="obsidian-actions">
+                        <button class="btn-obsidian-primary" onclick="document.getElementById('syndicate-title').scrollIntoView({behavior: 'smooth'})">
+                            Explorer le Complexe <i class='bx bx-right-arrow-alt'></i>
+                        </button>
+                        <button class="btn-obsidian-secondary" onclick="location.href='{{ path('app_publication_index') }}'">
+                            Rejoindre le Hub
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+
+<style>
+.hero-visual-container {
+    padding-top: clamp(80px, 10vh, 120px);
+    min-height: 95vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+}
+.obsidian-hero-card {
+    background: rgba(var(--main-home-accent-rgb), 0.08);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.15);
+    border-radius: clamp(24px, 4vw, 48px);
+    padding: clamp(30px, 5vw, 60px);
+    max-width: 680px;
+    box-shadow: 0 50px 100px rgba(0, 0, 0, 0.6), 0 0 40px rgba(var(--main-home-accent-rgb), 0.1);
+    animation: heroFadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    margin-left: 20px;
+}
+@keyframes heroFadeIn {
+    from { opacity: 0; transform: translateY(40px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.obsidian-badge {
+    background: rgba(var(--main-home-accent-rgb), 0.15);
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.25);
+    backdrop-filter: blur(10px);
+}
+.obsidian-title {
+    font-size: clamp(3rem, 7vw, 5rem);
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 25px;
+    letter-spacing: -4px;
+    line-height: 0.85;
+}
+.accent-dot { color: var(--accent); text-shadow: 0 0 20px rgba(var(--main-home-accent-rgb), 0.6); }
+.obsidian-desc {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    line-height: 1.6;
+    margin-bottom: 45px;
+    max-width: 540px;
+}
+.obsidian-actions { display: flex; gap: 20px; flex-wrap: wrap; }
+.btn-obsidian-primary {
+    background: var(--primary-gradient);
+    color: #fff;
+    border: none;
+    padding: 18px 40px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 15px 35px rgba(var(--main-home-accent-rgb), 0.3);
+}
+.btn-obsidian-primary:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 25px 50px rgba(var(--main-home-accent-rgb), 0.5); }
+.btn-obsidian-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.2);
+    padding: 18px 40px;
+    border-radius: 20px;
+    font-weight: 600;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+}
+.btn-obsidian-secondary:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(var(--main-home-accent-rgb), 0.4); transform: translateY(-5px); }
+</style>
 
         
 
@@ -604,158 +679,603 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="main-home-content-wrapper">
             <div class="container-xxl flex-grow-1 container-p-y">
 
-            <!-- Feature Cards Section -->
-            <h1 id="syndicate-title" class="main-home-hero-title main-home-content-title"  style="text-align: center;">{{ 'syndicat.our_complex'|trans }}</h1>
+            <!-- Syndicate Overview Title -->
+            <div class="main-home-section-header reveal" style="text-align: center; margin-bottom: 4rem;">
+                <h1 id="syndicate-title" class="main-home-hero-title main-home-content-title" style="font-size: 3.5rem; margin-bottom: 1rem;">Notre Complexe <span class="accent-dot">.</span></h1>
+                <p class="main-home-section-subtitle" style="margin: 0 auto; max-width: 600px;">Découvrez nos résidences de prestige et services haut de gamme.</p>
+            </div>
     
-<div class="main-home-cards-section">
-    
-    <div class="main-home-cards-container">
-        <div class="main-home-feature-card">
-            <!-- Image will be added later -->
-        </div>
-        <div class="main-home-feature-card">
-            <!-- Image will be added later -->
-        </div>
-        <div class="main-home-feature-card">
-            <!-- Image will be added later -->
-        </div>
-        <div class="main-home-feature-card">
-            <!-- Image will be added later -->
-        </div>
-    </div>
-</div>
+            <!-- Featured Grid Section -->
+            <div class="main-home-cards-section">
+                <div class="main-home-cards-container">
+                    {% for residence in featuredResidences %}
+                        <div class="main-home-feature-card glass-residence-card" onclick="location.href='{{ path('app_residence_index') }}?id={{ residence.idResidence }}'">
+                            <div class="residence-card-img-wrapper">
+                                {% if residence.imageR %}
+                                    <img src="{{ asset('residence_images/' ~ residence.imageR) }}" alt="{{ residence.nomR }}" class="residence-card-img-new">
+                                {% else %}
+                                    <div class="residence-card-img-placeholder">
+                                        <i class='bx bx-building-house'></i>
+                                    </div>
+                                {% endif %}
+                                <div class="residence-card-overlay">
+                                    <span class="badge-residence">NOUVEAU</span>
+                                </div>
+                            </div>
+                            <div class="residence-card-body">
+                                <h4 class="residence-card-title">{{ residence.nomR }}</h4>
+                                <p class="residence-card-location"><i class='bx bx-map-pin'></i> {{ residence.adresse }}</p>
+                                <div class="residence-card-footer">
+                                    <span class="residence-card-type">RÉSIDENCE</span>
+                                    <div class="residence-card-go">
+                                        <i class='bx bx-right-arrow-alt'></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="main-home-feature-card empty">
+                            <p>Aucune résidence trouvée</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
 
-<h1 id="syndicate-title" class="main-home-hero-title main-home-content-title"  style="text-align: center;"></h1>
+<style>
+.glass-residence-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+.glass-residence-card:hover {
+    transform: translateY(-12px) scale(1.02);
+    border-color: rgba(108, 92, 231, 0.4);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+.residence-card-img-wrapper {
+    height: 200px;
+    position: relative;
+    border-radius: 20px;
+    margin: 12px;
+    overflow: hidden;
+}
+.residence-card-img-new {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.glass-residence-card:hover .residence-card-img-new {
+    transform: scale(1.1);
+}
+.residence-card-img-placeholder {
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: rgba(255, 255, 255, 0.1);
+}
+.main-home-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+    z-index: 1;
+}
+</style>
+
     
 
         <!-- Stats Section - Syndicate Overview -->
-                            <div class="main-home-stats-section">
+                            <div class="main-home-stats-section glass-stats-panel">
                                 <div class="main-home-stat-item">
-                                    <div class="main-home-stat-number">4</div>
+                                    <div class="main-home-stat-number counter" data-target="{{ stats.residences_count|default(0) }}">0</div>
                                     <div class="main-home-stat-label" >{{ 'syndicat.blocks'|trans }}</div>
                                 </div>
                                 <div class="main-home-stat-item">
-                                    <div class="main-home-stat-number">48</div>
+                                    <div class="main-home-stat-number counter" data-target="{{ stats.apartments_count|default(0) }}">0</div>
                                     <div class="main-home-stat-label" >{{ 'syndicat.apartments'|trans }}</div>
                                 </div>
                                 <div class="main-home-stat-item">
-                                    <div class="main-home-stat-number">156</div>
+                                    <div class="main-home-stat-number counter" data-target="{{ stats.residents_count|default(0) }}">0</div>
                                     <div class="main-home-stat-label" >{{ 'syndicat.residents'|trans }}</div>
                                 </div>
                                 <div class="main-home-stat-item">
-                                    <div class="main-home-stat-number">12</div>
+                                    <div class="main-home-stat-number counter" data-target="{{ stats.events_count|default(0) }}">0</div>
                                     <div class="main-home-stat-label" >{{ 'syndicat.events'|trans }}</div>
                                 </div>
                             </div>
 
+<style>
+.glass-stats-panel {
+    background: rgba(var(--main-home-accent-rgb), 0.08);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.15);
+    border-radius: clamp(32px, 5vw, 64px);
+    padding: clamp(40px, 6vw, 80px);
+    margin: 40px auto;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+    max-width: 1400px;
+    width: 95%;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+.main-home-stat-item {
+    text-align: center;
+    flex: 1;
+    min-width: 150px;
+    padding: 15px;
+}
+.main-home-stat-number {
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 900;
+    background: linear-gradient(to bottom, #fff 30%, rgba(var(--main-home-accent-rgb), 0.5) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -3px;
+    line-height: 1;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+}
+.main-home-stat-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.85rem;
+}
+</style>
 
-                            <!-- Upcoming Events Section -->
-                             <div class="main-home-section" id="evenements">
-                                <h3 class="main-home-section-title main-home-content-title" >{{ 'events.upcoming'|trans }}</h3>
-                                <p class="main-home-section-subtitle" >{{ 'events.join_activities'|trans }}</p>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const counters = document.querySelectorAll('.counter');
+    const speed = 200;
+
+    const animateCounters = () => {
+        counters.forEach(counter => {
+            const target = +counter.getAttribute('data-target');
+            const count = +counter.innerText;
+            const inc = target / speed;
+
+            if (count < target) {
+                counter.innerText = Math.ceil(count + inc);
+                setTimeout(animateCounters, 1);
+            } else {
+                counter.innerText = target;
+            }
+        });
+    };
+
+    // Intersection Observer to start counter when visible
+    const observer = new IntersectionObserver((entries) => {
+        if(entries[0].isIntersecting) animateCounters();
+    }, { threshold: 0.5 });
+    
+    if(counters.length) observer.observe(counters[0].parentElement);
+});
+</script>
+
+
+                            <div class="main-home-section reveal" id="evenements">
+                                <div class="centered-header" style="text-align: center; margin-bottom: 3.5rem;">
+                                    <h3 class="main-home-section-title main-home-content-title" style="font-size: 3rem;">Événements à Venir <span class="accent-dot">.</span></h3>
+                                    <p class="main-home-section-subtitle" style="margin: 0 auto 1.5rem; max-width: 600px;">Rejoignez les activités de notre communauté vibrante.</p>
+                                    <a href="{{ path('app_evenement_index') }}" class="glass-action-link" style="display: inline-flex; justify-content: center; margin: 0 auto;">Tout voir <i class='bx bx-right-arrow-alt'></i></a>
+                                </div>
                                 
                                 <div class="main-home-testimonials-grid">
-                                    <!-- Event 1 -->
-                                    <div class="main-home-testimonial-card">
-                                        <div class="main-home-event-badge urgent" >{{ 'events.urgent'|trans }}</div>
-                                        <div class="main-home-testimonial-content">
-                                            <h4 class="main-home-event-title main-home-content-title" >{{ 'events.assembly'|trans }}</h4>
-                                            <p class="main-home-event-date" >{{ 'events.assembly_date'|trans }}</p>
-                                            <p >{{ 'events.assembly_desc'|trans }}</p>
-                                        </div>
-                                        <div class="main-home-testimonial-author">
-                                            <div class="main-home-event-stats">
-                                                <span >{{ 'events.assembly_conf'|trans }}</span>
-                                                <span class="main-home-participation-rate">87%</span>
+                                    {% for event in upcomingEvents %}
+                                        <div class="event-glass-card reveal" onclick="location.href='{{ path('app_evenement_index') }}'">
+                                            <div class="event-card-top">
+                                                <div class="event-thumbnail">
+                                                    {% if event.imageEvent %}
+                                                        <img src="{{ asset('event_images/' ~ event.imageEvent) }}" alt="{{ event.titreEvent }}" class="event-card-img-new">
+                                                    {% else %}
+                                                        <div class="event-card-img-placeholder">
+                                                            <i class='bx bx-calendar-event'></i>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div class="main-home-event-badge {{ event.typeEvent|lower == 'urgent' ? 'urgent' : '' }}">{{ event.typeEvent }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="event-card-content">
+                                                <h4 class="event-title">{{ event.titreEvent }}</h4>
+                                                <div class="event-meta-row">
+                                                    <span class="event-meta-item"><i class='bx bx-calendar'></i> {{ event.dateEvent|date('d M Y') }}</span>
+                                                    <span class="event-meta-item"><i class='bx bx-map-pin'></i> {{ event.lieuEvent }}</span>
+                                                </div>
+                                                <p class="event-desc">{{ event.descriptionEvent }}</p>
+                                            </div>
+                                            <div class="event-footer">
+                                                <span class="event-more">Détails de l'événement <i class='bx bx-right-arrow-alt'></i></span>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <!-- Event 2 -->
-                                    <div class="main-home-testimonial-card">
-                                        <div class="main-home-event-badge" >{{ 'events.community'|trans }}</div>
-                                        <div class="main-home-testimonial-content">
-                                            <h4 class="main-home-event-title main-home-content-title" >{{ 'events.neighbors_party'|trans }}</h4>
-                                            <p class="main-home-event-date" >{{ 'events.party_date'|trans }}</p>
-                                            <p >{{ 'events.party_desc'|trans }}</p>
+                                    {% else %}
+                                        <div class="empty-state-glass">
+                                            <div class="empty-icon">📅</div>
+                                            <p>Aucun événement prévu prochainement.</p>
                                         </div>
-                                        <div class="main-home-testimonial-author">
-                                            <div class="main-home-event-stats">
-                                                <span >{{ 'events.party_reg'|trans }}</span>
-                                                <span class="main-home-participation-rate">50%</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Event 3 -->
-                                    <div class="main-home-testimonial-card">
-                                        <div class="main-home-event-badge maintenance" >{{ 'syndicat.maintenance'|trans }}</div>
-                                        <div class="main-home-testimonial-content">
-                                            <h4 class="main-home-event-title main-home-content-title" >{{ 'events.elevator'|trans }}</h4>
-                                            <p class="main-home-event-date" >{{ 'events.elevator_date'|trans }}</p>
-                                            <p >{{ 'events.elevator_desc'|trans }}</p>
-                                        </div>
-                                        <div class="main-home-testimonial-author">
-                                            <div class="main-home-event-stats">
-                                                <span >{{ 'events.block_concerned'|trans }}</span>
-                                                <span class="main-home-participation-rate">Info</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    {% endfor %}
                                 </div>
                             </div>
+
+                            <!-- Pulse of the Community (Forum) -->
+                            <div class="main-home-section reveal" id="forum-pulse">
+                                <div class="centered-header" style="text-align: center; margin-bottom: 3.5rem;">
+                                    <h3 class="main-home-section-title main-home-content-title" style="font-size: 3rem;">Focus Communauté <span class="accent-dot">.</span></h3>
+                                    <p class="main-home-section-subtitle" style="margin: 0 auto 1.5rem; max-width: 600px;">Découvrez les dernières discussions de vos voisins.</p>
+                                    <a href="{{ path('app_publication_index') }}" class="glass-action-link" style="display: inline-flex; justify-content: center; margin: 0 auto;">L'Espace Forum <i class='bx bx-right-arrow-alt'></i></a>
+                                </div>
+
+                                <div class="forum-pulse-grid">
+                                    {% for item in latestForum %}
+                                        {% set post = item.post %}
+                                        {% set prof = item.prof %}
+                                        <div class="forum-pulse-card glass-card" onclick="location.href='{{ path('app_publication_index') }}'">
+                                            <div class="pulse-user-info">
+                                                {% if prof and prof.avatar %}
+                                                    {% set avatar_path = prof.avatar %}
+                                                    {% if avatar_path starts with 'http' %}
+                                                        <img src="{{ avatar_path }}" class="pulse-avatar" alt="Avatar">
+                                                    {% elseif 'profile_images/' in avatar_path %}
+                                                        <img src="{{ asset(avatar_path) }}" class="pulse-avatar" alt="Avatar">
+                                                    {% else %}
+                                                        <img src="{{ asset('profile_images/' ~ avatar_path) }}" class="pulse-avatar" alt="Avatar">
+                                                    {% endif %}
+                                                {% else %}
+                                                    <div class="pulse-avatar">{{ post.user.firstName|slice(0, 1) }}{{ post.user.lastName|slice(0, 1) }}</div>
+                                                {% endif %}
+                                                <div>
+                                                    <p class="pulse-username">{{ post.user.firstName }} {{ post.user.lastName }}</p>
+                                                    <p class="pulse-time">{{ post.dateCreationPub|date('d/m/Y') }}</p>
+                                                </div>
+                                            </div>
+                                            <h4 class="pulse-post-title">{{ post.titrePub }}</h4>
+                                            <p class="pulse-post-desc">{{ post.descriptionPub|slice(0, 100) ~ '...' }}</p>
+                                            <div class="pulse-post-footer">
+                                                <span><i class='bx bx-message-rounded-dots'></i> Discussion</span>
+                                                <span class="pulse-reaction"><i class='bx bxs-quote-left'></i> {{ post.categoriePub }}</span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+<style>
+.section-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 3.5rem;
+}
+.glass-action-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    padding: 14px 28px;
+    background: rgba(var(--main-home-accent-rgb), 0.1);
+    border-radius: 18px;
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.15);
+}
+.glass-action-link:hover {
+    background: rgba(var(--main-home-accent-rgb), 0.2);
+    transform: translateX(10px);
+    border-color: rgba(var(--main-home-accent-rgb), 0.3);
+    box-shadow: 0 10px 25px rgba(var(--main-home-accent-rgb), 0.15);
+}
+.event-glass-card {
+    background: rgba(var(--main-home-accent-rgb), 0.04);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.15);
+    border-radius: 40px;
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.event-glass-card:hover { 
+    transform: translateY(-15px) scale(1.02); 
+    border-color: rgba(var(--main-home-accent-rgb), 0.4);
+    box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+}
+.event-card-top { padding: 15px; }
+.event-thumbnail {
+    height: 220px;
+    border-radius: 30px;
+    position: relative;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.2);
+}
+.event-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.event-glass-card:hover .event-thumbnail img {
+    transform: scale(1.1);
+}
+.event-card-content {
+    padding: 30px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+.event-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 15px;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+}
+.event-meta-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+.event-meta-item {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.event-meta-item i {
+    color: var(--accent);
+    font-size: 1.1rem;
+}
+.event-desc {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.event-footer {
+    padding: 25px 30px;
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: auto;
+}
+.event-more {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    transition: gap 0.3s;
+}
+.event-glass-card:hover .event-more {
+    gap: 15px;
+}
+
+/* Forum Pulse Styles */
+.forum-pulse-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 35px;
+}
+.forum-pulse-card {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.15);
+    border-radius: 36px;
+    padding: 35px;
+    transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    cursor: pointer;
+    box-shadow: 0 15px 45px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+}
+.forum-pulse-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 4px;
+    background: var(--primary-gradient);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+.forum-pulse-card:hover {
+    background: rgba(var(--main-home-accent-rgb), 0.08);
+    border-color: rgba(var(--main-home-accent-rgb), 0.4);
+    transform: translateY(-15px) rotate(-0.5deg);
+    box-shadow: 0 40px 90px rgba(0,0,0,0.5);
+}
+.forum-pulse-card:hover::before { opacity: 1; }
+.pulse-avatar {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-gradient);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(var(--main-home-accent-rgb), 0.3);
+}
+.pulse-username { color: #fff; font-weight: 700; font-size: 1.1rem; margin-bottom: 2px; }
+.pulse-post-title { color: #fff; font-size: 1.45rem; font-weight: 900; margin-bottom: 12px; letter-spacing: -0.5px; line-height: 1.2; }
+.pulse-post-footer {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+.pulse-reaction { color: var(--accent); opacity: 0.9; }
+
+/* Reveal Animation Class */
+.reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+.compact-grid {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+}
+.centralized-cta {
+    display: flex;
+    justify-content: center;
+    margin-top: 80px;
+    margin-bottom: 50px;
+}
+.obsidian-cta-card {
+    background: rgba(var(--main-home-accent-rgb), 0.08);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.15);
+    border-radius: 40px;
+    padding: 60px;
+    text-align: center;
+    max-width: 800px;
+    width: 100%;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.4);
+}
+.cta-desc {
+    color: rgba(255,255,255,0.6);
+    margin: 20px auto 40px;
+    max-width: 500px;
+    font-size: 1.1rem;
+}
+.centered-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.btn-cta {
+    padding: 16px 32px;
+    border-radius: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.main-home-btn-primary.btn-cta {
+    background: var(--primary-gradient);
+    border: none;
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(var(--main-home-accent-rgb), 0.3);
+}
+.main-home-btn-secondary.btn-cta {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.2);
+    color: #fff;
+}
+.btn-cta:hover {
+    transform: translateY(-8px);
+}
+</style>
 
 
                              <!-- Services Section -->
-                            <div class="main-home-section">
-                                <h3 class="main-home-section-title main-home-content-title" >{{ 'syndicat.services_title'|trans }}</h3>
+                            <div class="main-home-section reveal" id="services-section">
+                                <div class="centered-header">
+                                    <h3 class="main-home-section-title main-home-content-title" style="text-align: center; font-size: 3rem;">Nos Services <span class="accent-dot">.</span></h3>
+                                    <p class="main-home-section-subtitle" style="text-align: center; margin: 0 auto 3rem; max-width: 600px;">Une suite complète de solutions pour votre copropriété.</p>
+                                </div>
                                 
-                                <div class="main-home-features-grid">
+                                <div class="main-home-features-grid compact-grid">
                                     <div class="main-home-feature-card">
-                                        <div class="main-home-feature-icon">💰</div>
-                                        <h4 >{{ 'syndicat.financial_management'|trans }}</h4>
-                                        <p >{{ 'syndicat.financial_desc'|trans }}</p>
+                                        <div class="main-home-feature-icon"><i class='bx bx-buildings'></i></div>
+                                        <h4 >Gestion Résidentielle</h4>
+                                        <p >Gérez vos résidences, appartements et résidents en toute simplicité.</p>
                                     </div>
                                     <div class="main-home-feature-card">
-                                        <div class="main-home-feature-icon">🔧</div>
-                                        <h4 >{{ 'syndicat.maintenance'|trans }}</h4>
-                                        <p >{{ 'syndicat.maintenance_desc'|trans }}</p>
+                                        <div class="main-home-feature-icon"><i class='bx bx-wrench'></i></div>
+                                        <h4 >Maintenance & SAV</h4>
+                                        <p >Suivez les réclamations et planifiez les interventions techniques.</p>
                                     </div>
                                     <div class="main-home-feature-card">
-                                        <div class="main-home-feature-icon">📢</div>
-                                        <h4 >{{ 'syndicat.communication'|trans }}</h4>
-                                        <p >{{ 'syndicat.communication_desc'|trans }}</p>
+                                        <div class="main-home-feature-icon"><i class='bx bx-chat'></i></div>
+                                        <h4 >Communication</h4>
+                                        <p >Restez connecté avec vos voisins via notre forum et système de messagerie.</p>
                                     </div>
                                     <div class="main-home-feature-card">
-                                        <div class="main-home-feature-icon">📄</div>
-                                        <h4 >{{ 'syndicat.documents'|trans }}</h4>
-                                        <p >{{ 'syndicat.documents_desc'|trans }}</p>
-                                    </div>
-                                    <div class="main-home-feature-card">
-                                        <div class="main-home-feature-icon">🅿️</div>
-                                        <h4 >{{ 'syndicat.parking'|trans }}</h4>
-                                        <p >{{ 'syndicat.parking_desc'|trans }}</p>
-                                    </div>
-                                    <div class="main-home-feature-card">
-                                        <div class="main-home-feature-icon">📊</div>
-                                        <h4 >{{ 'syndicat.statistics'|trans }}</h4>
-                                        <p >{{ 'syndicat.statistics_desc'|trans }}</p>
+                                        <div class="main-home-feature-icon"><i class='bx bx-credit-card'></i></div>
+                                        <h4 >Paiements Sécurisés</h4>
+                                        <p >Réglez vos frais de syndic en ligne via nos solutions de paiement.</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Quick Actions / CTA Section -->
-                            <div class="main-home-cta-section">
-                                <h2 >{{ 'syndicat.need_assistance'|trans }}</h2>
-                                <p >{{ 'syndicat.assistance_desc'|trans }}</p>
-                                <div class="main-home-cta-buttons">
-                                    <button class="main-home-btn main-home-btn-primary" >{{ 'syndicat.contact_syndic'|trans }}</button>
-                                    <button class="main-home-btn main-home-btn-secondary" >{{ 'syndicat.report_problem'|trans }}</button>
+                             <!-- Quick Actions / CTA Section -->
+                            <div class="reveal centralized-cta">
+                                <div class="obsidian-cta-card">
+                                    <h2 class="main-home-content-title" style="font-size: 3rem;">Besoin d'aide ? <span class="accent-dot">.</span></h2>
+                                    <p class="cta-desc">Des questions sur votre résidence ou besoin d'une assistance technique ? Notre équipe est à votre disposition.</p>
+                                    <div class="main-home-cta-buttons centered-buttons">
+                                        <button class="main-home-btn-primary btn-cta">
+                                            Contacter le Syndic <i class='bx bx-support'></i>
+                                        </button>
+                                        <button class="main-home-btn-secondary btn-cta" onclick="location.href='{{ path('app_reclamation_new') }}'">
+                                            Signaler un Problème <i class='bx bx-error-circle'></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
+                            </div> {# container-xxl #}
             <!-- Footer Integration -->
         </div> {# main-home-content-wrapper #}
+        
+        <script>
+        // Scroll reveal logic
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal, .main-home-feature-card, .event-glass-card, .forum-pulse-card");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 150;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        document.addEventListener("DOMContentLoaded", reveal);
+        </script>
         
         {% include 'frontend/shared/_main_footer.html.twig' %}
     </div> {# main-home-page #}
@@ -901,7 +1421,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script src="{{ asset('frontend/js/syndicati-agent.js') }}" defer></script>
-
+<script src="{{ asset('frontend/js/syndicati-messaging.js') }}" defer></script>
 
 </body>
 </html>

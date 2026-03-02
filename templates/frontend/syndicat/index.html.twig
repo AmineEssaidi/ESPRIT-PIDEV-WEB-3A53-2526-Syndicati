@@ -42,8 +42,8 @@
         {{ form_start(form, {'attr': {'class': 'syndicat-form', 'id': 'reclamationForm', 'data-ajax': 'true'}}) }}
             <div class="syndicat-form-group">
                 <label class="syndicat-form-label">Subject</label>
-                {{ form_widget(form.titrereclamations, {'attr': {'class': 'syndicat-form-input', 'placeholder': 'What is this regarding?', 'data-min-length': '5', 'required': 'required'}}) }}
-                <div class="text-danger small mt-1">{{ form_errors(form.titrereclamations) }}</div>
+                {{ form_widget(form.titrereclamations, {'attr': {'class': 'syndicat-form-input', 'placeholder': 'What is this regarding?', 'minlength': '5', 'required': 'required'}}) }}
+                <div class="main-home-validation-message" data-field="titrereclamations"></div>
             </div>
 
             {% do form.statutreclamation.setRendered() %}
@@ -52,21 +52,21 @@
                     <div class="syndicat-form-group">
                         <label class="syndicat-form-label">Date of Incident</label>
                         {{ form_widget(form.datereclamation, {'attr': {'class': 'syndicat-form-input flatpickr-input', 'required': 'required'}}) }}
-                        <div class="text-danger small mt-1">{{ form_errors(form.datereclamation) }}</div>
+                        <div class="main-home-validation-message" data-field="datereclamation"></div>
                     </div>
                 </div>
             </div>
 
             <div class="syndicat-form-group">
                 <label class="syndicat-form-label">Description</label>
-                {{ form_widget(form.descreclamation, {'attr': {'class': 'syndicat-form-input', 'rows': '5', 'placeholder': 'Please provide detailed information...', 'data-min-length': '10', 'required': 'required'}}) }}
-                <div class="text-danger small mt-1">{{ form_errors(form.descreclamation) }}</div>
+                {{ form_widget(form.descreclamation, {'attr': {'class': 'syndicat-form-input', 'rows': '5', 'placeholder': 'Please provide detailed information...', 'minlength': '20', 'required': 'required'}}) }}
+                <div class="main-home-validation-message" data-field="descreclamation"></div>
             </div>
 
             <div class="syndicat-form-group">
                 <label class="syndicat-form-label">Attachments (Optional)</label>
                 {{ form_widget(form.imagereclamation, {'attr': {'class': 'syndicat-form-input', 'style': 'padding-top: 0.7rem;', 'accept': 'image/*', 'multiple': 'multiple', 'onchange': 'previewImages(this)'}}) }}
-                <div class="text-danger small mt-1">{{ form_errors(form.imagereclamation) }}</div>
+                <div class="main-home-validation-message" data-field="imagereclamation"></div>
                 
                 <!-- Image Preview Container -->
                 <div id="imagePreviewContainer" class="d-flex gap-3 mt-3 flex-wrap" style="display: flex !important; flex-direction: row !important; align-items: flex-start !important;"></div>
@@ -173,6 +173,32 @@
             transform: translateY(-3px);
             box-shadow: 0 15px 25px -5px rgba(0, 210, 255, 0.6);
         }
+
+        /* Validation Styles (Sign-Up Style) */
+        .main-home-validation-message {
+            font-size: 0.8rem;
+            margin-top: 0.4rem;
+            font-weight: 600;
+            min-height: 1.2rem;
+            transition: all 0.2s;
+            display: block;
+        }
+        .main-home-validation-message.error {
+            color: #ff4d4d !important;
+        }
+        .main-home-validation-message.success {
+            color: #2ed573 !important;
+        }
+        .syndicat-form-input.input-error {
+            border-color: #ff4d4d !important;
+            background: rgba(255, 77, 77, 0.05) !important;
+            box-shadow: 0 0 0 4px rgba(255, 77, 77, 0.1) !important;
+        }
+        .syndicat-form-input.input-success {
+            border-color: #2ed573 !important;
+            background: rgba(46, 213, 115, 0.05) !important;
+            box-shadow: 0 0 0 4px rgba(46, 213, 115, 0.1) !important;
+        }
     </style>
 
     <script>
@@ -206,13 +232,8 @@
 {% block javascripts %}
 {{ parent() }}
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="{{ asset('frontend/js/form-validation.js') }}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        if (document.getElementById('reclamationForm')) {
-            document.getElementById('reclamationForm').validator = new FormValidator('reclamationForm');
-        }
-    });
+    // FormValidator auto-initializes via Global Auto-Init in form-validation.js
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -468,18 +489,14 @@ function createCustomDropdown(selectElement) {
                         form.reset();
                         const previewContainer = document.getElementById('imagePreviewContainer');
                         if (previewContainer) previewContainer.innerHTML = '';
+                        dt = new DataTransfer(); // Reset DataTransfer object
                     } else {
-                        if (data.errors && typeof data.errors === 'object' && !Array.isArray(data.errors)) {
-                            if (form.validator) {
-                                form.validator.mapErrors(data.errors);
-                                showCoolPopup('Review your details', 'Please check the highlighted fields.', 'error');
-                            } else {
-                                let msg = "Validation failed:<br>";
-                                for(let key in data.errors) { msg += `- ${data.errors[key]}<br>`; }
-                                showCoolPopup('Review your details', msg, 'error');
-                            }
+                        if (data.errors && form.validator) {
+                            form.validator.mapErrors(data.errors);
+                            const errorMsg = "Please correct the errors in the form.";
+                            showCoolPopup('Review your details', errorMsg, 'error');
                         } else {
-                            const errorMsg = data.message || (Array.isArray(data.errors) ? data.errors.join('<br>') : 'Something went wrong. Please check your inputs.');
+                            const errorMsg = data.message || 'Something went wrong. Please check your inputs.';
                             showCoolPopup('Review your details', errorMsg, 'error');
                         }
                     }

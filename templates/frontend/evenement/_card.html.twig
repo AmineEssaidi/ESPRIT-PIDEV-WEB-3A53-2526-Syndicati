@@ -177,11 +177,13 @@
                 <input type="hidden" name="participation[_token]" value="{{ csrf_token('participation') }}">
                 <div class="glass-form-group">
                     <label class="glass-label">Guests Joining You</label>
-                    <input type="number" name="participation[nb_accompagnants]" class="glass-input" value="0" min="0">
+                    <input type="number" name="participation[nb_accompagnants]" id="participation_nb_accompagnants_{{ evenement.id }}" class="glass-input" value="0" min="0" required>
+                    <div class="main-home-validation-message" data-field="nb_accompagnants"></div>
                 </div>
                 <div class="glass-form-group">
                     <label class="glass-label">Special Note</label>
-                    <textarea name="participation[commentaire_participation]" class="glass-input" rows="3" placeholder="Anything we should know?"></textarea>
+                    <textarea name="participation[commentaire_participation]" id="participation_commentaire_participation_{{ evenement.id }}" class="glass-input" rows="3" placeholder="Anything we should know?" minlength="5"></textarea>
+                    <div class="main-home-validation-message" data-field="commentaire_participation"></div>
                 </div>
                 <button type="submit" class="main-home-btn-auth-submit w-100 mt-2" style="margin: 0; height: 50px;">
                     Confirm Spot <i class='bx bx-check ms-2'></i>
@@ -206,25 +208,28 @@
                     
                     <div class="glass-form-group">
                         <label class="glass-label">Event Title</label>
-                        <input type="text" name="evenement[titre_event]" class="glass-input" value="{{ evenement.titreEvent }}" required placeholder="What is the event called?">
+                        <input type="text" name="evenement[titre_event]" id="evenement_titre_event_{{ evenement.id }}" class="glass-input" value="{{ evenement.titreEvent }}" required minlength="5" placeholder="What is the event called?">
+                        <div class="main-home-validation-message" data-field="titre_event"></div>
                     </div>
 
                     <div class="glass-form-group">
                         <label class="glass-label">Event Type</label>
                         <div class="custom-select-wrapper">
-                            <select name="evenement[type_event]" class="glass-input">
+                            <select name="evenement[type_event]" id="evenement_type_event_{{ evenement.id }}" class="glass-input">
                                 {% for choice in form.type_event.vars.choices %}
                                     <option value="{{ choice.value }}" {% if choice.value == evenement.typeEvent %}selected{% endif %}>{{ choice.value|replace({'_': ' '})|title }}</option>
                                 {% endfor %}
                             </select>
                         </div>
+                        <div class="main-home-validation-message" data-field="type_event"></div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6">
                             <div class="glass-form-group">
                                 <label class="glass-label">Date & Time</label>
-                                <input type="text" name="evenement[date_event]" class="glass-input flatpickr-input" value="{{ evenement.dateEvent|date('Y-m-d H:i') }}" required placeholder="Pick a date">
+                                <input type="text" name="evenement[date_event]" id="evenement_date_event_{{ evenement.id }}" class="glass-input flatpickr-input" value="{{ evenement.dateEvent|date('Y-m-d H:i') }}" required placeholder="Pick a date">
+                                <div class="main-home-validation-message" data-field="date_event"></div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -243,43 +248,49 @@
                                         </div>
                                     {% endfor %}
                                 </div>
-                                <select name="evenement[statut_event]" style="position: absolute; opacity: 0; pointer-events: none;">
+                                <select name="evenement[statut_event]" id="evenement_statut_event_{{ evenement.id }}" style="position: absolute; opacity: 0; pointer-events: none;">
                                     {% for choice in form.statut_event.vars.choices %}
                                         <option value="{{ choice.value }}" {% if choice.value == evenement.statutEvent %}selected{% endif %}>{{ statusMap[choice.value]|default(choice.value|title) }}</option>
                                     {% endfor %}
                                 </select>
+                                <div class="main-home-validation-message" data-field="statut_event"></div>
                             </div>
                         </div>
                     </div>
 
                     <div class="glass-form-group">
                         <label class="glass-label">Location</label>
-                        <input type="text" name="evenement[lieu_event]" class="glass-input" value="{{ evenement.lieuEvent }}" required placeholder="Where is it happening?">
+                        <input type="text" name="evenement[lieu_event]" id="evenement_lieu_event_{{ evenement.id }}" class="glass-input" value="{{ evenement.lieuEvent }}" required placeholder="Where is it happening?">
+                        <div class="main-home-validation-message" data-field="lieu_event"></div>
                     </div>
 
                     <div class="glass-form-group">
                         <label class="glass-label">Description</label>
-                        <textarea name="evenement[description_event]" class="glass-input" rows="4" placeholder="Tell us more...">{{ evenement.descriptionEvent }}</textarea>
+                        <textarea name="evenement[description_event]" id="evenement_description_event_{{ evenement.id }}" class="glass-input" rows="4" placeholder="Tell us more..." minlength="10" required>{{ evenement.descriptionEvent }}</textarea>
+                        <div class="main-home-validation-message" data-field="description_event"></div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6">
                             <div class="glass-form-group">
                                 <label class="glass-label">Total Places</label>
-                                <input type="number" name="evenement[nb_places]" class="glass-input" value="{{ evenement.nbPlaces }}">
+                                <input type="number" name="evenement[nb_places]" id="evenement_nb_places_{{ evenement.id }}" class="glass-input" value="{{ evenement.nbPlaces }}" required min="1">
+                                <div class="main-home-validation-message" data-field="nb_places"></div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="glass-form-group">
                                 <label class="glass-label">Remaining</label>
-                                <input type="number" name="evenement[nb_restants]" class="glass-input" value="{{ evenement.nbRestants }}">
+                                <input type="number" name="evenement[nb_restants]" id="evenement_nb_restants_{{ evenement.id }}" class="glass-input" value="{{ evenement.nbRestants }}" required min="0">
+                                <div class="main-home-validation-message" data-field="nb_restants"></div>
                             </div>
                         </div>
                     </div>
 
                     <div class="glass-form-group">
                         <label class="glass-label">Update Banner (Optional)</label>
-                        <input type="file" name="evenement[image_event]" class="glass-input" style="padding-top: 0.7rem;">
+                        <input type="file" name="evenement[image_event]" id="evenement_image_event_{{ evenement.id }}" class="glass-input" style="padding-top: 0.7rem;">
+                        <div class="main-home-validation-message" data-field="image_event"></div>
                     </div>
 
                     <div class="mt-4">

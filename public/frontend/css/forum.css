@@ -703,44 +703,56 @@
 
 /* COMMENT REACTIONS */
 .comment-reaction-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.1rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.05rem;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 8px;
+    gap: 5px;
+    padding: 5px 10px;
     border-radius: 10px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .comment-reaction-btn:hover {
-    color: white;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: rgba(255, 255, 255, 0.95);
+    transform: translateY(-1px);
 }
 
-.comment-reaction-btn.active {
-    color: #ff4b5c;
-}
-
+/* Like — accent-green glass glow */
 .comment-reaction-btn.btn-like.active {
+    background: rgba(74, 222, 128, 0.12);
+    border-color: rgba(74, 222, 128, 0.35);
     color: #4ade80;
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.15), inset 0 1px 0 rgba(74, 222, 128, 0.15);
 }
 
+/* Dislike — accent-red glass glow */
 .comment-reaction-btn.btn-dislike.active {
+    background: rgba(248, 113, 113, 0.12);
+    border-color: rgba(248, 113, 113, 0.35);
     color: #f87171;
+    box-shadow: 0 0 12px rgba(248, 113, 113, 0.15), inset 0 1px 0 rgba(248, 113, 113, 0.15);
 }
 
+/* Emoji — amber glass glow */
 .comment-reaction-btn.btn-emoji.active {
+    background: rgba(251, 191, 36, 0.12);
+    border-color: rgba(251, 191, 36, 0.35);
     color: #fbbf24;
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.15), inset 0 1px 0 rgba(251, 191, 36, 0.15);
 }
 
 .comment-reaction-btn .count {
-    font-size: 0.9rem;
+    font-size: 0.82rem;
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.95);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .ps-4 {

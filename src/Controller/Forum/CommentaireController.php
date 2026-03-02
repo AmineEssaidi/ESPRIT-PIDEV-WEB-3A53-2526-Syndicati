@@ -14,10 +14,16 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use App\Service\UserStanding\UserStandingService;
 
 #[Route('/forum/comment')]
 class CommentaireController extends AbstractController
 {
+    public function __construct(
+        private readonly UserStandingService $userStandingService,
+        private readonly \App\Service\User\NotificationService $notifService
+    ) {
+    }
     #[Route('/list/{id}', name: 'forum_comment_list', methods: ['GET'])]
     public function list(
         int $id,
@@ -129,7 +135,8 @@ class CommentaireController extends AbstractController
         PublicationRepository $publicationRepository,
         EntityManagerInterface $entityManager,
         SluggerInterface $slugger,
-        \App\Service\Forum\ForumNotificationService $notificationService
+        \App\Service\Forum\ForumNotificationService $notificationService,
+        \Symfony\Component\Validator\Validator\ValidatorInterface $validator
     ): JsonResponse {
         $publication = $publicationRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -138,10 +145,6 @@ class CommentaireController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Not found or not logged in'], 404);
         }
 
-        // Prevent comments on Announcements (Additional Security)
-        if ($publication->getCategoriePub() === 'Announcement') {
-            return new JsonResponse(['success' => false, 'message' => 'Comments disabled for announcements'], 403);
-        }
 
         $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($userSession['id_user'] ?? $userSession['id']);
 
@@ -149,7 +152,7 @@ class CommentaireController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'User not found'], 404);
         }
 
-        $description = $request->request->get('description');
+        $description = $request->request->get('description_commentaire');
         $visibility = $request->request->get('visibility') === 'on'; // Checkbox
 
         if (!empty($description)) {
@@ -177,11 +180,45 @@ class CommentaireController extends AbstractController
                 }
             }
 
+            $errors = $validator->validate($commentaire);
+            if (count($errors) > 0) {
+                $errMap = [];
+                foreach ($errors as $error) {
+                    $errMap[$error->getPropertyPath()] = $error->getMessage();
+                }
+                return new JsonResponse(['success' => false, 'errors' => $errMap], 400);
+            }
+
             $entityManager->persist($commentaire);
             $entityManager->flush();
 
+            // Points removed
+
             // Send Email Notification
             $notificationService->notifyNewComment($commentaire);
+
+            // 1. Notify Author (Confirmation)
+            $this->notifService->notify(
+                $user,
+                'SUCCESS',
+                'COMMENT',
+                $commentaire->getIdCommentaire(),
+                'Commentaire publié',
+                'Votre commentaire est maintenant visible.'
+            );
+
+            // 2. Notify Publication Owner
+            $pubOwner = $publication->getUser();
+            if ($pubOwner && $pubOwner->getIdUser() !== $user->getIdUser()) {
+                $this->notifService->notify(
+                    $pubOwner,
+                    'COMMENT_NEW',
+                    'COMMENT',
+                    $commentaire->getIdCommentaire(),
+                    'Nouveau commentaire',
+                    $user->getFirstName() . ' a commenté votre publication: ' . (strlen($description) > 30 ? substr($description, 0, 27) . '...' : $description)
+                );
+            }
 
             return new JsonResponse(['success' => true]);
         }
@@ -251,7 +288,7 @@ class CommentaireController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        $description = $request->request->get('description');
+        $description = $request->request->get('description_commentaire');
         if (!empty($description)) {
             $commentaire->setDescriptionCommentaire($description);
 
@@ -274,6 +311,19 @@ class CommentaireController extends AbstractController
             }
 
             $entityManager->flush();
+
+            $user = $this->getUser();
+            if ($user) {
+                $this->notifService->notify(
+                    $user,
+                    'SUCCESS',
+                    'COMMENT',
+                    $commentaire->getIdCommentaire(),
+                    'Commentaire modifié',
+                    'Votre commentaire a été mis à jour.'
+                );
+            }
+
             return new JsonResponse(['success' => true]);
         }
 

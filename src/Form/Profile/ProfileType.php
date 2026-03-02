@@ -67,7 +67,6 @@ class ProfileType extends AbstractType
             ])
             ->add('phone', TextType::class, [
                 'label' => 'Phone Number',
-                'property_path' => 'user.phone',
                 'required' => false,
                 'attr' => [
                     'placeholder' => '+216XXXXXXXX',

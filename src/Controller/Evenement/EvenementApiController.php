@@ -11,16 +11,20 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
+use App\Service\FormErrorHelperTrait;
+
 #[Route('/api/evenement')]
 class EvenementApiController extends AbstractController
 {
+    use FormErrorHelperTrait;
     #[Route('/update/{id}', name: 'api_evenement_update', methods: ['POST'])]
     public function update(
         int $id,
         Request $request,
         EvenementRepository $evenementRepository,
         EntityManagerInterface $entityManager,
-        SluggerInterface $slugger
+        SluggerInterface $slugger,
+        \Symfony\Component\Validator\Validator\ValidatorInterface $validator
     ): JsonResponse {
         $evenement = $evenementRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -91,6 +95,24 @@ class EvenementApiController extends AbstractController
             } catch (\Exception $e) {
                 return new JsonResponse(['success' => false, 'message' => 'Image upload failed.'], 500);
             }
+        }
+
+        $errors = $validator->validate($evenement);
+        if (count($errors) > 0) {
+            $errArray = [];
+            foreach ($errors as $error) {
+                $prop = $error->getPropertyPath();
+                $propLabel = match ($prop) {
+                    'titre_event' => 'Title',
+                    'description_event' => 'Description',
+                    'lieu_event' => 'Location',
+                    'date_event' => 'Date',
+                    'nb_places' => 'Capacity',
+                    default => ucfirst($prop)
+                };
+                $errArray[] = $propLabel . ': ' . $error->getMessage();
+            }
+            return new JsonResponse(['success' => false, 'errors' => $errArray], 400);
         }
 
         $entityManager->flush();

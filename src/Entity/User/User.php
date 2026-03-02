@@ -72,6 +72,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private $is_verified = false;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private $is_disabled = false;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private $disabled_at;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private $disabled_reason;
+
     #[ORM\Column(name: 'authCode', type: 'string', length: 50, nullable: true)]
     private $authCode;
 
@@ -164,6 +173,39 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
     public function setIsVerified(bool $is_verified): self
     {
         $this->is_verified = $is_verified;
+        return $this;
+    }
+
+    public function getIsDisabled(): ?bool
+    {
+        return $this->is_disabled;
+    }
+
+    public function setIsDisabled(bool $is_disabled): self
+    {
+        $this->is_disabled = $is_disabled;
+        return $this;
+    }
+
+    public function getDisabledAt(): ?\DateTimeInterface
+    {
+        return $this->disabled_at;
+    }
+
+    public function setDisabledAt(?\DateTimeInterface $disabled_at): self
+    {
+        $this->disabled_at = $disabled_at;
+        return $this;
+    }
+
+    public function getDisabledReason(): ?string
+    {
+        return $this->disabled_reason;
+    }
+
+    public function setDisabledReason(?string $disabled_reason): self
+    {
+        $this->disabled_reason = $disabled_reason;
         return $this;
     }
 

@@ -69,6 +69,32 @@
             background: var(--event-gradient);
             border-color: transparent;
         }
+
+        /* Validation Styles (Sign-Up Style) */
+        .main-home-validation-message {
+            font-size: 0.8rem;
+            margin-top: 0.4rem;
+            font-weight: 600;
+            min-height: 1.2rem;
+            transition: all 0.2s;
+            display: block;
+        }
+        .main-home-validation-message.error {
+            color: #ff4d4d !important;
+        }
+        .main-home-validation-message.success {
+            color: #2ed573 !important;
+        }
+        .glass-input.input-error {
+            border-color: #ff4d4d !important;
+            background: rgba(255, 77, 77, 0.05) !important;
+            box-shadow: 0 0 0 4px rgba(255, 77, 77, 0.1) !important;
+        }
+        .glass-input.input-success {
+            border-color: #2ed573 !important;
+            background: rgba(46, 213, 115, 0.05) !important;
+            box-shadow: 0 0 0 4px rgba(46, 213, 115, 0.1) !important;
+        }
     </style>
 {% endblock %}
 
@@ -196,14 +222,16 @@
                                 {{ form_start(form, {'action': path('app_evenement_new'), 'attr': {'class': 'main-home-auth-form organize-form', 'enctype': 'multipart/form-data', 'id': 'createEventFormDashboard', 'data-ajax': 'true'}}) }}
                                     <div class="glass-form-group">
                                         <label class="glass-label">Event Title</label>
-                                        {{ form_widget(form.titre_event, {'attr': {'class': 'glass-input', 'placeholder': 'e.g. Sunset Rooftop Gathering', 'data-min-length': '5'}}) }}
+                                        {{ form_widget(form.titre_event, {'attr': {'class': 'glass-input', 'placeholder': 'e.g. Sunset Rooftop Gathering', 'minlength': '5', 'required': 'required'}}) }}
+                                        <div class="main-home-validation-message" data-field="titre_event"></div>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="glass-form-group">
                                                 <label class="glass-label">Date & Time</label>
-                                                {{ form_widget(form.date_event, {'attr': {'class': 'glass-input flatpickr-input', 'placeholder': 'When?'}}) }}
+                                                {{ form_widget(form.date_event, {'attr': {'class': 'glass-input flatpickr-input', 'placeholder': 'When?', 'required': 'required'}}) }}
+                                                <div class="main-home-validation-message" data-field="date_event"></div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
@@ -217,31 +245,36 @@
                                                     </select>
                                                     {% do form.type_event.setRendered %}
                                                 </div>
+                                                <div class="main-home-validation-message" data-field="type_event"></div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="glass-form-group">
                                         <label class="glass-label">Location</label>
-                                        {{ form_widget(form.lieu_event, {'attr': {'class': 'glass-input', 'placeholder': 'Where is the magic happening?'}}) }}
+                                        {{ form_widget(form.lieu_event, {'attr': {'class': 'glass-input', 'placeholder': 'Where is the magic happening?', 'required': 'required'}}) }}
+                                        <div class="main-home-validation-message" data-field="lieu_event"></div>
                                     </div>
 
                                     <div class="glass-form-group">
                                         <label class="glass-label">Description</label>
-                                        {{ form_widget(form.description_event, {'attr': {'class': 'glass-input', 'placeholder': 'What makes this event special?', 'rows': '3', 'data-min-length': '10'}}) }}
+                                        {{ form_widget(form.description_event, {'attr': {'class': 'glass-input', 'placeholder': 'What makes this event special?', 'rows': '3', 'minlength': '10', 'required': 'required'}}) }}
+                                        <div class="main-home-validation-message" data-field="description_event"></div>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="glass-form-group">
                                                 <label class="glass-label">Total Places</label>
-                                                {{ form_widget(form.nb_places, {'attr': {'class': 'glass-input'}}) }}
+                                                {{ form_widget(form.nb_places, {'attr': {'class': 'glass-input', 'required': 'required', 'min': '1'}}) }}
+                                                <div class="main-home-validation-message" data-field="nb_places"></div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="glass-form-group">
                                                 <label class="glass-label">Initial Remaining</label>
-                                                {{ form_widget(form.nb_restants, {'attr': {'class': 'glass-input'}}) }}
+                                                {{ form_widget(form.nb_restants, {'attr': {'class': 'glass-input', 'required': 'required', 'min': '0'}}) }}
+                                                <div class="main-home-validation-message" data-field="nb_restants"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -251,6 +284,7 @@
                                         <div class="custom-file-upload">
                                             {{ form_widget(form.image_event, {'attr': {'class': 'glass-input'}}) }}
                                         </div>
+                                        <div class="main-home-validation-message" data-field="image_event"></div>
                                     </div>
 
                                     <button type="submit" class="main-home-btn-auth-submit w-100 mt-4" style="margin: 0; height: 60px; font-size: 1.1rem; letter-spacing: 0.5px;">

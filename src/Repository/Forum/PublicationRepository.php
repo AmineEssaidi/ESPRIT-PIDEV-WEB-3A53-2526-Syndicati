@@ -64,6 +64,47 @@ class PublicationRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @return array<int, array{post: Publication, prof: \App\Entity\Profile\Profile|null}>
+     */
+    public function findLatestWithProfiles(int $limit = 3): array
+    {
+        $publications = $this->createQueryBuilder('p')
+            ->leftJoin('p.user', 'u')
+            ->addSelect('u')
+            ->orderBy('p.date_creation_pub', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        if (empty($publications)) {
+            return [];
+        }
+
+        $userIds = array_map(function ($p) {
+            return $p->getUser()->getIdUser();
+        }, $publications);
+
+        $profiles = $this->getEntityManager()
+            ->getRepository(\App\Entity\Profile\Profile::class)
+            ->findBy(['user' => $userIds]);
+
+        $profileMap = [];
+        foreach ($profiles as $prof) {
+            $profileMap[$prof->getUser()->getIdUser()] = $prof;
+        }
+
+        $final = [];
+        foreach ($publications as $post) {
+            $final[] = [
+                'post' => $post,
+                'prof' => $profileMap[$post->getUser()->getIdUser()] ?? null
+            ];
+        }
+
+        return $final;
+    }
+
     public function findByCategory(?string $category): array
     {
         $qb = $this->createQueryBuilder('p')

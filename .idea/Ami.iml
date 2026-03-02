@@ -166,6 +166,9 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/sensiolabs/gotenberg-bundle" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/twilio/sdk" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/wamania/php-stemmer" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/ahmed-bhs/doctrine-doctor" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/phpmyadmin/sql-parser" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/phpstan/phpstan" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

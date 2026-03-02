@@ -51,10 +51,11 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // --- SPLIT VIEW LOGIC ---
-    // Load the first post automatically if available
+    // Load the first post automatically if available.
+    // Use setTimeout(0) to defer until all window.* functions below are assigned.
     const firstItem = document.querySelector('.forum-list-item');
     if (firstItem) {
-        loadSplitView(firstItem);
+        setTimeout(() => loadSplitView(firstItem), 0);
     }
 
     // List Item Click Handling (EVENT DELEGATION)
@@ -97,6 +98,33 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('newPostImgPreview'),
         document.getElementById('removeNewPostImg')
     );
+
+    // Init Comment Image Preview (preview box is a div, so use backgroundImage)
+    const commentImgInput = document.getElementById('commentImageInput');
+    const commentImgPreviewContainer = document.getElementById('commentImagePreviewContainer');
+    const commentImgPreview = document.getElementById('commentImagePreview');
+    const removeCommentImg = document.getElementById('removeCommentImg');
+
+    if (commentImgInput) {
+        commentImgInput.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    commentImgPreview.style.backgroundImage = `url('${e.target.result}')`;
+                    commentImgPreviewContainer.classList.remove('d-none');
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+
+    if (removeCommentImg) {
+        removeCommentImg.onclick = function () {
+            commentImgInput.value = '';
+            commentImgPreviewContainer.classList.add('d-none');
+            commentImgPreview.style.backgroundImage = '';
+        };
+    }
 
     function loadSplitView(item) {
         // Switch to Main View immediately
@@ -161,30 +189,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // --- COMMENTS ---
-        // Hide comments for Announcements?
         const commentsSection = document.getElementById('commentsSection');
-        if (d.categoriePub === 'Announcement') {
-            commentsSection.classList.add('d-none');
-        } else {
-            commentsSection.classList.remove('d-none');
-            const addCommentForm = document.getElementById('addCommentForm');
-            if (addCommentForm) {
-                addCommentForm.setAttribute('data-post-id', d.id);
-            }
+        commentsSection.classList.remove('d-none');
+        const addCommentForm = document.getElementById('addCommentForm');
+        if (addCommentForm) {
+            addCommentForm.setAttribute('data-post-id', d.id);
+        }
 
-            // Check Cache first
-            if (commentCache.has(d.id)) {
-                renderComments(commentCache.get(d.id));
-                // Still fetch in background to keep it fresh
-                fetch(`/forum/comment/list/${d.id}`)
-                    .then(r => r.json())
-                    .then(comments => {
-                        commentCache.set(d.id, comments);
-                        renderComments(comments);
-                    });
-            } else {
-                loadComments(d.id);
-            }
+        // Check Cache first
+        if (commentCache.has(d.id)) {
+            renderComments(commentCache.get(d.id));
+            // Still fetch in background to keep it fresh
+            fetch(`/forum/comment/list/${d.id}`)
+                .then(r => r.json())
+                .then(comments => {
+                    commentCache.set(d.id, comments);
+                    renderComments(comments);
+                });
+        } else {
+            loadComments(d.id);
         }
 
         // Reset Scroll to top
@@ -270,6 +293,17 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             const data = await response.json();
 
+            // Clear previous errors via validator if available
+            if (form.validator) {
+                form.validator.clearErrors();
+            } else {
+                form.querySelectorAll('.main-home-validation-message, .validation-container').forEach(el => {
+                    el.textContent = '';
+                    el.classList.remove('active', 'error', 'success');
+                });
+                form.querySelectorAll('.glass-input, .glass-textarea, .glass-select').forEach(el => el.classList.remove('input-error', 'input-success'));
+            }
+
             if (data.success) {
                 window.showObsidianNotification('Success', data.message || 'Saved successfully', 'success');
 
@@ -280,31 +314,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     window.switchGlassFace('main');
                     form.reset();
                 } else if (form.id === 'editPostForm') {
-                    // Update current split view data
-                    const activeItem = document.querySelector('.forum-list-item.active');
-                    if (activeItem) {
-                        // We need a way to refresh only this item or the whole list
-                        loadForumCategory(currentCategory);
-                    }
+                    loadForumCategory(currentCategory);
                     window.switchGlassFace('main');
                 }
 
                 btn.disabled = false;
                 btn.innerHTML = originalText;
             } else {
-                if (data.errors && typeof data.errors === 'object' && !Array.isArray(data.errors)) {
-                    const validator = form.validator;
-                    if (validator) {
-                        validator.mapErrors(data.errors);
-                        window.showObsidianNotification('Please Correct the Errors', 'Some fields require your attention.', 'error');
-                    } else {
-                        let msg = "Validation failed:<br>";
-                        for (let key in data.errors) { msg += `- ${data.errors[key]}<br>`; }
-                        window.showObsidianNotification('Please Correct the Errors', msg, 'error');
-                    }
+                if (data.errors && form.validator) {
+                    form.validator.mapErrors(data.errors);
+                    window.showObsidianNotification('Check your form', 'Please Correct the highlighted errors.', 'error');
                 } else {
-                    window.showObsidianNotification('Error', data.message || (Array.isArray(data.errors) ? data.errors.join('<br>') : 'Validation failed'), 'error');
+                    const errorMsg = data.message || 'Validation failed.';
+                    window.showObsidianNotification('Please Correct the Errors', errorMsg, 'error');
                 }
+
                 btn.disabled = false;
                 btn.innerHTML = originalText;
             }
@@ -329,15 +353,42 @@ document.addEventListener('DOMContentLoaded', function () {
             const fd = new FormData(this);
 
             try {
-                const res = await fetch(`/forum/comment/add/${postId}`, { method: 'POST', body: fd });
+                const res = await fetch(`/forum/comment/add/${postId}`, {
+                    method: 'POST',
+                    body: fd,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
                 const data = await res.json();
+
+                // Clear previous errors
+                this.querySelectorAll('.main-home-validation-message').forEach(el => {
+                    el.textContent = '';
+                    el.className = 'main-home-validation-message';
+                });
+                this.querySelectorAll('.glass-textarea, .glass-input').forEach(el => el.classList.remove('input-error', 'input-success'));
+
                 if (data.success) {
                     window.showObsidianNotification('Commented', 'Your thought has been shared.', 'success');
                     this.reset();
-                    // Delay refresh for better UX
+                    const previewContainer = document.getElementById('commentImagePreviewContainer');
+                    const previewBox = document.getElementById('commentImagePreview');
+                    if (previewContainer) previewContainer.classList.add('d-none');
+                    if (previewBox) previewBox.style.backgroundImage = '';
                     setTimeout(() => loadComments(postId), 800);
                 } else {
-                    window.showObsidianNotification('Error', data.message || 'Error posting comment', 'error');
+                    if (data.errors && this.validator) {
+                        this.validator.mapErrors(data.errors);
+                        window.showObsidianNotification('Error', 'Please check your comment for errors.', 'error');
+                    } else if (data.errors) {
+                        // Fallback if no validator
+                        let errorMessages = [];
+                        Object.entries(data.errors).forEach(([field, messages]) => {
+                            errorMessages.push(Array.isArray(messages) ? messages[0] : messages);
+                        });
+                        window.showObsidianNotification('Error', errorMessages.join('<br>'), 'error');
+                    } else {
+                        window.showObsidianNotification('Error', data.message || 'Error posting comment', 'error');
+                    }
                 }
             } catch (err) {
                 console.error(err);
@@ -736,13 +787,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         ` : ''}
 
                         <div class="comment-actionBar d-flex align-items-center gap-2 mt-2 position-relative z-1 pt-3 border-top border-light border-opacity-5" style="display: flex !important; visibility: visible !important;">
-                            <div class="d-flex align-items-center bg-white bg-opacity-5 rounded-pill p-1 border border-light border-opacity-10 shadow-sm">
-                                <button class="comment-reaction-btn btn-like ${isLiked ? 'active' : ''} d-flex align-items-center gap-2 px-3 py-1 rounded-pill" style="background: transparent; border: none; transition: all 0.2s;" onclick="window.toggleCommentReaction(${c.id}, 'Like')">
-                                    <i class='bx ${isLiked ? 'bxs-like text-success' : 'bx-like'} fs-5'></i> <span class="count fw-bold" style="font-size: 0.85rem; color: rgba(255,255,255,0.9);">${c.counts.Like || ''}</span>
+                            <div class="d-flex align-items-center rounded-pill p-1" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+                                <button class="comment-reaction-btn btn-like ${isLiked ? 'active' : ''} d-flex align-items-center gap-2 px-3 py-1 rounded-pill" onclick="window.toggleCommentReaction(${c.id}, 'Like')">
+                                    <i class='bx ${isLiked ? 'bxs-like' : 'bx-like'} fs-5'></i> <span class="count fw-bold" style="font-size: 0.82rem;">${c.counts.Like || ''}</span>
                                 </button>
-                                <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.15);"></div>
-                                <button class="comment-reaction-btn btn-dislike ${isDisliked ? 'active' : ''} d-flex align-items-center gap-2 px-3 py-1 rounded-pill" style="background: transparent; border: none; transition: all 0.2s;" onclick="window.toggleCommentReaction(${c.id}, 'Dislike')">
-                                    <i class='bx ${isDisliked ? 'bxs-dislike text-danger' : 'bx-dislike'} fs-5'></i> <span class="count fw-bold" style="font-size: 0.85rem; color: rgba(255,255,255,0.9);">${c.counts.Dislike || ''}</span>
+                                <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.1);"></div>
+                                <button class="comment-reaction-btn btn-dislike ${isDisliked ? 'active' : ''} d-flex align-items-center gap-2 px-3 py-1 rounded-pill" onclick="window.toggleCommentReaction(${c.id}, 'Dislike')">
+                                    <i class='bx ${isDisliked ? 'bxs-dislike' : 'bx-dislike'} fs-5'></i> <span class="count fw-bold" style="font-size: 0.82rem;">${c.counts.Dislike || ''}</span>
                                 </button>
                             </div>
 
@@ -955,6 +1006,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Refresh comments list after a short delay to ensure notification is visible
                 setTimeout(() => loadComments(window.currentPostId, 'commentsList', true), 1000);
+            } else {
+                if (data.errors) {
+                    const errorMsg = Object.values(data.errors).flat().join('<br>');
+                    window.showObsidianNotification('Error', errorMsg, 'error');
+                } else {
+                    window.showObsidianNotification('Error', data.message || 'Failed to update comment', 'error');
+                }
             }
         } catch (err) { console.error(err); }
     };

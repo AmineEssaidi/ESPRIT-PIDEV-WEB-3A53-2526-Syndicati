@@ -3,7 +3,7 @@ framework:
         # Unique name of your app: used to compute stable namespaces for cache keys.
         prefix_seed: ami_pidev
 
-        # Use filesystem cache by default
+        # Use filesystem cache for persistent storage across restarts
         app: cache.adapter.filesystem
         system: cache.adapter.system
 

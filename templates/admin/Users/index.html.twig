@@ -509,19 +509,23 @@
                             
                             <div class="row">
                                 <div class="col-md-6">
-                                    {{ form_row(editForm.first_name, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                    {{ form_row(editForm.first_name, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'minlength': '2' } }) }}
+                                    <div class="validation-container" data-field="first_name"></div>
                                 </div>
                                 <div class="col-md-6">
-                                    {{ form_row(editForm.last_name, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                    {{ form_row(editForm.last_name, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'minlength': '2' } }) }}
+                                    <div class="validation-container" data-field="last_name"></div>
                                 </div>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-8">
-                                    {{ form_row(editForm.email_user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                    {{ form_row(editForm.email_user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'type': 'email' } }) }}
+                                    <div class="validation-container" data-field="email_user"></div>
                                 </div>
                                 <div class="col-md-4">
                                     {{ form_row(editForm.role_user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                    <div class="validation-container" data-field="role_user"></div>
                                 </div>
                             </div>
                             
@@ -535,15 +539,17 @@
                                 <div class="col-md-6">
                                     <div class="glass-form-group">
                                         {{ form_label(editForm.plainPassword.first, null, { 'label_attr': { 'class': 'glass-label' } }) }}
-                                        {{ form_widget(editForm.plainPassword.first, { 'attr': { 'class': 'glass-input', 'placeholder': 'Enter strong password' } }) }}
+                                        {{ form_widget(editForm.plainPassword.first, { 'attr': { 'class': 'glass-input', 'placeholder': 'Enter strong password', 'minlength': '6' } }) }}
                                         {{ form_errors(editForm.plainPassword.first) }}
+                                        <div class="validation-container" data-field="plainPassword"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="glass-form-group">
                                         {{ form_label(editForm.plainPassword.second, null, { 'label_attr': { 'class': 'glass-label' } }) }}
-                                        {{ form_widget(editForm.plainPassword.second, { 'attr': { 'class': 'glass-input', 'placeholder': 'Repeat password' } }) }}
+                                        {{ form_widget(editForm.plainPassword.second, { 'attr': { 'class': 'glass-input', 'placeholder': 'Repeat password', 'data-match': editForm.plainPassword.first.vars.id } }) }}
                                         {{ form_errors(editForm.plainPassword.second) }}
+                                        <div class="validation-container" data-field="plainPassword"></div>
                                     </div>
                                 </div>
                             </div>
@@ -557,20 +563,23 @@
                                 {{ form_label(editForm.currentPassword, null, { 'label_attr': { 'class': 'glass-label' } }) }}
                                 {{ form_widget(editForm.currentPassword, { 'attr': { 'class': 'glass-input', 'placeholder': 'Current password required for changes' } }) }}
                                 {{ form_errors(editForm.currentPassword) }}
+                                <div class="validation-container" data-field="currentPassword"></div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="glass-form-group">
                                         {{ form_label(editForm.newPassword.first, null, { 'label_attr': { 'class': 'glass-label' } }) }}
-                                        {{ form_widget(editForm.newPassword.first, { 'attr': { 'class': 'glass-input', 'placeholder': 'New password (min 6 chars)' } }) }}
+                                        {{ form_widget(editForm.newPassword.first, { 'attr': { 'class': 'glass-input', 'placeholder': 'New password (min 6 chars)', 'minlength': '6' } }) }}
                                         {{ form_errors(editForm.newPassword.first) }}
+                                        <div class="validation-container" data-field="newPassword"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="glass-form-group">
                                         {{ form_label(editForm.newPassword.second, null, { 'label_attr': { 'class': 'glass-label' } }) }}
-                                        {{ form_widget(editForm.newPassword.second, { 'attr': { 'class': 'glass-input', 'placeholder': 'Repeat new password' } }) }}
+                                        {{ form_widget(editForm.newPassword.second, { 'attr': { 'class': 'glass-input', 'placeholder': 'Repeat new password', 'data-match': editForm.newPassword.first.vars.id } }) }}
                                         {{ form_errors(editForm.newPassword.second) }}
+                                        <div class="validation-container" data-field="newPassword"></div>
                                     </div>
                                 </div>
                             </div>
@@ -607,25 +616,31 @@
                             
                             <div class="row">
                                 <div class="col-md-6">
-                                    {{ form_row(addForm.first_name, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                    {{ form_row(addForm.first_name, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'minlength': '2' } }) }}
+                                    <div class="validation-container" data-field="first_name"></div>
                                 </div>
                                 <div class="col-md-6">
-                                    {{ form_row(addForm.last_name, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                    {{ form_row(addForm.last_name, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'minlength': '2' } }) }}
+                                    <div class="validation-container" data-field="last_name"></div>
                                 </div>
                             </div>
 
-                            {{ form_row(addForm.email_user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                            {{ form_row(addForm.email_user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'type': 'email' } }) }}
+                            <div class="validation-container" data-field="email_user"></div>
 
                             <div class="row">
                                 <div class="col-md-6">
                                     {{ form_row(addForm.plainPassword.first, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                    <div class="validation-container" data-field="plainPassword"></div>
                                 </div>
                                 <div class="col-md-6">
                                     {{ form_row(addForm.plainPassword.second, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                    <div class="validation-container" data-field="plainPassword"></div>
                                 </div>
                             </div>
 
                             {{ form_row(addForm.role_user, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                            <div class="validation-container" data-field="role_user"></div>
 
                             <div class="mb-4 users-edit-modal-verified-wrap" style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
                                 {{ form_row(addForm.is_verified, { 'attr': { 'class': 'users-edit-verified-cb' }, 'label_attr': { 'class': 'users-edit-verified-label', 'style': 'margin: 0; cursor: pointer;' } }) }}
@@ -1263,14 +1278,17 @@
                                     if (onSuccess) onSuccess(data);
                                     else window.location.reload();
                                 } else {
-                                    let errorMsg = data.message || 'An error occurred.';
+                                    let errorMsg = 'An error occurred.';
                                     if (data.errors && Array.isArray(data.errors)) {
-                                        errorMsg += '\n' + data.errors.join('\n');
+                                        errorMsg = data.errors.join('<br>'); // Join with line breaks for premium popup
+                                    } else if (data.message) {
+                                        errorMsg = data.message;
                                     }
+
                                     if (typeof showCoolPopup === 'function') {
-                                        showCoolPopup('Error', errorMsg, 'error');
+                                        showCoolPopup('Please Correct the Errors', errorMsg, 'error');
                                     } else {
-                                        alert(errorMsg);
+                                        alert(errorMsg.replace(/<br>/g, '\n'));
                                     }
                                 }
                             })

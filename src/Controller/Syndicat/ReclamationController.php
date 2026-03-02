@@ -19,9 +19,12 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
+use App\Service\FormErrorHelperTrait;
+
 #[Route('/syndicat/reclamation')]
 class ReclamationController extends AbstractController
 {
+    use FormErrorHelperTrait;
     #[Route('/', name: 'app_reclamation_index', methods: ['GET'])]
     public function index(ReclamationRepository $reclamationRepository): Response
     {
@@ -135,11 +138,7 @@ class ReclamationController extends AbstractController
             return new JsonResponse(['success' => true, 'message' => 'Reclamation submitted successfully.']);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 
     #[Route('/{id}', name: 'app_reclamation_show', methods: ['GET'])]
@@ -177,11 +176,7 @@ class ReclamationController extends AbstractController
             return new JsonResponse(['success' => true, 'message' => 'Reclamation updated successfully.']);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 
     #[Route('/{id}', name: 'app_reclamation_delete', methods: ['POST'])]

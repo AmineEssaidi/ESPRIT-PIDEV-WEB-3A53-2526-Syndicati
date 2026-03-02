@@ -4,10 +4,7 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', function () {
-    // --- CREATE MODAL ---
-    const createModal = document.getElementById('createEventModal');
-    const editModal = document.getElementById('editEventModal');
-    const detailsModal = document.getElementById('eventDetailsModal');
+    // --- BUTTONS ---
     const btnOpenEdit = document.getElementById('btnOpenEdit');
     const btnOpenDeleteConfirm = document.getElementById('btnOpenDeleteConfirm');
     // --- ADVANCED MAP & WEATHER LOGIC ---
@@ -297,9 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const editForm = document.getElementById('editEventForm');
         if (editForm) editForm.action = data.editPath;
 
-        if (typeof openGlassModal === 'function') {
-            openGlassModal('editEventModal');
-        }
+        // Removed legacy openEditModalFromCard that used modals
     };
 
     window.openDeleteConfirmModal = function (id, deletePath, token) {
@@ -315,10 +310,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const data = await res.json();
                 if (data.success) {
-                    window.showObsidianNotification('Event Removed', data.message, 'success');
+                    window.pushNotif('Event Removed', data.message, 'SUCCESS');
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    window.showObsidianNotification('Error', data.message || 'Could not delete event.', 'error');
+                    window.pushNotif('Error', data.message || 'Could not delete event.', 'ERROR');
                 }
             } catch (err) {
                 console.error('Delete Error:', err);
@@ -337,7 +332,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const editForm = document.getElementById('editEventForm');
 
     window.closeEditModal = function () {
-        closeGlassModal('editEventModal');
+        // Switch back to details face if available, or just main
+        const dashboardSwitcher = document.getElementById('evenementDashboardSwitcher');
+        if (dashboardSwitcher) switchGlassCard('evenementDashboardSwitcher', 'main');
     }
 
     if (btnOpenEdit) {
@@ -373,19 +370,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             editForm.action = data.editPath;
 
-            // Transition: Close details, open edit
-            if (typeof closeGlassModal === 'function' && typeof openGlassModal === 'function') {
-                closeGlassModal('eventDetailsModal');
-                setTimeout(() => {
-                    openGlassModal('editEventModal');
-                }, 300);
-            } else {
-                detailsModal.classList.remove('show');
-                setTimeout(() => {
-                    detailsModal.style.display = 'none';
-                    editModal.style.display = 'flex';
-                    setTimeout(() => editModal.classList.add('show'), 10);
-                }, 300);
+            // Transition using switchers instead of modals
+            const cardSwitcher = btnOpenEdit.closest('.glass-switcher');
+            if (cardSwitcher) {
+                switchGlassCard(cardSwitcher.id, 'edit');
             }
         };
     }
@@ -412,11 +400,21 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             const data = await response.json();
+
             if (data.success) {
-                window.showObsidianNotification('Spot Secured!', data.message, 'success');
+                window.pushNotif('Spot Secured!', data.message, 'SUCCESS');
                 setTimeout(() => window.location.reload(), 1500);
             } else {
-                window.showObsidianNotification('Error', data.message || 'Submission failed.', 'error');
+                if (data.errors && form.validator) {
+                    form.validator.mapErrors(data.errors);
+                    const errorMsg = "Please correct the errors in the form.";
+                    if (window.showCoolPopup) window.showCoolPopup('Oops!', errorMsg, 'error');
+                    else window.pushNotif('Error', errorMsg, 'ERROR');
+                } else {
+                    const errorMsg = data.message || 'Submission failed.';
+                    if (window.showCoolPopup) window.showCoolPopup('Oops!', errorMsg, 'error');
+                    else window.pushNotif('Error', errorMsg, 'ERROR');
+                }
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
                 isProcessingParticipation = false;
@@ -607,9 +605,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Outer Click to Close
     window.onclick = function (event) {
-        if (event.target == createModal) closeGlassModal('createEventModal');
+        const createModal = document.getElementById('createEventModal');
+        const editModal = document.getElementById('editEventModal');
+        const deleteConfirmModal = document.getElementById('obsidianDeleteModal'); // Fixed: use existing global modal
+
+        if (event.target == createModal) switchGlassCard('evenementDashboardSwitcher', 'main');
         if (event.target == editModal) closeEditModal();
-        if (event.target == deleteConfirmModal) closeDeleteConfirm();
+        if (event.target == deleteConfirmModal) window.closeObsidianDeleteModal();
 
         // Hide preview when clicking elsewhere
         const previewPopover = document.getElementById('calendarEventPreview');
@@ -656,62 +658,38 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             const data = await response.json();
+
             if (data.success) {
                 const title = isEdit ? 'Updated!' : 'Event Live!';
                 const message = isEdit ? 'Your event details have been saved.' : 'Your event has been successfully organized.';
-                window.showObsidianNotification(title, message, 'success');
+
+                if (window.showCoolPopup) window.showCoolPopup(title, message, 'success');
+                else window.pushNotif(title, message, 'SUCCESS');
 
                 if (!isEdit) {
-                    // CREATE: Reset form and close
                     form.reset();
-                    // Reset Flatpickr
                     const dateInput = form.querySelector('.flatpickr-input');
                     if (dateInput && dateInput._flatpickr) dateInput._flatpickr.clear();
-
-                    // Reset custom selects/pills
-                    // (Optional: reset dynamic UI)
-
-                    // Close switcher
-                    if (typeof switchGlassCard === 'function') {
-                        switchGlassCard('evenementDashboardSwitcher', 'main');
-                    }
+                    if (typeof switchGlassCard === 'function') switchGlassCard('evenementDashboardSwitcher', 'main');
                 } else {
-                    // EDIT: Close modal/switcher
-                    if (typeof closeGlassModal === 'function') {
-                        closeGlassModal('editEventModal');
-                    }
-                    // If using in-card switcher
                     const cardSwitcher = form.closest('.glass-switcher');
-                    if (cardSwitcher) {
-                        const switcherId = cardSwitcher.id;
-                        if (typeof switchGlassCard === 'function') {
-                            switchGlassCard(switcherId, 'details');
-                        }
-                    }
+                    if (cardSwitcher && typeof switchGlassCard === 'function') switchGlassCard(cardSwitcher.id, 'details');
                 }
-
-                // Ideally we would update the event list here, but without full SPA logic, 
-                // we'll rely on the user refreshing later or implemented a forced reload if absolutely needed.
-                // User asked to "remain in the same page", so we DO NOT reload.
-
             } else {
-                if (data.errors && typeof data.errors === 'object' && !Array.isArray(data.errors)) {
-                    if (form.validator) {
-                        form.validator.mapErrors(data.errors);
-                        window.showObsidianNotification('Please Correct the Errors', 'Some fields require your attention.', 'error');
-                    } else {
-                        let msg = "Validation failed:<br>";
-                        for (let key in data.errors) { msg += `- ${data.errors[key]}<br>`; }
-                        window.showObsidianNotification('Please Correct the Errors', msg, 'error');
-                    }
+                if (data.errors && form.validator) {
+                    form.validator.mapErrors(data.errors);
+                    const errorMsg = "Please check your form for errors.";
+                    if (window.showCoolPopup) window.showCoolPopup('Check your form', errorMsg, 'error');
+                    else window.pushNotif('Check your form', errorMsg, 'ERROR');
                 } else {
-                    const errorMsg = data.message || (Array.isArray(data.errors) ? data.errors.join('<br>') : 'Validation failed.');
-                    window.showObsidianNotification('Check your form', errorMsg, 'error');
+                    const errorMsg = data.message || 'Validation failed.';
+                    if (window.showCoolPopup) window.showCoolPopup('Oops!', errorMsg, 'error');
+                    else window.pushNotif('Check your form', errorMsg, 'ERROR');
                 }
             }
         } catch (error) {
             console.error('Event Action Error:', error);
-            window.showObsidianNotification('Network Error', 'Please try again later.', 'error');
+            window.pushNotif('Network Error', 'Please try again later.', 'ERROR');
         } finally {
             btn.innerHTML = originalHTML;
             btn.disabled = false;

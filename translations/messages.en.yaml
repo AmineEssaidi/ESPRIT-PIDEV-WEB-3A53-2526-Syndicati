@@ -38,6 +38,7 @@ nav:
     new_message: "New Message"
     unread_notifications: "unread notifications"
     close: "Close"
+    mark_all_read: "Mark all as read"
     sign_in: "Sign In"
     sign_up: "Sign Up"
     my_profile: "My Profile"

@@ -4,6 +4,9 @@
 {% block stylesheets %}
     <link href="{{ asset('frontend/css/forum.css') }}" rel="stylesheet">
     <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
+    <style>
+        /* Any module-specific forum overrides can go here */
+    </style>
 {% endblock %}
 
 {% block body %}
@@ -151,9 +154,10 @@
 
                                             {% if app.session.get('user') %}
                                                 <div class="comment-form-container p-4">
-                                                    <form id="addCommentForm" action="" method="POST" enctype="multipart/form-data">
+                                                    <form id="addCommentForm" action="" method="POST" enctype="multipart/form-data" data-ajax="true">
                                                         <div class="glass-form-group mb-3">
-                                                            <textarea name="description" class="glass-textarea" rows="3" placeholder="Share your thoughts..." style="background: rgba(0,0,0,0.2) !important;"></textarea>
+                                                            <textarea name="description_commentaire" id="comment_description" class="glass-textarea" rows="3" placeholder="Share your thoughts..." style="background: rgba(0,0,0,0.2) !important;" required minlength="5"></textarea>
+                                                            <div class="main-home-validation-message" data-field="description_commentaire"></div>
                                                         </div>
                                                         <!-- Image Upload (Optional) -->
                                                         <div class="d-flex justify-content-between align-items-center">
@@ -161,7 +165,7 @@
                                                                 <label for="commentImageInput" class="comment-img-upload-btn">
                                                                     <i class='bx bx-image-add'></i>
                                                                 </label>
-                                                                <input type="file" name="image" id="commentImageInput" accept="image/*" class="d-none">
+                                                                <input type="file" name="image_commentaire" id="commentImageInput" accept="image/*" class="d-none">
                                                                 <div id="commentImagePreviewContainer" class="d-none">
                                                                     <div id="commentImagePreview" class="comment-img-preview-box"></div>
                                                                     <div id="removeCommentImg" class="comment-img-remove-btn"><i class='bx bx-x'></i></div>
@@ -205,19 +209,23 @@
                                     {{ form_start(form, {'attr': {'id': 'createPostForm', 'class': 'syndicat-form', 'data-ajax': 'true'}}) }}
                                         <div class="glass-form-group">
                                             <label class="glass-label">Title</label>
-                                            {{ form_widget(form.titre_pub, {'attr': {'class': 'glass-input', 'placeholder': 'Enter title', 'data-min-length': '5', 'required': 'required'}}) }}
+                                            {{ form_widget(form.titre_pub, {'attr': {'class': 'glass-input', 'id': 'create_titre_pub', 'placeholder': 'Enter title', 'minlength': '5', 'required': 'required'}}) }}
+                                            <div class="main-home-validation-message" data-field="titre_pub"></div>
                                         </div>
-                                        <div class="glass-form-group" id="createCategoryGroup">
+                                        <div class="glass-form-group">
                                             <label class="glass-label">Category</label>
-                                            {{ form_widget(form.categorie_pub, {'attr': {'class': 'glass-select', 'id': 'createCategorySelect'}}) }}
+                                            {{ form_widget(form.categorie_pub, {'attr': {'class': 'glass-select', 'id': 'create_categorie_pub'}}) }}
+                                            <div class="main-home-validation-message" data-field="categorie_pub"></div>
                                         </div>
                                         <div class="glass-form-group">
                                             <label class="glass-label">Description</label>
-                                            {{ form_widget(form.description_pub, {'attr': {'class': 'glass-textarea', 'rows': '8', 'data-min-length': '10', 'required': 'required'}}) }}
+                                            {{ form_widget(form.description_pub, {'attr': {'class': 'glass-textarea', 'id': 'create_description_pub', 'rows': '8', 'minlength': '20', 'required': 'required'}}) }}
+                                            <div class="main-home-validation-message" data-field="description_pub"></div>
                                         </div>
                                         <div class="glass-form-group">
                                             <label class="glass-label">Image (Optional)</label>
-                                            {{ form_widget(form.image_pub, {'attr': {'class': 'glass-input'}}) }}
+                                            {{ form_widget(form.image_pub, {'attr': {'class': 'glass-input', 'id': 'create_image_pub'}}) }}
+                                            <div class="main-home-validation-message" data-field="image_pub"></div>
                                         </div>
                                         <button type="submit" class="glass-btn-save w-100 mt-3">Post Now <i class='bx bx-send ms-1'></i></button>
                                     {{ form_end(form) }}
@@ -238,7 +246,8 @@
                                     <form id="editPostForm" method="POST" enctype="multipart/form-data" class="syndicat-form" data-ajax="true">
                                         <div class="glass-form-group">
                                             <label class="glass-label">Title</label>
-                                            <input type="text" name="title" id="editPostTitle" class="glass-input" required>
+                                            <input type="text" name="title" id="editPostTitle" class="glass-input" required minlength="5">
+                                            <div class="main-home-validation-message" data-field="title"></div>
                                         </div>
                                         <div class="glass-form-group">
                                             <label class="glass-label">Category</label>
@@ -247,10 +256,12 @@
                                                     <option value="{{ cat }}">{{ cat }}</option>
                                                 {% endfor %}
                                             </select>
+                                            <div class="main-home-validation-message" data-field="category"></div>
                                         </div>
                                         <div class="glass-form-group">
                                             <label class="glass-label">Description</label>
-                                            <textarea name="description" id="editPostDescription" class="glass-textarea" rows="8" required></textarea>
+                                            <textarea name="description" id="editPostDescription" class="glass-textarea" rows="8" required minlength="20"></textarea>
+                                            <div class="main-home-validation-message" data-field="description"></div>
                                         </div>
                                         <div class="glass-form-group">
                                             <label class="glass-label">Update Image</label>
@@ -353,24 +364,6 @@
     <script src="{{ asset('frontend/js/form-validation.js') }}"></script>
     <script src="{{ asset('frontend/js/forum.js') }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (document.getElementById('createPostForm')) {
-                document.getElementById('createPostForm').validator = new FormValidator('createPostForm');
-            }
-            if (document.getElementById('editPostForm')) {
-                // Manually init validation for edit form which uses raw HTML
-                 const editValidator = new FormValidator('editPostForm', {
-                    errorClass: 'glass-form-error'
-                });
-                // Add constraints manually since we used raw inputs
-                 const titleInput = document.getElementById('editPostTitle');
-                 if(titleInput) { titleInput.dataset.minLength = '10'; titleInput.required = true; }
-                 
-                 const descInput = document.getElementById('editPostDescription');
-                 if(descInput) { descInput.dataset.minLength = '50'; descInput.required = true; }
-                 
-                 document.getElementById('editPostForm').validator = editValidator;
-            }
-        });
+        // FormValidator auto-initializes via Global Auto-Init in form-validation.js
     </script>
 {% endblock %}

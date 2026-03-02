@@ -45,6 +45,13 @@ class SessionProfileAvatarSubscriber implements EventSubscriberInterface
             return;
         }
 
+        // Only check database once every 30 minutes or if avatar is missing from session
+        $now = time();
+        $lastChecked = $session->get('last_avatar_check', 0);
+        if (isset($userData['avatar']) && ($now - $lastChecked < 1800)) {
+            return;
+        }
+
         $userId = (int) $userData['id'];
         $user = $this->userRepository->find($userId);
         if (!$user) {
@@ -52,16 +59,18 @@ class SessionProfileAvatarSubscriber implements EventSubscriberInterface
         }
 
         $profile = $this->profileRepository->findOneByUser($user);
-        if (!$profile || !$profile->getAvatar()) {
+        $avatar = $profile ? $profile->getAvatar() : null;
+
+        if (!$avatar) {
+            $session->set('last_avatar_check', $now);
             return;
         }
 
-        $avatar = $profile->getAvatar();
-        if (($userData['avatar'] ?? null) === $avatar) {
-            return;
+        if (($userData['avatar'] ?? null) !== $avatar) {
+            $userData['avatar'] = $avatar;
+            $session->set('user', $userData);
         }
 
-        $userData['avatar'] = $avatar;
-        $session->set('user', $userData);
+        $session->set('last_avatar_check', $now);
     }
 }

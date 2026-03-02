@@ -11,9 +11,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\FormErrorHelperTrait;
 
 class SettingsController extends AbstractController
 {
+    use FormErrorHelperTrait;
     #[Route('/settings', name: 'frontend_settings', methods: ['GET'])]
     public function index(Request $request, ProfileRepository $profileRepository, UserRepository $userRepository): Response
     {

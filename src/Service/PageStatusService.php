@@ -39,11 +39,20 @@ class PageStatusService
     {
         $session = $this->requestStack->getSession();
         return [
-            'dashboard' => $session->get(self::SESSION_KEY . '_dashboard', 'online'),
+            // Frontend
             'main_home' => $session->get(self::SESSION_KEY . '_main_home', 'online'),
+            'profile' => $session->get(self::SESSION_KEY . '_profile', 'online'),
+            'forum' => $session->get(self::SESSION_KEY . '_forum', 'online'),
+            'syndicat' => $session->get(self::SESSION_KEY . '_syndicat', 'online'),
+            'evenement' => $session->get(self::SESSION_KEY . '_evenement', 'online'),
+            'residence' => $session->get(self::SESSION_KEY . '_residence', 'online'),
+            // Backend
+            'dashboard' => $session->get(self::SESSION_KEY . '_dashboard', 'online'),
+            'super_dashboard' => $session->get(self::SESSION_KEY . '_super_dashboard', 'online'),
             'users' => $session->get(self::SESSION_KEY . '_users', 'online'),
-            'placeholder_1' => $session->get(self::SESSION_KEY . '_placeholder_1', 'offline'),
-            'placeholder_2' => $session->get(self::SESSION_KEY . '_placeholder_2', 'online')
+            'admin_forum' => $session->get(self::SESSION_KEY . '_admin_forum', 'online'),
+            'admin_syndicat' => $session->get(self::SESSION_KEY . '_admin_syndicat', 'online'),
+            'admin_evenement' => $session->get(self::SESSION_KEY . '_admin_evenement', 'online'),
         ];
     }
 

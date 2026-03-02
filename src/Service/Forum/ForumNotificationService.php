@@ -18,6 +18,7 @@ class ForumNotificationService
     private $fromEmail;
     private $fromName;
     private $mailerDsn;
+    private $hubNotifService;
 
     public function __construct(
         MailerInterface $mailer,
@@ -27,7 +28,8 @@ class ForumNotificationService
         \App\Service\OAuth\GmailOAuthMailer $gmailOAuthMailer,
         string $fromEmail,
         string $fromName,
-        string $mailerDsn
+        string $mailerDsn,
+        \App\Service\User\NotificationService $hubNotifService
     ) {
         $this->mailer = $mailer;
         $this->userRepository = $userRepository;
@@ -37,6 +39,7 @@ class ForumNotificationService
         $this->fromEmail = $fromEmail;
         $this->fromName = $fromName;
         $this->mailerDsn = $mailerDsn;
+        $this->hubNotifService = $hubNotifService;
     }
 
     public function notifyNewAnnouncement(Publication $publication): void
@@ -60,6 +63,16 @@ class ForumNotificationService
                 ]));
 
             $this->sendEmail($message);
+
+            // Hub Notification (Broadcast)
+            $this->hubNotifService->notify(
+                $user,
+                'SUCCESS',
+                'FORUM_ANNOUNCEMENT',
+                $publication->getId() ?: 0,
+                'Nouvelle Annonce',
+                $publication->getTitrePub()
+            );
         }
     }
 
@@ -68,8 +81,8 @@ class ForumNotificationService
         $publication = $commentaire->getPublication();
         $author = $publication->getUser();
 
-        // Don't notify if author info is missing or author is the one commenting
-        if (!$author || !$author->getEmailUser() || $author === $commentaire->getUser()) {
+        // Don't notify if author email is missing
+        if (!$author || !$author->getEmailUser()) {
             return;
         }
 
@@ -92,6 +105,16 @@ class ForumNotificationService
             ]));
 
         $this->sendEmail($message);
+
+        // Hub Notification
+        $this->hubNotifService->notify(
+            $author,
+            'MESSAGE_NEW',
+            'FORUM_COMMENT',
+            $commentaire->getIdCommentaire() ?: 0,
+            'Nouveau commentaire',
+            $senderName . ' a répondu à votre publication.'
+        );
     }
 
     private function sendEmail(\Symfony\Component\Mime\Email $email): void

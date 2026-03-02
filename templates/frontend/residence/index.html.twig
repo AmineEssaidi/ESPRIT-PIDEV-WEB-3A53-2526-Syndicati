@@ -382,6 +382,9 @@
                                 <img src="{{ qr_code_url(absolute_url(path('send_sms', {'id': appartement.idApp}))) }}" alt="QR Code" style="width: 180px; height: 180px;">
                             </div>
                             <p class="mt-3 text-white-50" style="font-size: 0.9rem;">Scannez pour envoyer un SMS</p>
+                            <button onclick="triggerSms({{ appartement.idApp }}, this)" class="glass-btn-save w-100 mt-2" style="background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.5);">
+                                <i class='bx bx-send me-2'></i>Envoyer demande via SMS
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -502,6 +505,35 @@
             switchToFace(target);
         };
 
+        // SMS Trigger handler
+        window.triggerSms = function(apartmentId, btn) {
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i>Envoi...';
+
+            fetch(`/residence/${apartmentId}/sendSms`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+
+                if (data.status === 'success') {
+                    window.pushNotif('Génial!', data.message, 'SUCCESS');
+                } else {
+                    window.pushNotif('Erreur', data.message, 'ERROR');
+                }
+            })
+            .catch(err => {
+                console.error('Error triggering SMS:', err);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                showToast('Erreur lors de l\'envois du SMS.', 'error');
+            });
+        };
+
         // Contact Form AJAX
         document.addEventListener('submit', function(e) {
             if (e.target && e.target.id === 'formulaire-email-appartment') {
@@ -525,83 +557,21 @@
                     submitBtn.innerHTML = originalText;
 
                     if (data.status === 'success') {
-                        showToast(data.message, 'success');
+                        window.pushNotif('Génial!', data.message, 'SUCCESS');
                         form.reset();
                     } else {
-                        showToast(data.message, 'error');
+                        window.pushNotif('Erreur', data.message, 'ERROR');
                     }
                 })
                 .catch(err => {
                     console.error('Error sending email:', err);
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalText;
-                    showToast('Erreur lors de l\'envoi du message.', 'error');
+                    window.pushNotif('Erreur', 'Erreur lors de l\'envois du message.', 'ERROR');
                 });
             }
         });
 
-        // Toast Notification System
-        window.showToast = function(message, type = 'success') {
-            let toastContainer = document.getElementById('horizon-toast-container');
-            if (!toastContainer) {
-                toastContainer = document.createElement('div');
-                toastContainer.id = 'horizon-toast-container';
-                toastContainer.style.cssText = `
-                    position: fixed;
-                    top: 2rem;
-                    right: 2rem;
-                    z-index: 9999;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1rem;
-                `;
-                document.body.appendChild(toastContainer);
-            }
-
-            const toast = document.createElement('div');
-            const bgColor = type === 'success' ? 'rgba(74, 222, 128, 0.15)' : 'rgba(248, 113, 113, 0.15)';
-            const borderColor = type === 'success' ? 'rgba(74, 222, 128, 0.4)' : 'rgba(248, 113, 113, 0.4)';
-            const icon = type === 'success' ? 'bx-check-circle' : 'bx-error-circle';
-            const iconColor = type === 'success' ? '#4ade80' : '#f87171';
-
-            toast.className = 'glass-toast';
-            toast.style.cssText = `
-                min-width: 300px;
-                background: ${bgColor};
-                backdrop-filter: blur(12px);
-                border: 1px solid ${borderColor};
-                border-radius: 16px;
-                padding: 1.25rem;
-                color: #fff;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-                display: flex;
-                align-items: center;
-                gap: 1rem;
-                transform: translateX(120%);
-                transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-            `;
-
-            toast.innerHTML = `
-                <i class='bx ${icon}' style="font-size: 1.5rem; color: ${iconColor};"></i>
-                <div style="flex: 1; font-weight: 500;">${message}</div>
-                <button onclick="this.parentElement.remove()" style="background:none; border:none; color: rgba(255,255,255,0.4); cursor:pointer;">
-                    <i class='bx bx-x'></i>
-                </button>
-            `;
-
-            toastContainer.appendChild(toast);
-            
-            // Animate in
-            requestAnimationFrame(() => {
-                toast.style.transform = 'translateX(0)';
-            });
-
-            // Auto remove
-            setTimeout(() => {
-                toast.style.transform = 'translateX(120%)';
-                setTimeout(() => toast.remove(), 400);
-            }, 5000);
-        };
     });
 </script>
 {% endblock %}

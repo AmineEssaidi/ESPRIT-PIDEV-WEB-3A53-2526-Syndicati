@@ -102,3 +102,14 @@ Trace: #0 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\Persisters\Entity\BasicE
 [2026-02-23 02:48:14] User info received: ID=112378988393889074136, Email=slayminogg2017@gmail.com
 [2026-02-23 02:48:14] Searching for user by google_id: 112378988393889074136
 [2026-02-23 02:48:15] User NOT found by google_id, searching by email: slayminogg2017@gmail.com
+[2026-02-23 11:04:58] Callback triggered with URL: http://localhost:8000/auth/google/callback?authuser=9&code=4%2F0AfrIepBGiuXIBhcPR087RzM-vv8-I9QfG7iTgOG8l5HYrqMLidZerC3Knl7RV9ZhAplDJg&prompt=consent&scope=email%20profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email%20openid
+[2026-02-23 11:04:58] Fetching user info for code (redirect_uri: http://localhost:8000/auth/google/callback)
+[2026-02-23 11:04:58] [Service] getUserInfo started with code: 4/0AfrIepB...
+[2026-02-23 11:04:58] [Service] Client created. Fetching access token...
+[2026-02-23 11:05:00] [Service] Token response received: SUCCESS (token received)
+[2026-02-23 11:05:00] [Service] Initializing Oauth2 service...
+[2026-02-23 11:05:00] [Service] Requesting userinfo from Google...
+[2026-02-23 11:05:01] [Service] User info received from Google: YES (ID: 113945003440386062410)
+[2026-02-23 11:05:01] User info received: ID=113945003440386062410, Email=minousai0216@gmail.com
+[2026-02-23 11:05:01] Searching for user by google_id: 113945003440386062410
+[2026-02-23 11:05:01] User NOT found by google_id, searching by email: minousai0216@gmail.com

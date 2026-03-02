@@ -21,10 +21,19 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Form\FormFactoryInterface;
+use App\Service\UserStanding\UserStandingService;
+
+use App\Service\FormErrorHelperTrait;
 
 #[Route('/publication')]
 class PublicationController extends AbstractController
 {
+    use FormErrorHelperTrait;
+    public function __construct(
+        private readonly UserStandingService $userStandingService,
+        private readonly \App\Service\User\NotificationService $notifService
+    ) {
+    }
     #[Route('/', name: 'app_publication_index', methods: ['GET'])]
     public function index(): Response
     {
@@ -58,8 +67,13 @@ class PublicationController extends AbstractController
     }
 
     #[Route('/admin/add', name: 'admin_forum_pub_add', methods: ['POST'])]
-    public function adminAdd(Request $request, EntityManagerInterface $em, SluggerInterface $slugger, FormFactoryInterface $formFactory, \App\Service\Forum\ForumNotificationService $notificationService): JsonResponse
-    {
+    public function adminAdd(
+        Request $request,
+        EntityManagerInterface $em,
+        SluggerInterface $slugger,
+        FormFactoryInterface $formFactory,
+        \App\Service\Forum\ForumNotificationService $notificationService
+    ): JsonResponse {
         $publication = new Publication();
         $form = $formFactory->createNamed('publication_add', PublicationType::class, $publication);
         $form->handleRequest($request);
@@ -102,6 +116,18 @@ class PublicationController extends AbstractController
             $em->persist($publication);
             $em->flush();
 
+            // Notify user of success
+            $this->notifService->notify(
+                $user,
+                'SUCCESS',
+                'PUBLICATION',
+                $publication->getId(),
+                'Publication créée',
+                'Votre publication "' . $publication->getTitrePub() . '" est maintenant en ligne.'
+            );
+
+            // Points removed
+
             // Notify if Announcement
             if ($publication->getCategoriePub() === 'Announcement') {
                 $notificationService->notifyNewAnnouncement($publication);
@@ -121,11 +147,11 @@ class PublicationController extends AbstractController
             ]);
         }
 
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
+        if ($form->isSubmitted()) {
+            return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
         }
-        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+
+        return new JsonResponse(['success' => false, 'message' => 'Form submission failed.'], 400);
     }
 
     #[Route('/admin/{id}/edit', name: 'admin_forum_pub_edit', methods: ['POST'])]
@@ -153,6 +179,19 @@ class PublicationController extends AbstractController
                 }
             }
             $em->flush();
+
+            $user = $this->getUser();
+            if ($user) {
+                $this->notifService->notify(
+                    $user,
+                    'SUCCESS',
+                    'PUBLICATION',
+                    $publication->getId(),
+                    'Publication mise à jour',
+                    'Les modifications ont été enregistrées avec succès.'
+                );
+            }
+
             return new JsonResponse([
                 'success' => true,
                 'message' => 'Publication updated successfully.',
@@ -164,12 +203,7 @@ class PublicationController extends AbstractController
                 ]
             ]);
         }
-
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 
     #[Route('/admin/comment/{id}/edit', name: 'admin_forum_comment_edit', methods: ['POST'])]
@@ -209,12 +243,7 @@ class PublicationController extends AbstractController
                 ]
             ]);
         }
-
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 
     #[Route('/admin/reaction/{id}/edit', name: 'admin_forum_reaction_edit', methods: ['POST'])]
@@ -242,12 +271,7 @@ class PublicationController extends AbstractController
                 ]
             ]);
         }
-
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 
     #[Route('/admin/reaction/{id}/delete', name: 'admin_forum_reaction_delete', methods: ['POST'])]
@@ -270,8 +294,12 @@ class PublicationController extends AbstractController
     }
 
     #[Route('/new', name: 'app_publication_new', methods: ['POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Service\Forum\ForumNotificationService $notificationService): JsonResponse
-    {
+    public function new(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        SluggerInterface $slugger,
+        \App\Service\Forum\ForumNotificationService $notificationService
+    ): JsonResponse {
         $publication = new Publication();
         $user = $this->getUser();
         if ($user) {
@@ -303,6 +331,21 @@ class PublicationController extends AbstractController
             $entityManager->persist($publication);
             $entityManager->flush();
 
+            if ($user instanceof User) {
+                $this->notifService->notify(
+                    $user,
+                    'SUCCESS',
+                    'PUBLICATION',
+                    $publication->getId(),
+                    'Publication créée',
+                    'Votre publication a été publiée avec succès.'
+                );
+            }
+
+            if ($user instanceof User) {
+                // Points removed
+            }
+
             // Notify if Announcement
             if ($publication->getCategoriePub() === 'Announcement') {
                 $notificationService->notifyNewAnnouncement($publication);
@@ -317,12 +360,7 @@ class PublicationController extends AbstractController
                 ]
             ]);
         }
-
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 
     #[Route('/{id}/edit', name: 'app_publication_edit', methods: ['POST'])]
@@ -361,12 +399,7 @@ class PublicationController extends AbstractController
                 ]
             ]);
         }
-
-        $errors = [];
-        foreach ($form->getErrors(true) as $error) {
-            $errors[] = $error->getMessage();
-        }
-        return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+        return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
     }
 
     #[Route('/{id}', name: 'app_publication_delete', methods: ['POST'])]
@@ -375,6 +408,18 @@ class PublicationController extends AbstractController
         if ($this->isCsrfTokenValid('delete' . $publication->getId(), $request->request->get('_token'))) {
             $entityManager->remove($publication);
             $entityManager->flush();
+
+            $user = $this->getUser();
+            if ($user) {
+                $this->notifService->notify(
+                    $user,
+                    'SUCCESS',
+                    'PUBLICATION',
+                    $publication->getId(),
+                    'Publication supprimée',
+                    'La publication a été retirée.'
+                );
+            }
             return new JsonResponse(['success' => true, 'message' => 'Publication deleted successfully.']);
         }
 

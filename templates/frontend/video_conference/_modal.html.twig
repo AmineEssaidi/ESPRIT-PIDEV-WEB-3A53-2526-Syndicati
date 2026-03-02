@@ -1,97 +1,84 @@
-<div class="glass-modal-overlay" id="video-conf-modal" style="z-index: 10001;">
-    <div class="glass-modal-container confer-overhaul-container" style="max-width: 1100px; width: 95%; height: 85vh; border-radius: 32px; overflow: hidden;">
+<div class="glass-modal-overlay" id="video-conf-modal" style="display: none !important; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); z-index: 999999 !important; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.4s ease;">
+    <div class="glass-modal-container confer-overhaul-container" style="max-width: 900px; width: 95%; height: auto; max-height: 90vh; border-radius: 32px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); background: rgba(15, 15, 25, 0.9);">
         <!-- Mesh Background Glows -->
-        <div class="confer-bg-glow primary"></div>
-        <div class="confer-bg-glow secondary"></div>
+        <div class="confer-bg-glow primary" style="position: absolute; top: -100px; left: -100px; width: 300px; height: 300px; background: #8a2be2; filter: blur(100px); opacity: 0.15; pointer-events: none;"></div>
+        <div class="confer-bg-glow secondary" style="position: absolute; bottom: -100px; right: -100px; width: 300px; height: 300px; background: #00d2ff; filter: blur(100px); opacity: 0.15; pointer-events: none;"></div>
 
-        <div class="glass-modal-header border-0 p-4 pb-0 d-flex justify-content-between align-items-center" style="z-index: 10;">
+        <div class="glass-modal-header border-0 p-4 d-flex justify-content-between align-items-center position-relative" style="z-index: 10;">
             <div class="d-flex align-items-center gap-3">
-                <div class="confer-status-pill">
-                    <span class="pulse-dot"></span>
-                    <span id="confer-status-text">Ready to Host</span>
+                <div class="confer-status-pill" style="background: rgba(138, 43, 226, 0.1); border: 1px solid rgba(138, 43, 226, 0.2); padding: 0.4rem 0.9rem; border-radius: 100px; color: #8a2be2; font-size: 0.75rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase;">
+                    <i class='bx bx-video'></i>
+                    <span id="video-modal-title">Setup Your Spotlight</span>
                 </div>
-                <h2 class="glass-modal-title mb-0" style="font-size: 1.25rem; font-weight: 700; letter-spacing: -0.5px;">Video Spotlight</h2>
             </div>
-            <button class="glass-modal-close confer-close-btn" id="video-conf-modal-close"><i class="bx bx-x"></i></button>
+            <button class="btn btn-link text-white-50 p-2" id="video-conf-modal-close" style="font-size: 1.5rem; text-decoration: none;"><i class="bx bx-x"></i></button>
         </div>
 
-        <div class="glass-modal-body p-0 h-100">
-            <div class="confer-main-layout">
-                <!-- Main Spotlight Area -->
-                <div class="confer-spotlight-section">
-                    <div id="modal-video-grid" class="confer-spotlight-display">
-                        <!-- Host/Active Speaker Box -->
-                        <div class="confer-video-wrapper spotlight-active" id="local-video-wrapper">
-                            <video id="localVideo" autoplay muted playsinline class="confer-video-el"></video>
-                            <div class="confer-video-label">
-                                <span class="label-role">You</span>
-                            </div>
-                            <!-- Waiting State Animation -->
-                            <div class="confer-waiting-state" id="local-waiting-state">
-                                <div class="confer-waiting-loader">
-                                    <span></span><span></span><span></span>
-                                </div>
-                                <p>Initializing Camera...</p>
+        <div class="glass-modal-body p-4 pt-0 position-relative" style="z-index: 5;">
+            <!-- Security Context Warning -->
+            <div id="modal-security-alert" class="d-none mb-4 p-3 rounded-4" style="background: rgba(255, 187, 0, 0.1); border: 1px solid rgba(255, 187, 0, 0.2);">
+                <div class="d-flex gap-3 align-items-center">
+                    <div class="flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: rgba(255, 187, 0, 0.2); border-radius: 12px; color: #ffbb00;">
+                        <i class='bx bx-shield-quarter fs-4'></i>
+                    </div>
+                    <div>
+                        <h6 class="text-white fw-bold mb-1" style="font-size: 0.9rem;">Browser Security Restriction</h6>
+                        <p class="text-white-50 mb-0" style="font-size: 0.8rem; line-height: 1.4;">
+                            Media APIs are blocked on insecure IP origins. To fix this, enable the flag:<br>
+                            <code class="text-warning bg-dark px-2 rounded">chrome://flags/#unsafely-treat-insecure-origin-as-secure</code><br>
+                            and add <span class="text-white fw-bold">{{ app.request.schemeAndHttpHost }}</span> to the list.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Host/Setup View -->
+            <div id="video-view-host" class="row g-4">
+                <div class="col-lg-7">
+                    <div class="confer-preview-box position-relative rounded-4 overflow-hidden bg-black shadow-inner" style="aspect-ratio: 16/9; border: 1px solid rgba(255,255,255,0.08); min-height: 200px;">
+                        <video id="modal-preview-video" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: cover; background: #000;"></video>
+                        <div class="position-absolute bottom-0 start-0 w-100 p-3" style="background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);">
+                            <div class="d-flex justify-content-center gap-3">
+                                <button id="modal-preview-toggleAudio" class="modal-ctrl-btn active" title="Toggle Mic"><i class='bx bx-microphone'></i></button>
+                                <button id="modal-preview-toggleVideo" class="modal-ctrl-btn active" title="Toggle Camera"><i class='bx bx-video'></i></button>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Bottom Controls Floating -->
-                    <div class="confer-controls-wrapper">
-                        <div class="confer-controls-glass">
-                            <button id="toggleAudio" class="confer-ctrl-btn" title="Mute/Unmute">
-                                <i class="bx bx-microphone"></i>
-                            </button>
-                            <button id="toggleVideo" class="confer-ctrl-btn" title="Start/Stop Video">
-                                <i class="bx bx-video"></i>
-                            </button>
-                            <div class="confer-ctrl-divider"></div>
-                            <button id="endCall" class="confer-ctrl-btn btn-danger-soft" title="End Conference">
-                                <i class="bx bx-phone-off"></i>
-                            </button>
+                        <div id="modal-preview-placeholder" class="position-absolute inset-0 d-none flex-column align-items-center justify-content-center text-white-50">
+                            <i class='bx bx-video-off fs-1 mb-2'></i>
+                            <p class="small fw-bold">Camera is Off</p>
                         </div>
                     </div>
                 </div>
-
-                <!-- Interaction Sidebar -->
-                <div class="confer-sidebar">
-                    <div class="confer-sidebar-content">
-                        <!-- Room Info Section -->
-                        <div class="confer-sidebar-card">
-                            <h5 class="confer-sidebar-title">Session Access</h5>
-                            <div class="confer-qr-container" id="modal-qrcode"></div>
-                            <div class="confer-copy-box">
-                                <input type="text" id="modal-joinLink" class="confer-copy-input" readonly value="Creating session...">
-                                <button class="confer-copy-btn" id="copy-link-btn"><i class='bx bx-copy'></i></button>
-                            </div>
-                            <div class="confer-room-code-tag">
-                                <span>Room ID:</span>
-                                <code id="modal-room-id">----</code>
-                            </div>
-                        </div>
-
-                        <!-- Participants Section -->
-                        <div class="confer-sidebar-card mt-3 flex-grow-1 d-flex flex-column" style="overflow: hidden;">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <h5 class="confer-sidebar-title mb-0">Participants</h5>
-                                <div id="modal-live-indicator" class="confer-live-tag" style="display: none;">LIVE</div>
-                            </div>
-                            <div id="modal-participants-list" class="confer-participants-scroll">
-                                <div class="confer-empty-state">
-                                    <i class='bx bx-user-plus'></i>
-                                    <p>Invite others to join</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Quick Join -->
-                        <div class="confer-sidebar-card mt-3">
-                            <div class="confer-quick-join">
-                                <input type="text" id="join-room-code" placeholder="Enter code...">
-                                <button id="join-by-code-btn">Join</button>
-                            </div>
-                        </div>
+                <div class="col-lg-5 d-flex flex-column justify-content-center">
+                    <h4 class="text-white fw-bold mb-2">Host a Custom Session</h4>
+                    <p class="text-white-50 small mb-3">Configure your room details and start your real-time session.</p>
+                    
+                    <div class="bg-white bg-opacity-5 rounded-4 p-1 border border-white border-opacity-10 mb-3">
+                        <input type="text" id="modal-host-room-name" class="bg-transparent border-0 text-white px-3 w-100" placeholder="Room Name (Optional)" style="outline: none; height: 45px;">
                     </div>
+
+                    <button id="modal-host-submit" class="btn btn-primary-gradient w-100 py-3 rounded-4 fw-bold mb-3 shadow-lg">
+                        <i class="bx bx-plus-circle me-2"></i>Create & Join
+                    </button>
+                    <button class="btn btn-link text-white-50 small w-100 video-switch-to-join" style="text-decoration: none;">Already have a code? Join instead</button>
+                </div>
+            </div>
+
+            <!-- Join View -->
+            <div id="video-view-join" class="row g-4 d-none">
+                <div class="col-12 text-center py-4">
+                    <div class="mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; background: rgba(0, 210, 255, 0.1); border-radius: 20px; border: 1px solid rgba(0, 210, 255, 0.2);">
+                        <i class='bx bx-hash fs-1' style="color: #00d2ff;"></i>
+                    </div>
+                    <h4 class="text-white fw-bold mb-2">Join with Room Code</h4>
+                    <p class="text-white-50 small mb-4 mx-auto" style="max-width: 400px;">Enter the unique code shared with you to join the session instantly.</p>
+                    
+                    <div class="bg-white bg-opacity-5 rounded-4 p-1 border border-white border-opacity-10 d-flex mx-auto mb-4" style="max-width: 400px;" id="join-input-wrapper">
+                        <input type="text" id="modal-join-code-input" class="bg-transparent border-0 text-white px-3 flex-grow-1" placeholder="Enter Room Code..." style="outline: none; height: 50px; font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase;">
+                        <button id="modal-join-submit" class="btn btn-primary-gradient px-4 rounded-3 border-0">Connect</button>
+                    </div>
+
+                    <button class="btn btn-link text-white-50 small video-switch-to-host" style="text-decoration: none;">I want to host a custom room</button>
                 </div>
             </div>
         </div>
@@ -99,510 +86,194 @@
 </div>
 
 <style>
-/* --- BASE OVERHAUL STYLES --- */
-.confer-overhaul-container {
-    background: rgba(10, 10, 15, 0.85) !important;
-    backdrop-filter: blur(40px) saturate(180%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 50px 100px rgba(0,0,0,0.6) !important;
-}
-
-.confer-bg-glow {
-    position: absolute;
-    width: 400px;
-    height: 400px;
-    filter: blur(100px);
-    opacity: 0.15;
-    pointer-events: none;
-    z-index: 0;
-}
-.confer-bg-glow.primary { top: -100px; left: -100px; background: #8a2be2; }
-.confer-bg-glow.secondary { bottom: -100px; right: -100px; background: #00d2ff; }
-
-.confer-main-layout {
-    display: flex;
-    height: calc(100% - 80px);
-    width: 100%;
-}
-
-/* --- SPOTLIGHT AREA --- */
-.confer-spotlight-section {
-    flex: 1;
-    position: relative;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-}
-
-.confer-spotlight-display {
-    flex: 1;
-    background: rgba(0,0,0,0.4);
-    border-radius: 24px;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.03);
-}
-
-.confer-video-wrapper {
-    width: 100%;
-    height: 100%;
-    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-    position: relative;
-    background: #000;
-}
-
-.confer-video-el {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 0;
-}
-
-.confer-video-label {
-    position: absolute;
-    bottom: 1.5rem;
-    left: 1.5rem;
-    padding: 0.5rem 1rem;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px;
-    color: #fff;
-    font-size: 0.8rem;
-    font-weight: 600;
-    z-index: 5;
-}
-
-/* --- PIP MODE (Floating) --- */
-.pip-mode {
-    position: absolute !important;
-    width: 240px !important;
-    height: 135px !important;
-    bottom: 2rem !important;
-    right: 2rem !important;
-    border-radius: 16px !important;
-    overflow: hidden !important;
-    z-index: 100 !important;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.5) !important;
-    border: 2px solid rgba(255,255,255,0.2) !important;
-    transform: none !important;
-}
-.pip-mode .confer-video-label {
-    bottom: 0.5rem;
-    left: 0.5rem;
-    padding: 0.25rem 0.5rem;
-    transform: scale(0.85);
-}
-
-/* --- CONTROLS --- */
-.confer-controls-wrapper {
-    position: absolute;
-    bottom: 2.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 150;
-}
-
-.confer-controls-glass {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 1.5rem;
-    background: rgba(20, 20, 25, 0.7);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 24px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-}
-
-.confer-ctrl-btn {
-    width: 48px;
-    height: 48px;
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #fff;
-    font-size: 1.4rem;
-    transition: all 0.3s ease;
-}
-.confer-ctrl-btn:hover {
-    background: rgba(255,255,255,0.15);
-    transform: translateY(-2px);
-}
-.confer-ctrl-btn.active-off {
-    background: rgba(255, 77, 77, 0.2);
-    border-color: rgba(255, 77, 77, 0.3);
-    color: #ff4d4d;
-}
-.confer-ctrl-btn.btn-danger-soft {
-    background: rgba(255, 77, 77, 0.15);
-    border-color: rgba(255, 77, 77, 0.2);
-    color: #ff4d4d;
-}
-.confer-ctrl-btn.btn-danger-soft:hover {
-    background: #ff4d4d;
-    color: #fff;
-}
-
-/* --- SIDEBAR --- */
-.confer-sidebar {
-    width: 320px;
-    background: rgba(255, 255, 255, 0.02);
-    border-left: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-}
-
-.confer-sidebar-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
-    padding: 1.25rem;
-}
-
-.confer-sidebar-title {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: rgba(255,255,255,0.9);
-    margin-bottom: 1rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
-.confer-qr-container {
-    background: #fff;
-    padding: 0.75rem;
-    border-radius: 12px;
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: center;
-}
-
-.confer-copy-box {
-    display: flex;
-    gap: 0.5rem;
-    background: rgba(0,0,0,0.3);
-    border-radius: 12px;
-    padding: 0.25rem;
-    border: 1px solid rgba(255,255,255,0.05);
-}
-.confer-copy-input {
-    background: transparent;
-    border: none;
-    color: rgba(255,255,255,0.6);
-    font-size: 0.75rem;
-    padding: 0.5rem;
-    width: 100%;
-    outline: none !important;
-}
-.confer-copy-btn {
-    background: var(--syndicat-accent-gradient);
-    border: none;
-    color: #fff;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.confer-participants-scroll {
-    overflow-y: auto;
-    padding-right: 0.5rem;
-}
-.confer-participants-scroll::-webkit-scrollbar { width: 4px; }
-.confer-participants-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
-
-.confer-empty-state {
-    padding: 2rem 0;
-    text-align: center;
-    color: rgba(255,255,255,0.3);
-}
-.confer-empty-state i { font-size: 2.5rem; margin-bottom: 0.5rem; }
-
-.confer-quick-join {
-    display: flex;
-    gap: 0.5rem;
-}
-.confer-quick-join input {
-    flex: 1;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid rgba(138, 43, 226, 0.2);
-    border-radius: 10px;
-    padding: 0.5rem 0.75rem;
-    color: #fff;
-    font-size: 0.85rem;
-}
-.confer-quick-join button {
-    background: rgba(138, 43, 226, 0.2);
-    border: 1px solid rgba(138, 43, 226, 0.3);
-    color: #fff;
-    border-radius: 10px;
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-    font-weight: 700;
-}
-
-.confer-status-pill {
-    background: rgba(0, 210, 255, 0.1);
-    border: 1px solid rgba(0, 210, 255, 0.2);
-    padding: 0.35rem 0.85rem;
-    border-radius: 100px;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #00d2ff;
-}
-.pulse-dot {
-    width: 8px;
-    height: 8px;
-    background: #00d2ff;
-    border-radius: 50%;
-    animation: pulse 1.5s infinite;
-}
-@keyframes pulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 210, 255, 0.7); }
-    70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(0, 210, 255, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 210, 255, 0); }
-}
-
-.confer-waiting-state {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: #000;
-    color: #fff;
-    z-index: 10;
-}
-.confer-waiting-loader { display: flex; gap: 6px; margin-bottom: 1rem; }
-.confer-waiting-loader span {
-    width: 6px; height: 6px; background: #fff; border-radius: 50%;
-    animation: loaderDots 1.4s infinite ease-in-out both;
-}
-.confer-waiting-loader span:nth-child(1) { animation-delay: -0.32s; }
-.confer-waiting-loader span:nth-child(2) { animation-delay: -0.16s; }
-
-@keyframes loaderDots {
-    0%, 80%, 100% { transform: scale(0); }
-    40% { transform: scale(1.0); }
-}
+.modal-ctrl-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); color: #fff; font-size: 1.25rem; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+.modal-ctrl-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
+.modal-ctrl-btn.off { background: rgba(255, 71, 71, 0.4); color: #ff4747; }
+.btn-primary-gradient { background: linear-gradient(135deg, #8a2be2, #00d2ff); border: none; color: #fff; transition: 0.3s; }
+.btn-primary-gradient:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 15px 30px rgba(138,43,226,0.3); }
 </style>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="{{ asset('frontend/js/webrtc-manager.js') }}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('video-conf-modal');
-    const closeBtn = document.getElementById('video-conf-modal-close');
-    const hostBtn = document.getElementById('host-conference-btn');
-    const copyBtn = document.getElementById('copy-link-btn');
-    const endCallBtn = document.getElementById('endCall');
-    let localStream = null;
-    let qrCode = null;
+(function() {
+    function initVideoModal() {
+        const modal = document.getElementById('video-conf-modal');
+        if (!modal) return;
 
-    if (!window.myConfPeerId) {
-        window.myConfPeerId = 'peer_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-    }
+        const securityAlert = document.getElementById('modal-security-alert');
+        if (securityAlert && !window.isSecureContext) {
+            securityAlert.classList.remove('d-none');
+            console.warn('VIDEO_MODAL: Insecure context detected, media permissions will be blocked.');
+        }
 
-    hostBtn.addEventListener('click', async function() {
-        window.isConfHost = true;
-        updateStatus('Creating session...', 'primary');
+        const closeBtn = document.getElementById('video-conf-modal-close');
         
-        try {
-            const response = await fetch("{{ path('video_conf_create') }}", {
-                method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
+        const hostView = document.getElementById('video-view-host');
+        const joinView = document.getElementById('video-view-join');
+        const modalTitle = document.getElementById('video-modal-title');
+        
+        const hostSubmit = document.getElementById('modal-host-submit');
+        const hostRoomName = document.getElementById('modal-host-room-name');
+        
+        const joinSubmit = document.getElementById('modal-join-submit');
+        const joinInput = document.getElementById('modal-join-code-input');
+        
+        const previewVideo = document.getElementById('modal-preview-video');
+        const toggleVideo = document.getElementById('modal-preview-toggleVideo');
+        const toggleAudio = document.getElementById('modal-preview-toggleAudio');
+        const placeholder = document.getElementById('modal-preview-placeholder');
+
+        let previewStream = null;
+
+        async function startPreview() {
+            if (previewStream) return;
+            try {
+                previewStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                previewVideo.srcObject = previewStream;
+                placeholder.classList.add('d-none');
+            } catch (err) {
+                console.warn('VIDEO_MODAL: Preview error:', err);
+                placeholder.classList.remove('d-none');
+            }
+        }
+
+        function stopPreview() {
+            if (previewStream) {
+                previewStream.getTracks().forEach(t => t.stop());
+                previewStream = null;
+            }
+        }
+
+        function openModalLogic(mode) {
+            console.log('VIDEO_MODAL: Opening in mode:', mode);
             
-            const data = await response.json();
-            if (data.success) {
-                document.getElementById('modal-joinLink').value = data.joinUrl;
-                document.getElementById('modal-room-id').textContent = data.roomToken;
-                
+            // 1. Force Display
+            modal.style.setProperty('display', 'flex', 'important');
+            
+            // 2. Trigger opacity/animation via .active class (common in Horizon CSS)
+            setTimeout(() => {
                 modal.classList.add('active');
-                
-                // QR Code
-                const qrContainer = document.getElementById('modal-qrcode');
-                qrContainer.innerHTML = '';
-                new QRCode(qrContainer, { text: data.joinUrl, width: 140, height: 140 });
-
-                await startCamera();
-                startParticipantTracking(data.roomToken);
-                updateStatus('Live Spotlight', 'success');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            updateStatus('Failed to host', 'error');
-        }
-    });
-
-    async function startCamera() {
-        const waitingState = document.getElementById('local-waiting-state');
-        try {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                throw new Error("Camera API requires secure context (HTTPS/localhost)");
-            }
-            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('localVideo').srcObject = localStream;
-            if (waitingState) waitingState.style.display = 'none';
-        } catch (err) {
-            console.error('Media Error:', err);
-            localStream = null; // Explicitly null for fallback
-            if (waitingState) {
-                const msg = err.name === 'NotAllowedError' ? 'Camera access denied' : 'Camera disabled (LAN HTTP)';
-                waitingState.innerHTML = `<p style="color: #ff4d4d; font-size: 0.85rem; text-align: center; padding: 0 1rem;"><i class='bx bx-camera-off fs-3 mb-2 d-block'></i>${msg}</p>`;
+                modal.style.setProperty('opacity', '1', 'important');
+            }, 10);
+            
+            if (mode === 'host') {
+                showHostView();
+            } else {
+                showJoinView();
             }
         }
-    }
 
-    function updateStatus(text, type) {
-        const el = document.getElementById('confer-status-text');
-        const pill = document.querySelector('.confer-status-pill');
-        if (el) el.textContent = text;
-        
-        if (pill) {
-            pill.style.borderColor = type === 'success' ? 'rgba(0, 255, 128, 0.4)' : (type === 'error' ? 'rgba(255, 77, 77, 0.4)' : 'rgba(0, 210, 255, 0.4)');
-            pill.style.color = type === 'success' ? '#00ff80' : (type === 'error' ? '#ff4d4d' : '#00d2ff');
-            pill.querySelector('.pulse-dot').style.background = type === 'success' ? '#00ff80' : (type === 'error' ? '#ff4d4d' : '#00d2ff');
+        function showHostView() {
+            hostView.classList.remove('d-none');
+            joinView.classList.add('d-none');
+            modalTitle.innerText = 'Setup & Host';
+            startPreview();
         }
-    }
 
-    // Participant Tracking
-    let heartbeatInterval = null;
-    let pollingInterval = null;
+        function showJoinView() {
+            hostView.classList.add('d-none');
+            joinView.classList.remove('d-none');
+            modalTitle.innerText = 'Join Session';
+            stopPreview();
+            setTimeout(() => { if(joinInput) joinInput.focus(); }, 350);
+        }
 
-    async function startParticipantTracking(token) {
-        const heartbeatUrl = "/video-conference/heartbeat/" + token;
-        const participantsUrl = "/video-conference/participants/" + token;
-
-        const updateParticipants = async () => {
-            document.getElementById('modal-live-indicator').style.display = 'block';
-            try {
-                const res = await fetch(participantsUrl);
-                const data = await res.json();
-                
-                if (data.participants) {
-                    processWebrtcSignals(data.participants, localStream, 'modal-video-grid', token, window.isConfHost);
-                    renderParticipantList(data.participants);
-                }
-            } catch (e) { console.error('Tracking Error', e); }
-        };
-
-        const sendHeartbeat = async () => {
-            try {
-                const res = await fetch(heartbeatUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                    body: JSON.stringify({ peerId: window.myConfPeerId })
-                });
-                if (!res.ok) throw new Error('HB status: ' + res.status);
-                const d = await res.json();
-                if (d.sessionId) window.myConfSessionId = d.sessionId;
-            } catch (e) { 
-                console.error('Heartbeat Error', e);
-                updateStatus('Sync Error', 'error');
+        // Global delegation for maximum resilience
+        document.body.addEventListener('click', (e) => {
+            const hostBtn = e.target.closest('.confer-host-trigger');
+            const joinBtn = e.target.closest('.confer-join-trigger');
+            
+            if (hostBtn) {
+                e.preventDefault();
+                openModalLogic('host');
+            } else if (joinBtn) {
+                e.preventDefault();
+                openModalLogic('join');
             }
-        };
-
-        const initSync = async () => {
-            await sendHeartbeat();
-            await updateParticipants();
-            heartbeatInterval = setInterval(sendHeartbeat, 5000);
-            pollingInterval = setInterval(updateParticipants, 4000);
-        };
-        initSync();
-    }
-
-    function renderParticipantList(participants) {
-        const list = document.getElementById('modal-participants-list');
-        if (!list) return;
-
-        if (participants.length === 0) {
-            list.innerHTML = '<div class="confer-empty-state"><i class="bx bx-user-plus"></i><p>Waiting for guests...</p></div>';
-            return;
-        }
-
-        list.innerHTML = participants.map(p => `
-            <div class="d-flex align-items-center justify-content-between p-3 rounded-4 mb-2" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
-                <div class="d-flex align-items-center gap-3">
-                    <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #8a2be2, #00d2ff); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; color: #fff;">
-                        ${p.name.charAt(0).toUpperCase()}
-                    </div>
-                    <span class="text-white small fw-600">${p.name}</span>
-                </div>
-                ${p.isHost ? '<span style="font-size: 0.6rem; color: #ffc107; border: 1px solid #ffc10744; padding: 2px 6px; border-radius: 4px;">HOST</span>' : ''}
-            </div>
-        `).join('');
-    }
-
-    function stopConference() {
-        if (localStream) localStream.getTracks().forEach(t => t.stop());
-        if (heartbeatInterval) clearInterval(heartbeatInterval);
-        if (pollingInterval) clearInterval(pollingInterval);
-        cleanupWebrtc();
-        modal.classList.remove('active');
-
-        // Cleanup grid
-        document.querySelectorAll('.confer-video-wrapper').forEach(w => {
-            if (w.id !== 'local-video-wrapper') w.remove();
         });
-        document.getElementById('local-video-wrapper').classList.remove('pip-mode');
-        document.getElementById('local-waiting-state').style.display = 'flex';
+
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                modal.classList.remove('active');
+                modal.style.setProperty('opacity', '0', 'important');
+                setTimeout(() => {
+                    modal.style.setProperty('display', 'none', 'important');
+                    stopPreview();
+                }, 400);
+            };
+        }
+
+        // Switch paths inside modal
+        document.querySelectorAll('.video-switch-to-join').forEach(btn => btn.onclick = (e) => { e.preventDefault(); showJoinView(); });
+        document.querySelectorAll('.video-switch-to-host').forEach(btn => btn.onclick = (e) => { e.preventDefault(); showHostView(); });
+
+        // Controls
+        if (toggleVideo) {
+            toggleVideo.onclick = () => {
+                if (!previewStream) return;
+                const v = previewStream.getVideoTracks()[0];
+                v.enabled = !v.enabled;
+                toggleVideo.classList.toggle('off', !v.enabled);
+                placeholder.classList.toggle('d-none', v.enabled);
+            };
+        }
+
+        if (toggleAudio) {
+            toggleAudio.onclick = () => {
+                if (!previewStream) return;
+                const a = previewStream.getAudioTracks()[0];
+                a.enabled = !a.enabled;
+                toggleAudio.classList.toggle('off', !a.enabled);
+            };
+        }
+
+        // Host Action
+        if (hostSubmit) {
+            hostSubmit.onclick = async () => {
+                hostSubmit.disabled = true;
+                hostSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+                
+                const roomName = hostRoomName.value.trim();
+                const formData = new FormData();
+                if (roomName) formData.append('roomName', roomName);
+
+                try {
+                    const response = await fetch("{{ path('video_conf_create') }}", { method: 'POST', body: formData });
+                    const data = await response.json();
+                    if (data.success) {
+                        window.location.href = data.joinUrl;
+                    } else {
+                        window.pushNotif(data.error || 'Failed to create room', 'ERROR');
+                        hostSubmit.disabled = false;
+                        hostSubmit.innerText = 'Create & Join';
+                    }
+                } catch (e) {
+                    hostSubmit.disabled = false;
+                    hostSubmit.innerText = 'Create & Join';
+                }
+            };
+        }
+
+        // Join Action
+        if (joinSubmit) {
+            joinSubmit.onclick = () => {
+                const code = joinInput.value.trim();
+                if (code) {
+                    joinSubmit.disabled = true;
+                    joinSubmit.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                    window.location.href = "/video-conference/room/" + code;
+                } else {
+                    window.pushNotif('Please enter a room code', 'WARNING');
+                }
+            };
+        }
+        
+        console.log('VIDEO_MODAL: Initialization successful');
     }
 
-    closeBtn.addEventListener('click', stopConference);
-    endCallBtn.addEventListener('click', () => confirm('End this spotlight session?') && stopConference());
-    copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(document.getElementById('modal-joinLink').value);
-        copyBtn.innerHTML = '<i class="bx bx-check"></i>';
-        setTimeout(() => copyBtn.innerHTML = '<i class="bx bx-copy"></i>', 2000);
-    });
-
-    document.getElementById('toggleAudio').onclick = function() {
-        if (!localStream) return;
-        const enabled = localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
-        this.classList.toggle('active-off', !enabled);
-        this.innerHTML = enabled ? '<i class="bx bx-microphone"></i>' : '<i class="bx bx-microphone-off"></i>';
-    };
-
-    document.getElementById('toggleVideo').onclick = function() {
-        if (!localStream) return;
-        const enabled = localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled;
-        this.classList.toggle('active-off', !enabled);
-        this.innerHTML = enabled ? '<i class="bx bx-video"></i>' : '<i class="bx bx-video-off"></i>';
-    };
-
-    // Join Handler
-    document.getElementById('join-by-code-btn').onclick = async function() {
-        const code = document.getElementById('join-room-code').value.trim();
-        if (!code) return;
-        
-        try {
-            const res = await fetch("/video-conference/info/" + code);
-            const data = await res.json();
-            if (data.success) {
-                window.isConfHost = data.isHost;
-                document.getElementById('modal-joinLink').value = window.location.origin + "/video-conference/room/" + code;
-                document.getElementById('modal-room-id').textContent = code;
-                modal.classList.add('active');
-                await startCamera();
-                startParticipantTracking(code);
-                updateStatus('Connected to Session', 'success');
-            }
-        } catch (e) { alert('Invalid Room Code'); }
-    };
-});
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initVideoModal);
+    } else {
+        initVideoModal();
+    }
+})();
 </script>

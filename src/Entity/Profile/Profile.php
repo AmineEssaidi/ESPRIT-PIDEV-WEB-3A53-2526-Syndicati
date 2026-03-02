@@ -119,4 +119,24 @@ class Profile
         return $this;
     }
 
+    /**
+     * Proxy method for User::getPhone()
+     * Safely returns phone even if user is null.
+     */
+    public function getPhone(): ?string
+    {
+        return $this->user ? $this->user->getPhone() : null;
+    }
+
+    /**
+     * Proxy method for User::setPhone()
+     * Safely sets phone if user exists.
+     */
+    public function setPhone(?string $phone): self
+    {
+        if ($this->user) {
+            $this->user->setPhone($phone);
+        }
+        return $this;
+    }
 }

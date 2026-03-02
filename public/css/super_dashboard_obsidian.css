@@ -1,0 +1,82 @@
+/* 
+   =========================================
+   SUPER DASHBOARD - STANDARDIZED UI
+   =========================================
+   Project: Horizon
+   ========================================= 
+*/
+
+/* 1. Global Surface Removal - Inherit from Theme */
+.hz-dashboard {
+    padding: 2rem;
+}
+
+/* 2. Standardized Card Titles */
+.matrix-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.matrix-title {
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: var(--text, #fff);
+    margin: 0;
+}
+
+/* 3. Obsidian Toggles (Standardized) */
+.obsidian-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.obsidian-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.obsidian-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--glass-bg, rgba(255, 255, 255, 0.08));
+    transition: .4s;
+    border-radius: 34px;
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+}
+
+.obsidian-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #fff;
+    transition: .4s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+input:checked+.obsidian-slider {
+    background-color: var(--accent, #7367f0);
+}
+
+input:checked+.obsidian-slider:before {
+    transform: translateX(20px);
+}
+
+/* 4. Utilities */
+.hz-glass:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent, #7367f0) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}

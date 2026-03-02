@@ -465,9 +465,14 @@
                                 {% if recEditForm is defined %}
                                 {{ form_start(recEditForm, { 'attr': { 'id': 'rec-edit-form', 'method': 'post', 'action': '', 'class': 'users-edit-form', 'data-ajax': 'true', 'data-refresh': 'syndicatFilterSortRecs' } }) }}
                                 
-                                {{ form_row(recEditForm.titrereclamations, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
-                                {{ form_row(recEditForm.descreclamation, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 120px;' } }) }}
+                                {{ form_row(recEditForm.titrereclamations, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'required': 'required', 'minlength': '4' } }) }}
+                                <div class="validation-container" data-field="titrereclamations"></div>
+                                
+                                {{ form_row(recEditForm.descreclamation, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input', 'style': 'height: 120px;', 'required': 'required', 'minlength': '10' } }) }}
+                                <div class="validation-container" data-field="descreclamation"></div>
+                                
                                 {{ form_row(recEditForm.statutreclamation, { 'row_attr': { 'class': 'glass-form-group' }, 'label_attr': { 'class': 'glass-label' }, 'attr': { 'class': 'glass-input' } }) }}
+                                <div class="validation-container" data-field="statutreclamation"></div>
                                 
                                 <div class="users-edit-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2rem;">
                                     <button type="button" class="users-btn-cancel" onclick="closeModal('rec-edit-modal')"><i class="bx bx-x"></i> Discard</button>

@@ -1,6 +1,6 @@
 {% extends 'base_symfony.html.twig' %}
 
-{% block title %}Video Spotlight - {{ conference.roomToken }}{% endblock %}
+{% block title %}Video Spotlight - {{ roomToken }}{% endblock %}
 
 {% block body %}
 <div class="main-home-layout-wrapper py-5">
@@ -12,95 +12,117 @@
         <div class="row g-4 h-100">
             <!-- Left Side: Video Feed Area -->
             <div class="col-lg-8">
-                <div class="confer-overhaul-container w-100" style="min-height: 600px; height: 75vh;">
+                <div class="confer-overhaul-container w-100" style="min-height: 600px; height: 80vh; display: flex; flex-direction: column;">
                     <div class="glass-modal-header border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center gap-3">
                             <div class="confer-status-pill">
                                 <span class="pulse-dot"></span>
-                                <span id="confer-status-text">Spotlight Session</span>
+                                <span id="confer-status-text" class="fw-bold">{{ conference.roomName ?: 'Spotlight Live' }}</span>
                             </div>
-                            <h2 class="glass-modal-title mb-0" style="font-size: 1.25rem; color: #fff;">Live Stream</h2>
+                            <h2 class="glass-modal-title mb-0" style="font-size: 1.25rem; color: #fff;">Room: <span class="text-primary-gradient">{{ roomToken }}</span></h2>
                         </div>
-                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 px-3 py-2 rounded-pill" id="participant-count">
-                            <i class="bx bx-user me-1"></i> 1 Participant
-                        </span>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-white bg-opacity-5 text-white-50 border border-white border-opacity-10 px-3 py-2 rounded-pill" id="participant-count">
+                                <i class="bx bx-user me-1"></i> 1 Participant
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Security Context Warning (In-Room) -->
+                    <div id="room-security-alert" class="d-none mx-4 mt-3 p-3 rounded-4" style="background: rgba(255, 187, 0, 0.1); border: 1px solid rgba(255, 187, 0, 0.2); z-index: 1000;">
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: rgba(255, 187, 0, 0.2); border-radius: 8px; color: #ffbb00;">
+                                <i class='bx bx-error fs-5'></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <p class="text-white-50 mb-0" style="font-size: 0.75rem; line-height: 1.4;">
+                                    <strong class="text-white">Media Blocked:</strong> Your browser requires a Secure Context (HTTPS or localhost) for camera access. 
+                                    Enable the flag <code class="text-warning small px-1">chrome://flags/#unsafely-treat-insecure-origin-as-secure</code> for <span class="text-white fw-bold">{{ app.request.schemeAndHttpHost }}</span>.
+                                </p>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white p-2" style="font-size: 0.6rem;" onclick="this.parentElement.parentElement.remove()"></button>
+                        </div>
                     </div>
                     
-                    <div class="glass-modal-body p-4 h-100">
-                        <div id="video-grid-container" class="confer-spotlight-display h-100">
-                            <div id="video-grid" class="w-100 h-100">
-                                <div class="confer-video-wrapper spotlight-active" id="local-video-wrapper">
-                                    <video id="localVideo" autoplay muted playsinline class="confer-video-el"></video>
-                                    <div class="confer-video-label">
-                                        <span class="label-role">You</span>
+                    <div class="glass-modal-body p-4 flex-grow-1 position-relative" style="min-height: 400px;">
+                        <!-- Video Grid occupies the full available space -->
+                        <div id="video-grid" class="w-100 h-100 d-flex flex-wrap align-items-center justify-content-center gap-3">
+                            <!-- Local Participant -->
+                            <div class="confer-video-wrapper spotlight-active" id="local-participant-wrapper">
+                                <video id="local-video" autoplay muted playsinline class="confer-video-el"></video>
+                                <div class="confer-video-label">
+                                    <span class="label-role">You ({{ isHost ? 'Host' : 'Member' }})</span>
+                                </div>
+                                <div class="confer-waiting-state" id="local-waiting-state">
+                                    <div class="confer-waiting-loader">
+                                        <span></span><span></span><span></span>
                                     </div>
-                                    <div class="confer-waiting-state" id="local-waiting-state">
-                                        <div class="confer-waiting-loader">
-                                            <span></span><span></span><span></span>
-                                        </div>
-                                        <p>Connecting...</p>
-                                    </div>
+                                    <p>Starting Engine...</p>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Floating Controls -->
-                            <div class="confer-controls-wrapper">
-                                <div class="confer-controls-glass">
-                                    <button id="toggleAudio" class="confer-ctrl-btn" title="Toggle Microphone">
-                                        <i class="bx bx-microphone"></i>
-                                    </button>
-                                    <button id="toggleVideo" class="confer-ctrl-btn" title="Toggle Camera">
-                                        <i class="bx bx-video"></i>
-                                    </button>
-                                    <div class="confer-ctrl-divider" style="width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 0.5rem;"></div>
-                                    <button id="endCall" class="confer-ctrl-btn btn-danger-soft">
-                                        <i class="bx bx-phone-off"></i>
-                                    </button>
-                                </div>
+                        <!-- Floating Controls Overlay -->
+                        <div class="confer-controls-wrapper">
+                            <div class="confer-controls-glass">
+                                <button id="toggleAudio" class="confer-ctrl-btn" title="Toggle Microphone">
+                                    <i class="bx bx-microphone"></i>
+                                </button>
+                                <button id="toggleVideo" class="confer-ctrl-btn" title="Toggle Camera">
+                                    <i class="bx bx-video"></i>
+                                </button>
+                                <button id="toggleScreen" class="confer-ctrl-btn" title="Share Screen">
+                                    <i class="bx bx-desktop"></i>
+                                </button>
+                                <div class="confer-ctrl-divider"></div>
+                                <button id="openSettings" class="confer-ctrl-btn" title="Device Settings">
+                                    <i class="bx bx-cog"></i>
+                                </button>
+                                <div class="confer-ctrl-divider"></div>
+                                <button id="endCall" class="confer-ctrl-btn btn-danger-soft" title="End Session">
+                                    <i class="bx bx-phone-off"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Right Side: Sidebar -->
+            <!-- Right Side: Interaction Panel -->
             <div class="col-lg-4">
-                <div class="confer-sidebar h-100 w-100 border-0 rounded-4" style="background: rgba(255,255,255,0.02); backdrop-filter: blur(20px);">
-                    <div class="confer-sidebar-content">
-                        <!-- Invite / Stats -->
-                        <div class="confer-sidebar-card shadow-lg">
-                            <h5 class="confer-sidebar-title">Session Access</h5>
-                            <div class="confer-qr-container mx-auto" id="qrcode"></div>
-                            <div class="confer-copy-box mt-3">
-                                <input type="text" id="joinLink" class="confer-copy-input" value="{{ joinUrl }}" readonly>
-                                <button class="confer-copy-btn" onclick="copyJoinLink()"><i class="bx bx-copy"></i></button>
-                            </div>
-                        </div>
+                <div class="confer-sidebar h-100 w-100 border-0 rounded-4 d-flex flex-column" style="background: rgba(10, 10, 15, 0.4); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.05) !important;">
+                    
+                    <!-- Tabs -->
+                    <div class="confer-tabs d-flex p-2 gap-2">
+                        <button class="confer-tab-btn active" data-tab="chat">
+                            <i class="bx bx-message-square-dots me-2"></i>Live Chat
+                        </button>
+                        <button class="confer-tab-btn" data-tab="members">
+                            <i class="bx bx-group me-2"></i>Members
+                        </button>
+                    </div>
 
-                        <!-- Participants List -->
-                        <div class="confer-sidebar-card mt-3 flex-grow-1 d-flex flex-column shadow-lg">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <h5 class="confer-sidebar-title mb-0">Participants</h5>
-                                <div id="live-indicator" class="confer-live-tag">LIVE</div>
-                            </div>
-                            <div id="participants-list" class="confer-participants-scroll">
-                                <div class="confer-empty-state">
-                                    <i class="bx bx-loader-alt bx-spin"></i>
-                                    <p>Syncing...</p>
-                                </div>
-                            </div>
+                    <!-- Chat Content -->
+                    <div id="tab-chat" class="confer-tab-content active flex-grow-1 d-flex flex-column p-3">
+                        <div id="chat-messages" class="chat-messages-scroll flex-grow-1 pe-2 mb-3">
+                            <div class="chat-system-msg">Welcome to the spotlight! High-speed chat is active.</div>
                         </div>
+                        <div class="chat-input-wrapper">
+                            <input type="text" id="chatInput" placeholder="Send message..." autocomplete="off">
+                            <button id="sendMsgBtn"><i class="bx bx-send"></i></button>
+                        </div>
+                    </div>
 
-                        <!-- Host Info -->
-                        <div class="confer-sidebar-card mt-3 shadow-lg">
-                            <div class="d-flex align-items-center gap-3">
-                                <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(138,43,226,0.1); display: flex; align-items: center; justify-content: center; color: #8a2be2;">
-                                    <i class="bx bx-crown"></i>
-                                </div>
-                                <div>
-                                    <div class="text-white-50" style="font-size: 0.7rem;">Session Host</div>
-                                    <div class="text-white small fw-bold">{{ conference.user.firstName }} {{ conference.user.lastName }}</div>
-                                </div>
+                    <!-- Members Content -->
+                    <div id="tab-members" class="confer-tab-content flex-grow-1 p-3">
+                        <div id="participants-list" class="confer-participants-scroll">
+                            <!-- Members Rendered Here -->
+                        </div>
+                        <div class="confer-sidebar-card mt-auto border-0 shadow-none pt-4" style="background: transparent;">
+                            <h6 class="confer-sidebar-title small mb-2">Invite Others</h6>
+                            <div class="confer-copy-box">
+                                <input type="text" id="joinLink" class="confer-copy-input" value="{{ roomToken }}" readonly>
+                                <button class="confer-copy-btn" id="copyBtn"><i class="bx bx-copy"></i></button>
                             </div>
                         </div>
                     </div>
@@ -110,186 +132,365 @@
     </div>
 </div>
 
+<!-- Settings Modal -->
+<div class="modal fade" id="settingsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 rounded-4 overflow-hidden">
+            <div class="modal-header border-0 p-4">
+                <h5 class="modal-title text-white fw-bold"><i class="bx bx-cog me-2"></i>Device Settings</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 pt-0">
+                <div class="mb-4">
+                    <label class="form-label text-white-50 small fw-bold text-uppercase mb-2">Camera</label>
+                    <select id="videoDevices" class="form-select bg-dark border-secondary text-white rounded-3"></select>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label text-white-50 small fw-bold text-uppercase mb-2">Microphone</label>
+                    <select id="audioDevices" class="form-select bg-dark border-secondary text-white rounded-3"></select>
+                </div>
+                <button class="btn btn-primary-gradient w-100 py-3 rounded-3 fw-bold" data-bs-dismiss="modal">Apply Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-/* --- SYNCED OVERHAUL STYLES --- */
-.confer-overhaul-container {
-    background: rgba(10, 10, 15, 0.6) !important;
-    backdrop-filter: blur(30px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 24px;
-    overflow: hidden;
-    position: relative;
+/* --- CORE OVERHAUL STYLES --- */
+:root {
+    --accent: #8a2be2;
+    --accent-glow: rgba(138, 43, 226, 0.4);
+    --secondary: #00d2ff;
 }
 
-.confer-bg-glow {
-    width: 600px; height: 600px; filter: blur(150px); opacity: 0.1; pointer-events: none; z-index: 0;
+.confer-overhaul-container {
+    background: #000 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 28px;
+    box-shadow: 0 30px 60px -12px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
 }
-.confer-bg-glow.primary { top: -200px; left: -200px; background: #8a2be2; }
-.confer-bg-glow.secondary { bottom: -200px; right: -200px; background: #00d2ff; }
+
+.confer-bg-glow { width: 600px; height: 600px; filter: blur(150px); opacity: 0.1; pointer-events: none; z-index: 0; }
+.confer-bg-glow.primary { top: -200px; left: -200px; background: var(--accent); }
+.confer-bg-glow.secondary { bottom: -200px; right: -200px; background: var(--secondary); }
 
 .confer-status-pill {
     background: rgba(0, 210, 255, 0.1); border: 1px solid rgba(0, 210, 255, 0.2);
-    padding: 0.35rem 0.85rem; border-radius: 100px; color: #00d2ff; font-size: 0.75rem; font-weight: 700;
-    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.4rem 0.9rem; border-radius: 100px; color: #00d2ff; font-size: 0.7rem; font-weight: 800;
+    display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase;
 }
-.pulse-dot { width: 8px; height: 8px; background: #00d2ff; border-radius: 50%; animation: pulse 1.5s infinite; }
-@keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
 
-.confer-spotlight-display { background: #000; border-radius: 20px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
-.confer-video-wrapper { width: 100%; height: 100%; position: relative; background: #000; transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+.confer-video-wrapper { 
+    flex: 1 1 300px; 
+    max-width: 48%;
+    background: #050505; 
+    border-radius: 20px; 
+    overflow: hidden; 
+    aspect-ratio: 16/9; 
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.confer-video-wrapper.spotlight-active { max-width: 100%; width: 100%; flex: 1 1 100%; }
 .confer-video-el { width: 100%; height: 100%; object-fit: cover; }
-.confer-video-label { position: absolute; bottom: 1.5rem; left: 1.5rem; padding: 0.5rem 1rem; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); border-radius: 12px; color: #fff; font-size: 0.8rem; font-weight: 600; z-index: 10; border: 1px solid rgba(255,255,255,0.1); }
+.confer-video-label { 
+    position: absolute; bottom: 1.25rem; left: 1.25rem; 
+    padding: 0.5rem 1rem; background: rgba(0,0,0,0.4); 
+    backdrop-filter: blur(12px); border-radius: 12px; 
+    color: #fff; font-size: 0.75rem; font-weight: 700; 
+    z-index: 10; border: 1px solid rgba(255,255,255,0.08); 
+}
 
-.pip-mode { position: absolute !important; width: 240px !important; height: 135px !important; bottom: 2rem !important; right: 2rem !important; border-radius: 16px !important; overflow: hidden !important; z-index: 100 !important; border: 2px solid rgba(255,255,255,0.2) !important; box-shadow: 0 20px 40px rgba(0,0,0,0.5) !important; }
-.pip-mode .confer-video-label { bottom: 0.5rem; left: 0.5rem; padding: 0.25rem 0.5rem; transform: scale(0.8); }
-
-.confer-controls-wrapper { position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%); z-index: 150; }
-.confer-controls-glass { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; background: rgba(15,15,20,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
-.confer-ctrl-btn { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; transition: all 0.2s; }
-.confer-ctrl-btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
-.confer-ctrl-btn.active-off { background: rgba(255,71,71,0.2); color: #ff4747; }
+/* Controls */
+.confer-controls-wrapper { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 100; }
+.confer-controls-glass { 
+    display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1.75rem; 
+    background: rgba(15,15,20,0.85); backdrop-filter: blur(24px); 
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+}
+.confer-ctrl-btn { 
+    width: 44px; height: 44px; border-radius: 14px; 
+    display: flex; align-items: center; justify-content: center; 
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+    color: #fff; transition: all 0.2s; font-size: 1.2rem;
+}
+.confer-ctrl-btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-3px); }
+.confer-ctrl-btn.active-off { background: rgba(255,71,71,0.25); color: #ff4747; border-color: rgba(255,71,71,0.3); }
 .confer-ctrl-btn.btn-danger-soft { background: rgba(255,71,71,0.15); color: #ff4747; }
-.confer-ctrl-btn.btn-danger-soft:hover { background: #ff4747; color: #fff; }
+.confer-ctrl-btn.active-on { background: var(--accent); border-color: var(--accent); }
+.confer-ctrl-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.1); margin: 0 0.25rem; }
 
-.confer-sidebar { padding: 1rem; display: flex; flex-direction: column; }
-.confer-sidebar-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 1.5rem; margin-bottom: 1rem; }
-.confer-sidebar-title { font-size: 0.8rem; font-weight: 800; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
-.confer-copy-box { display: flex; background: rgba(0,0,0,0.2); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
-.confer-copy-input { flex: 1; background: transparent; border: none; padding: 0.6rem 1rem; color: #fff; font-size: 0.75rem; outline: none; }
-.confer-copy-btn { background: #8a2be2; border: none; color: #fff; padding: 0 0.75rem; transition: 0.2s; }
-.confer-copy-btn:hover { background: #a044ff; }
+/* Tabs & Chat */
+.confer-tab-btn { 
+    flex: 1; border: none; background: transparent; padding: 0.8rem; border-radius: 12px;
+    color: rgba(255,255,255,0.4); font-weight: 700; font-size: 0.8rem; transition: 0.3s;
+}
+.confer-tab-btn.active { background: rgba(138,43,226,0.1); color: var(--accent); }
+.confer-tab-content { display: none; }
+.confer-tab-content.active { display: flex; }
 
-.confer-live-tag { background: #ff0055; color: #fff; font-size: 0.6rem; font-weight: 900; padding: 2px 6px; border-radius: 4px; animation: blink 1s infinite; }
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.chat-messages-scroll { overflow-y: auto; scrollbar-width: thin; }
+.chat-messages-scroll::-webkit-scrollbar { width: 4px; }
+.chat-messages-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
 
-.confer-participants-scroll { max-height: 300px; overflow-y: auto; }
-.confer-participants-scroll::-webkit-scrollbar { width: 4px; }
-.confer-participants-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+.chat-bubble { margin-bottom: 1rem; background: rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.04); }
+.chat-user { font-weight: 800; color: var(--accent); font-size: 0.65rem; text-transform: uppercase; margin-bottom: 0.25rem; display: block; }
+.chat-msg { color: rgba(255,255,255,0.85); font-size: 0.85rem; line-height: 1.4; word-break: break-word; }
+.chat-system-msg { text-align: center; color: rgba(255,255,255,0.2); font-size: 0.7rem; margin: 1.5rem 0; font-style: italic; }
 
-.confer-waiting-state { position: absolute; inset: 0; background: #000; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.confer-waiting-loader { display: flex; gap: 5px; margin-bottom: 10px; }
-.confer-waiting-loader span { width: 6px; height: 6px; background: #fff; border-radius: 50%; animation: dotPulse 1.4s infinite; }
-@keyframes dotPulse { 0%, 80%, 100% { transform: scale(0.3); opacity: 0.3; } 40% { transform: scale(1); opacity: 1; } }
+.chat-input-wrapper { display: flex; background: rgba(255,255,255,0.04); border-radius: 16px; padding: 0.5rem; border: 1px solid rgba(255,255,255,0.05); }
+.chat-input-wrapper input { flex: 1; background: transparent; border: none; padding: 0.5rem 1rem; color: #fff; font-size: 0.85rem; outline: none; }
+#sendMsgBtn { width: 38px; height: 38px; border-radius: 12px; background: var(--accent); border: none; color: #fff; transition: 0.2s; }
+
+.confer-copy-box { display: flex; background: rgba(0,0,0,0.2); border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+.confer-copy-input { flex: 1; background: transparent; border: none; padding: 0.8rem 1.25rem; color: #fff; font-size: 0.85rem; outline: none; font-weight: 700; letter-spacing: 1px; }
+.confer-copy-btn { background: var(--accent); border: none; color: #fff; padding: 0 1.25rem; transition: 0.2s; }
+.confer-copy-btn:hover { background: #9d4eff; }
+
+.glass-modal { background: rgba(15, 15, 20, 0.95); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.1) !important; }
 </style>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
-<script src="{{ asset('frontend/js/webrtc-manager.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const qrContainer = document.getElementById("qrcode");
-        if (qrContainer) {
-            const checkQR = setInterval(() => {
-                if (typeof QRCode !== 'undefined') {
-                    new QRCode(qrContainer, { text: "{{ joinUrl }}", width: 140, height: 140 });
-                    clearInterval(checkQR);
-                }
-            }, 100);
+    const LIVEKIT_URL = "{{ livekitUrl }}";
+    const TOKEN = "{{ livekitToken }}";
+    const HOST_IDENTITY = "{{ hostIdentity }}";
+    const IS_HOST = {{ isHost ? 'true' : 'false' }};
+    
+    let room;
+    let localParticipant;
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
+    function checkSecurityContext() {
+        const securityAlert = document.getElementById('room-security-alert');
+        if (securityAlert && !window.isSecureContext) {
+            securityAlert.classList.remove('d-none');
+            console.warn('VIDEO_ROOM: Insecure context detected. Media APIs will likely fail.');
         }
-        initMedia();
-    });
+    }
 
-    let localStream = null;
-    let isAudioOn = true;
-    let isVideoOn = true;
-
-    async function initMedia() {
+    async function initLiveKit() {
+        checkSecurityContext();
+        const waitingState = document.getElementById('local-waiting-state');
+        
         try {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                throw new Error("Camera API requires secure context (HTTPS/localhost)");
-            }
-            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('localVideo').srcObject = localStream;
-            document.getElementById('local-waiting-state').style.display = 'none';
-            startTracking();
-        } catch (e) {
-            console.error('Media init failed', e);
-            localStream = null; // Explicitly null for fallback recvonly
-            const msg = e.name === 'NotAllowedError' ? 'Access Denied' : 'No Camera (LAN HTTP)';
-            document.getElementById('local-waiting-state').innerHTML = `<p class="text-danger small text-center px-3"><i class='bx bx-camera-off fs-3 mb-2 d-block'></i>${msg}</p>`;
-            // CRITICAL: We MUST start tracking even if camera fails so they can watch the host
-            startTracking();
-        }
-    }
-
-    function startTracking() {
-        const roomToken = "{{ conference.roomToken }}";
-        window.isConfHost = {{ isHost ? 'true' : 'false' }};
-        if (!window.myConfPeerId) window.myConfPeerId = 'peer_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-
-        const update = async () => {
-            try {
-                const res = await fetch("/video-conference/participants/" + roomToken);
-                const data = await res.json();
-                if (data.participants) {
-                    processWebrtcSignals(data.participants, localStream, 'video-grid', roomToken, window.isConfHost);
-                    renderList(data.participants);
+            room = new LivekitClient.Room({
+                adaptiveStream: true,
+                dynacast: true,
+                publishDefaults: {
+                    simulcast: true,
                 }
-            } catch (e) { }
-        };
+            });
 
-        const heartbeat = async () => {
-            try {
-                const r = await fetch("/video-conference/heartbeat/" + roomToken, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ peerId: window.myConfPeerId })
-                });
-                const d = await r.json();
-                if (d.sessionId) window.myConfSessionId = d.sessionId;
-            } catch (e) { console.error('HB Error', e); }
-        };
+            // Local tracks handling
+            room.on(LivekitClient.RoomEvent.LocalTrackPublished, (publication, participant) => {
+                const track = publication.track;
+                if (track.kind === 'video') {
+                    const el = document.getElementById('local-video');
+                    if (el) track.attach(el);
+                    console.log('Local camera attached');
+                }
+            });
 
-        const initSync = async () => {
-            await heartbeat();
-            await update();
-            setInterval(heartbeat, 5000);
-            setInterval(update, 5000);
-        };
-        initSync();
+            // Remote participant handling
+            room.on(LivekitClient.RoomEvent.ParticipantConnected, handleParticipantConnected);
+            room.on(LivekitClient.RoomEvent.ParticipantDisconnected, handleParticipantDisconnected);
+            room.on(LivekitClient.RoomEvent.TrackSubscribed, handleTrackSubscribed);
+            room.on(LivekitClient.RoomEvent.TrackUnsubscribed, handleTrackUnsubscribed);
+            
+            // Chat handling
+            room.on(LivekitClient.RoomEvent.DataReceived, (payload, participant) => {
+                const data = JSON.parse(decoder.decode(payload));
+                if (data.type === 'chat') {
+                    addChatMessage(participant.name || participant.identity, data.message);
+                }
+            });
+
+            await room.connect(LIVEKIT_URL, TOKEN);
+            waitingState.style.display = 'none';
+            localParticipant = room.localParticipant;
+            
+            // Handle existing participants
+            room.participants.forEach(handleParticipantConnected);
+            room.participants.forEach(p => {
+                p.tracks.forEach(pub => { if(pub.isSubscribed) handleTrackSubscribed(pub.track, pub, p); });
+            });
+
+            // Start hardware
+            await localParticipant.setCameraEnabled(true);
+            await localParticipant.setMicrophoneEnabled(true);
+            
+            updateParticipantList();
+            adjustLayout();
+            loadDevices();
+
+        } catch (error) {
+            console.error('LiveKit Fail:', error);
+            waitingState.innerHTML = `<div class="text-center p-4">
+                <i class='bx bx-error-circle text-danger fs-1 mb-3'></i>
+                <p class="text-white fw-bold mb-1">Bridge Failure</p>
+                <p class="text-white-50 small">${error.message}</p>
+            </div>`;
+        }
     }
 
-    function renderList(participants) {
-        const list = document.getElementById('participants-list');
-        const count = document.getElementById('participant-count');
-        if (!list) return;
-        
-        count.innerHTML = `<i class="bx bx-user me-1"></i> ${participants.length + 1} Member${participants.length !== 0 ? 's' : ''}`;
-        
-        if (participants.length === 0) {
-            list.innerHTML = '<div class="confer-empty-state"><p>Waiting for guests...</p></div>';
-            return;
+    function handleParticipantConnected(p) {
+        let wrapper = document.getElementById(`wrapper-${p.sid}`);
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.id = `wrapper-${p.sid}`;
+            wrapper.className = 'confer-video-wrapper';
+            wrapper.innerHTML = `
+                <video id="video-${p.sid}" autoplay playsinline class="confer-video-el"></video>
+                <div class="confer-video-label">
+                    <span class="label-role">${p.identity === HOST_IDENTITY ? 'Host' : 'Member'}: ${p.name || p.identity}</span>
+                </div>
+            `;
+            document.getElementById('video-grid').appendChild(wrapper);
+            adjustLayout();
         }
+        updateParticipantList();
+    }
 
-        list.innerHTML = participants.map(p => `
+    function handleParticipantDisconnected(p) {
+        const wrapper = document.getElementById(`wrapper-${p.sid}`);
+        if (wrapper) wrapper.remove();
+        updateParticipantList();
+        adjustLayout();
+    }
+
+    function handleTrackSubscribed(track, publication, participant) {
+        if (track.kind === 'video') {
+            const el = document.getElementById(`video-${participant.sid}`);
+            if (el) track.attach(el);
+        } else if (track.kind === 'audio') {
+            track.attach();
+        }
+    }
+
+    function handleTrackUnsubscribed(track) { track.detach(); }
+
+    function adjustLayout() {
+        const wrappers = document.querySelectorAll('.confer-video-wrapper');
+        const count = wrappers.length;
+        wrappers.forEach(w => {
+            w.classList.remove('spotlight-active');
+            if (count === 1) w.classList.add('spotlight-active');
+        });
+    }
+
+    function updateParticipantList() {
+        const list = document.getElementById('participants-list');
+        const countBadge = document.getElementById('participant-count');
+        const allP = [room.localParticipant, ...Array.from(room.participants.values())];
+        
+        countBadge.innerHTML = `<i class="bx bx-user me-1"></i> ${allP.length} Member${allP.length > 1 ? 's' : ''}`;
+        list.innerHTML = allP.map(p => `
             <div class="d-flex align-items-center justify-content-between p-3 rounded-4 mb-2" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
                 <div class="d-flex align-items-center gap-3">
-                    <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #8a2be2, #00d2ff); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; color: #fff;">
-                        ${p.name.charAt(0).toUpperCase()}
+                    <div style="width: 32px; height: 32px; border-radius: 10px; background: ${p.identity === HOST_IDENTITY ? '#ffbb00' : (p === room.localParticipant ? 'var(--accent)' : 'rgba(255,255,255,0.1)')}; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; color: #fff;">
+                        ${(p.name || p.identity).charAt(0).toUpperCase()}
                     </div>
-                    <span class="text-white small fw-600">${p.name}</span>
+                    <div>
+                        <div class="text-white small fw-bold">${p.name || p.identity} ${p.identity === HOST_IDENTITY ? '<i class="bx bxs-crown text-warning ms-1"></i>' : ''}</div>
+                        <div class="text-white-50" style="font-size: 0.6rem;">${p === room.localParticipant ? 'You' : (p.identity === HOST_IDENTITY ? 'Host' : 'Member')}</div>
+                    </div>
                 </div>
-                ${p.isHost ? '<span style="font-size: 0.6rem; color: #ffc107; border: 1px solid #ffc10744; padding: 2px 6px; border-radius: 4px;">HOST</span>' : ''}
+                <div class="d-flex gap-2">
+                    <i class='bx ${p.isMicrophoneEnabled ? 'bx-microphone text-success' : 'bx-microphone-off text-white-50'}' style="font-size: 0.9rem;"></i>
+                    <i class='bx ${p.isCameraEnabled ? 'bx-video text-success' : 'bx-video-off text-white-50'}' style="font-size: 0.9rem;"></i>
+                </div>
             </div>
         `).join('');
     }
 
-    function copyJoinLink() {
-        navigator.clipboard.writeText("{{ joinUrl }}");
-        alert("Link copied!");
+    // Chat Functions
+    function addChatMessage(user, message) {
+        const chatBox = document.getElementById('chat-messages');
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+        bubble.innerHTML = `<span class="chat-user">${user}</span><div class="chat-msg">${message}</div>`;
+        chatBox.appendChild(bubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    document.getElementById('toggleAudio').onclick = function() {
-        const e = localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
-        this.classList.toggle('active-off', !e);
-        this.innerHTML = e ? '<i class="bx bx-microphone"></i>' : '<i class="bx bx-microphone-off"></i>';
-    };
+    async function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const msg = input.value.trim();
+        if (!msg) return;
 
-    document.getElementById('toggleVideo').onclick = function() {
-        const e = localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled;
-        this.classList.toggle('active-off', !e);
-        this.innerHTML = e ? '<i class="bx bx-video"></i>' : '<i class="bx bx-video-off"></i>';
-    };
+        const data = encoder.encode(JSON.stringify({ type: 'chat', message: msg }));
+        await localParticipant.publishData(data, LivekitClient.DataPacket_Kind.RELIABLE);
+        
+        addChatMessage('You', msg);
+        input.value = '';
+    }
 
-    document.getElementById('endCall').onclick = () => confirm('Leave this session?') && (window.location.href = "{{ path('main_home') }}");
+    // Device Management
+    async function loadDevices() {
+        const videoSelect = document.getElementById('videoDevices');
+        const audioSelect = document.getElementById('audioDevices');
+        
+        const devices = await LivekitClient.Room.getLocalDevices('videoinput');
+        const audioInput = await LivekitClient.Room.getLocalDevices('audioinput');
+
+        videoSelect.innerHTML = devices.map(d => `<option value="${d.deviceId}">${d.label || 'Camera'}</option>`).join('');
+        audioSelect.innerHTML = audioInput.map(d => `<option value="${d.deviceId}">${d.label || 'Mic'}</option>`).join('');
+    }
+
+    // UI Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+        initLiveKit();
+
+        // Control Toggles
+        document.getElementById('toggleAudio').onclick = async function() {
+            const enabled = !localParticipant.isMicrophoneEnabled;
+            await localParticipant.setMicrophoneEnabled(enabled);
+            this.classList.toggle('active-off', !enabled);
+            this.innerHTML = `<i class='bx ${enabled ? 'bx-microphone' : 'bx-microphone-off'}'></i>`;
+            updateParticipantList();
+        };
+
+        document.getElementById('toggleVideo').onclick = async function() {
+            const enabled = !localParticipant.isCameraEnabled;
+            await localParticipant.setCameraEnabled(enabled);
+            this.classList.toggle('active-off', !enabled);
+            this.innerHTML = `<i class='bx ${enabled ? 'bx-video' : 'bx-video-off'}'></i>`;
+            updateParticipantList();
+        };
+
+        document.getElementById('toggleScreen').onclick = async function() {
+            const enabled = !localParticipant.isScreenShareEnabled;
+            await localParticipant.setScreenShareEnabled(enabled);
+            this.classList.toggle('active-on', enabled);
+            this.innerHTML = `<i class='bx ${enabled ? 'bx-stop-circle' : 'bx-desktop'}'></i>`;
+        };
+
+        document.getElementById('openSettings').onclick = () => {
+            new bootstrap.Modal('#settingsModal').show();
+        };
+
+        // Tab Switching
+        document.querySelectorAll('.confer-tab-btn').forEach(btn => {
+            btn.onclick = function() {
+                document.querySelectorAll('.confer-tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.confer-tab-content').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+            };
+        });
+
+        // Chat Input
+        document.getElementById('sendMsgBtn').onclick = sendChatMessage;
+        document.getElementById('chatInput').onkeypress = (e) => { if(e.key === 'Enter') sendChatMessage(); };
+
+        document.getElementById('endCall').onclick = () => { if(confirm('Leave?')) window.location.href = "{{ path('main_home') }}"; };
+        document.getElementById('copyBtn').onclick = () => { navigator.clipboard.writeText(document.getElementById('joinLink').value); window.pushNotif("Room code copied to clipboard!", "SUCCESS"); };
+    });
 </script>
 {% endblock %}

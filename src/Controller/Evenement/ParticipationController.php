@@ -13,9 +13,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+use App\Service\FormErrorHelperTrait;
+use App\Service\User\NotificationService;
+
 #[Route('/participation')]
 class ParticipationController extends AbstractController
 {
+    use FormErrorHelperTrait;
+
     #[Route('/new/{id}', name: 'app_participation_new', methods: ['POST'])]
     public function new(
         Request $request,
@@ -23,7 +28,8 @@ class ParticipationController extends AbstractController
         EntityManagerInterface $entityManager,
         UserRepository $userRepository,
         \App\Repository\Evenement\ParticipationRepository $participationRepository,
-        \App\Service\Evenement\EvenementNotificationService $notificationService
+        \App\Service\Evenement\EvenementNotificationService $notificationService,
+        NotificationService $notifService
     ): Response {
         try {
             $isAjax = $request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
@@ -105,21 +111,40 @@ class ParticipationController extends AbstractController
                 // Send Confirmation Email
                 $notificationService->notifyParticipationConfirmation($participation);
 
+                // 1. Notify Participant (Confirmation)
+                $notifService->notify(
+                    $user,
+                    'SUCCESS',
+                    'PARTICIPATION',
+                    $participation->getId(),
+                    'Inscription envoyée',
+                    'Votre demande de participation à "' . $evenement->getTitreEvent() . '" est en attente.'
+                );
+
+                // 2. Notify Event Owner
+                $eventOwner = $evenement->getUser();
+                if ($eventOwner && $eventOwner->getIdUser() !== $user->getIdUser()) {
+                    $notifService->notify(
+                        $eventOwner,
+                        'EVENT_PARTICIPANT',
+                        'PARTICIPATION',
+                        $participation->getId(),
+                        'Nouvelle participation',
+                        $user->getFirstName() . ' souhaite participer à votre événement: ' . $evenement->getTitreEvent()
+                    );
+                }
+
                 if ($isAjax) {
                     return new JsonResponse(['success' => true, 'message' => 'Your participation request has been sent!']);
                 }
                 return $this->redirectToRoute('app_evenement_index');
             }
 
-            $errors = [];
-            foreach ($form->getErrors(true) as $error) {
-                $errors[] = $error->getMessage();
-            }
-
             if ($isAjax) {
-                return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
+                return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
             }
 
+            $errors = $this->getFormErrors($form);
             foreach ($errors as $error) {
                 $this->addFlash('error', $error);
             }

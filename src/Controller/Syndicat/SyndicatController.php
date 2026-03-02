@@ -15,8 +15,11 @@ use App\Entity\Syndicat\Reponse;
 use App\Form\Syndicat\ReponseType;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
+use App\Service\FormErrorHelperTrait;
+
 class SyndicatController extends AbstractController
 {
+    use FormErrorHelperTrait;
     #[Route('/syndicat', name: 'frontend_syndicat', methods: ['GET', 'POST'])]
     public function index(
         Request $request,
@@ -35,16 +38,7 @@ class SyndicatController extends AbstractController
             $userSession = $session->get('user');
 
             if (!$form->isValid()) {
-                if ($request->isXmlHttpRequest() || $request->headers->get('Accept') === 'application/json') {
-                    $errors = [];
-                    foreach ($form->getErrors(true) as $error) {
-                        $fieldName = $error->getOrigin()->getName();
-                        $errors[$fieldName] = $error->getMessage();
-                    }
-                    return new JsonResponse(['success' => false, 'errors' => $errors], 400);
-                }
-                $errorsStr = (string) $form->getErrors(true, false);
-                error_log("Form Validation Failed: " . $errorsStr);
+                return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
             }
 
             if (!$userSession) {
@@ -169,38 +163,34 @@ class SyndicatController extends AbstractController
         $form = $this->createForm(ReponseType::class, $reponse);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $imageFile = $form->get('imagereponse')->getData();
-            if ($imageFile) {
-                $newFilename = bin2hex(random_bytes(6)) . '.' . $imageFile->guessExtension();
-                try {
-                    $targetDir = $this->getParameter('reclamations_directory');
-                    if (!is_dir($targetDir))
-                        mkdir($targetDir, 0777, true);
-                    $imageFile->move($targetDir, $newFilename);
-                    $reponse->setImagereponse($newFilename);
-                } catch (\Exception $e) {
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                $imageFile = $form->get('imagereponse')->getData();
+                if ($imageFile) {
+                    $newFilename = bin2hex(random_bytes(6)) . '.' . $imageFile->guessExtension();
+                    try {
+                        $targetDir = $this->getParameter('reclamations_directory');
+                        if (!is_dir($targetDir))
+                            mkdir($targetDir, 0777, true);
+                        $imageFile->move($targetDir, $newFilename);
+                        $reponse->setImagereponse($newFilename);
+                    } catch (\Exception $e) {
+                    }
                 }
+
+                $entityManager->persist($reponse);
+                $entityManager->flush();
+
+                // Send Reply Notification
+                $notificationService->notifyReclamationReply($reponse);
+
+                if ($request->isXmlHttpRequest()) {
+                    return new JsonResponse(['success' => true, 'message' => 'Response added!']);
+                }
+                return $this->redirectToRoute('frontend_reclamation_details', ['id' => $reclamation->getId()]);
+            } else {
+                return new JsonResponse(['success' => false, 'errors' => $this->getFormErrors($form)], 400);
             }
-
-            $entityManager->persist($reponse);
-            $entityManager->flush();
-
-            // Send Reply Notification
-            $notificationService->notifyReclamationReply($reponse);
-
-            if ($request->isXmlHttpRequest()) {
-                return new JsonResponse(['success' => true, 'message' => 'Response added!']);
-            }
-            return $this->redirectToRoute('frontend_reclamation_details', ['id' => $reclamation->getId()]);
-        }
-
-        if ($request->isXmlHttpRequest() && $request->getMethod() === 'POST' && !$form->isValid()) {
-            $errors = [];
-            foreach ($form->getErrors(true) as $error) {
-                $errors[] = $error->getMessage();
-            }
-            return new JsonResponse(['success' => false, 'message' => implode(' ', $errors)], 400);
         }
 
         // Image processing for the modal view

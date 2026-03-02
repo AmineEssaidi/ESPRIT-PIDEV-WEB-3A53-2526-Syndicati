@@ -1,21 +1,239 @@
 {# Shared Main Navbar/Island Partial - includes all markup for header, nav, theme toggle, dynamic island, notifications, and user profile #}
-<nav class="main-home-navbar">
-    <!-- Left Side - Search Icon -->
+
+<style id="notif-emergency-styles">
+    /* High-Priority Visibility Fixes for the active navbar */
+    .notif-wrapper {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 46px !important;
+        height: 46px !important;
+        margin-right: 15px !important;
+        z-index: 99999 !important;
+    }
+
+    .notif-bell {
+        width: 42px !important;
+        height: 42px !important;
+        background: #1a1a2e !important;
+        background: rgba(var(--main-home-accent-rgb, 26, 26, 46), 0.2) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        color: #fff !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+
+    .notif-bell:hover { transform: scale(1.1) !important; }
+
+    .notif-badge {
+        position: absolute !important;
+        top: -3px !important;
+        right: -3px !important;
+        background: #ff3b30 !important;
+        color: white !important;
+        font-size: 10px !important;
+        font-weight: 900 !important;
+        min-width: 18px !important;
+        height: 18px !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border: 2px solid #000 !important;
+        z-index: 100000 !important;
+    }
+
+    .notif-hub {
+        position: absolute !important;
+        top: 60px !important;
+        right: -5px !important;
+        width: 380px !important;
+        max-height: 540px !important;
+        background: rgba(0, 0, 0, 0.88) !important; /* Neutral Obsidian Black */
+        backdrop-filter: blur(30px) saturate(130%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 30px !important;
+        display: none !important;
+        flex-direction: column !important;
+        z-index: 100001 !important;
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.03) inset !important;
+        overflow: hidden !important;
+    }
+
+    .notif-hub.active { 
+        display: flex !important; 
+        animation: notif-slide-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+
+    @keyframes notif-slide-in {
+        from { transform: translateY(20px) scale(0.95); opacity: 0; }
+        to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    .notif-hub-header { 
+        padding: 22px 26px; 
+        border-bottom: 1px solid rgba(255,255,255,0.06); 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03), transparent);
+    }
+    .notif-hub-header h5 { margin: 0; font-size: 1.2rem; color: #fff; font-weight: 800; letter-spacing: -0.5px; }
+    .notif-action-btn { 
+        background: rgba(255, 255, 255, 0.05); 
+        border: 1px solid rgba(255, 255, 255, 0.08); 
+        color: rgba(255, 255, 255, 0.8); 
+        padding: 6px 14px; 
+        border-radius: 10px; 
+        font-size: 11px; 
+        font-weight: 700;
+        cursor: pointer; 
+        transition: 0.2s;
+    }
+    .notif-action-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; transform: translateY(-1px); }
+    
+    .notif-close-btn { background: none; border: none; color: rgba(255,255,255,0.25); cursor: pointer; font-size: 26px; transition: 0.2s; }
+    .notif-close-btn:hover { color: #fff; transform: rotate(90deg); }
+
+    .notif-hub-body { 
+        flex: 1; 
+        overflow-y: auto; 
+        padding: 10px; 
+        min-height: 250px; 
+    }
+
+    /* Premium Scrollbar */
+    .notif-hub-body::-webkit-scrollbar { width: 4px; }
+    .notif-hub-body::-webkit-scrollbar-track { background: transparent; }
+    .notif-hub-body::-webkit-scrollbar-thumb { 
+        background: rgba(255, 255, 255, 0.1); 
+        border-radius: 10px;
+        transition: 0.2s;
+    }
+    .notif-hub-body::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+    .notif-group-label {
+        font-size: 0.65rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.2);
+        padding: 16px 20px 4px 24px;
+        letter-spacing: 1.5px;
+        display: block;
+    }
+
+    /* Notif Item Polish */
+    .notif-item {
+        margin: 4px !important;
+        padding: 16px !important;
+        border-radius: 18px !important;
+        display: flex !important;
+        gap: 16px !important;
+        cursor: pointer !important;
+        border: 1px solid transparent !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        position: relative !important;
+    }
+    .notif-item:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 20px;
+        right: 20px;
+        height: 1px;
+        background: rgba(255,255,255,0.03);
+        pointer-events: none;
+    }
+    .notif-item:hover {
+        background: rgba(255, 255, 255, 0.04) !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        transform: scale(0.985);
+    }
+    .notif-item.unread {
+        background: rgba(var(--main-home-accent-rgb, 107, 70, 193), 0.08) !important;
+        border-color: rgba(var(--main-home-accent-rgb, 107, 70, 193), 0.15) !important;
+    }
+    .notif-item.unread::before {
+        content: '';
+        position: absolute;
+        left: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 4px;
+        background: var(--main-home-accent-color, #6b46c1);
+        border-radius: 50%;
+        box-shadow: 0 0 10px var(--main-home-accent-color, #6b46c1);
+    }
+
+    .notif-item-icon {
+        width: 42px !important;
+        height: 42px !important;
+        background: rgba(255,255,255,0.03) !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 1.2rem !important;
+        flex-shrink: 0 !important;
+        border: 1px solid rgba(255,255,255,0.05) !important;
+    }
+    .unread .notif-item-icon {
+        background: rgba(var(--main-home-accent-rgb, 107, 70, 193), 0.1) !important;
+        border-color: rgba(var(--main-home-accent-rgb, 107, 70, 193), 0.2) !important;
+    }
+
+    .notif-item-content { flex: 1 !important; min-width: 0 !important; }
+    .notif-item-title { 
+        margin: 0 0 2px 0 !important; 
+        font-weight: 700 !important; 
+        color: #fff !important; 
+        font-size: 0.95rem !important; 
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    .notif-item-text { 
+        margin: 0 !important; 
+        color: rgba(255,255,255,0.5) !important; 
+        font-size: 0.85rem !important; 
+        line-height: 1.3 !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+    }
+    .notif-item-time { 
+        margin-top: 6px !important; 
+        font-size: 0.75rem !important; 
+        color: rgba(255,255,255,0.3) !important; 
+        font-weight: 600 !important;
+    }
+</style>
+
+<nav class="main-home-navbar" style="position:relative; z-index:1000 !important; overflow: visible !important;">
+    <!-- Left Side -->
     <div class="main-home-header-left">
         <div class="main-home-search-icon-container">
-            <button class="main-home-search-icon-btn" title="Rechercher">
+            <a href="{{ path('main_home') }}" class="main-home-search-icon-btn" title="Home / Search">
                 <span class="main-home-search-logo-wrapper">
                     <img src="/images/logo/syndicati.png" alt="Syndicati Logo" class="main-home-search-logo main-home-search-logo-light" />
                     <img src="/images/logo/syndicatioffwhite.png" alt="Syndicati Logo" class="main-home-search-logo main-home-search-logo-dark" />
                 </span>
-            </button>
+            </a>
             <div class="main-home-search-expand">
                 <input type="text" class="main-home-search-input" placeholder="Rechercher..." aria-label="Rechercher..."/>
             </div>
         </div>
     </div>
 
-    <!-- Center - Navigation Tabs -->
+    <!-- Center -->
     <div class="main-home-header-center">
         <div class="main-home-nav-tabs">
             <div class="main-home-nav-tab {{ active_tab|default('') == 'home' ? 'active' : '' }}">
@@ -43,9 +261,8 @@
         </div>
     </div>
 
-    <!-- Right Side - Controls -->
-    <div class="main-home-header-right">
-        <!-- Theme Toggle -->
+    <!-- Right Side -->
+    <div class="main-home-header-right" style="overflow: visible !important;">
         <div class="main-home-ios-theme-toggle">
             <div class="main-home-toggle-container" id="theme-toggle">
                 <div class="main-home-toggle-track">
@@ -58,89 +275,128 @@
         </div>
 
         {% if app.session.get('is_logged_in') %}
-        <!-- Dynamic Island Notification (Only show when logged in) -->
-        <div class="main-home-notification-circle">
-            <div class="main-home-dynamic-island" id="dynamicIsland" title="Notifications">
-                <span class="main-home-notification-icon">🔔</span>
-                <span class="main-home-notification-badge">3</span>
-                <!-- Dynamic Content -->
-                <div class="main-home-dynamic-content">
-                    <p class="main-home-dynamic-text" >{{ 'nav.notifications'|trans }}</p>
-                    <p class="main-home-dynamic-subtext"><span >3</span> <span >{{ 'nav.new_messages'|trans }}</span></p>
+            <div class="notif-wrapper">
+                <div class="notif-bell" id="notifBell" title="Notifications">
+                    <i class="bx bx-bell" style="font-size: 20px;"></i>
+                    <span class="notif-badge" id="notifBadge" style="display: none;">0</span>
                 </div>
-                <!-- Notification Popup Content -->
-                <div class="main-home-notification-popup-content" style="display: none;">
-                    <div class="main-home-notification-popup-icon">📱</div>
-                    <div class="main-home-notification-popup-text">
-                        <p class="main-home-notification-popup-title" >{{ 'nav.new_message'|trans }}</p>
-                        <p class="main-home-notification-popup-message"><span >You have</span> 3 <span >{{ 'nav.unread_notifications'|trans }}</span></p>
-                    </div>
-                </div>
-                <!-- Multiple Notifications Container -->
-                <div class="main-home-notifications-container" style="display: none;">
-                    <div class="main-home-notifications-scroll">
-                        <!-- Notifications will be dynamically added here -->
-                    </div>
-                </div>
-            </div>
-            <!-- Animated Close Button -->
-            <button class="main-home-dynamic-close-btn" id="dynamicCloseBtn" title="Close">✕</button>
-        </div>
-        {% endif %}
-
-        <!-- Auth Buttons (show/hide based on login status) -->
-        {% if app.session.get('is_logged_in') %}
-        {% set _user = app.session.get('user')|default([]) %}
-        {% set _session_avatar_url = (_user.avatar is defined and _user.avatar) ? (_user.avatar starts with 'http' ? _user.avatar : asset(_user.avatar)) : null %}
-        {% set _avatar_url = profile_avatar_url|default(_session_avatar_url)|default('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face') %}
-        <div class="main-home-user-profile-dropdown">
-            <div class="main-home-user-avatar-only">
-                <img src="{{ _avatar_url }}" alt="Profile" class="main-home-avatar-img" loading="lazy" decoding="async"/>
-                <div class="main-home-avatar-status online"></div>
-            </div>
-            <div class="main-home-profile-dropdown">
-                <div class="main-home-dropdown-header">
-                    <div class="main-home-user-profile">
-                        <img src="{{ _avatar_url }}" alt="Profile" class="main-home-profile-img" loading="lazy" decoding="async"/>
-                        <div class="main-home-profile-info">
-                            <div class="main-home-profile-name">{{ _user.name|default((_user.first_name|default('')) ~ ' ' ~ (_user.last_name|default('')))|trim|default('User') }}</div>
-                            <div class="main-home-profile-email">{{ _user.email|default('user@example.com') }}</div>
+                
+                <div class="notif-hub" id="notifHub">
+                    <div class="notif-hub-header">
+                        <h5>{{ 'nav.notifications'|trans|default('Notifications') }}</h5>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button id="notifMarkAllRead" class="notif-action-btn">{{ 'nav.mark_all_read'|trans|default('Tout lu') }}</button>
+                            <button id="notifCloseHub" class="notif-close-btn"><i class="bx bx-x"></i></button>
                         </div>
                     </div>
+                    <div class="notif-hub-body scrollbar-hide" id="notifScroll"></div>
                 </div>
-                <div class="main-home-dropdown-divider"></div>
-                <a href="{{ path('frontend_profile') }}" class="main-home-dropdown-item">
-                    <i class="bx bx-user"></i>
-                    <span >{{ 'nav.my_profile'|trans }}</span>
+            </div>
+
+            {% set _user = app.session.get('user')|default([]) %}
+            {% set _session_avatar_url = (_user.avatar is defined and _user.avatar) ? (_user.avatar starts with 'http' ? _user.avatar : asset(_user.avatar)) : null %}
+            {% set _avatar_url = profile_avatar_url|default(_session_avatar_url)|default('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face') %}
+            <div class="main-home-user-profile-dropdown">
+                <div class="main-home-user-avatar-only">
+                    <img src="{{ _avatar_url }}" alt="Profile" class="main-home-avatar-img" loading="lazy" decoding="async"/>
+                    <div class="main-home-avatar-status online"></div>
+                </div>
+                <div class="main-home-profile-dropdown">
+                    <div class="main-home-dropdown-header">
+                        <div class="main-home-user-profile">
+                            <img src="{{ _avatar_url }}" alt="Profile" class="main-home-profile-img" loading="lazy" decoding="async"/>
+                            <div class="main-home-profile-info">
+                                <div class="main-home-profile-name">{{ _user.name|default((_user.first_name|default('')) ~ ' ' ~ (_user.last_name|default('')))|trim|default('User') }}</div>
+                                <div class="main-home-profile-email">{{ _user.email|default('user@example.com') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="main-home-dropdown-divider"></div>
+                    <a href="{{ path('frontend_profile') }}" class="main-home-dropdown-item">
+                        <i class="bx bx-user"></i>
+                        <span >{{ 'nav.my_profile'|trans }}</span>
+                    </a>
+                    <a href="{{ path('admin_dashboard') }}" class="main-home-dropdown-item" data-page-loader>
+                        <i class="bx bx-grid-alt"></i>
+                        <span >{{ 'nav.dashboard'|trans }}</span>
+                    </a>
+                    <a href="{{ path('frontend_settings') }}" class="main-home-dropdown-item">
+                        <i class="bx bx-cog"></i>
+                        <span >{{ 'settings.title'|trans }}</span>
+                    </a>
+                    <div class="main-home-dropdown-divider"></div>
+                    <a href="{{ path('auth_logout') }}" class="main-home-dropdown-item logout">
+                        <i class="bx bx-power-off"></i>
+                        <span >{{ 'nav.log_out'|trans }}</span>
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <div class="main-home-auth-buttons">
+                <a href="{{ path('auth_sign_in') }}" class="main-home-btn-auth-secondary {{ active_tab|default('') == 'sign_in' ? 'active' : '' }}" title="Connexion">
+                    <i class="bx bx-log-in"></i>
                 </a>
-                <a href="{{ path('admin_dashboard') }}" class="main-home-dropdown-item" data-page-loader>
-                    <i class="bx bx-grid-alt"></i>
-                    <span >{{ 'nav.dashboard'|trans }}</span>
-                <a href="{{ path('frontend_settings') }}" class="main-home-dropdown-item">
-                    <i class="bx bx-cog"></i>
-                    <span >{{ 'settings.title'|trans }}</span>
-                </a>
-                <a href="#" class="main-home-dropdown-item">
-                    <i class="bx bx-credit-card"></i>
-                    <span >{{ 'nav.billing'|trans }}</span>
-                    <span class="badge">4</span>
-                </a>
-                <div class="main-home-dropdown-divider"></div>
-                <a href="{{ path('auth_logout') }}" class="main-home-dropdown-item logout">
-                    <i class="bx bx-power-off"></i>
-                    <span >{{ 'nav.log_out'|trans }}</span>
+                <a href="{{ path('user_signup') }}" class="main-home-btn-auth-primary {{ active_tab|default('') == 'sign_up' ? 'active' : '' }}" title="Créer un compte">
+                    <i class="bx bx-user-plus"></i>
                 </a>
             </div>
-        </div>
-        {% else %}
-        <div class="main-home-auth-buttons">
-            <a href="{{ path('auth_sign_in') }}" class="main-home-btn-auth-secondary {{ active_tab|default('') == 'sign_in' ? 'active' : '' }}" title="Connexion">
-                <i class="bx bx-log-in"></i>
-            </a>
-            <a href="{{ path('user_signup') }}" class="main-home-btn-auth-primary {{ active_tab|default('') == 'sign_up' ? 'active' : '' }}" title="Créer un compte">
-                <i class="bx bx-user-plus"></i>
-            </a>
-        </div>
         {% endif %}
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const bell = document.getElementById('notifBell');
+        const hub = document.getElementById('notifHub');
+        const closeBtn = document.getElementById('notifCloseHub');
+
+        if (bell && hub) {
+            bell.onclick = function(e) {
+                e.stopPropagation();
+                const isActive = hub.classList.contains('active');
+                if (isActive) {
+                    hub.classList.remove('active');
+                    hub.style.display = 'none';
+                } else {
+                    hub.style.display = 'flex';
+                    hub.classList.add('active');
+                }
+            };
+
+            if (closeBtn) {
+                closeBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    hub.classList.remove('active');
+                    hub.style.display = 'none';
+                };
+            }
+
+            document.onclick = function(e) {
+                if (hub.classList.contains('active') && !hub.contains(e.target) && !bell.contains(e.target)) {
+                    hub.classList.remove('active');
+                    hub.style.display = 'none';
+                }
+            };
+        }
+    });
+
+    // Cleanup any legacy island leftovers
+    (function() {
+        const legacySelectors = ['.main-home-dynamic-island', '.main-home-notification-circle', '.notif-bell-emoji'];
+        legacySelectors.forEach(s => {
+            const elements = document.querySelectorAll(s);
+            elements.forEach(el => el.remove());
+        });
+    })();
+    </script>
+
+    {% if app.session.get('is_logged_in') %}
+    {# Load notification manager if not already loaded (standalone pages that don't extend a base template) #}
+    <script>
+    if (typeof NotificationManager === 'undefined') {
+        var _nmScript = document.createElement('script');
+        _nmScript.src = '{{ asset('frontend/js/notification-manager.js') }}';
+        document.head.appendChild(_nmScript);
+    }
+    </script>
+    {% endif %}
 </nav>

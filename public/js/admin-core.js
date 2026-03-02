@@ -4,43 +4,24 @@
  */
 
 (function () {
-    // --- OBSIDIAN NOTIFICATION ---
-    window.showObsidianNotification = function (message, title = 'Notification', type = 'success') {
-        let pill = document.querySelector('.obsidian-notification-pill');
-        if (!pill) {
-            pill = document.createElement('div');
-            pill.className = 'obsidian-notification-pill';
-            pill.innerHTML = `
-                <div class="obsidian-notification-icon success">
-                    <i class="bx bx-check"></i>
-                </div>
-                <div class="obsidian-notification-content">
-                    <div class="obsidian-notification-title">NOTIFICATION</div>
-                    <div class="obsidian-notification-message">Default message</div>
-                </div>
-            `;
-            document.body.appendChild(pill);
+    // --- GLOBAL FORM VALIDATION ---
+    // Stores validators for each form to prevent duplicate initialization
+
+    window.initGlobalValidation = function () {
+        if (typeof FormValidator === 'undefined') {
+            return;
         }
 
-        const iconContainer = pill.querySelector('.obsidian-notification-icon');
-        const titleEl = pill.querySelector('.obsidian-notification-title');
-        const messageEl = pill.querySelector('.obsidian-notification-message');
-
-        titleEl.textContent = title.toUpperCase();
-        messageEl.textContent = message;
-
-        // Set type
-        iconContainer.className = `obsidian-notification-icon ${type}`;
-        iconContainer.innerHTML = type === 'success' ? '<i class="bx bx-check"></i>' : '<i class="bx bx-x"></i>';
-
-        // Show
-        pill.classList.add('active');
-
-        // Hide after 4 seconds
-        setTimeout(() => {
-            pill.classList.remove('active');
-        }, 4000);
+        document.querySelectorAll('form[data-ajax="true"]').forEach(form => {
+            if (!form.validator) {
+                new FormValidator(form);
+            }
+        });
     };
+
+    // Note: window.showObsidianNotification is now provided by notification-manager.js
+    // as a bridge to the unified pushNotif system. The legacy implementation here
+    // which used .obsidian-notification-pill is removed to maintain a single source of truth.
 
     // --- SOFT REFRESH ---
     // Background re-fetches the current page and updates tables/scripts
@@ -108,15 +89,15 @@
             if (typeof window.filterSortPublications === 'function') window.filterSortPublications();
             if (typeof window.filterSortComments === 'function') window.filterSortComments();
 
+            // 4. Re-init validation for any newly added forms
+            window.initGlobalValidation();
+
         } catch (error) {
             console.error("Soft Refresh failed:", error);
         }
     };
 
-    // Legacy mapping for compatibility
-    window.showCoolPopup = function (title, message, type) {
-        window.showObsidianNotification(message, title, type === 'error' ? 'error' : 'success');
-    };
+    // showCoolPopup deleted (redundant)
 
     // --- GLOBAL GLASS SWITCHER ---
     window.switchGlassFace = function (face, switcherId) {
@@ -269,13 +250,27 @@
             const data = await response.json();
 
             if (data.success) {
+                // Clear validation states on success
+                const validator = form.validator;
+                if (validator) {
+                    form.querySelectorAll('.validation-container, .main-home-validation-message').forEach(c => {
+                        c.textContent = '';
+                        c.classList.remove('active', 'error', 'success');
+                    });
+                    form.querySelectorAll('.input-error, .input-success, .is-invalid, .is-valid').forEach(i => i.classList.remove('input-error', 'input-success', 'is-invalid', 'is-valid'));
+                }
+
                 // Determine action type for notification
                 let actionTitle = 'Success';
                 if (form.action.includes('new') || form.id.includes('add')) actionTitle = 'Created';
                 else if (form.action.includes('edit')) actionTitle = 'Updated';
                 else if (isDelete) actionTitle = 'Deleted';
 
-                window.showObsidianNotification(data.message || 'Action completed successfully.', actionTitle, 'success');
+                if (window.pushNotif) {
+                    window.pushNotif(actionTitle, data.message || 'Action completed successfully.', 'SUCCESS');
+                } else {
+                    window.showObsidianNotification(data.message || 'Action completed successfully.', actionTitle, 'success');
+                }
 
                 // 1. Close Modals
                 const modal = form.closest('.glass-modal-overlay') || document.querySelector('.glass-modal-overlay.active');
@@ -296,25 +291,52 @@
                     });
                 }
 
-                // 3. Trigger Table Refresh (if define)
+                // 3. Trigger Table Refresh (if defined)
                 const refreshHook = form.dataset.refresh || form.getAttribute('data-refresh');
                 if (refreshHook && typeof window[refreshHook] === 'function') {
                     window[refreshHook]();
                 } else {
-                    // Generic fallback: check for render*Table functions
+                    // Generic fallback
                     const pageId = document.querySelector('.syndicat-page-content, .users-page-content')?.dataset?.page;
                     if (pageId === 'reclamations' && typeof window.syndicatFilterSortRecs === 'function') window.syndicatFilterSortRecs();
                     else if (pageId === 'responses' && typeof window.syndicatFilterSortReps === 'function') window.syndicatFilterSortReps();
-                    // Or just reload as a safeguard if no refresh hook is provided (better UX than doing nothing)
-                    // but user explicitly said NO refreshes, so we rely on the hooks.
                 }
 
             } else {
-                window.showObsidianNotification(data.message || 'Something went wrong.', 'Error', 'error');
+                const validator = form.validator;
+                if (validator && data.errors) {
+                    validator.mapErrors(data.errors);
+                } else if (data.errors) {
+                    // Fallback if validator isn't attached
+                    Object.entries(data.errors).forEach(([field, messages]) => {
+                        const msg = Array.isArray(messages) ? messages[0] : messages;
+                        const container = form.querySelector(`.validation-container[data-field="${field}"]`) ||
+                            form.querySelector(`.main-home-validation-message[data-field="${field}"]`) ||
+                            form.querySelector(`[data-field$="[${field}]"]`) ||
+                            form.querySelector(`#${field}-validation`);
+
+                        if (container) {
+                            container.innerHTML = `<i class='bx bx-error-circle'></i> ${msg}`;
+                            container.classList.add('active', 'error');
+                            const input = form.querySelector(`[name*="[${field}]"]`) || form.querySelector(`[name="${field}"]`) || form.querySelector(`#${field}`);
+                            if (input) input.classList.add('input-error');
+                        }
+                    });
+                } else {
+                    if (window.pushNotif) {
+                        window.pushNotif('Error', data.message || 'Something went wrong.', 'ERROR');
+                    } else {
+                        window.showObsidianNotification(data.message || 'Something went wrong.', 'Error', 'error');
+                    }
+                }
             }
         } catch (error) {
             console.error('AJAX Error:', error);
-            window.showObsidianNotification('Network error. Pulse failed.', 'Error', 'error');
+            if (window.pushNotif) {
+                window.pushNotif('Error', 'Network error. Pulse failed.', 'ERROR');
+            } else {
+                window.showObsidianNotification('Network error. Pulse failed.', 'Error', 'error');
+            }
         } finally {
             if (btn) {
                 btn.classList.remove('btn-processing');
@@ -323,5 +345,8 @@
             }
         }
     });
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', window.initGlobalValidation);
 
 })();

@@ -75,6 +75,49 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                             </style>
 
+                            <!-- Video Spotlight Section -->
+                            <div class="row mb-5">
+                                <div class="col-12">
+                                    <div class="confer-landing-glass p-5 rounded-5 border border-white border-opacity-10 position-relative overflow-hidden" style="background: rgba(138, 43, 226, 0.05); backdrop-filter: blur(20px);">
+                                        <div class="confer-bg-glow primary" style="position: absolute; top: -100px; right: -100px; width: 300px; height: 300px; background: #8a2be2; filter: blur(100px); opacity: 0.2;"></div>
+                                        
+                                        <div class="row align-items-center position-relative" style="z-index: 1;">
+                                            <div class="col-lg-7">
+                                                <div class="d-flex align-items-center gap-3 mb-3">
+                                                    <div class="confer-status-pill" style="background: rgba(0, 210, 255, 0.1); border: 1px solid rgba(0, 210, 255, 0.2); padding: 0.35rem 0.85rem; border-radius: 100px; color: #00d2ff; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem;">
+                                                        <span class="pulse-dot" style="width: 8px; height: 8px; background: #00d2ff; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
+                                                        <span>Live Spotlight Active</span>
+                                                    </div>
+                                                </div>
+                                                <h2 class="text-white fw-bold mb-3" style="font-size: 2.5rem; letter-spacing: -1px;">Connect with <span class="text-primary-gradient">Real-time</span> Video</h2>
+                                                <p class="text-white-50 fs-5 mb-4">High-performance video conferencing powered by LiveKit. Start a session or join one with a room code.</p>
+                                                                                                <div class="d-flex flex-wrap gap-3">
+                                                    <button id="host-conference-btn" class="btn btn-primary-gradient px-4 py-3 rounded-4 fw-bold shadow-lg confer-host-trigger">
+                                                        <i class="bx bx-video me-2"></i>Host a Session
+                                                    </button>
+                                                    <button id="join-conference-btn" class="btn btn-white bg-opacity-10 text-white px-4 py-3 rounded-4 border border-white border-opacity-10 fw-bold confer-join-trigger">
+                                                        <i class="bx bx-hash me-2"></i>Join by Code
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-5 d-none d-lg-block">
+                                                <div class="confer-preview-stack position-relative ms-4">
+                                                    <div class="glass-card p-2 rounded-4 rotate-3" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transform: rotate(3deg);">
+                                                        <img src="https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=500&h=300&fit=crop" class="rounded-3 img-fluid" alt="Meeting Preview">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <style>
+                                .text-primary-gradient { background: linear-gradient(135deg, #8a2be2, #00d2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+                                .btn-primary-gradient { background: linear-gradient(135deg, #8a2be2, #00d2ff); border: none; color: #fff; }
+                                .btn-primary-gradient:hover { filter: brightness(1.1); transform: translateY(-2px); transition: 0.3s; }
+                                @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+                            </style>
+
 
                             <!-- Features Grid -->
                             <div class="main-home-features-grid">
@@ -341,6 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="{{ asset('frontend/js/main-home.js') }}" defer></script>
 <script src="{{ asset('js/page-loader.js') }}"></script>
 {% include 'frontend/shared/_scroll_pill.html.twig' %}
+{% include 'frontend/video_conference/_modal.html.twig' %}
 <link href="{{ asset('frontend/css/scroll-pill.css') }}" rel="stylesheet">
 <script src="{{ asset('frontend/js/scroll-pill.js') }}" defer></script>
 </body>

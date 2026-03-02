@@ -11,7 +11,44 @@
     <link href="{{ asset('frontend/css/scroll-pill.css') }}" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
-    
+    <style>
+        /* Force black background immediately to prevent gray flash */
+        html, body { background: #000 !important; }
+
+        /* --- Sign-Up Style Validation --- */
+        .main-home-validation-message {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: none;
+            padding-left: 0.25rem;
+            animation: mainHomeFadeInUp 0.3s ease forwards;
+        }
+        .main-home-validation-message.error { color: #ff3b30; display: block; }
+        .main-home-validation-message.success { color: #00e676; display: block; }
+        .input-error { border-color: #ff3b30 !important; box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.1) !important; }
+        .input-success { border-color: #00e676 !important; box-shadow: 0 0 0 4px rgba(0, 230, 118, 0.1) !important; }
+        @keyframes mainHomeFadeInUp {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <style>
+        /* ── Friend Info Preview Card (mirrors evenement.css .calendar-event-preview) ── */
+        .calendar-event-preview{position:fixed;z-index:9999;width:280px;display:none;opacity:0;transform:translate(-50%,-100%) translateY(10px) scale(0.95);transition:all .3s cubic-bezier(.175,.885,.32,1.275);pointer-events:none;box-sizing:border-box}
+        .calendar-event-preview.show{padding-bottom:10px;display:block;opacity:1;transform:translate(-50%,-100%) translateY(-10px) scale(1);pointer-events:auto}
+        .preview-card{background:rgba(15,15,25,.95);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,.1);border-radius:24px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+        .preview-banner{width:100%;height:120px;background-size:cover;background-position:center;position:relative}
+        .preview-banner::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,rgba(15,15,25,1),transparent)}
+        .preview-content{padding:1.2rem}
+        .preview-tag{display:inline-block;padding:.3rem .8rem;background:rgba(var(--main-home-accent-rgb),.15);color:var(--main-home-accent-color);border-radius:8px;font-size:.65rem;font-weight:800;text-transform:uppercase;margin-bottom:.8rem;letter-spacing:.5px}
+        .preview-title{font-size:1.1rem;font-weight:800;margin-bottom:.5rem;color:#fff;line-height:1.3}
+        .preview-meta{display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:rgba(255,255,255,.5);margin-bottom:.6rem}
+        .preview-btn{width:100%;padding:.8rem;background:var(--main-home-accent-gradient);border:none;border-radius:12px;color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s ease}
+        .preview-btn:hover{transform:translateY(-2px)}
+    </style>
+
     <style>
         /* Clickable avatar upload */
         .profile-avatar-form { display: block; margin: 0; padding: 0; }
@@ -314,6 +351,584 @@
             background: rgba(255, 255, 255, 0.2);
             transform: rotate(90deg);
         }
+
+        /* Main Pagination Styles */
+        .profile-main-page {
+            display: none;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(20px);
+        }
+        .profile-main-page.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .profile-main-nav-container {
+            display: flex;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.5rem;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: fit-content;
+            margin: 0 auto 2.5rem;
+            backdrop-filter: blur(10px);
+        }
+        .profile-main-nav-item {
+            padding: 0.75rem 1.75rem;
+            border-radius: 50px;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+        }
+        .profile-main-nav-item i {
+            font-size: 1.25rem;
+        }
+        .profile-main-nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .profile-main-nav-item.active {
+            background: var(--syndicat-accent-gradient);
+            color: #fff;
+            box-shadow: 0 8px 25px rgba(var(--syndicat-accent-rgb), 0.4);
+            transform: scale(1.05);
+        }
+        [data-theme="light"] .profile-main-nav-container {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0, 0, 0, 0.08);
+        }
+        [data-theme="light"] .profile-main-nav-item {
+            color: #64748b;
+        }
+        [data-theme="light"] .profile-main-nav-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: #1e293b;
+        }
+
+        /* --- Premium Obsidian Platform --- */
+        .obsidian-platform {
+            background: rgba(5, 5, 10, 0.85);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 40px;
+            padding: 2.5rem;
+            box-shadow: 
+                0 40px 100px rgba(0, 0, 0, 0.8),
+                inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .obsidian-platform:hover {
+            border-color: rgba(var(--main-home-accent-rgb), 0.15);
+            box-shadow: 0 50px 120px rgba(0, 0, 0, 0.9);
+        }
+        .obsidian-platform::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        }
+
+        /* --- Discord-style Standing Bar --- */
+        .discord-standing-container {
+            width: 100%;
+            padding: 1.5rem 0;
+            margin-top: 0.5rem;
+        }
+        .discord-standing-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+        .standing-track {
+            position: absolute;
+            top: 14px; /* Center with circle */
+            left: 5%;
+            right: 5%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            border-radius: 10px;
+        }
+        .standing-track-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            border-radius: inherit;
+            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .standing-point-wrapper {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        .standing-point {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #2f3136; /* Discord dark gray */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 4px solid #05050a; /* Match platform base */
+            cursor: default;
+        }
+        .standing-point i {
+            font-size: 1.1rem;
+            color: #fff;
+            transform: scale(0);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .standing-point.active i {
+            transform: scale(1);
+        }
+        .standing-point.active.success { background: #43b581; box-shadow: 0 0 20px rgba(67, 181, 129, 0.4); }
+        .standing-point.active.warning { background: #faa61a; box-shadow: 0 0 20px rgba(250, 166, 26, 0.4); }
+        .standing-point.active.danger { background: #f04747; box-shadow: 0 0 20px rgba(240, 71, 71, 0.4); }
+
+        .standing-point-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: capitalize;
+            transition: color 0.3s ease;
+        }
+        .standing-point-wrapper.active-state .standing-point-label {
+            color: #fff;
+        }
+
+        /* --- Level & Meta --- */
+        .standing-header-flex {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+        .standing-lvl-box {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .standing-lvl-num {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1;
+        }
+        .standing-lvl-txt {
+            font-size: 0.6rem;
+            font-weight: 800;
+            color: var(--syndicat-accent);
+            text-transform: uppercase;
+        }
+
+        /* --- Friendship Grid --- */
+        .friends-grid-platinum {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .friend-card-platinum {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none !important;
+            transition: transform 0.3s ease;
+        }
+        .friend-card-platinum:hover {
+            transform: translateY(-5px);
+        }
+        .friend-avatar-platinum {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            padding: 3px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .friend-avatar-platinum img {
+            width: 100%;
+            height: 100%;
+            border-radius: 17px;
+            object-fit: cover;
+        }
+        .friend-card-platinum:hover .friend-avatar-platinum {
+            background: var(--main-home-accent-gradient);
+            border-color: transparent;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4), 0 0 15px rgba(var(--main-home-accent-rgb), 0.3);
+        }
+        .friend-name-platinum {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.5);
+            transition: color 0.3s ease;
+        }
+        .friend-card-platinum:hover .friend-name-platinum {
+            color: #fff;
+        }
+
+        /* --- Resident Search Platinum --- */
+        .search-results-dropdown-platinum {
+            max-height: 250px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 0.5rem;
+            display: none;
+        }
+        .search-results-dropdown-platinum.has-results {
+            display: block;
+        }
+        .search-result-item-platinum {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.8rem;
+            border-radius: 15px;
+            transition: all 0.2s ease;
+            text-decoration: none !important;
+            margin-bottom: 2px;
+        }
+        .search-result-item-platinum:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .result-avatar-platinum {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .result-name-platinum {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #fff;
+            flex: 1;
+        }
+        .btn-add-resident {
+            background: rgba(var(--main-home-accent-rgb), 0.15);
+            border: 1px solid rgba(var(--main-home-accent-rgb), 0.3);
+            color: var(--main-home-accent-color);
+            padding: 5px 12px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .btn-add-resident:hover {
+            background: var(--main-home-accent-gradient);
+            color: #fff;
+            border-color: transparent;
+        }
+        .btn-add-resident.requested {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.3);
+            cursor: default;
+        }
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .friend-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+        .friend-item:hover {
+            transform: scale(1.1);
+        }
+        .friend-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.1);
+            object-fit: crop;
+        }
+        .friend-name {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.7);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            text-align: center;
+        }
+
+        .section-header-modern {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.2rem;
+        }
+        .section-title-modern {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin: 0;
+        }
+        .section-title-modern i {
+            color: var(--syndicat-accent);
+            font-size: 1.3rem;
+        }
+        .section-action-link {
+            font-size: 0.85rem;
+            color: var(--syndicat-accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        .section-action-link:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+        /* ─── Hero Quick Actions Trigger Button ─── */
+        .hero-qa-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.25rem;
+            background: rgba(var(--syndicat-accent-rgb), 0.15);
+            border: 1px solid rgba(var(--syndicat-accent-rgb), 0.35);
+            border-radius: 100px;
+            color: var(--syndicat-accent);
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            white-space: nowrap;
+        }
+        .hero-qa-trigger:hover,
+        .hero-qa-trigger.active {
+            background: var(--syndicat-accent-gradient);
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(var(--syndicat-accent-rgb), 0.4);
+            transform: scale(1.03);
+        }
+        .hero-qa-chevron {
+            transition: transform 0.3s ease;
+        }
+        .hero-qa-trigger.active .hero-qa-chevron {
+            transform: rotate(90deg);
+        }
+
+        /* ─── Switcher & Panel Container ─── */
+        .main-home-profile-details {
+            position: relative;
+            overflow: hidden;
+        }
+        #hero-default-info,
+        .hero-switcher,
+        .hero-panel {
+            animation-duration: 0.3s;
+            animation-fill-mode: both;
+        }
+        @keyframes heroSlideIn {
+            from { opacity: 0; transform: translateX(18px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes heroSlideOut {
+            from { opacity: 1; transform: translateX(0); }
+            to   { opacity: 0; transform: translateX(-18px); }
+        }
+        .hero-anim-in  { animation-name: heroSlideIn; }
+        .hero-anim-out { animation-name: heroSlideOut; }
+
+        /* ─── Switcher Top Bar ─── */
+        .hero-switcher-topbar,
+        .hero-panel-topbar {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+        .hero-switcher-back,
+        .hero-panel-back {
+            width: 30px; height: 30px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+        .hero-switcher-back:hover,
+        .hero-panel-back:hover {
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+        }
+        .hero-switcher-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        .hero-panel-topbar span {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.85);
+            display: flex; align-items: center; gap: 0.4rem;
+        }
+
+        /* ─── Tile Grid ─── */
+        .hero-tile-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.6rem;
+        }
+        .hero-tile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.85rem 0.5rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: rgba(255,255,255,0.6);
+        }
+        .hero-tile:hover {
+            background: rgba(var(--syndicat-accent-rgb), 0.12);
+            border-color: rgba(var(--syndicat-accent-rgb), 0.3);
+            color: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        .hero-tile i {
+            font-size: 1.4rem;
+            color: var(--syndicat-accent);
+        }
+        .hero-tile span {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* ─── Inline Panel ─── */
+        .hero-panel {
+            display: none;
+        }
+        .hero-panel-desc {
+            font-size: 0.83rem;
+            color: rgba(255,255,255,0.55);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        .hero-panel-scrollable {
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .hero-panel-scrollable::-webkit-scrollbar { width: 4px; }
+        .hero-panel-scrollable::-webkit-scrollbar-track { background: transparent; }
+        .hero-panel-scrollable::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+        .hero-panel-primary-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--syndicat-accent-gradient);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            justify-content: center;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 18px rgba(var(--syndicat-accent-rgb), 0.35);
+        }
+        .hero-panel-primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(var(--syndicat-accent-rgb), 0.5);
+        }
+        .hero-panel-input {
+            width: 100%;
+            padding: 0.65rem 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .hero-panel-input:focus {
+            border-color: rgba(var(--syndicat-accent-rgb), 0.5);
+        }
+        [data-theme="light"] .hero-tile {
+            background: rgba(0,0,0,0.03);
+            border-color: rgba(0,0,0,0.08);
+            color: #64748b;
+        }
+        [data-theme="light"] .hero-tile:hover {
+            background: rgba(var(--syndicat-accent-rgb), 0.08);
+        }
+        [data-theme="light"] .hero-panel-input {
+            background: #fff;
+            border-color: #e2e8f0;
+            color: #1e293b;
+        }
+        [data-theme="light"] .hero-qa-trigger {
+            color: var(--syndicat-accent);
+        }
     </style>
     <style>
         /* Essential for scrolling: make form a flex container */
@@ -352,6 +967,34 @@
         </div>
     </div>
 </div>
+<script>
+(function() {
+    const loader = document.getElementById('pageLoader');
+    if (!loader) return;
+
+    let dismissed = false;
+    const dismiss = () => {
+        if (dismissed) return;
+        dismissed = true;
+        setTimeout(() => {
+            loader.style.transition = 'opacity 0.4s ease';
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 400);
+        }, 100);
+    };
+
+    // Listen for the custom "video-bg-ready" event
+    document.addEventListener('video-bg-ready', dismiss, { once: true });
+
+    // Immediate check: if video already signaled before we parsed this script
+    if (window.videoBgReady) {
+        dismiss();
+    }
+
+    // Ultimate safety: dismiss after 4s (large profile page)
+    setTimeout(dismiss, 4000);
+})();
+</script>
 
 <div class="main-home-layout-wrapper">
     <div class="main-home-page">
@@ -360,8 +1003,24 @@
 
         <div class="main-home-content-wrapper">
             <div class="container-xxl">
-                <!-- Profile Header: user data from user table -->
-                <div class="row mb-4">
+                
+                <!-- Main Pagination Navigation -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="profile-main-nav-container">
+                            <div class="profile-main-nav-item active" data-main-page="1">
+                                <i class="bx bx-id-card"></i> Overview
+                            </div>
+                            <div class="profile-main-nav-item" data-main-page="2">
+                                <i class="bx bx-grid-alt"></i> Activity & Details
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profile-main-page-1" class="profile-main-page active">
+                    <!-- Profile Header: user data from user table -->
+                    <div class="row mb-4">
                     <div class="col-12">
                         <div class="main-home-profile-header">
                             <div class="main-home-profile-banner">
@@ -383,46 +1042,469 @@
                                     </form>
                                 </div>
                                 <div class="main-home-profile-details">
-                                    <h1 class="main-home-profile-name">{{ user.firstName }} {{ user.lastName }}</h1>
-                                    <p class="main-home-profile-title">{{ user.roleUser }}</p>
-                                    <p class="main-home-profile-location">
-                                        <i class="bx bx-envelope"></i> {{ user.emailUser }}
-                                    </p>
-                                    <div class="main-home-profile-stats">
-                                        <div class="main-home-stat-item">
-                                            <span class="main-home-stat-label">Account created</span>
-                                            <span class="main-home-stat-number">{{ user.createdAt|date('d/m/Y') }}</span>
+                                    {# === DEFAULT HERO INFO (visible when switcher is closed) === #}
+                                    <div id="hero-default-info">
+                                        <h1 class="main-home-profile-name">{{ user.firstName }} {{ user.lastName }}</h1>
+                                        <p class="main-home-profile-title">{{ user.roleUser }}</p>
+                                        <p class="main-home-profile-location">
+                                            <i class="bx bx-envelope"></i> {{ user.emailUser }}
+                                        </p>
+                                        <div class="main-home-profile-stats">
+                                            <div class="main-home-stat-item">
+                                                <span class="main-home-stat-label">Account created</span>
+                                                <span class="main-home-stat-number">{{ user.createdAt|date('d/m/Y') }}</span>
+                                            </div>
+                                            <div class="main-home-stat-item">
+                                                <span class="main-home-stat-label">Status</span>
+                                                <span class="main-home-stat-number">{{ user.isVerified ? 'Verified' : 'Pending verification' }}</span>
+                                            </div>
                                         </div>
-                                        <div class="main-home-stat-item">
-                                            <span class="main-home-stat-label">Status</span>
-                                            <span class="main-home-stat-number">{{ user.isVerified ? 'Verified' : 'Pending verification' }}</span>
+                                        <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+                                            <button type="button" id="hero-quick-actions-btn" class="hero-qa-trigger">
+                                                <i class="bx bx-grid-alt"></i>
+                                                <span>Quick Actions</span>
+                                                <i class="bx bx-chevron-right hero-qa-chevron"></i>
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="main-home-profile-actions" style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
-        <button type="button" class="main-home-btn main-home-btn-primary" id="host-conference-btn" title="Host Video Conference" style="background: rgba(var(--syndicat-accent-rgb), 0.2); border-color: rgba(var(--syndicat-accent-rgb), 0.3);">
-            <i class="bx bx-video"></i> Host Conference
-        </button>
-        <button type="button" class="main-home-btn main-home-btn-primary" id="twofa-settings-open" title="Two-Factor Authentication" style="background: rgba(var(--syndicat-accent-rgb), 0.2); border-color: rgba(var(--syndicat-accent-rgb), 0.3);">
-            <i class="bx bx-shield-quarter"></i> 2FA
-        </button>
-        <button type="button" class="main-home-btn main-home-btn-primary" id="webauthn-settings-open" title="Biometric Security" style="background: rgba(var(--syndicat-accent-rgb), 0.2); border-color: rgba(var(--syndicat-accent-rgb), 0.3);">
-            <i class="bx bx-fingerprint"></i> Biometrics
-        </button>
-        <button type="button" class="main-home-btn main-home-btn-primary" id="faceid-enroll-open" title="Face Recognition" style="background: rgba(var(--syndicat-accent-rgb), 0.2); border-color: rgba(var(--syndicat-accent-rgb), 0.3);">
-            <i class="bx bx-camera-home"></i> Face ID
-        </button>
-        <button type="button" class="main-home-btn main-home-btn-primary" id="profile-settings-open" title="Profile settings">
-            <i class="bx bx-cog"></i> Profile settings
-        </button>
-    </div>
+
+                                    {# === SWITCHER — tile grid (hidden until Quick Actions is tapped) === #}
+                                    <div id="hero-switcher" class="hero-switcher" style="display:none;">
+                                        <div class="hero-switcher-topbar">
+                                            <button type="button" id="hero-switcher-back" class="hero-switcher-back">
+                                                <i class="bx bx-arrow-back"></i>
+                                            </button>
+                                            <span class="hero-switcher-title">Quick Actions</span>
+                                        </div>
+                                        <div class="hero-tile-grid">
+                                            <button class="hero-tile" data-panel="host">
+                                                <i class="bx bx-video"></i>
+                                                <span>Host Spotlight</span>
+                                            </button>
+                                            <button class="hero-tile" data-panel="join">
+                                                <i class="bx bx-hash"></i>
+                                                <span>Join by Code</span>
+                                            </button>
+                                            <button class="hero-tile" data-panel="2fa">
+                                                <i class="bx bx-shield-quarter"></i>
+                                                <span>2FA</span>
+                                            </button>
+                                            <button class="hero-tile" data-panel="biometrics">
+                                                <i class="bx bx-fingerprint"></i>
+                                                <span>Biometrics</span>
+                                            </button>
+                                            <button class="hero-tile" data-panel="faceid">
+                                                <i class="bx bx-camera-home"></i>
+                                                <span>Face ID</span>
+                                            </button>
+                                            <button class="hero-tile" data-panel="settings">
+                                                <i class="bx bx-cog"></i>
+                                                <span>Settings</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {# === INLINE PANELS (shown one at a time within the hero) === #}
+                                    <div id="hero-panel-host" class="hero-panel" style="display:none;">
+                                        <div class="hero-panel-topbar">
+                                            <button type="button" class="hero-panel-back"><i class="bx bx-arrow-back"></i></button>
+                                            <span><i class="bx bx-video"></i> Host Spotlight</span>
+                                        </div>
+                                        <p class="hero-panel-desc">Start a video spotlight session and invite residents to join.</p>
+                                        <button type="button" class="hero-panel-primary-btn confer-host-trigger" id="host-conference-btn">
+                                            <i class="bx bx-video"></i> Start Spotlight
+                                        </button>
+                                    </div>
+
+                                    <div id="hero-panel-join" class="hero-panel" style="display:none;">
+                                        <div class="hero-panel-topbar">
+                                            <button type="button" class="hero-panel-back"><i class="bx bx-arrow-back"></i></button>
+                                            <span><i class="bx bx-hash"></i> Join by Code</span>
+                                        </div>
+                                        <p class="hero-panel-desc">Enter a room code to join an existing spotlight session.</p>
+                                        <button type="button" class="hero-panel-primary-btn confer-join-trigger" id="join-conference-btn">
+                                            <i class="bx bx-hash"></i> Join Session
+                                        </button>
+                                    </div>
+
+                                    <div id="hero-panel-2fa" class="hero-panel" style="display:none;">
+                                        <div class="hero-panel-topbar">
+                                            <button type="button" class="hero-panel-back"><i class="bx bx-arrow-back"></i></button>
+                                            <span><i class="bx bx-shield-quarter"></i> Two-Factor Auth</span>
+                                        </div>
+                                        <div class="hero-panel-scrollable" id="hero-2fa-body">
+                                            {# cloned/mirrored from twofa-settings-modal body — AJAX works via same IDs #}
+                                            <div class="glass-form-group mb-3">
+                                                <div class="d-flex align-items-center justify-content-between p-3" style="background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                                    <div>
+                                                        <div style="font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 0.25rem;">Two-Factor Authentication</div>
+                                                        <div id="hero-twofa-status-text" style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">
+                                                            {% if two_factor_enabled|default(user.twoFactorEnabled) %}Enabled{% else %}Disabled{% endif %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="hero-twofa-toggle" {% if two_factor_enabled|default(user.twoFactorEnabled) %}checked{% endif %} style="width: 3rem; height: 1.5rem; cursor: pointer;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div id="hero-twofa-sections" style="display: {% if two_factor_enabled|default(user.twoFactorEnabled) %}block{% else %}none{% endif %};">
+                                                <div class="glass-form-group mb-2" style="font-size:0.85rem; color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.04); border-radius:12px; padding:0.9rem;">
+                                                    <i class="bx bx-envelope me-1"></i> <strong>Email OTP</strong> — A code is sent to your email at each login.
+                                                    <button type="button" class="btn btn-outline-light btn-sm mt-2 d-block w-100" id="hero-twofa-test-email" style="border-radius:8px;">
+                                                        <i class="bx bx-send"></i> Send Test Code
+                                                    </button>
+                                                </div>
+                                                <div class="glass-form-group" style="font-size:0.85rem; color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.04); border-radius:12px; padding:0.9rem;">
+                                                    <i class="bx bx-mobile me-1"></i> <strong>Authenticator App (TOTP)</strong>
+                                                    <div id="hero-twofa-totp-conf" style="display:{% if totp_configured|default(user.totpSecret) %}block{% else %}none{% endif %}; margin-top:0.5rem;">
+                                                        <div style="color:rgba(34,197,94,0.9); font-size:0.8rem;"><i class="bx bx-check-circle"></i> Configured</div>
+                                                        <button type="button" class="btn btn-outline-danger btn-sm mt-2 w-100" id="hero-twofa-remove-totp" style="border-radius:8px;"><i class="bx bx-trash"></i> Remove</button>
+                                                    </div>
+                                                    <div id="hero-twofa-totp-setup" style="display:{% if totp_configured|default(user.totpSecret) %}none{% else %}block{% endif %}; margin-top:0.5rem;">
+                                                        <button type="button" class="btn btn-outline-light btn-sm w-100" id="hero-twofa-setup-totp" style="border-radius:8px;"><i class="bx bx-qr-scan"></i> Setup Authenticator</button>
+                                                    </div>
+
+                                                    {# TOTP QR STEP (INLINED) #}
+                                                    <div id="hero-twofa-totp-qr-step" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                                                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-bottom: 0.75rem; text-align: center;">Scan this QR with your app:</div>
+                                                        <div id="hero-totp-qr-code" style="background: #fff; padding: 10px; border-radius: 12px; margin: 0 auto 1rem; width: 140px; height: 140px;">
+                                                            <div class="text-center"><i class="bx bx-loader-alt bx-spin" style="color:#000;"></i></div>
+                                                        </div>
+                                                        <div id="hero-totp-secret-display" style="display:none; text-align:center; margin-bottom:0.75rem;">
+                                                            <div style="font-size:0.65rem; color:rgba(255,255,255,0.4);">Or enter manually:</div>
+                                                            <code id="hero-totp-secret-text" style="font-size:0.85rem; color:var(--syndicat-accent); font-weight:bold; letter-spacing:1px;"></code>
+                                                        </div>
+                                                        <input type="text" id="hero-totp-verify-code" class="hero-panel-input mb-2" placeholder="6-digit code" maxlength="6" style="text-align: center; letter-spacing: 4px; font-weight: bold;">
+                                                        <button type="button" class="hero-panel-primary-btn" id="hero-totp-verify-btn">Verify & Activate</button>
+                                                        <button type="button" class="btn btn-link btn-sm w-100 mt-1" id="hero-totp-cancel" style="color:rgba(255,255,255,0.4); text-decoration:none; font-size:0.7rem;">Cancel</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="hero-panel-biometrics" class="hero-panel" style="display:none;">
+                                        <div class="hero-panel-topbar">
+                                            <button type="button" class="hero-panel-back"><i class="bx bx-arrow-back"></i></button>
+                                            <span><i class="bx bx-fingerprint"></i> Biometrics</span>
+                                        </div>
+                                        <p class="hero-panel-desc">Use your device's biometrics (FaceID, TouchID, Windows Hello) to log in faster.</p>
+                                        <div id="hero-webauthn-list" class="mb-3">
+                                            <div class="text-center py-2" style="color:rgba(255,255,255,0.4); font-size:0.85rem;"><i class="bx bx-loader-alt bx-spin"></i> Loading...</div>
+                                        </div>
+                                        <button type="button" class="hero-panel-primary-btn" id="hero-webauthn-register">
+                                            <i class="bx bx-plus"></i> Register New Device
+                                        </button>
+                                    </div>
+
+                                    <div id="hero-panel-faceid" class="hero-panel" style="display:none;">
+                                        <div class="hero-panel-topbar">
+                                            <button type="button" class="hero-panel-back"><i class="bx bx-arrow-back"></i></button>
+                                            <span><i class="bx bx-camera-home"></i> Face ID</span>
+                                        </div>
+                                        <div id="hero-faceid-step-1">
+                                            <p class="hero-panel-desc">Protect your account with local Face ID. This only works on this PC.</p>
+                                            <input type="password" id="hero-faceid-pin" class="hero-panel-input" placeholder="Enter a local PIN for encryption">
+                                            <small style="color:rgba(255,255,255,0.4); font-size:0.75rem; display:block; margin-top:0.4rem;">This PIN encrypts your Face ID locally.</small>
+                                            <button class="hero-panel-primary-btn mt-3" id="hero-faceid-start-capture">
+                                                <i class="bx bx-face"></i> Start Enrollment
+                                            </button>
+                                        </div>
+                                        <div id="hero-faceid-step-2" style="display:none;">
+                                            <div style="position:relative; width:100%; aspect-ratio:4/3; background:#000; border-radius:12px; overflow:hidden; margin-bottom:0.75rem;">
+                                                <video id="hero-faceid-video" autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+                                                <canvas id="hero-faceid-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
+                                                <div id="hero-faceid-hint" style="position:absolute;bottom:0;left:0;right:0;padding:0.5rem;background:rgba(0,0,0,0.5);font-size:0.75rem;color:#fff;">Looking for face...</div>
+                                            </div>
+                                            <div class="progress mb-2" style="height:8px;background:rgba(255,255,255,0.1);border-radius:100px;">
+                                                <div id="hero-faceid-progress" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width:0%;border-radius:100px;"></div>
+                                            </div>
+                                            <p id="hero-faceid-instruction" style="font-size:0.8rem;color:rgba(255,255,255,0.6);">Look straight at the camera, then turn slightly.</p>
+                                        </div>
+                                    </div>
+
+                                    <div id="hero-panel-settings" class="hero-panel" style="display:none;">
+                                        <div class="hero-panel-topbar">
+                                            <button type="button" class="hero-panel-back"><i class="bx bx-arrow-back"></i></button>
+                                            <span><i class="bx bx-cog"></i> Profile Settings</span>
+                                        </div>
+                                        <div class="hero-panel-scrollable">
+                                            {% if profileForm is defined %}
+                                            {{ form_start(profileForm, { 'attr': { 'id': 'profile-settings-form', 'class': '', 'data-ajax': 'true' } }) }}
+                                            
+                                            {# AVATAR SECTION IN HERO #}
+                                            <div class="glass-avatar-section mb-4" style="text-align: center;">
+                                                <div class="glass-avatar-wrapper mx-auto" onclick="document.getElementById('profile_avatarFile').click()" style="width: 100px; height: 100px; border-radius: 30px; position: relative; overflow: hidden; cursor: pointer; border: 2px solid rgba(255,255,255,0.1);">
+                                                    {% if profile.avatar %}
+                                                        <img src="{{ asset(profile.avatar) }}" alt="Avatar" id="hero-avatar-preview" style="width:100%; height:100%; object-fit:cover;">
+                                                    {% else %}
+                                                        <img src="https://ui-avatars.com/api/?name={{ user.firstName }}+{{ user.lastName }}&background=random" alt="Avatar" id="hero-avatar-preview" style="width:100%; height:100%; object-fit:cover;">
+                                                    {% endif %}
+                                                    <div class="glass-avatar-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s;">
+                                                        <i class="bx bx-camera" style="font-size: 1.5rem; color:#fff;"></i>
+                                                    </div>
+                                                </div>
+                                                <style>.glass-avatar-wrapper:hover .glass-avatar-overlay { opacity: 1 !important; }</style>
+                                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 0.5rem;">Click to change avatar</div>
+                                                {{ form_widget(profileForm.avatarFile, {'attr': {'id': 'profile_avatarFile', 'class': 'd-none', 'accept': 'image/*', 'onchange': 'if(typeof previewAvatar === "function") previewAvatar(this, "hero-avatar-preview")'}}) }}
+                                            </div>
+
+                                            <div class="glass-form-group mb-2">
+                                                {{ form_label(profileForm.description_profile, 'Bio', { 'label_attr': { 'class': 'glass-label' } }) }}
+                                                {{ form_widget(profileForm.description_profile, { 'attr': { 'class': 'glass-textarea', 'placeholder': 'Tell us a bit about yourself...' } }) }}
+                                                <div id="description_profile-validation" data-field="description_profile" class="main-home-validation-message"></div>
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-12">
+                                                    {{ form_label(profileForm.phone, 'Phone', { 'label_attr': { 'class': 'glass-label' } }) }}
+                                                    {{ form_widget(profileForm.phone, { 'attr': { 'class': 'glass-input' } }) }}
+                                                    <div id="phone-validation" data-field="phone" class="main-home-validation-message"></div>
+                                                </div>
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-4">
+                                                    {{ form_label(profileForm.theme, 'Theme', { 'label_attr': { 'class': 'glass-label' } }) }}
+                                                    {{ form_widget(profileForm.theme, { 'attr': { 'class': 'glass-select' } }) }}
+                                                </div>
+                                                <div class="col-4">
+                                                    {{ form_label(profileForm.locale, 'Language', { 'label_attr': { 'class': 'glass-label' } }) }}
+                                                    {{ form_widget(profileForm.locale, { 'attr': { 'class': 'glass-select' } }) }}
+                                                </div>
+                                                <div class="col-4">
+                                                    {{ form_label(profileForm.timezone, 'Timezone', { 'label_attr': { 'class': 'glass-label' } }) }}
+                                                    {{ form_widget(profileForm.timezone, { 'attr': { 'class': 'glass-input' } }) }}
+                                                </div>
+                                            </div>
+                                            <div class="glass-section-title" style="font-size:0.8rem; margin-bottom:0.5rem;"><i class="bx bx-shield-quarter"></i> Security</div>
+                                            <div class="glass-form-group mb-2">
+                                                {{ form_label(profileForm.currentPassword, 'Current Password', { 'label_attr': { 'class': 'glass-label' } }) }}
+                                                {{ form_widget(profileForm.currentPassword, { 'attr': { 'class': 'glass-input', 'placeholder': 'Required to change password' } }) }}
+                                                <div id="currentPassword-validation" data-field="currentPassword" class="main-home-validation-message"></div>
+                                            </div>
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-6">
+                                                    {{ form_label(profileForm.newPassword.first, 'New Password', { 'label_attr': { 'class': 'glass-label' } }) }}
+                                                    {{ form_widget(profileForm.newPassword.first, { 'attr': { 'class': 'glass-input', 'minlength': '6' } }) }}
+                                                    <div id="newPassword_first-validation" data-field="first" class="main-home-validation-message"></div>
+                                                </div>
+                                                <div class="col-6">
+                                                    {{ form_label(profileForm.newPassword.second, 'Confirm', { 'label_attr': { 'class': 'glass-label' } }) }}
+                                                    {{ form_widget(profileForm.newPassword.second, { 'attr': { 'class': 'glass-input', 'data-match': 'first' } }) }}
+                                                    <div id="newPassword_second-validation" data-field="second" class="main-home-validation-message"></div>
+                                                </div>
+                                            </div>
+                                            <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                                                <button type="submit" id="hero-settings-save" class="hero-panel-primary-btn" style="width:auto; padding:0.6rem 1.5rem;">
+                                                    <i class="bx bx-save"></i> Save Changes
+                                                </button>
+                                            </div>
+                                            {{ form_end(profileForm) }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Discord Style Standing & Circle Row -->
+                    <div class="row g-4 mb-5">
+                        <div class="col-lg-7">
+                            <div class="main-home-profile-card h-100">
+                                <div class="standing-header-flex">
+                                    <div class="standing-lvl-box">
+                                        <div class="standing-lvl-num">{{ userStanding.level }}</div>
+                                        <div class="standing-lvl-txt">LVL</div>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-white fw-900 mb-1" style="letter-spacing: 1px;">RESIDENT STANDING</h4>
+                                        <p class="text-muted small mb-0">Your status within the Horizon community</p>
+                                    </div>
+                                    <div class="ms-auto text-end">
+                                        <div class="text-white fw-900 h3 mb-0">{{ userStanding.points }}</div>
+                                        <div class="text-muted small fw-bold" style="letter-spacing: 1px;">SYNDIC PTS</div>
+                                    </div>
+                                </div>
+
+                                <div class="discord-standing-container">
+                                    <div class="discord-standing-bar">
+                                        {# Track #}
+                                        <div class="standing-track">
+                                            {% set progressWidth = 0 %}
+                                            {% set trackColor = '#43b581' %}
+                                            {% if userStanding.standingLabel == 'NORMAL' %} 
+                                                {% set progressWidth = 0 %}
+                                                {% set trackColor = '#43b581' %}
+                                            {% elseif userStanding.standingLabel == 'WARNED' %} 
+                                                {% set progressWidth = 33.33 %}
+                                                {% set trackColor = '#faa61a' %}
+                                            {% elseif userStanding.standingLabel == 'SUSPENDED' %} 
+                                                {% set progressWidth = 66.66 %}
+                                                {% set trackColor = '#f04747' %}
+                                            {% elseif userStanding.standingLabel == 'BANNED' %} 
+                                                {% set progressWidth = 100 %}
+                                                {% set trackColor = '#f04747' %}
+                                            {% endif %}
+                                            <div class="standing-track-fill" style="width: {{ progressWidth }}%; background: {{ trackColor }};"></div>
+                                        </div>
+
+                                        {# Steps #}
+                                        <div class="standing-point-wrapper active-state">
+                                            <div class="standing-point active success">
+                                                <i class="bx bx-check"></i>
+                                            </div>
+                                            <span class="standing-point-label">All good!</span>
+                                        </div>
+
+                                        <div class="standing-point-wrapper {{ userStanding.standingLabel in ['WARNED', 'SUSPENDED', 'BANNED'] ? 'active-state' : '' }}">
+                                            <div class="standing-point {{ userStanding.standingLabel in ['WARNED', 'SUSPENDED', 'BANNED'] ? 'active warning' : '' }}">
+                                                <i class="bx bx-error-alt"></i>
+                                            </div>
+                                            <span class="standing-point-label">Limited</span>
+                                        </div>
+
+                                        <div class="standing-point-wrapper {{ userStanding.standingLabel in ['SUSPENDED', 'BANNED'] ? 'active-state' : '' }}">
+                                            <div class="standing-point {{ userStanding.standingLabel in ['SUSPENDED', 'BANNED'] ? 'active danger' : '' }}">
+                                                <i class="bx bx-shield-x"></i>
+                                            </div>
+                                            <span class="standing-point-label">At risk</span>
+                                        </div>
+
+                                        <div class="standing-point-wrapper {{ userStanding.standingLabel == 'BANNED' ? 'active-state' : '' }}">
+                                            <div class="standing-point {{ userStanding.standingLabel == 'BANNED' ? 'active danger' : '' }}">
+                                                <i class="bx bx-x"></i>
+                                            </div>
+                                            <span class="standing-point-label">Suspended</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 pt-4 border-top border-white-5">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-muted small fw-bold" style="letter-spacing: 1px;">XP TOWARDS LEVEL {{ userStanding.level + 1 }}</span>
+                                        <span class="text-white fw-bold small">{{ userStanding.points % 100 }}/100</span>
+                                    </div>
+                                    <div class="mt-2" style="height: 8px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.03);">
+                                        <div style="width: {{ userStanding.points % 100 }}%; height: 100%; background: var(--main-home-accent-gradient); box-shadow: 0 0 15px rgba(var(--main-home-accent-rgb), 0.4);"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-5">
+                            <div class="main-home-profile-card h-100">
+                                {# ── Circle Header ── #}
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <h5 class="text-white fw-800 mb-0" style="letter-spacing: 0.5px;">CIRCLE</h5>
+                                    <div class="d-flex gap-2 ms-auto">
+                                        <span class="glass-badge glass-badge-info" id="circle-friends-badge" style="padding: 0.2rem 0.6rem; font-size: 0.65rem;">{{ friendCount }} FRIENDS</span>
+                                        {% if pendingFriendCount > 0 %}
+                                            <span class="glass-badge glass-badge-danger animate-pulse" id="circle-pending-badge" style="padding: 0.2rem 0.6rem; font-size: 0.65rem; cursor: pointer;" onclick="circleSetTab('pending')">{{ pendingFriendCount }} PENDING</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                {# ── Tab Switcher ── #}
+                                <div class="d-flex gap-2 mb-4" id="circle-tab-switcher">
+                                    <button class="circle-tab-btn active" id="circle-tab-friends" onclick="circleSetTab('friends')" style="flex: 1; padding: 0.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--syndicat-accent-gradient); color: #fff; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; cursor: pointer; transition: all .2s;">
+                                        <i class="bx bx-group me-1"></i> Friends
+                                    </button>
+                                    <button class="circle-tab-btn" id="circle-tab-pending" onclick="circleSetTab('pending')" style="flex: 1; padding: 0.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.5); font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; cursor: pointer; transition: all .2s;">
+                                        <i class="bx bx-bell me-1"></i> Pending{% if pendingFriendCount > 0 %} <span style="background: #f04747; color: #fff; border-radius: 20px; padding: 0 5px; font-size: 0.65rem;">{{ pendingFriendCount }}</span>{% endif %}
+                                    </button>
+                                </div>
+
+                                {# ── Friends Panel ── #}
+                                <div id="circle-panel-friends">
+                                    <div class="friends-grid-platinum">
+                                        {% for friend in sampleFriends %}
+                                            {% set fav = friendAvatarMap[friend.idUser] ?? null %}
+                                            <a href="#" class="friend-card-platinum"
+                                               data-user-id="{{ friend.idUser }}"
+                                               data-name="{{ friend.firstName }} {{ friend.lastName }}"
+                                               title="{{ friend.firstName }} {{ friend.lastName }}">
+                                                <div class="friend-avatar-platinum">
+                                                    {% if fav %}
+                                                        <img src="{{ fav starts with 'http' ? fav : asset(fav) }}" alt="{{ friend.firstName }}">
+                                                    {% else %}
+                                                        <img src="{{ 'https://ui-avatars.com/api/?name=' ~ friend.firstName|url_encode ~ '+' ~ friend.lastName|url_encode ~ '&background=random&color=fff&bold=true' }}" alt="{{ friend.firstName }}">
+                                                    {% endif %}
+                                                </div>
+                                                <span class="friend-name-platinum">{{ friend.firstName }}</span>
+                                            </a>
+                                        {% else %}
+                                            <div class="py-5 text-center w-100">
+                                                <i class="bx bx-user-plus mb-3 d-block" style="font-size: 3.5rem; opacity: 0.05; color: #fff;"></i>
+                                                <p class="text-muted small mb-0 fw-600">No active connections yet.</p>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                {# ── Pending Panel ── #}
+                                <div id="circle-panel-pending" style="display: none;">
+                                    {% if pendingRequests is empty %}
+                                        <div class="py-5 text-center">
+                                            <i class="bx bx-check-circle mb-3 d-block" style="font-size: 3.5rem; opacity: 0.05; color: #fff;"></i>
+                                            <p class="text-muted small mb-0 fw-600">No pending requests.</p>
+                                        </div>
+                                    {% else %}
+                                        <div class="d-flex flex-column gap-2" id="pending-requests-list">
+                                            {% for rel in pendingRequests %}
+                                                {% set sender = rel.status == 'PENDING_FIRST_SECOND' ? rel.userFirst : rel.userSecond %}
+                                                {% set sav = pendingAvatarMap[sender.idUser] ?? null %}
+                                                <div class="pending-request-row d-flex align-items-center gap-3" data-rel-id="{{ rel.id }}" style="padding: 0.75rem; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);">
+                                                    <img src="{% if sav %}{{ sav starts with 'http' ? sav : asset(sav) }}{% else %}{{ 'https://ui-avatars.com/api/?name=' ~ sender.firstName|url_encode ~ '+' ~ sender.lastName|url_encode ~ '&background=random&color=fff&bold=true' }}{% endif %}"
+                                                         alt="{{ sender.firstName }}"
+                                                         style="width: 42px; height: 42px; border-radius: 12px; object-fit: cover; flex-shrink: 0;">
+                                                    <div class="flex-grow-1 overflow-hidden">
+                                                        <div class="text-white fw-700" style="font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ sender.firstName }} {{ sender.lastName }}</div>
+                                                        <div class="text-muted" style="font-size: 0.7rem;">Wants to connect</div>
+                                                    </div>
+                                                    <div class="d-flex gap-1 flex-shrink-0">
+                                                        <button class="btn-accept-request" data-rel-id="{{ rel.id }}" title="Accept"
+                                                            style="width: 32px; height: 32px; border-radius: 10px; border: none; background: rgba(67,181,129,0.2); color: #43b581; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: all .2s;">
+                                                            <i class="bx bx-check"></i>
+                                                        </button>
+                                                        <button class="btn-decline-request" data-rel-id="{{ rel.id }}" title="Decline"
+                                                            style="width: 32px; height: 32px; border-radius: 10px; border: none; background: rgba(240,71,71,0.15); color: #f04747; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: all .2s;">
+                                                            <i class="bx bx-x"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                {# ── Search Section ── #}
+                                <div class="mt-4 pt-4 border-top border-white-5 resident-search-container">
+                                    <div class="search-trigger-wrapper">
+                                        <button class="main-home-btn-auth-submit w-100 btn-resident-search-trigger" style="padding: 1rem; font-size: 0.85rem; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">
+                                            <i class="bx bx-search-alt me-2"></i> Explore Community
+                                        </button>
+                                    </div>
+                                    <div class="search-input-wrapper d-none">
+                                        <div class="position-relative">
+                                            <input type="text" class="form-control resident-search-input" placeholder="Search by name..."
+                                                   style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: #fff; padding: 1rem 3rem 1rem 1.5rem; font-size: 0.9rem;">
+                                            <i class="bx bx-x position-absolute btn-search-close" style="right: 1.5rem; top: 50%; transform: translateY(-50%); font-size: 1.5rem; cursor: pointer; color: rgba(255,255,255,0.3);"></i>
+                                        </div>
+                                        <div class="search-results-dropdown-platinum mt-3">
+                                            <!-- Results will appear here -->
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                </div>
 
-                <!-- Sick Pagination Navigation -->
-                <div class="row mb-5">
+                <div id="profile-main-page-2" class="profile-main-page">
+                    <!-- Sick Pagination Navigation -->
+                    <div class="row mb-5">
                     <div class="col-12">
                         <div class="profile-nav-container">
                             <div class="profile-nav-pill active" data-tab="account">
@@ -663,7 +1745,7 @@
                                                             </div>
                                                             {% if appt.imageA %}
                                                                 <div class="mt-3" style="width: 100px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
-                                                                    <img src="{{ asset('uploads/residence/' ~ appt.imageA) }}" alt="Apartment Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="openLightbox(this.src)">
+                                                                    <img src="{{ asset('appartement_images/' ~ appt.imageA) }}" alt="Apartment Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="openLightbox(this.src)">
                                                                 </div>
                                                             {% endif %}
                                                         </div>
@@ -1090,6 +2172,7 @@
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
         </div>
 
@@ -1134,14 +2217,18 @@
             <div id="ob-step-1" class="glass-wizard-step active">
                 <div class="glass-form-group">
                     <label class="glass-label">Language Preference</label>
-                    <div class="glass-wizard-options ob-locale-pills">
-                        {% for val, label in {'fr':'🇫🇷 Français','en':'🇺🇸 English','ar':'🇸🇦 العربية','fr_ar':'🇫🇷🇸🇦 Bilingue FR/AR'} %}
-                        <div class="glass-wizard-opt">
-                            <input type="radio" name="ob_locale_radio" id="ob_locale_{{ val }}" value="{{ val }}" {{ onboarding.selectedLocale == val ? 'checked' : '' }}>
-                            <label for="ob_locale_{{ val }}">{{ label }}</label>
+                    <div class="glass-options-grid">
+                        {% for code, label in {'fr': 'Français', 'en': 'English', 'ar': 'العربية', 'fr_ar': 'Bilingue'} %}
+                        <div class="glass-option-card">
+                            <input type="radio" name="ob_locale_radio" id="loc_{{ code }}" value="{{ code }}" {% if onboarding.selectedLocale == code %}checked{% endif %}>
+                            <label for="loc_{{ code }}">
+                                <div class="glass-option-icon"><i class="bx bx-globe"></i></div>
+                                <div class="glass-option-label">{{ label }}</div>
+                            </label>
                         </div>
                         {% endfor %}
                     </div>
+                    <div id="selectedLocale-validation" class="main-home-validation-message"></div>
                 </div>
                 <div class="glass-form-group">
                     <label class="glass-label">Theme Mode</label>
@@ -1155,6 +2242,7 @@
                             <label for="ob_theme_dark"><i class="bx bx-moon"></i> Dark</label>
                         </div>
                     </div>
+                    <div id="selectedTheme-validation" class="main-home-validation-message"></div>
                 </div>
             </div>
 
@@ -1331,6 +2419,7 @@
                 <div class="glass-form-group">
                     <label class="glass-label">Additional Suggestions</label>
                     {{ form_widget(onboardingForm.suggestions, { 'attr': { 'class': 'glass-textarea', 'placeholder': 'Tell us more about your specific needs or ideas...' } }) }}
+                    <div id="suggestions-validation" class="main-home-validation-message"></div>
                 </div>
             </div>
 
@@ -1350,366 +2439,9 @@
     </div>
 </div>
 {% endif %}
-<div id="profile-settings-modal" class="glass-modal-overlay">
-    <div class="glass-modal-container">
-        <div class="glass-modal-header">
-            <div>
-                <h3 class="glass-modal-title">Profile Settings</h3>
-                <p class="glass-modal-subtitle">Manage your account details and preferences.</p>
-            </div>
-            <button type="button" class="glass-modal-close" id="profile-settings-modal-close" title="Close">
-                <i class="bx bx-x"></i>
-            </button>
-        </div>
-        
-        {% if profileForm is defined %}
-            {{ form_start(profileForm, { 'attr': { 'id': 'profile-settings-form', 'class': 'glass-modal-form' } }) }}
-            
-            <div class="glass-modal-body">
-                
-                {# AVATAR UPLOAD SECTION #}
-                <div class="glass-avatar-section">
-                    <div class="glass-avatar-wrapper" onclick="document.getElementById('profile_avatarFile').click()">
-                        {% if profile.avatar %}
-                            <img src="{{ asset(profile.avatar) }}" alt="Avatar" id="avatar-preview">
-                        {% else %}
-                            <img src="https://ui-avatars.com/api/?name={{ user.firstName }}+{{ user.lastName }}&background=random" alt="Avatar" id="avatar-preview">
-                        {% endif %}
-                        <div class="glass-avatar-overlay">
-                            <i class="bx bx-camera"></i>
-                        </div>
-                    </div>
-                    <div class="glass-avatar-info">
-                        CHANGE PROFILE PHOTO
-                        <span>Click the image to upload</span>
-                    </div>
-                    {# Hidden File Input #}
-                    {{ form_widget(profileForm.avatarFile, {'attr': {'class': 'd-none', 'accept': 'image/*', 'onchange': 'previewAvatar(this)'}}) }}
-                </div>
-
-                <div class="row g-3">
-                    <div class="col-12">
-                         <div class="glass-form-group">
-                            {{ form_label(profileForm.description_profile, 'Bio / Description', { 'label_attr': { 'class': 'glass-label' } }) }}
-                            {{ form_widget(profileForm.description_profile, { 'attr': { 'class': 'glass-textarea', 'placeholder': 'Tell us a bit about yourself...' } }) }}
-                            {{ form_errors(profileForm.description_profile) }}
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="glass-form-group">
-                            {{ form_label(profileForm.phone, 'Phone Number', { 'label_attr': { 'class': 'glass-label' } }) }}
-                            {{ form_widget(profileForm.phone, { 'attr': { 'class': 'glass-input' } }) }}
-                            {{ form_errors(profileForm.phone) }}
-                        </div>
-                    </div>
-
-                    <div class="col-md-2">
-                        <div class="glass-form-group">
-                            {{ form_label(profileForm.theme, 'Theme', { 'label_attr': { 'class': 'glass-label' } }) }}
-                            {{ form_widget(profileForm.theme, { 'attr': { 'class': 'glass-select' } }) }}
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="glass-form-group">
-                            {{ form_label(profileForm.locale, 'Language', { 'label_attr': { 'class': 'glass-label' } }) }}
-                            {{ form_widget(profileForm.locale, { 'attr': { 'class': 'glass-select' } }) }}
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="glass-form-group">
-                            {{ form_label(profileForm.timezone, 'Timezone', { 'label_attr': { 'class': 'glass-label' } }) }}
-                            {{ form_widget(profileForm.timezone, { 'attr': { 'class': 'glass-input' } }) }}
-                        </div>
-                    </div>
-                </div>
 
 
-                <!-- Security Section -->
-                <div class="glass-section-title">
-                    <i class="bx bx-shield-quarter"></i> Security & Password
-                </div>
-                
-                <div class="glass-form-group">
-                    {{ form_label(profileForm.currentPassword, 'Current Password', { 'label_attr': { 'class': 'glass-label' } }) }}
-                    {{ form_widget(profileForm.currentPassword, { 'attr': { 'class': 'glass-input', 'placeholder': 'Required to change password' } }) }}
-                    {{ form_errors(profileForm.currentPassword) }}
-                </div>
 
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="glass-form-group">
-                            {{ form_label(profileForm.newPassword.first, 'New Password', { 'label_attr': { 'class': 'glass-label' } }) }}
-                            {{ form_widget(profileForm.newPassword.first, { 'attr': { 'class': 'glass-input', 'placeholder': 'Min 6 characters' } }) }}
-                            {{ form_errors(profileForm.newPassword.first) }}
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="glass-form-group">
-                            {{ form_label(profileForm.newPassword.second, 'Confirm Password', { 'label_attr': { 'class': 'glass-label' } }) }}
-                            {{ form_widget(profileForm.newPassword.second, { 'attr': { 'class': 'glass-input', 'placeholder': 'Repeat new password' } }) }}
-                            {{ form_errors(profileForm.newPassword.second) }}
-                        </div>
-                    </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="glass-modal-footer">
-                <button type="button" class="glass-btn-cancel" id="profile-settings-modal-cancel">Cancel</button>
-                <button type="submit" class="glass-btn-save">
-                    <i class="bx bx-save"></i> Save Changes
-                </button>
-            </div>
-
-            {{ form_end(profileForm) }}
-        {% endif %}
-    </div>
-</div>
-
-    <!-- Face ID Enrollment Modal -->
-    <div id="faceid-enroll-modal" class="glass-modal-overlay">
-        <div class="glass-modal-container" style="max-width: 500px;">
-            <div class="glass-modal-header">
-                <h2 class="glass-modal-title"><i class="bx bx-camera"></i> Enroll Face ID</h2>
-                <button class="glass-modal-close" id="faceid-enroll-modal-close">&times;</button>
-            </div>
-            <div class="glass-modal-body text-center">
-                <div id="faceid-enroll-step-1">
-                    <p class="text-white-50 mb-4">Protect your account with local Face ID. This only works on this PC.</p>
-                    <div class="mb-4">
-                        <input type="password" id="faceid-pin" class="form-control bg-dark text-white border-secondary" placeholder="Enter a local PIN for encryption" style="border-radius: 12px; padding: 0.75rem;">
-                        <small class="text-muted mt-2 d-block">This PIN is used to encrypt your Face ID locally.</small>
-                    </div>
-                    <button class="main-home-btn main-home-btn-primary w-100" id="faceid-start-capture">
-                        Start Enrollment
-                    </button>
-                </div>
-
-                <div id="faceid-enroll-step-2" style="display: none;">
-                    <div class="position-relative mb-3" style="width: 100%; aspect-ratio: 4/3; background: #000; border-radius: 16px; overflow: hidden;">
-                        <video id="faceid-video" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
-                        <canvas id="faceid-canvas" class="position-absolute top-0 start-0" style="width: 100%; height: 100%;"></canvas>
-                        <div id="faceid-liveness-hint" class="position-absolute bottom-0 start-0 e-100 p-2 text-white" style="background: rgba(0,0,0,0.5); font-size: 0.8rem; width: 100%;">
-                            Looking for face...
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3 d-flex flex-column align-items-center">
-                        <select id="faceid-camera-select" class="form-select bg-dark text-white border-secondary mb-2" style="border-radius: 12px; font-size: 0.85rem; max-width: 300px; display: none;">
-                            <option value="">Default Camera</option>
-                        </select>
-                        <button type="button" id="faceid-switch-camera" class="btn btn-sm btn-outline-light" style="font-size: 0.75rem; border-radius: 100px; padding: 0.4rem 1rem; display: none;">
-                            <i class="bx bx-sync"></i> Switch Camera
-                        </button>
-                    </div>
-
-                    <div class="progress mb-3" style="height: 10px; background: rgba(255,255,255,0.1); border-radius: 100px;">
-                        <div id="faceid-progress" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 0%; border-radius: 100px;"></div>
-                    </div>
-                    <p id="faceid-instruction" class="text-white small">Look straight at the camera, then turn slightly.</p>
-                </div>
-            </div>
-            <div class="glass-modal-footer">
-                <button type="button" class="glass-btn-cancel" id="faceid-enroll-modal-cancel">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-<!-- Two-Factor Authentication Modal -->
-<div id="twofa-settings-modal" class="glass-modal-overlay">
-    <div class="glass-modal-container" style="max-width: 550px;">
-        <div class="glass-modal-header">
-            <div>
-                <h3 class="glass-modal-title"><i class="bx bx-shield-quarter"></i> Two-Factor Authentication</h3>
-                <p class="glass-modal-subtitle">Add an extra layer of security to your account.</p>
-            </div>
-            <button type="button" class="glass-modal-close" id="twofa-settings-modal-close" title="Close">
-                <i class="bx bx-x"></i>
-            </button>
-        </div>
-        
-        <div class="glass-modal-body">
-            <!-- Status Section -->
-            <div class="glass-form-group mb-4">
-                <div class="d-flex align-items-center justify-content-between p-3" style="background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-                    <div>
-                        <div style="font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 0.25rem;">Two-Factor Authentication</div>
-                        <div id="twofa-status-text" style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">
-                            {% if two_factor_enabled|default(user.twoFactorEnabled) %}Enabled{% else %}Disabled{% endif %}
-                        </div>
-                    </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="twofa-toggle" {% if two_factor_enabled|default(user.twoFactorEnabled) %}checked{% endif %} style="width: 3rem; height: 1.5rem; cursor: pointer;">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Email OTP Section -->
-            <div id="twofa-email-section" class="glass-form-group mb-4" {% if not (two_factor_enabled|default(user.twoFactorEnabled)) %}style="display: none;"{% endif %}>
-                <div class="glass-section-title" style="font-size: 0.9rem; margin-bottom: 0.75rem;">
-                    <i class="bx bx-envelope"></i> Email Verification
-                </div>
-                <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 1rem;">
-                    When enabled, you'll receive a 6-digit code via email each time you sign in.
-                </p>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-outline-light flex-fill" id="twofa-test-email" style="border-radius: 8px;">
-                        <i class="bx bx-send"></i> Send Test Code
-                    </button>
-                </div>
-            </div>
-
-            <!-- TOTP Section -->
-            <div id="twofa-totp-section" class="glass-form-group mb-4" {% if not (two_factor_enabled|default(user.twoFactorEnabled)) %}style="display: none;"{% endif %}>
-                <div class="glass-section-title" style="font-size: 0.9rem; margin-bottom: 0.75rem;">
-                    <i class="bx bx-mobile"></i> Authenticator App (TOTP)
-                </div>
-                <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 1rem;">
-                    Use apps like Google Authenticator, Authy, or Microsoft Authenticator for faster verification.
-                </p>
-                
-                <div id="twofa-totp-configured-block" style="display: {% if totp_configured|default(user.totpSecret) %}block{% else %}none{% endif %};">
-                    <div class="alert alert-success" style="background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: rgba(34,197,94,0.9); border-radius: 8px; padding: 0.75rem;">
-                        <i class="bx bx-check-circle"></i> Authenticator app is already configured.
-                    </div>
-                    <button type="button" class="btn btn-outline-danger w-100" id="twofa-remove-totp" style="border-radius: 8px; margin-top: 0.5rem;">
-                        <i class="bx bx-trash"></i> Remove Authenticator
-                    </button>
-                </div>
-                <div id="twofa-totp-setup-block" style="display: {% if totp_configured|default(user.totpSecret) %}none{% else %}block{% endif %};">
-                    <button type="button" class="btn btn-outline-light w-100" id="twofa-setup-totp-btn" style="border-radius: 8px;">
-                        <i class="bx bx-qr-scan"></i> Setup Authenticator App
-                    </button>
-                </div>
-            </div>
-
-            <!-- Gmail OAuth: connect this account so the app can send OTP and app emails to any user's email -->
-            {% if is_mailer_oauth_user|default(false) %}
-            <div class="glass-form-group mb-4" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.25rem;">
-                <div class="glass-section-title" style="font-size: 0.9rem; margin-bottom: 0.75rem;">
-                    <i class="bx bx-envelope-open"></i> Gmail for sending app emails
-                </div>
-                <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 1rem;">
-                    Connect your Gmail here so the app can <strong>send</strong> emails. Users never connect Gmail—when someone requests an OTP at sign-in, the code is sent to <strong>their account email</strong> (from the user table).
-                </p>
-                <p style="color: rgba(255,255,255,0.6); font-size: 0.8rem; margin-bottom: 0.75rem;">
-                    In Google Cloud Console → APIs &amp; Services → Credentials → your OAuth 2.0 Client → <strong>Authorized redirect URIs</strong>, add this <em>exact</em> URL:
-                </p>
-                <code style="display: block; padding: 0.5rem 0.75rem; background: rgba(0,0,0,0.3); border-radius: 8px; font-size: 0.8rem; word-break: break-all; margin-bottom: 1rem;">{{ app.request.schemeAndHttpHost }}{{ path('oauth_gmail_callback') }}</code>
-                {% if gmail_oauth_connected|default(false) %}
-                    <div class="alert alert-success mb-2" style="background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: rgba(34,197,94,0.9); border-radius: 8px; padding: 0.75rem;">
-                        <i class="bx bx-check-circle"></i> Gmail connected. The app can send OTP and app emails to any user’s email via your Gmail.
-                    </div>
-                    <form action="{{ path('oauth_gmail_disconnect') }}" method="post" class="d-inline" onsubmit="return confirm('Disconnect Gmail? App will fall back to SMTP for sending.');">
-                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('oauth_gmail_disconnect') }}">
-                        <button type="submit" class="btn btn-outline-danger" style="border-radius: 8px;">
-                            <i class="bx bx-link-external"></i> Disconnect Gmail
-                        </button>
-                    </form>
-                {% else %}
-                    <a href="{{ path('oauth_gmail_connect') }}" class="btn btn-outline-light" style="border-radius: 8px;">
-                        <i class="bx bx-link"></i> Connect Gmail
-                    </a>
-                {% endif %}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="glass-modal-footer">
-            <button type="button" class="glass-btn-cancel" id="twofa-settings-modal-cancel">Close</button>
-        </div>
-    </div>
-</div>
-
-<!-- TOTP QR Code Setup Modal -->
-<div id="totp-qr-modal" class="glass-modal-overlay">
-    <div class="glass-modal-container" style="max-width: 500px;">
-        <div class="glass-modal-header">
-            <div>
-                <h3 class="glass-modal-title"><i class="bx bx-qr-scan"></i> Setup Authenticator App</h3>
-                <p class="glass-modal-subtitle">Scan the QR code with your authenticator app.</p>
-            </div>
-            <button type="button" class="glass-modal-close" id="totp-qr-modal-close" title="Close">
-                <i class="bx bx-x"></i>
-            </button>
-        </div>
-        
-        <div class="glass-modal-body">
-            <div class="glass-form-group">
-                <div class="text-center mb-4">
-                    <div id="totp-qr-code-container" style="display: inline-block; padding: 1.5rem; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 1.5rem;">
-                        <div id="totp-qr-code" style="min-width: 200px; min-height: 200px; display: flex; align-items: center; justify-content: center;">
-                            <div class="text-center">
-                                <i class="bx bx-loader-alt bx-spin" style="font-size: 2rem; color: rgba(255,255,255,0.5);"></i>
-                                <div style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-top: 0.5rem;">Generating QR code...</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.6;">
-                        <strong style="color: rgba(255,255,255,0.9);">Step 1:</strong> Open your authenticator app (Google Authenticator, Authy, Microsoft Authenticator, etc.)<br>
-                        <strong style="color: rgba(255,255,255,0.9);">Step 2:</strong> Scan this QR code<br>
-                        <strong style="color: rgba(255,255,255,0.9);">Step 3:</strong> Enter the 6-digit code below to verify
-                    </div>
-
-                    <div id="totp-manual-entry" style="display: none; margin-bottom: 1rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
-                        <div style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 0.5rem;">Can't scan? Enter this code manually:</div>
-                        <div id="totp-secret-display" style="font-family: 'Courier New', monospace; font-size: 1.1rem; font-weight: 600; color: rgba(255,255,255,0.9); letter-spacing: 0.1em; word-break: break-all;"></div>
-                    </div>
-
-                    <div class="mb-3">
-                        <input type="text" id="totp-verify-code-input" class="form-control bg-dark text-white border-secondary" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem; font-family: 'Courier New', monospace; border-radius: 12px; padding: 1rem; font-weight: 600;">
-                        <small class="text-muted mt-2 d-block" style="color: rgba(255,255,255,0.5);">Enter the code from your authenticator app</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="glass-modal-footer">
-            <button type="button" class="glass-btn-cancel" id="totp-qr-modal-cancel">Cancel</button>
-            <button type="button" class="glass-btn-save" id="totp-qr-verify-btn">
-                <i class="bx bx-check"></i> Verify & Save
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- WebAuthn Modal -->
-<div id="webauthn-settings-modal" class="glass-modal-overlay">
-    <div class="glass-modal-container" style="max-width: 500px;">
-        <div class="glass-modal-header">
-            <div>
-                <h3 class="glass-modal-title"><i class="bx bx-fingerprint"></i> Biometric Security</h3>
-                <p class="glass-modal-subtitle">Manage your passkeys and biometric methods.</p>
-            </div>
-            <button type="button" class="glass-modal-close" id="webauthn-settings-modal-close" title="Close">
-                <i class="bx bx-x"></i>
-            </button>
-        </div>
-        
-        <div class="glass-modal-body">
-            <div class="glass-form-group">
-                <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem;" class="mb-3">
-                    Use your device's biometrics (FaceID, TouchID, Windows Hello) to log in faster.
-                </p>
-                
-                <div id="webauthn-credential-list" class="mb-3">
-                    <!-- Populated by JS -->
-                    <div class="text-center py-2"><i class="bx bx-loader-alt bx-spin"></i> Loading methods...</div>
-                </div>
-
-                <button type="button" class="btn btn-outline-light w-100 d-flex align-items-center justify-content-center gap-2" id="webauthn-register-btn" style="border: 1px dashed rgba(255,255,255,0.3); padding: 0.8rem; border-radius: 12px; transition: all 0.2s;">
-                    <i class="bx bx-plus"></i> Register New Device
-                </button>
-            </div>
-        </div>
-
-        <div class="glass-modal-footer">
-            <button type="button" class="glass-btn-cancel" id="webauthn-settings-modal-cancel">Close</button>
-        </div>
-    </div>
-</div>
 
 <script src="{{ asset('frontend/js/webauthn.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
@@ -1840,27 +2572,14 @@
 
                     const data = await response.json();
                     if (data.success) {
-                        if (typeof showCoolPopup === 'function') {
-                            showCoolPopup('Code Sent', 'Check your email for the verification code', 'success');
-                        } else {
-                            alert('Code sent! Check your email.');
-                        }
+                        window.pushNotif('Code sent! Check your email for the verification code', 'SUCCESS');
                     } else {
-                        if (typeof showCoolPopup === 'function') {
-                            showCoolPopup('Error', data.message || 'Failed to send code', 'error');
-                        } else {
-                            alert(data.message || 'Failed to send code');
-                        }
+                        window.pushNotif(data.message || 'Failed to send code', 'ERROR');
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    if (typeof showCoolPopup === 'function') {
-                        showCoolPopup('Error', 'Failed to send code', 'error');
-                    } else {
-                        alert('Failed to send code');
-                    }
+                    window.pushNotif('Failed to send code', 'ERROR');
                 } finally {
-                    this.innerHTML = originalHtml;
                     this.disabled = false;
                 }
             });
@@ -2018,11 +2737,7 @@
 
                     const data = await response.json();
                     if (data.success) {
-                        if (typeof showCoolPopup === 'function') {
-                            showCoolPopup('Success', 'Authenticator app configured successfully!', 'success');
-                        } else {
-                            alert('Authenticator app configured successfully!');
-                        }
+                        window.pushNotif('Authenticator app configured successfully!', 'SUCCESS');
                         closeTotpQrModal();
                         // Update 2FA modal to show "already configured" immediately
                         if (twofaTotpConfiguredBlock) twofaTotpConfiguredBlock.style.display = 'block';
@@ -2033,11 +2748,7 @@
                         if (twofaTotpSection) twofaTotpSection.style.display = 'block';
                         setTimeout(() => location.reload(), 500);
                     } else {
-                        if (typeof showCoolPopup === 'function') {
-                            showCoolPopup('Error', data.message || 'Invalid code', 'error');
-                        } else {
-                            alert(data.message || 'Invalid code');
-                        }
+                        window.pushNotif(data.message || 'Invalid code', 'ERROR');
                         if (totpVerifyCodeInput) {
                             totpVerifyCodeInput.value = '';
                             totpVerifyCodeInput.focus();
@@ -2045,11 +2756,7 @@
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    if (typeof showCoolPopup === 'function') {
-                        showCoolPopup('Error', 'Failed to verify code', 'error');
-                    } else {
-                        alert('Failed to verify code');
-                    }
+                    window.pushNotif('Failed to verify code', 'ERROR');
                 } finally {
                     this.innerHTML = originalHtml;
                     this.disabled = false;
@@ -2095,26 +2802,14 @@
 
                     const data = await response.json();
                     if (data.success) {
-                        if (typeof showCoolPopup === 'function') {
-                            showCoolPopup('Success', 'Authenticator app removed', 'success');
-                        } else {
-                            alert('Authenticator app removed');
-                        }
+                        window.pushNotif('Authenticator app removed', 'SUCCESS');
                         location.reload();
                     } else {
-                        if (typeof showCoolPopup === 'function') {
-                            showCoolPopup('Error', data.message || 'Failed to remove', 'error');
-                        } else {
-                            alert(data.message || 'Failed to remove');
-                        }
+                        window.pushNotif(data.message || 'Failed to remove', 'ERROR');
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    if (typeof showCoolPopup === 'function') {
-                        showCoolPopup('Error', 'Failed to remove', 'error');
-                    } else {
-                        alert('Failed to remove');
-                    }
+                    window.pushNotif('Failed to remove', 'ERROR');
                 } finally {
                     this.innerHTML = originalHtml;
                     this.disabled = false;
@@ -2249,6 +2944,15 @@
         if (!form) return;
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+
+            // Clear previous errors
+            form.querySelectorAll('.main-home-validation-message').forEach(m => {
+                m.classList.remove('error');
+                m.textContent = '';
+            });
+            form.querySelectorAll('.input-error').forEach(i => i.classList.remove('input-error'));
+            form.querySelectorAll('.input-success').forEach(i => i.classList.remove('input-success'));
+
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalBtnHtml = submitBtn ? submitBtn.innerHTML : null;
             if (submitBtn) {
@@ -2265,26 +2969,36 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    if (typeof showCoolPopup === 'function') {
-                        showCoolPopup('Success', data.message, 'success');
-                    } else { alert(data.message); }
+                    window.pushNotif(data.message || 'Success!', 'SUCCESS');
                     if (onSuccess) onSuccess(data);
-                    else window.location.reload();
+                    else setTimeout(() => window.location.reload(), 800);
                 } else {
-                    let errorMsg = data.message || 'An error occurred.';
-                    if (data.errors && Array.isArray(data.errors)) {
-                        errorMsg += '\n' + data.errors.join('\n');
+                    if (data.errors && typeof data.errors === 'object' && !Array.isArray(data.errors)) {
+                        // data-field based mapping (structured object)
+                        Object.entries(data.errors).forEach(([field, msg]) => {
+                            const container = form.querySelector(`.main-home-validation-message[data-field="${field}"]`) ||
+                                              form.querySelector(`[data-field$="[${field}]"]`) ||
+                                              form.querySelector(`#${field}-validation`);
+                            if (container) {
+                                container.textContent = msg;
+                                container.classList.add('error', 'active');
+                            }
+                            const input = form.querySelector(`[name*="${field}"]`);
+                            if (input) input.classList.add('input-error');
+                        });
+                    } else if (data.errors && Array.isArray(data.errors)) {
+                        // Fallback: flat array of error strings
+                        data.errors.forEach(errStr => {
+                            window.pushNotif(errStr, 'ERROR');
+                        });
+                    } else {
+                        window.pushNotif(data.message || 'An error occurred.', 'ERROR');
                     }
-                    if (typeof showCoolPopup === 'function') {
-                        showCoolPopup('Error', errorMsg, 'error');
-                    } else { alert(errorMsg); }
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                if (typeof showCoolPopup === 'function') {
-                    showCoolPopup('Error', 'A network error occurred.', 'error');
-                } else { alert('A network error occurred.'); }
+                window.pushNotif('A network error occurred.', 'ERROR');
             })
             .finally(() => {
                 if (submitBtn) {
@@ -2407,6 +3121,14 @@
     if (form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+
+            // Clear previous errors
+            form.querySelectorAll('.main-home-validation-message').forEach(m => {
+                m.classList.remove('error');
+                m.textContent = '';
+            });
+            form.querySelectorAll('.input-error').forEach(i => i.classList.remove('input-error'));
+
             const btn = submitBtn;
             const original = btn.innerHTML;
             btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Saving...';
@@ -2585,11 +3307,36 @@
         });
     }
 
-    // Close on Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && lightbox && lightbox.classList.contains('active')) {
             closeLightbox();
         }
+    });
+
+    /* Main Pagination Logic */
+    const mainPills = document.querySelectorAll('.profile-main-nav-item');
+    const mainPages = document.querySelectorAll('.profile-main-page');
+
+    mainPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+            const pageNum = pill.dataset.mainPage;
+            
+            // Update Active Pill
+            mainPills.forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            
+            // Update Active Page
+            mainPages.forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            const activePage = document.getElementById('profile-main-page-' + pageNum);
+            if (activePage) {
+                activePage.classList.add('active');
+                // Scroll to top of content
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
     });
 })();
 </script>
@@ -2812,6 +3559,7 @@ function attachReplyHandler(recId) {
                                                 <textarea name="description" class="glass-textarea w-100 p-3 text-white" 
                                                           placeholder="Write a respectful reply..." rows="2" 
                                                           style="background: transparent !important; border: none !important; resize: none; font-size: 1rem; min-height: 80px;"></textarea>
+                                                <div id="comment-description-{{ pub.id }}-validation" class="main-home-validation-message"></div>
                                                 
                                                 <div id="forum-image-preview-{{ pub.id }}" class="d-none mb-3 mt-2 position-relative d-inline-block">
                                                     <!-- Injected by JS -->
@@ -2860,22 +3608,24 @@ function attachReplyHandler(recId) {
                 <div class="modal-body p-4">
                     <form class="admin-publication-edit-form d-flex flex-column gap-4" data-publication-id="{{ pub.id }}" action="{{ path('api_forum_publication_update', {'id': pub.id}) }}">
                         <div class="glass-form-group">
-                            <label class="glass-label mb-2 fw-bold">Article Headline</label>
-                            <input type="text" name="title" class="glass-input p-3" value="{{ pub.titrePub }}" required>
+                            <label class="glass-label mb-2 fw-bold">Titre</label>
+                            <input type="text" name="titre_pub" class="glass-input p-3" value="{{ pub.titrePub }}" required>
+                            <div id="admin-pub-titre_pub-{{ pub.id }}-validation" data-field="titre_pub" class="main-home-validation-message"></div>
+                        </div>
+                        <div class="glass-form-group">
+                            <label class="glass-label mb-2 fw-bold">Contenu</label>
+                            <textarea name="description_pub" class="glass-textarea p-3" rows="5" required>{{ pub.descriptionPub }}</textarea>
+                            <div id="admin-pub-description_pub-{{ pub.id }}-validation" data-field="description_pub" class="main-home-validation-message"></div>
                         </div>
                         
                         <div class="glass-form-group">
-                            <label class="glass-label mb-2 fw-bold">Brief / Narrative</label>
-                            <textarea name="description" class="glass-textarea p-3" rows="5" required>{{ pub.descriptionPub }}</textarea>
-                        </div>
-                        
-                        <div class="glass-form-group">
-                            <label class="glass-label mb-2 fw-bold">Classification Category</label>
-                            <select name="category" class="glass-select p-3">
+                            <label class="glass-label mb-2 fw-bold">Rubrique / Theme</label>
+                            <select name="categorie_pub" class="glass-select p-3">
                                 {% for cat in ['Announcement', 'Suggestion', 'Jeux Video', 'Informatique', 'Nouveauté', 'Discussion General', 'Culture', 'Sport'] %}
-                                    <option value="{{ cat }}" {{ pub.categoriePub == cat ? 'selected' : '' }}>{{ cat }}</option>
+                                    <option value="{{ cat }}" {% if pub.categoriePub == cat %}selected{% endif %}>{{ cat }}</option>
                                 {% endfor %}
                             </select>
+                            <div id="admin-pub-categorie_pub-{{ pub.id }}-validation" data-field="categorie_pub" class="main-home-validation-message"></div>
                         </div>
 
                         <div class="d-flex gap-3 mt-2">
@@ -2986,21 +3736,25 @@ function attachReplyHandler(recId) {
                         <div class="glass-form-group">
                             <label class="glass-label mb-2 fw-bold">Event Title</label>
                             <input type="text" name="titre_event" id="edit-event-title" class="glass-input p-3" placeholder="Cool Name Here" required>
+                            <div id="edit-event-title-validation" class="main-home-validation-message"></div>
                         </div>
                         
                         <div class="glass-form-group">
                             <label class="glass-label mb-2 fw-bold">Detailed description</label>
                             <textarea name="description_event" id="edit-event-description" class="glass-textarea p-3" rows="4" placeholder="What is it about?" required></textarea>
+                            <div id="edit-event-description-validation" class="main-home-validation-message"></div>
                         </div>
                         
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="glass-label mb-2 fw-bold">Date & Time</label>
                                 <input type="datetime-local" name="date_event" id="edit-event-date" class="glass-input p-3" required>
+                                <div id="edit-event-date-validation" class="main-home-validation-message"></div>
                             </div>
                             <div class="col-md-6">
                                 <label class="glass-label mb-2 fw-bold">Venue / Location</label>
                                 <input type="text" name="lieu_event" id="edit-event-location" class="glass-input p-3" placeholder="Meeting Room B" required>
+                                <div id="edit-event-location-validation" class="main-home-validation-message"></div>
                             </div>
                         </div>
                         
@@ -3840,7 +4594,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target.classList.contains('admin-reclamation-edit-form')) {
             e.preventDefault();
             const form = e.target;
-            const recId = form.dataset.reclamationId;
             const btn = form.querySelector('button[type="submit"]');
             const original = btn.innerHTML;
             btn.disabled = true;
@@ -3919,13 +4672,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const pubModalEl = document.getElementById(`publicationModal-${pubId}`);
             const editModalEl = document.getElementById(`adminEditPublicationModal-${pubId}`);
 
+            // Clear previous errors
+            form.querySelectorAll('.main-home-validation-message').forEach(m => {
+                m.classList.remove('error');
+                m.textContent = '';
+            });
+            form.querySelectorAll('.glass-input, .glass-textarea, .glass-select').forEach(i => i.classList.remove('input-error'));
+
             btn.disabled = true;
             btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Saving...';
 
             const formData = new FormData(form);
             fetch(form.action, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
             .then(res => res.json())
             .then(data => {
@@ -3933,9 +4694,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Update UI in list
                     const pubItem = document.querySelector(`.publication-item[data-publication-id="${pubId}"]`);
                     if (pubItem) {
-                        pubItem.querySelector('h5').textContent = formData.get('title');
-                        pubItem.querySelector('.status-badge').textContent = formData.get('category');
-                        const desc = formData.get('description');
+                        pubItem.querySelector('h5').textContent = formData.get('titre_pub');
+                        pubItem.querySelector('.status-badge').textContent = formData.get('categorie_pub');
+                        const desc = formData.get('description_pub');
                         const descEl = pubItem.querySelector('.publication-desc-text');
                         if (descEl) descEl.textContent = desc.length > 150 ? desc.substring(0, 150) + '...' : desc;
                     }
@@ -3943,11 +4704,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Update UI in View Modal
                     if (pubModalEl) {
                         const titleEl = pubModalEl.querySelector('.modal-title');
-                        if (titleEl) titleEl.textContent = formData.get('title');
+                        if (titleEl) titleEl.textContent = formData.get('titre_pub');
                         const badgeEl = pubModalEl.querySelector('.badge');
-                        if (badgeEl) badgeEl.textContent = formData.get('category');
+                        if (badgeEl) badgeEl.textContent = formData.get('categorie_pub');
                         const leadingEl = pubModalEl.querySelector('.leading-relaxed') || pubModalEl.querySelector('p');
-                        if (leadingEl) leadingEl.textContent = formData.get('description');
+                        if (leadingEl) leadingEl.textContent = formData.get('description_pub');
+                    }
+
+                    if (typeof showCoolPopup === 'function') {
+                        showCoolPopup('Success', 'Publication updated successfully', 'success');
                     }
 
                     // Smooth Transition
@@ -3955,14 +4720,41 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (editModal) {
                         editModal.hide();
                         setTimeout(() => {
-                            const viewModal = new bootstrap.Modal(pubModalEl);
-                            viewModal.show();
+                            if (pubModalEl) {
+                                new bootstrap.Modal(pubModalEl).show();
+                            }
                         }, 400);
                     }
-                } else { alert(data.message || 'Error'); }
-                btn.disabled = false; btn.innerHTML = original;
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+                    if (data.errors) {
+                        Object.entries(data.errors).forEach(([field, msg]) => {
+                            // Find container by data-field
+                            const container = form.querySelector(`.main-home-validation-message[data-field="${field}"]`) || 
+                                              form.querySelector(`#admin-pub-${field}-${pubId}-validation`) ||
+                                              form.querySelector(`[data-field$="[${field}]"]`);
+                            
+                            if (container) {
+                                container.textContent = msg;
+                                container.classList.add('error', 'active');
+                            }
+                            
+                            const input = form.querySelector(`[name="${field}"]`) || form.querySelector(`[name*="[${field}]"]`);
+                            if (input) input.classList.add('input-error');
+                        });
+                    } else {
+                        if (typeof pushNotif === 'function') {
+                            pushNotif(data.message || 'Error updating publication', 'ERROR');
+                        }
+                    }
+                }
             })
-            .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = original; });
+            .catch(err => {
+                console.error(err);
+                btn.disabled = false;
+                btn.innerHTML = original;
+            });
         }
     });
 
@@ -4056,6 +4848,74 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 400);
     });
 
+    // Profile Comment Submission AJAX
+    document.querySelectorAll('.comment-submission-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const pubId = this.dataset.publicationId;
+            const btn = this.querySelector('button[type="submit"]');
+            const original = btn.innerHTML;
+            const textarea = this.querySelector('textarea[name="description"]');
+            const validationDiv = document.getElementById(`comment-description-${pubId}-validation`);
+
+            // Clear previous errors
+            if (validationDiv) {
+                validationDiv.textContent = '';
+                validationDiv.classList.remove('error');
+            }
+            textarea.classList.remove('input-error');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>';
+
+            const formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showCoolPopup === 'function') {
+                        showCoolPopup('Success', 'Comment posted!', 'success');
+                    }
+                    this.reset();
+                    // Optional: Refresh comments via window.loadComments if available
+                    if (typeof window.loadComments === 'function') {
+                        window.loadComments(pubId);
+                    } else if (typeof window.switchPublicationView === 'function') {
+                         window.switchPublicationView(pubId); // Re-triggering view might reload comments
+                    }
+                } else {
+                    if (data.errors && Array.isArray(data.errors)) {
+                        data.errors.forEach(errStr => {
+                            if (validationDiv) {
+                                validationDiv.textContent = errStr;
+                                validationDiv.classList.add('error');
+                            }
+                            textarea.classList.add('input-error');
+                            if (typeof showCoolPopup === 'function') {
+                                showCoolPopup('Validation Error', errStr, 'error');
+                            }
+                        });
+                    } else {
+                        if (typeof pushNotif === 'function') {
+                            pushNotif(data.message || 'Error posting comment', 'ERROR');
+                        }
+                    }
+                }
+                btn.disabled = false;
+                btn.innerHTML = original;
+            })
+            .catch(err => {
+                console.error(err);
+                btn.disabled = false;
+                btn.innerHTML = original;
+            });
+        });
+    });
+
     document.getElementById('event-edit-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const form = this;
@@ -4063,13 +4923,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const original = btn.innerHTML;
         const eventId = document.getElementById('edit-event-id').value;
 
+        // Clear previous errors
+        form.querySelectorAll('.main-home-validation-message').forEach(m => {
+            m.classList.remove('error');
+            m.textContent = '';
+        });
+        form.querySelectorAll('.glass-input, .glass-textarea, .glass-select').forEach(i => i.classList.remove('input-error'));
+
         btn.disabled = true;
         btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Saving...';
 
         const formData = new FormData(form);
         fetch(`/api/evenement/update/${eventId}`, {
             method: 'POST',
-            body: formData
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(res => res.json())
         .then(data => {
@@ -4114,16 +4982,52 @@ document.addEventListener('DOMContentLoaded', function() {
                     item.querySelector('.bx-user').nextSibling.textContent = ` ${item.dataset.remaining}/${formData.get('nb_places')} enrolled`;
                 }
 
+                if (typeof showCoolPopup === 'function') {
+                    showCoolPopup('Success', 'Event updated successfully', 'success');
+                }
+
                 bootstrap.Modal.getInstance(document.getElementById('eventEditModal')).hide();
                 // Optionally re-open view modal with updated data
                 setTimeout(() => {
                     const item = document.querySelector(`.event-item[data-event-id="${eventId}"]`);
                     if (item) item.click();
                 }, 400);
-            } else { alert(data.message || 'Error updating event'); }
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = original;
+                if (data.errors && Array.isArray(data.errors)) {
+                    data.errors.forEach(errStr => {
+                        if (typeof showCoolPopup === 'function') {
+                            showCoolPopup('Validation Error', errStr, 'error');
+                        }
+                        // Map to specific container if possible
+                        const lower = errStr.toLowerCase();
+                        let field = '';
+                        if (lower.includes('title')) field = 'title';
+                        else if (lower.includes('description')) field = 'description';
+                        else if (lower.includes('date')) field = 'date';
+                        else if (lower.includes('location') || lower.includes('venue')) field = 'location';
+
+                        if (field) {
+                            const el = document.getElementById(`edit-event-${field}-validation`);
+                            if (el) { el.textContent = errStr; el.classList.add('error'); }
+                            const input = form.querySelector(`[name*="${field}"]`);
+                            if (input) input.classList.add('input-error');
+                        }
+                    });
+                } else {
+                    if (typeof pushNotif === 'function') {
+                        pushNotif(data.message || 'Error updating event', 'ERROR');
+                    }
+                }
+            }
             btn.disabled = false; btn.innerHTML = original;
         })
-        .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = original; });
+        .catch(err => {
+            console.error(err);
+            btn.disabled = false;
+            btn.innerHTML = original;
+        });
     });
 
     // Admin Filter logic for all tabs
@@ -4186,6 +5090,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     </script>
 
+    {% include 'frontend/video_conference/_modal.html.twig' %}
+
     <!-- Face ID Scripts: load from local first so faceapi is always defined (CDN can fail or return HTML) -->
     <script src="{{ asset('vendor/face-api/face-api.min.js') }}"></script>
     <script src="{{ asset('frontend/js/face-id.js') }}"></script>
@@ -4194,95 +5100,67 @@ document.addEventListener('DOMContentLoaded', function() {
     <script>
         window.currentUserId = {{ user.idUser|default(0) }};
         document.addEventListener('DOMContentLoaded', function() {
-            const enrollOpenBtn = document.getElementById('faceid-enroll-open');
-            const enrollModal = document.getElementById('faceid-enroll-modal');
-            const enrollCloseBtn = document.getElementById('faceid-enroll-modal-close');
-            const enrollCancelBtn = document.getElementById('faceid-enroll-modal-cancel');
-            const startCaptureBtn = document.getElementById('faceid-start-capture');
-            const step1 = document.getElementById('faceid-enroll-step-1');
-            const step2 = document.getElementById('faceid-enroll-step-2');
-            const video = document.getElementById('faceid-video');
-            const pinInput = document.getElementById('faceid-pin');
-            const progressBar = document.getElementById('faceid-progress');
-            const instruction = document.getElementById('faceid-instruction');
-            const livenessHint = document.getElementById('faceid-liveness-hint');
-            const cameraSelect = document.getElementById('faceid-camera-select');
-            const switchBtn = document.getElementById('faceid-switch-camera');
+            // --- Reusable Face ID Initialization ---
+            function initFaceIDLogic(config) {
+                const {
+                    openBtn, modal, closeBtn, cancelBtn, startBtn,
+                    step1, step2, video, pinInput, progressBar,
+                    instruction, livenessHint, cameraSelect, switchBtn,
+                    isHero = false
+                } = config;
 
-            let stream = null;
-            let currentDeviceId = null;
+                let stream = null;
+                let currentDeviceId = null;
 
-            // Camera handling
-            async function getCameras() {
-                try {
-                    const devices = await navigator.mediaDevices.enumerateDevices();
-                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                    
-                    if (videoDevices.length > 1) {
-                        cameraSelect.innerHTML = videoDevices.map(d => `<option value="${d.deviceId}">${d.label || 'Camera ' + d.deviceId.slice(0,5)}</option>`).join('');
-                        cameraSelect.style.display = 'block';
-                        switchBtn.style.display = 'block';
-                    } else {
-                        cameraSelect.style.display = 'none';
-                        switchBtn.style.display = 'none';
+                async function getCameras() {
+                    try {
+                        const devices = await navigator.mediaDevices.enumerateDevices();
+                        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                        if (videoDevices.length > 1 && cameraSelect) {
+                            cameraSelect.innerHTML = videoDevices.map(d => `<option value="${d.deviceId}">${d.label || 'Camera ' + d.deviceId.slice(0,5)}</option>`).join('');
+                            cameraSelect.style.display = 'block';
+                            if (switchBtn) switchBtn.style.display = 'block';
+                        }
+                    } catch (e) { console.warn('Could not list cameras:', e); }
+                }
+
+                async function startStream(deviceId = null) {
+                    if (stream) stream.getTracks().forEach(t => t.stop());
+                    const constraints = { video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'user' } };
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    video.srcObject = stream;
+                    currentDeviceId = deviceId;
+                }
+
+                const closeHandler = () => {
+                    if (!isHero && modal) {
+                        modal.classList.remove('active');
+                        setTimeout(() => { modal.style.display = 'none'; document.body.style.overflow = ''; }, 500);
                     }
-                } catch (e) {
-                    console.warn('Could not list cameras:', e);
-                }
-            }
-
-            async function startStream(deviceId = null) {
-                if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
-                }
-                const constraints = {
-                    video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'user' }
+                    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
                 };
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = stream;
-                currentDeviceId = deviceId;
-            }
 
-            if (enrollOpenBtn && enrollModal) {
-                enrollOpenBtn.addEventListener('click', () => {
-                    enrollModal.style.display = 'flex';
-                    enrollModal.offsetHeight; 
-                    enrollModal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
+                openBtn?.addEventListener('click', () => {
+                    if (!isHero && modal) {
+                        modal.style.display = 'flex';
+                        modal.offsetHeight;
+                        modal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    }
                     step1.style.display = 'block';
                     step2.style.display = 'none';
                 });
 
-                const closeEnrollModal = () => {
-                    enrollModal.classList.remove('active');
-                    setTimeout(() => {
-                        enrollModal.style.display = 'none';
-                        document.body.style.overflow = '';
-                    }, 500);
-                    if (stream) {
-                        stream.getTracks().forEach(track => track.stop());
-                        stream = null;
-                    }
-                };
+                closeBtn?.addEventListener('click', closeHandler);
+                cancelBtn?.addEventListener('click', closeHandler);
+                if (modal && !isHero) modal.addEventListener('click', (e) => { if (e.target === modal) closeHandler(); });
 
-                enrollCloseBtn?.addEventListener('click', closeEnrollModal);
-                enrollCancelBtn?.addEventListener('click', closeEnrollModal);
-
-                enrollModal.addEventListener('click', (e) => {
-                    if (e.target === enrollModal) closeEnrollModal();
-                });
-
-                startCaptureBtn?.addEventListener('click', async () => {
+                startBtn?.addEventListener('click', async () => {
                     const pin = pinInput.value;
-                    if (pin.length < 4) {
-                        alert('Please enter at least a 4-digit PIN');
-                        return;
-                    }
-
+                    if (pin.length < 4) { alert('Please enter at least a 4-digit PIN'); return; }
                     try {
                         await startStream();
-                        await getCameras(); // Update labels after permission granted
-                        
+                        await getCameras();
                         step1.style.display = 'none';
                         step2.style.display = 'block';
                         livenessHint.textContent = 'Initializing models...';
@@ -4295,48 +5173,61 @@ document.addEventListener('DOMContentLoaded', function() {
                             else instruction.textContent = 'Great! Almost done...';
                             livenessHint.textContent = 'Capturing face features...';
                         }).then(result => {
-                            if (typeof showCoolPopup === 'function') {
-                                showCoolPopup('Success', 'Face ID enrolled successfully!', 'success');
-                            } else {
-                                alert('Face ID enrolled successfully!');
-                            }
-                            closeEnrollModal();
-                        }).catch(err => {
-                            if (err.message !== 'STOP') {
-                                alert(err.message);
-                                closeEnrollModal();
-                            }
-                        });
-
-                    } catch (e) {
-                        console.error(e);
-                        alert('Could not access camera (Check permissions) or load models.');
-                        closeEnrollModal();
-                    }
+                            if (typeof showCoolPopup === 'function') showCoolPopup('Success', 'Face ID enrolled successfully!', 'success');
+                            else alert('Face ID enrolled successfully!');
+                            closeHandler();
+                        }).catch(err => { if (err.message !== 'STOP') { alert(err.message); closeHandler(); } });
+                    } catch (e) { alert('Could not access camera or load models.'); closeHandler(); }
                 });
 
                 switchBtn?.addEventListener('click', async () => {
-                    const nextId = cameraSelect.value;
+                    const nextId = cameraSelect?.value;
                     if (nextId === currentDeviceId) return;
-                    try {
-                        await startStream(nextId);
-                    } catch (e) {
-                        alert('Could not switch to selected camera.');
-                    }
+                    try { await startStream(nextId); } catch (e) { alert('Could not switch to selected camera.'); }
                 });
-
-                cameraSelect?.addEventListener('change', () => switchBtn.click());
+                cameraSelect?.addEventListener('change', () => switchBtn?.click());
             }
+
+            // 1. Initialize for the original Modal
+            initFaceIDLogic({
+                openBtn: document.getElementById('faceid-enroll-open'),
+                modal: document.getElementById('faceid-enroll-modal'),
+                closeBtn: document.getElementById('faceid-enroll-modal-close'),
+                cancelBtn: document.getElementById('faceid-enroll-modal-cancel'),
+                startBtn: document.getElementById('faceid-start-capture'),
+                step1: document.getElementById('faceid-enroll-step-1'),
+                step2: document.getElementById('faceid-enroll-step-2'),
+                video: document.getElementById('faceid-video'),
+                pinInput: document.getElementById('faceid-pin'),
+                progressBar: document.getElementById('faceid-progress'),
+                instruction: document.getElementById('faceid-instruction'),
+                livenessHint: document.getElementById('faceid-liveness-hint'),
+                cameraSelect: document.getElementById('faceid-camera-select'),
+                switchBtn: document.getElementById('faceid-switch-camera')
+            });
+
+            // 2. Initialize for the new Hero Panel
+            initFaceIDLogic({
+                openBtn: null, // Managed by hero switcher navigation
+                modal: null,
+                closeBtn: document.querySelector('#hero-panel-faceid .hero-panel-back'),
+                cancelBtn: null,
+                startBtn: document.getElementById('hero-faceid-start-capture'),
+                step1: document.getElementById('hero-faceid-step-1'),
+                step2: document.getElementById('hero-faceid-step-2'),
+                video: document.getElementById('hero-faceid-video'),
+                pinInput: document.getElementById('hero-faceid-pin'),
+                progressBar: document.getElementById('hero-faceid-progress'),
+                instruction: document.getElementById('hero-faceid-instruction'),
+                livenessHint: document.getElementById('hero-faceid-hint'),
+                cameraSelect: null,
+                switchBtn: null,
+                isHero: true
+            });
         });
+
     </script>
 
-    <!-- Safety: Hide page loader if it's still spinning -->
-    <script>
-    setTimeout(() => {
-        const pageLoader = document.getElementById('pageLoader');
-        if (pageLoader) pageLoader.style.display = 'none';
-    }, 100);
-    </script>
 
     <!-- Global Emoji Picker for Profile Forum -->
     <div id="emojiPicker" class="emoji-picker-popup d-none" style="position: fixed; z-index: 10001; background: rgba(20, 20, 35, 0.98); border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 10px 40px rgba(0,0,0,0.6); backdrop-filter: blur(20px);">
@@ -4352,9 +5243,643 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchTrigger = document.querySelector('.btn-resident-search-trigger');
+            const searchInput = document.querySelector('.resident-search-input');
+            const searchContainer = document.querySelector('.search-input-wrapper');
+            const triggerWrapper = document.querySelector('.search-trigger-wrapper');
+            const closeBtn = document.querySelector('.btn-search-close');
+            const resultsDropdown = document.querySelector('.search-results-dropdown-platinum');
+
+            if (searchTrigger) {
+                searchTrigger.addEventListener('click', () => {
+                    triggerWrapper.classList.add('d-none');
+                    searchContainer.classList.remove('d-none');
+                    searchInput.focus();
+                });
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    searchContainer.classList.add('d-none');
+                    triggerWrapper.classList.remove('d-none');
+                    searchInput.value = '';
+                    resultsDropdown.classList.remove('has-results');
+                    resultsDropdown.innerHTML = '';
+                });
+            }
+
+            let searchTimeout;
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    const query = e.target.value.trim();
+                    if (query.length < 2) {
+                        resultsDropdown.classList.remove('has-results');
+                        return;
+                    }
+
+                    searchTimeout = setTimeout(async () => {
+                        console.log('Searching for:', query);
+                        const formData = new FormData();
+                        formData.append('query', query);
+
+                        try {
+                            const response = await fetch('{{ path("frontend_profile_search_residents") }}', {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            });
+                            const data = await response.json();
+                            console.log('Search results:', data);
+
+                            if (data.success) {
+                                renderSearchResults(data.residents);
+                            }
+                        } catch (err) {
+                            console.error('Search error:', err);
+                        }
+                    }, 400);
+                });
+            }
+
+            function renderSearchResults(residents) {
+                if (residents.length === 0) {
+                    resultsDropdown.innerHTML = '<div class="p-3 text-center text-muted small">No residents found.</div>';
+                } else {
+                    resultsDropdown.innerHTML = residents.map(r => `
+                        <div class="search-result-item-platinum">
+                            <img src="${r.avatar}" class="result-avatar-platinum">
+                            <span class="result-name-platinum">${r.name}</span>
+                            <button class="btn-add-resident" data-id="${r.id}">
+                                <i class="bx bx-user-plus me-1"></i> Add
+                            </button>
+                        </div>
+                    `).join('');
+
+                    resultsDropdown.querySelectorAll('.btn-add-resident').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            const targetId = btn.dataset.id;
+                            btn.disabled = true;
+                            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>';
+
+                            const formData = new FormData();
+                            formData.append('targetId', targetId);
+                            formData.append('_csrf_token', '{{ csrf_token("profile_add_resident") }}');
+
+                            try {
+                                const response = await fetch('{{ path("frontend_profile_add_resident") }}', {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    }
+                                });
+                                const data = await response.json();
+                                if (data.success) {
+                                    btn.classList.add('requested');
+                                    btn.innerHTML = '<i class="bx bx-check me-1"></i> Requested';
+                                } else {
+                                    btn.disabled = false;
+                                    btn.innerHTML = '<i class="bx bx-user-plus me-1"></i> Add';
+                                    alert(data.message);
+                                }
+                            } catch (err) {
+                                console.error('Add error:', err);
+                                alert('An error occurred. Please try again.');
+                            }
+                        });
+                    });
+                }
+                resultsDropdown.classList.add('has-results');
+            }
+        });
+    </script>
+
+    <script>
+    // ── Circle Tab Switcher ──
+    function circleSetTab(tab) {
+        const panelFriends  = document.getElementById('circle-panel-friends');
+        const panelPending  = document.getElementById('circle-panel-pending');
+        const btnFriends    = document.getElementById('circle-tab-friends');
+        const btnPending    = document.getElementById('circle-tab-pending');
+        if (!panelFriends || !panelPending) return;
+
+        const isF = tab === 'friends';
+        panelFriends.style.display  = isF ? '' : 'none';
+        panelPending.style.display  = isF ? 'none' : '';
+
+        const activeBg   = 'var(--syndicat-accent-gradient)';
+        const inactiveBg = 'rgba(255,255,255,0.04)';
+
+        btnFriends.style.background = isF ? activeBg : inactiveBg;
+        btnFriends.style.color      = isF ? '#fff' : 'rgba(255,255,255,0.5)';
+        btnPending.style.background = isF ? inactiveBg : activeBg;
+        btnPending.style.color      = isF ? 'rgba(255,255,255,0.5)' : '#fff';
+    }
+
+    // ── Accept / Decline Friend Requests ──
+    document.addEventListener('DOMContentLoaded', () => {
+        const acceptUrl  = '{{ path("frontend_profile_accept_resident") }}';
+        const declineUrl = '{{ path("frontend_profile_decline_resident") }}';
+
+        document.body.addEventListener('click', async (e) => {
+            const acceptBtn  = e.target.closest('.btn-accept-request');
+            const declineBtn = e.target.closest('.btn-decline-request');
+            const btn = acceptBtn || declineBtn;
+            if (!btn) return;
+
+            const relId = btn.dataset.relId;
+            const row   = btn.closest('.pending-request-row');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>';
+
+            const fd = new FormData();
+            fd.append('relationshipId', relId);
+
+            try {
+                const url  = acceptBtn ? acceptUrl : declineUrl;
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    body: fd,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await resp.json();
+
+                if (data.success) {
+                    if (acceptBtn) {
+                        btn.closest('.d-flex.gap-1').innerHTML =
+                            '<span style="color: #43b581; font-size: 0.75rem; font-weight: 700;"><i class="bx bx-check-circle me-1"></i>Accepted!</span>';
+                    } else {
+                        row.style.opacity = '0';
+                        row.style.transition = 'opacity .3s';
+                        setTimeout(() => row.remove(), 300);
+                    }
+                    // Update the pending badge count
+                    const badge = document.getElementById('circle-pending-badge');
+                    if (badge) {
+                        const current = parseInt(badge.textContent) || 0;
+                        const next = current - 1;
+                        if (next <= 0) badge.remove();
+                        else badge.textContent = next + ' PENDING';
+                    }
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = acceptBtn ? '<i class="bx bx-check"></i>' : '<i class="bx bx-x"></i>';
+                    if (typeof showCoolPopup === 'function') {
+                        showCoolPopup('Error', data.message || 'Something went wrong.', 'error');
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                btn.disabled = false;
+                btn.innerHTML = acceptBtn ? '<i class="bx bx-check"></i>' : '<i class="bx bx-x"></i>';
+            }
+        });
+    });
+    </script>
+
+    {# ─── Friend Info Preview (same pattern as calendar-event-preview) ─── #}
+    <div id="friend-info-preview" class="calendar-event-preview" style="width: 300px;">
+        <div class="preview-card">
+            <div class="preview-banner" id="fim-banner">
+                <img id="fim-avatar" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+            </div>
+            <div class="preview-content">
+                <span class="preview-tag" id="fim-role"></span>
+                <h4 class="preview-title" id="fim-name"></h4>
+                <div class="preview-meta">
+                    <i class='bx bx-envelope'></i>
+                    <span id="fim-email"></span>
+                </div>
+                <div class="preview-meta" style="margin-bottom: 1rem;">
+                    <i class='bx bx-calendar'></i>
+                    <span>Member since <span id="fim-created"></span></span>
+                </div>
+                <div style="display:flex;gap:0.5rem;margin-bottom:1.2rem;">
+                    <div style="flex:1;padding:0.6rem;background:rgba(255,255,255,0.05);border-radius:10px;text-align:center;">
+                        <div id="fim-level" style="font-size:1.4rem;font-weight:900;color:#fff;line-height:1;"></div>
+                        <div style="font-size:0.6rem;font-weight:800;color:var(--event-accent);text-transform:uppercase;letter-spacing:.1em;margin-top:2px;">Level</div>
+                    </div>
+                    <div style="flex:1;padding:0.6rem;background:rgba(255,255,255,0.05);border-radius:10px;text-align:center;">
+                        <div id="fim-xp" style="font-size:1.4rem;font-weight:900;color:#fff;line-height:1;"></div>
+                        <div style="font-size:0.6rem;font-weight:800;color:var(--event-accent);text-transform:uppercase;letter-spacing:.1em;margin-top:2px;">Syndic Pts</div>
+                    </div>
+                </div>
+                <button class="preview-btn" id="fim-close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ── Friend Info Preview Card (same mechanics as calendar-event-preview) ──
+    (function () {
+        const preview = document.getElementById('friend-info-preview');
+        const closeBtn = document.getElementById('fim-close');
+        const infoUrl  = '{{ path("frontend_profile_friend_info", {id: 0}) }}';
+
+        function positionPreview(rect) {
+            // position:fixed → viewport coords ONLY (getBoundingClientRect already is viewport-relative)
+            const cardCenterX = rect.left + rect.width / 2;
+            const cardTopY    = rect.top;        // top edge of the card in the viewport
+            preview.style.left = cardCenterX + 'px';
+            preview.style.top  = cardTopY + 'px'; // CSS transform: translate(-50%,-100%) pulls it above
+        }
+
+        function showPreview(uid, fallbackName, fallbackAvatar, rect) {
+            // Immediate load with placeholders
+            document.getElementById('fim-name').textContent    = fallbackName || '…';
+            document.getElementById('fim-role').textContent    = '…';
+            document.getElementById('fim-email').textContent   = '…';
+            document.getElementById('fim-created').textContent = '…';
+            document.getElementById('fim-level').textContent   = '…';
+            document.getElementById('fim-xp').textContent      = '…';
+            const avatarEl = document.getElementById('fim-avatar');
+            avatarEl.src = fallbackAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fallbackName||'U')}&background=random&color=fff&bold=true`;
+
+            positionPreview(rect);
+            preview.style.display = 'block';
+            requestAnimationFrame(() => preview.classList.add('show'));
+
+            // Fetch real data
+            fetch(infoUrl.replace('/0', '/' + uid), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (!d.success) return;
+                document.getElementById('fim-name').textContent    = d.name;
+                document.getElementById('fim-role').textContent    = d.role;
+                document.getElementById('fim-email').textContent   = d.email;
+                document.getElementById('fim-created').textContent = d.created;
+                document.getElementById('fim-level').textContent   = d.level;
+                document.getElementById('fim-xp').textContent      = d.xp;
+                if (d.avatar) avatarEl.src = d.avatar;
+            })
+            .catch(console.error);
+        }
+
+        function hidePreview() {
+            preview.classList.remove('show');
+            setTimeout(() => { preview.style.display = 'none'; }, 300);
+        }
+
+        closeBtn?.addEventListener('click', hidePreview);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePreview(); });
+
+        // Hide when clicking outside
+        document.addEventListener('click', e => {
+            if (preview.classList.contains('show') &&
+                !preview.contains(e.target) &&
+                !e.target.closest('.friend-card-platinum')) {
+                hidePreview();
+            }
+        });
+
+        // Open on friend card click
+        document.addEventListener('click', e => {
+            const card = e.target.closest('.friend-card-platinum');
+            if (!card) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const uid  = card.dataset.userId;
+            const name = card.dataset.name;
+            const av   = card.querySelector('img')?.src;
+            if (uid) showPreview(uid, name, av, card.getBoundingClientRect());
+        });
+    })();
+    </script>
+    <script>
+    // ─── Profile Hero Switcher Controller ───
+    (function() {
+        // Elements
+        const qaBtn = document.getElementById('hero-quick-actions-btn');
+        const heroDefault = document.getElementById('hero-default-info');
+        const heroSwitcher = document.getElementById('hero-switcher');
+        const switcherBack = document.getElementById('hero-switcher-back');
+        const tiles = document.querySelectorAll('.hero-tile');
+        const panels = document.querySelectorAll('.hero-panel');
+        const panelBackBtns = document.querySelectorAll('.hero-panel-back');
+        const detailsContainer = document.querySelector('.main-home-profile-details');
+
+        // Global Helper for WebAuthn (Biometrics)
+        window.loadWebAuthnCredentials = function(containerId) {
+            if (typeof WebAuthnManager !== 'undefined') {
+                WebAuthnManager.listCredentials().then(list => {
+                    WebAuthnManager.renderCredentialList(containerId || 'hero-webauthn-list', list);
+                });
+            }
+        };
+
+        // Functions
+        function hideAllInHero() {
+            heroDefault.style.display = 'none';
+            heroSwitcher.style.display = 'none';
+            panels.forEach(p => p.style.display = 'none');
+            
+            heroDefault.classList.remove('hero-anim-in', 'hero-anim-out');
+            heroSwitcher.classList.remove('hero-anim-in', 'hero-anim-out');
+            panels.forEach(p => p.classList.remove('hero-anim-in', 'hero-anim-out'));
+        }
+
+        function showDefault() {
+            hideAllInHero();
+            qaBtn.classList.remove('active');
+            heroDefault.style.display = 'block';
+            heroDefault.classList.add('hero-anim-in');
+        }
+
+        function showSwitcher() {
+            hideAllInHero();
+            qaBtn.classList.add('active');
+            heroSwitcher.style.display = 'block';
+            heroSwitcher.classList.add('hero-anim-in');
+        }
+
+        function showPanel(id) {
+            hideAllInHero();
+            const panel = document.getElementById('hero-panel-' + id);
+            if (panel) {
+                panel.style.display = 'block';
+                panel.classList.add('hero-anim-in');
+                
+                // Specific panel initializations
+                if (id === 'biometrics') {
+                    window.loadWebAuthnCredentials('hero-webauthn-list');
+                } else if (id === '2fa') {
+                    // Sync 2FA state from server or main toggle
+                    const mainToggle = document.getElementById('twofa-toggle');
+                    const heroToggle = document.getElementById('hero-twofa-toggle');
+                    if (mainToggle && heroToggle) {
+                        heroToggle.checked = mainToggle.checked;
+                        document.getElementById('hero-twofa-status-text').textContent = mainToggle.checked ? 'Enabled' : 'Disabled';
+                        document.getElementById('hero-twofa-sections').style.display = mainToggle.checked ? 'block' : 'none';
+                    }
+                }
+            }
+        }
+
+        // Event Listeners
+        qaBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (heroSwitcher.style.display === 'block') showDefault();
+            else showSwitcher();
+        });
+
+        switcherBack?.addEventListener('click', (e) => {
+            e.preventDefault();
+            showDefault();
+        });
+
+        tiles.forEach(tile => {
+            tile.addEventListener('click', () => {
+                const panelId = tile.dataset.panel;
+                showPanel(panelId);
+            });
+        });
+
+        panelBackBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                showSwitcher();
+            });
+        });
+
+        // ─── 2FA Integration ───
+        const heroTwofaToggle = document.getElementById('hero-twofa-toggle');
+        const heroTwofaStatusTxt = document.getElementById('hero-twofa-status-text');
+        const heroTwofaSections = document.getElementById('hero-twofa-sections');
+        
+        heroTwofaToggle?.addEventListener('change', async function() {
+            const enabled = this.checked;
+            this.disabled = true;
+            try {
+                const response = await fetch('{{ path("2fa_toggle") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ enabled: enabled })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    heroTwofaStatusTxt.textContent = enabled ? 'Enabled' : 'Disabled';
+                    heroTwofaSections.style.display = enabled ? 'block' : 'none';
+                } else {
+                    this.checked = !enabled;
+                    if (window.pushNotif) window.pushNotif(data.message || 'Error', 'ERROR');
+                }
+            } catch (err) {
+                this.checked = !enabled;
+            } finally {
+                this.disabled = false;
+            }
+        });
+
+        document.getElementById('hero-twofa-test-email')?.addEventListener('click', function() {
+            const btn = this;
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Sending...';
+            
+            fetch('{{ path("2fa_send_test_code") }}', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        if (window.pushNotif) window.pushNotif('Code sent! Check your email.', 'SUCCESS');
+                        btn.innerHTML = '<i class="bx bx-check"></i> Sent';
+                    } else {
+                        if (window.pushNotif) window.pushNotif(data.message || 'Error', 'ERROR');
+                        btn.innerHTML = '<i class="bx bx-x"></i> Error';
+                    }
+                    setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2000);
+                });
+        });
+
+        // INLINED TOTP SETUP
+        const heroTotpQrStep = document.getElementById('hero-twofa-totp-qr-step');
+        const heroTotpQrCode = document.getElementById('hero-totp-qr-code');
+        const heroTotpVerifyCode = document.getElementById('hero-totp-verify-code');
+        const heroTotpVerifyBtn = document.getElementById('hero-totp-verify-btn');
+        const heroTotpCancel = document.getElementById('hero-totp-cancel');
+        const heroTotpSecretDisplay = document.getElementById('hero-totp-secret-display');
+        const heroTotpSecretText = document.getElementById('hero-totp-secret-text');
+        const heroTotpStatusConf = document.getElementById('hero-twofa-totp-conf');
+        const heroTotpStatusSetup = document.getElementById('hero-twofa-totp-setup');
+
+        document.getElementById('hero-twofa-setup-totp')?.addEventListener('click', async () => {
+             heroTotpStatusSetup.style.display = 'none';
+             heroTotpQrStep.style.display = 'block';
+             heroTotpQrCode.innerHTML = '<div class="text-center"><i class="bx bx-loader-alt bx-spin" style="color:#000; font-size:1.5rem;"></i></div>';
+             
+             try {
+                const response = await fetch('{{ path("2fa_generate_totp") }}', { 
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' } 
+                });
+                const data = await response.json();
+                if (data.success) {
+                    // Use QRCode.toCanvas or toDataURL. Assuming qrcode.min.js is used.
+                    if (typeof QRCode !== 'undefined') {
+                        heroTotpQrCode.innerHTML = '';
+                        const canvas = document.createElement('canvas');
+                        heroTotpQrCode.appendChild(canvas);
+                        QRCode.toCanvas(canvas, data.qrCodeUrl, { width: 120, margin: 0 });
+                    }
+                    if (data.secret) {
+                        heroTotpSecretText.textContent = data.secret;
+                        heroTotpSecretDisplay.style.display = 'block';
+                    }
+                } else {
+                    if (window.pushNotif) window.pushNotif(data.message || 'Error', 'ERROR');
+                    heroTotpStatusSetup.style.display = 'block';
+                    heroTotpQrStep.style.display = 'none';
+                }
+             } catch (err) {
+                 console.error(err);
+                 heroTotpStatusSetup.style.display = 'block';
+                 heroTotpQrStep.style.display = 'none';
+             }
+        });
+
+        heroTotpCancel?.addEventListener('click', () => {
+            heroTotpQrStep.style.display = 'none';
+            heroTotpStatusSetup.style.display = 'block';
+        });
+
+        heroTotpVerifyBtn?.addEventListener('click', async () => {
+            const code = heroTotpVerifyCode.value;
+            if (!code || code.length !== 6) return;
+            
+            const original = heroTotpVerifyBtn.innerHTML;
+            heroTotpVerifyBtn.disabled = true;
+            heroTotpVerifyBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Verifying...';
+            
+            try {
+                const response = await fetch('{{ path("2fa_verify_totp") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ code: code })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    heroTotpQrStep.style.display = 'none';
+                    heroTotpStatusConf.style.display = 'block';
+                    if (window.pushNotif) window.pushNotif('Authenticator app activated!', 'SUCCESS');
+                } else {
+                    if (window.pushNotif) window.pushNotif(data.message || 'Invalid code', 'ERROR');
+                    heroTotpVerifyBtn.innerHTML = original;
+                    heroTotpVerifyBtn.disabled = false;
+                }
+            } catch (err) {
+                heroTotpVerifyBtn.innerHTML = original;
+                heroTotpVerifyBtn.disabled = false;
+            }
+        });
+        
+        document.getElementById('hero-twofa-remove-totp')?.addEventListener('click', async () => {
+            if (!confirm('Remove authenticator app?')) return;
+            try {
+                const response = await fetch('{{ path("2fa_remove_totp") }}', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const data = await response.json();
+                if (data.success) {
+                    heroTotpStatusConf.style.display = 'none';
+                    heroTotpStatusSetup.style.display = 'block';
+                    if (window.pushNotif) window.pushNotif('Authenticator removed', 'SUCCESS');
+                }
+            } catch (err) {}
+        });
+
+        // ─── FaceID & Biometrics INLINED ───
+        document.getElementById('hero-faceid-start-capture')?.addEventListener('click', () => {
+            // Already handled by step-toggle in HTML? No, we need logic.
+            document.getElementById('hero-faceid-step-1').style.display = 'none';
+            document.getElementById('hero-faceid-step-2').style.display = 'block';
+            
+            // Re-use Face ID logic
+            if (typeof initFaceIDLogic === 'function') {
+                initFaceIDLogic({
+                    containerId: 'hero-faceid-step-2',
+                    videoId: 'hero-faceid-video',
+                    canvasId: 'hero-faceid-canvas',
+                    hintId: 'hero-faceid-hint',
+                    progressId: 'hero-faceid-progress',
+                    instructionId: 'hero-faceid-instruction',
+                    btnId: 'hero-faceid-start-capture',
+                    pinId: 'hero-faceid-pin',
+                    cameraSelectId: 'hero-faceid-camera-select',
+                    switchCameraBtnId: 'hero-faceid-switch-camera'
+                });
+            }
+        });
+
+        document.getElementById('hero-webauthn-register')?.addEventListener('click', async () => {
+            const btn = document.getElementById('hero-webauthn-register');
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Initializing...';
+            btn.disabled = true;
+            
+            try {
+                if (typeof WebAuthn !== 'undefined') {
+                    const success = await WebAuthn.register();
+                    if (success) {
+                        if (window.pushNotif) window.pushNotif('Device registered successfully!', 'SUCCESS');
+                        window.loadWebAuthnCredentials('hero-webauthn-list');
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                btn.innerHTML = original;
+                btn.disabled = false;
+            }
+        });
+
+        // ─── Profile Settings AJAX ───
+        const settingsForm = document.getElementById('profile-settings-form');
+        if (settingsForm) {
+            settingsForm.addEventListener('submit', async function(e) {
+                const heroSaveBtn = document.getElementById('hero-settings-save');
+                if (!heroSaveBtn) return;
+                
+                e.preventDefault();
+                const originalHtml = heroSaveBtn.innerHTML;
+                heroSaveBtn.disabled = true;
+                heroSaveBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Saving...';
+
+                try {
+                    const formData = new FormData(settingsForm);
+                    const response = await fetch(settingsForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    
+                    if (response.ok) {
+                        heroSaveBtn.innerHTML = '<i class="bx bx-check"></i> Profile Updated!';
+                        if (window.pushNotif) window.pushNotif('Profile settings saved successfully', 'SUCCESS');
+                        setTimeout(() => {
+                            heroSaveBtn.innerHTML = originalHtml;
+                            heroSaveBtn.disabled = false;
+                            location.reload(); 
+                        }, 1200);
+                    } else {
+                        throw new Error('Save failed');
+                    }
+                } catch (err) {
+                    heroSaveBtn.innerHTML = '<i class="bx bx-x"></i> Error';
+                    heroSaveBtn.disabled = false;
+                    setTimeout(() => { heroSaveBtn.innerHTML = originalHtml; }, 2000);
+                }
+            });
+        }
+
+
+    })();
+    </script>
+
     <script src="{{ asset('frontend/js/forum.js') }}"></script>
     <script src="{{ asset('frontend/js/syndicati-agent.js') }}" defer></script>
-
-    {% include 'frontend/video_conference/_modal.html.twig' %}
+    <script src="{{ asset('frontend/js/syndicati-messaging.js') }}" defer></script>
 </body>
 </html>

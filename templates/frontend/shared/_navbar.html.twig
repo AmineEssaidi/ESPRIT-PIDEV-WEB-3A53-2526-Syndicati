@@ -27,8 +27,100 @@
     } catch (e) {}
 })();
 </script>
-<nav class="main-home-navbar" style="position:relative; z-index:10;">
-    <!-- Left Side - Search Icon (Click to go home, hover to expand search) -->
+
+<style id="notif-emergency-styles">
+    /* High-Priority Visibility Fixes */
+    .notif-wrapper {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 46px !important;
+        height: 46px !important;
+        margin-right: 15px !important;
+        z-index: 99999 !important;
+    }
+
+    .notif-bell {
+        width: 42px !important;
+        height: 42px !important;
+        background: #1a1a2e !important; /* Forces a solid background to avoid the white box issue */
+        background: rgba(var(--main-home-accent-rgb, 26, 26, 46), 0.2) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        color: #fff !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+
+    .notif-bell:hover { transform: scale(1.1) !important; }
+
+    .notif-badge {
+        position: absolute !important;
+        top: -3px !important;
+        right: -3px !important;
+        background: #ff3b30 !important;
+        color: white !important;
+        font-size: 10px !important;
+        font-weight: 900 !important;
+        min-width: 18px !important;
+        height: 18px !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border: 2px solid #000 !important;
+        z-index: 100000 !important;
+    }
+
+    .notif-hub {
+        position: absolute !important;
+        top: 55px !important;
+        right: -5px !important;
+        width: 380px !important;
+        max-height: 500px !important;
+        background: #0d0d14 !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 24px !important;
+        display: none !important; /* JS will change this to flex */
+        flex-direction: column !important;
+        z-index: 100001 !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8) !important;
+        overflow: hidden !important;
+    }
+
+    .notif-hub.active { 
+        display: flex !important; 
+        animation: notif-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    @keyframes notif-slide-in {
+        from { transform: translateY(15px) scale(0.98); opacity: 0; }
+        to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    /* Items styles */
+    .notif-hub-header { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
+    .notif-hub-header h5 { margin: 0; font-size: 1.1rem; color: #fff; font-weight: 700; }
+    .notif-action-btn { background: rgba(255,255,255,0.05); border: none; color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+    .notif-close-btn { background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 20px; }
+    .notif-hub-body { flex: 1; overflow-y: auto; padding: 10px; min-height: 200px; }
+    .notif-item { padding: 12px; border-radius: 12px; display: flex; gap: 12px; cursor: pointer; transition: background 0.2s; margin-bottom: 5px; }
+    .notif-item:hover { background: rgba(255,255,255,0.05); }
+    .notif-item.unread { background: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.1); }
+    .notif-item-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .notif-item-content { flex: 1; }
+    .notif-item-title { margin: 0; font-size: 14px; font-weight: 700; color: #fff; }
+    .notif-item-text { margin: 4px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.6); }
+    .notif-item-time { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 5px; }
+</style>
+
+<nav class="main-home-navbar" style="position:relative; z-index:1000 !important; overflow: visible !important;">
+    <!-- Left Side -->
     <div class="main-home-header-left">
         <div class="main-home-search-icon-container">
             <a href="{{ path('main_home') }}" class="main-home-search-icon-btn" title="Home / Search">
@@ -48,7 +140,7 @@
         </div>
     </div>
 
-    <!-- Center - Navigation Tabs (Hidden on auth pages) -->
+    <!-- Center -->
     {% if active_tab|default('') not in ['sign_in', 'sign_up'] %}
     <div class="main-home-header-center">
         <div class="main-home-nav-tabs">
@@ -80,9 +172,8 @@
     <div class="main-home-header-center"></div>
     {% endif %}
 
-    <!-- Right Side - Controls -->
-    <div class="main-home-header-right">
-        <!-- Theme Toggle -->
+    <!-- Right Side -->
+    <div class="main-home-header-right" style="overflow: visible !important;">
         <div class="main-home-ios-theme-toggle">
             <div class="main-home-toggle-container" id="theme-toggle">
                 <div class="main-home-toggle-track">
@@ -94,91 +185,92 @@
             </div>
         </div>
 
-        
-        <!-- Dynamic Island Notification (Only show when logged in) -->
-        <div class="main-home-notification-circle">
-            <div class="main-home-dynamic-island" id="dynamicIsland" title="Notifications">
-                <span class="main-home-notification-icon">🔔</span>
-                <span class="main-home-notification-badge">3</span>
-                
-                <!-- Dynamic Content -->
-                <div class="main-home-dynamic-content">
-                    <p class="main-home-dynamic-text" >{{ 'nav.notifications'|trans }}</p>
-                    <p class="main-home-dynamic-subtext"><span >3</span> <span >{{ 'nav.new_messages'|trans }}</span></p>
+        {% if app.session.get('is_logged_in') %}
+            <div class="notif-wrapper">
+                <div class="notif-bell" id="notifBell" title="Notifications">
+                    <i class="bx bx-bell" style="font-size: 20px;"></i>
+                    <span class="notif-badge" id="notifBadge" style="display: none;">0</span>
                 </div>
                 
-                <!-- Notification Popup Content -->
-                <div class="main-home-notification-popup-content" style="display: none;">
-                    <div class="main-home-notification-popup-icon">📱</div>
-                    {% if app.session.get('is_logged_in') %}
-                    <div class="main-home-notification-popup-text">
-                        <p class="main-home-notification-popup-title" >{{ 'nav.new_message'|trans }}</p>
-                        <p class="main-home-notification-popup-message"><span >Vous avez</span> 3 <span >{{ 'nav.unread_notifications'|trans }}</span></p>
+                <div class="notif-hub" id="notifHub">
+                    <div class="notif-hub-header">
+                        <h5>{{ 'nav.notifications'|trans|default('Notifications') }}</h5>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button id="notifMarkAllRead" class="notif-action-btn">{{ 'nav.mark_all_read'|trans|default('Tout lu') }}</button>
+                            <button id="notifCloseHub" class="notif-close-btn"><i class="bx bx-x"></i></button>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Multiple Notifications Container -->
-                <div class="main-home-notifications-container" style="display: none;">
-                    <div class="main-home-notifications-scroll">
-                        <!-- Notifications will be dynamically added here -->
-                    </div>
+                    <div class="notif-hub-body scrollbar-hide" id="notifScroll"></div>
                 </div>
             </div>
-            
-            <!-- Animated Close Button -->
-            <button class="main-home-dynamic-close-btn" id="dynamicCloseBtn"  title="Fermer">{{ 'nav.close'|trans }}</button>
-            
-        </div>
 
-        {% set user = app.session.get('user') %}
-        {% if app.session.get('is_logged_in') %}
-            <!-- User Profile Icon (Logged In) -->
+            {% set user = app.session.get('user') %}
             <div class="main-home-user-profile-dropdown">
                 <div class="main-home-user-avatar-only">
-                    <img src="{{ user.avatar|default('https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/1.png') }}" alt="Profile" class="main-home-avatar-img" loading="lazy" decoding="async"/>
+                    <img src="{{ user.avatar|default('https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/1.png') }}" alt="Profile" class="main-home-avatar-img"/>
                     <div class="main-home-avatar-status online"></div>
                 </div>
-
-                            {% if app.session.get('is_logged_in') %}
-                            <!-- Dynamic Island Notification (Only show when logged in) -->
-                            <div class="main-home-notification-circle">
-                                <div class="main-home-dynamic-island" id="dynamicIsland" title="Notifications">
-                                    <span class="main-home-notification-icon">🔔</span>
-                                    <!-- Dynamic Content -->
-                                    <div class="main-home-dynamic-content">
-                                        <p class="main-home-dynamic-text" >{{ 'nav.notifications'|trans }}</p>
-                                        <p class="main-home-dynamic-subtext"><span >3</span> <span >{{ 'nav.new_messages'|trans }}</span></p>
-                                    </div>
-                                    <!-- Notification Popup Content -->
-                                    <div class="main-home-notification-popup-content" style="display: none;">
-                                        <div class="main-home-notification-popup-icon">📱</div>
-                                        <div class="main-home-notification-popup-text">
-                                            <p class="main-home-notification-popup-title" >{{ 'nav.new_message'|trans }}</p>
-                                            <p class="main-home-notification-popup-message"><span >Vous avez</span> 3 <span >{{ 'nav.unread_notifications'|trans }}</span></p>
-                                        </div>
-                                    </div>
-                                    <!-- Multiple Notifications Container -->
-                                    <div class="main-home-notifications-container" style="display: none;">
-                                        <div class="main-home-notifications-scroll">
-                                            <!-- Notifications will be dynamically added here -->
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Animated Close Button -->
-                                <button class="main-home-dynamic-close-btn" id="dynamicCloseBtn"  title="Fermer">{{ 'nav.close'|trans }}</button>
-                            </div>
-                            {% endif %}
+                <div class="main-home-dropdown-menu">
+                    <div class="main-home-dropdown-item" style="pointer-events: none; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 5px;">
+                        <span style="font-weight: bold; font-size: 0.9rem;">{{ user.first_name|default('User') }} {{ user.last_name|default('') }}</span>
+                    </div>
+                    <a href="{{ path('app_logout') }}" class="main-home-dropdown-item" style="color: #ff4d6d;">
                         <i class="bx bx-power-off"></i>
-                        <span >{{ 'nav.log_out'|trans }}</span>
+                        <span>{{ 'nav.log_out'|trans }}</span>
                     </a>
                 </div>
             </div>
         {% else %}
-            <!-- Auth Buttons (Not Logged In) -->
             <div class="main-home-auth-buttons">
-                <a href="{{ path('auth_sign_in') }}"  class="main-home-btn main-home-btn-auth-secondary {{ active_tab|default('') == 'sign_in' ? 'active' : '' }}">{{ 'nav.sign_in'|trans }}</a>
-                <a href="{{ path('user_signup') }}"  class="main-home-btn main-home-btn-auth-primary {{ active_tab|default('') == 'sign_up' ? 'active' : '' }}">{{ 'nav.sign_up'|trans }}</a>
+                <a href="{{ path('auth_sign_in') }}" class="main-home-btn main-home-btn-auth-secondary {{ active_tab|default('') == 'sign_in' ? 'active' : '' }}">{{ 'nav.sign_in'|trans }}</a>
+                <a href="{{ path('user_signup') }}" class="main-home-btn main-home-btn-auth-primary {{ active_tab|default('') == 'sign_up' ? 'active' : '' }}">{{ 'nav.sign_up'|trans }}</a>
             </div>
         {% endif %}
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const bell = document.getElementById('notifBell');
+        const hub = document.getElementById('notifHub');
+        const closeBtn = document.getElementById('notifCloseHub');
+
+        if (bell && hub) {
+            bell.onclick = function(e) {
+                e.stopPropagation();
+                const isActive = hub.classList.contains('active');
+                if (isActive) {
+                    hub.classList.remove('active');
+                    hub.style.display = 'none';
+                } else {
+                    hub.style.display = 'flex';
+                    hub.classList.add('active');
+                }
+            };
+
+            if (closeBtn) {
+                closeBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    hub.classList.remove('active');
+                    hub.style.display = 'none';
+                };
+            }
+
+            document.onclick = function(e) {
+                if (hub.classList.contains('active') && !hub.contains(e.target) && !bell.contains(e.target)) {
+                    hub.classList.remove('active');
+                    hub.style.display = 'none';
+                }
+            };
+        }
+    });
+
+    // Strip legacy elements
+    (function() {
+        const legacySelectors = ['.main-home-dynamic-island', '.main-home-notification-circle', '.notif-bell-emoji'];
+        legacySelectors.forEach(s => {
+            const elements = document.querySelectorAll(s);
+            elements.forEach(el => el.remove());
+        });
+    })();
+    </script>
 </nav>
