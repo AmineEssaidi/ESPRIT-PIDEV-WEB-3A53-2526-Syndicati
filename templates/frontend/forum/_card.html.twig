@@ -1,7 +1,7 @@
 <div class="forum-card">
     <div class="forum-card-image-wrapper">
         {% if publication.imagePub %}
-            <img src="{{ asset('forum_images/' ~ publication.imagePub) }}" alt="{{ publication.titrePub }}" class="forum-card-image">
+            <img src="{{ media_url(publication.imagePub, 'forum_images') }}" alt="{{ publication.titrePub }}" class="forum-card-image">
         {% else %}
             <div class="forum-card-image-placeholder">
                 <i class='bx bx-message-square-dots'></i>
@@ -42,7 +42,7 @@
             <div class="forum-user-stack">
                 <div class="forum-user-avatar">
                     {% if author_profile and author_profile.avatar %}
-                        <img src="{{ author_profile.avatar starts with 'http' ? author_profile.avatar : asset(author_profile.avatar) }}" 
+                        <img src="{{ media_url(author_profile.avatar, 'profile_images') }}" 
                              alt="{{ publication.user.firstName }}">
                     {% else %}
                         <span>{{ publication.user.firstName|first|upper }}</span>
@@ -64,8 +64,8 @@
                  data-date="{{ publication.dateCreationPub|date('M d, Y H:i') }}"
                  data-user="{{ publication.user.firstName }} {{ publication.user.lastName }}"
                  data-user-initial="{{ publication.user.firstName|first|upper }}"
-                 data-avatar="{% if author_profile and author_profile.avatar %}{{ author_profile.avatar starts with 'http' ? author_profile.avatar : asset(author_profile.avatar) }}{% endif %}"
-                 data-image="{% if publication.imagePub %}{{ asset('forum_images/' ~ publication.imagePub) }}{% endif %}"
+                 data-avatar="{% if author_profile and author_profile.avatar %}{{ media_url(author_profile.avatar, 'profile_images') }}{% endif %}"
+                 data-image="{{ media_url(publication.imagePub, 'forum_images')|default('') }}"
                  data-token="{{ csrf_token('delete' ~ publication.id) }}">
                 <span>Details</span>
                 <i class='bx bx-right-arrow-alt'></i>

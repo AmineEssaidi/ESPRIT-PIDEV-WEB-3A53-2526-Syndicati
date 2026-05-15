@@ -115,7 +115,7 @@ class ForgotPasswordController extends AbstractController
         $email = (new Email())
             ->from('noreply@horizon.local')
             ->to($user->getEmailUser())
-            ->subject('Horizon Protocol: Your New Credentials')
+            ->subject('Syndicati Protocol: Your New Credentials')
             ->html($this->twig->render('emails/password_reset_premium.html.twig', [
                 'user' => $user,
                 'new_password' => $newPassword

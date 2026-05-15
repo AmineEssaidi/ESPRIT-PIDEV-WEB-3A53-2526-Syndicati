@@ -15,7 +15,7 @@ class GmailOAuthMailer
     public function __construct(
         private readonly GoogleOAuthService $googleOAuthService,
         private readonly ?int $oauthUserId,
-        private readonly string $fromName = 'Horizon',
+        private readonly string $fromName = 'Syndicati',
     ) {
     }
 

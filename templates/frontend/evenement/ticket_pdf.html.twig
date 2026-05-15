@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            color: #161616;
+            margin: 0;
+            padding: 18px;
+        }
+        .ticket {
+            border: 2px solid #ff4b5c;
+            border-radius: 18px;
+            padding: 18px;
+        }
+        h1 {
+            color: #5f63f2;
+            font-size: 18px;
+            text-align: center;
+            margin: 0 0 12px;
+        }
+        h2 {
+            font-size: 14px;
+            margin: 14px 0 8px;
+        }
+        p {
+            font-size: 11px;
+            margin: 6px 0;
+            color: #333;
+        }
+        .qr {
+            text-align: center;
+            margin: 16px 0 10px;
+        }
+        .qr img {
+            width: 128px;
+            height: 128px;
+        }
+        .foot {
+            text-align: center;
+            font-size: 9px;
+            color: #777;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket">
+        <h1>SYNDICATI EVENT TICKET</h1>
+        <h2>{{ evenement.titreEvent|default('Event') }}</h2>
+        <p><strong>Location:</strong> {{ evenement.lieuEvent|default('N/A') }}</p>
+        <p><strong>Date:</strong> {{ evenement.dateEvent ? evenement.dateEvent|date('Y-m-d H:i') : 'N/A' }}</p>
+        <p><strong>Attendee:</strong> {{ user ? user.firstName ~ ' ' ~ user.lastName : 'Guest' }}</p>
+        <p><strong>Companions:</strong> {{ participation.nbAccompagnants|default(0) }}</p>
+        <p><strong>Status:</strong> {{ participation.statutParticipation|default('en_attente')|replace({'_': ' '})|title }}</p>
+
+        <div class="qr">
+            <img src="{{ qrDataUri }}" alt="Ticket QR">
+            <div class="foot">{{ qrPayload }}</div>
+        </div>
+
+        <div class="foot">Present this ticket at the event entrance.</div>
+    </div>
+</body>
+</html>

@@ -304,7 +304,7 @@
                                     "{{ event.dateEvent|date('Y-m-d') }}": {
                                         "id": "{{ event.id }}",
                                         "title": "{{ event.titreEvent }}",
-                                        "image": "{{ event.imageEvent ? asset('event_images/' ~ event.imageEvent) : '' }}",
+                                        "image": "{{ media_url(event.imageEvent, 'event_images')|default('') }}",
                                         "type": "{{ event.typeEvent }}",
                                         "lieu": "{{ event.lieuEvent }}",
                                         "date": "{{ event.dateEvent|date('F d, Y • H:i') }}"
@@ -335,12 +335,43 @@
                 <!-- 2. EVENTS GRID (Below) -->
                 {% if evenements|length > 0 %}
                     <div style="padding: 0 3rem;">
+                        {% if recommendedEvents|default([])|length > 0 %}
+                            <section class="event-recommendations mb-4">
+                                <div class="event-recommendations-head">
+                                    <div>
+                                        <span class="event-section-pill">
+                                            <i class='bx bx-sparkles'></i> Recommended For You
+                                        </span>
+                                        <p>Based on your event history, favorite categories, and current community momentum.</p>
+                                    </div>
+                                </div>
+                                <div class="event-recommendation-list">
+                                    {% for rec in recommendedEvents %}
+                                        <button type="button" class="event-recommendation-card" onclick="focusEventCard('{{ rec.id }}')">
+                                            <span class="event-rec-type">{{ rec.typeEvent|replace({'_': ' '})|title }}</span>
+                                            <strong>{{ rec.titreEvent }}</strong>
+                                            <small><i class='bx bx-map'></i> {{ rec.lieuEvent }} · {{ rec.dateEvent|date('M d') }}</small>
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            </section>
+                        {% endif %}
+
                         <div class="mb-4 d-flex justify-content-between align-items-center">
                             <span class="event-section-pill">
                                 <i class='bx bx-calendar-check'></i> Upcoming Events
                             </span>
-                            <div class="event-pagination-info" id="eventPaginationInfo">
-                                <span style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Showing <span id="currentEventRange"></span> of {{ evenements|length }}</span>
+                            <div class="event-toolbar">
+                                <div class="event-search-box">
+                                    <i class='bx bx-search'></i>
+                                    <input id="eventSearchInput" type="search" placeholder="Search events, type, location...">
+                                    <button type="button" id="eventVoiceSearchBtn" title="Voice search">
+                                        <i class='bx bx-microphone'></i>
+                                    </button>
+                                </div>
+                                <div class="event-pagination-info" id="eventPaginationInfo">
+                                    <span style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Showing <span id="currentEventRange"></span> of {{ evenements|length }}</span>
+                                </div>
                             </div>
                         </div>
                         
@@ -397,32 +428,35 @@
             const eventGrid = document.getElementById('eventGrid');
             if (eventGrid) {
                 const cards = eventGrid.querySelectorAll('.event-card');
-                const totalPages = Math.ceil(cards.length / cardsPerPage);
+                let filteredCards = Array.from(cards);
+                let totalPages = Math.ceil(filteredCards.length / cardsPerPage);
+                const searchInput = document.getElementById('eventSearchInput');
 
                 function updatePagination() {
+                    totalPages = Math.max(1, Math.ceil(filteredCards.length / cardsPerPage));
+                    if (currentPage > totalPages) currentPage = totalPages;
                     const start = (currentPage - 1) * cardsPerPage;
                     const end = start + cardsPerPage;
 
-                    cards.forEach((card, index) => {
+                    cards.forEach((card) => card.style.display = 'none');
+                    filteredCards.forEach((card, index) => {
                         if (index >= start && index < end) {
                             card.style.display = 'block';
                             setTimeout(() => { card.style.opacity = '1'; }, 10);
-                        } else {
-                            card.style.display = 'none';
                         }
                     });
 
                     // Update range text
                     const rangeDisplay = document.getElementById('currentEventRange');
                     if (rangeDisplay) {
-                        rangeDisplay.textContent = cards.length > 0 ? `${start + 1}-${Math.min(end, cards.length)}` : '0-0';
+                        rangeDisplay.textContent = filteredCards.length > 0 ? `${start + 1}-${Math.min(end, filteredCards.length)}` : '0-0';
                     }
 
                     // Update buttons
                     const prevBtn = document.getElementById('prevEventPage');
                     const nextBtn = document.getElementById('nextEventPage');
                     if (prevBtn) prevBtn.disabled = currentPage === 1;
-                    if (nextBtn) nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+                    if (nextBtn) nextBtn.disabled = currentPage === totalPages || filteredCards.length === 0;
 
                     // Update page numbers
                     const pagesContainer = document.getElementById('eventPaginationPages');
@@ -453,6 +487,24 @@
                 const nextBtn = document.getElementById('nextEventPage');
                 if (prevBtn) prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; updatePagination(); document.getElementById('events').scrollIntoView({ behavior: 'smooth' }); } };
                 if (nextBtn) nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; updatePagination(); document.getElementById('events').scrollIntoView({ behavior: 'smooth' }); } };
+
+                function applyEventSearch() {
+                    const query = (searchInput?.value || '').trim().toLowerCase();
+                    filteredCards = Array.from(cards).filter((card) => {
+                        if (!query) return true;
+                        const haystack = [
+                            card.dataset.title || '',
+                            card.dataset.type || '',
+                            card.dataset.lieu || '',
+                            card.querySelector('.event-card-desc')?.textContent.toLowerCase() || ''
+                        ].join(' ');
+                        return haystack.includes(query);
+                    });
+                    currentPage = 1;
+                    updatePagination();
+                }
+
+                searchInput?.addEventListener('input', applyEventSearch);
 
                 if (cards.length > 0) updatePagination();
                 else {

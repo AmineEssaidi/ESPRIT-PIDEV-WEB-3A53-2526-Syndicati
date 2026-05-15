@@ -11,15 +11,18 @@ class LangChainAIClient
     private string $baseUrl;
     private string $model;
     private SmartRouteMappingService $routeMappingService;
+    private DirectAiClient $directAi;
 
     public function __construct(
         HttpClientInterface $client,
         SmartRouteMappingService $routeMappingService,
+        DirectAiClient $directAi,
         ?string $baseUrl = null,
         ?string $model = null
     ) {
         $this->client = $client;
         $this->routeMappingService = $routeMappingService;
+        $this->directAi = $directAi;
         $this->baseUrl = rtrim($baseUrl ?: ($_ENV['OLLAMA_BASE_URL'] ?? 'http://127.0.0.1:11434'), '/');
         $this->model = $model ?: ($_ENV['OLLAMA_MODEL'] ?? 'phi4-mini:3.8b');
         
@@ -28,56 +31,18 @@ class LangChainAIClient
 
     public function chat(array $messages, array $pageContext = []): array
     {
-        $systemPrompt = $this->buildSystemPrompt($pageContext);
-        
-        // Check if this is an agent task
-        $lastMessage = end($messages);
-        $isAgentTask = $this->detectAgentTask($lastMessage['content'] ?? '');
-        
-        error_log("[SyndicatiAI] Last message: " . ($lastMessage['content'] ?? 'empty'));
-        error_log("[SyndicatiAI] Is agent task: " . ($isAgentTask ? 'YES' : 'NO'));
-        
-        if ($isAgentTask) {
-            error_log("[SyndicatiAI] Executing agent task");
-            return $this->executeAgentTask($messages, $pageContext);
-        }
-        
-        $ollamaMessages = array_merge(
-            [['role' => 'system', 'content' => $systemPrompt]],
-            $messages
-        );
+        $result = $this->directAi->chat($messages, $pageContext);
 
-        $response = $this->client->request('POST', $this->baseUrl . '/api/chat', [
-            'json' => [
-                'model' => $this->model,
-                'messages' => $ollamaMessages,
-                'stream' => false,
-                'options' => [
-                    'temperature' => 0.7,
-                    'num_predict' => 500,
-                ]
-            ],
-            'timeout' => 60
-        ]);
-
-        $data = $response->toArray();
-        
-        if (isset($data['message']['content'])) {
-            $content = $data['message']['content'];
-            $parsed = $this->parseAIResponse($content);
-            
-            return [
-                'message' => [
-                    'content' => json_encode([
-                        'reply' => $parsed['reply'] ?? $content,
-                        'actions' => $parsed['actions'] ?? [],
-                        'intent' => $parsed['intent'] ?? null,
-                    ])
-                ]
-            ];
-        }
-        
-        throw new \Exception('Invalid response from Ollama');
+        return [
+            'message' => [
+                'content' => json_encode([
+                    'reply' => $result['reply'] ?? '',
+                    'actions' => $result['actions'] ?? [],
+                    'intent' => $result['intent'] ?? null,
+                    'provider' => $result['provider'] ?? null,
+                ])
+            ]
+        ];
     }
 
     /**
@@ -161,7 +126,7 @@ class LangChainAIClient
         $isAdmin = $pageContext['isAdmin'] ?? false;
         $currentPage = $pageContext['currentPage'] ?? 'unknown';
         
-        $prompt = "You are Horizon AI, a helpful assistant for a real estate platform.\n\n";
+        $prompt = "You are Syndicati AI, a helpful assistant for a real estate platform.\n\n";
         $prompt .= "User Role: {$role}\n";
         $prompt .= "Current Page: {$currentPage}\n\n";
         
@@ -188,37 +153,6 @@ class LangChainAIClient
 
     public function checkStatus(): array
     {
-        try {
-            $response = $this->client->request('GET', $this->baseUrl . '/api/tags', [
-                'timeout' => 3
-            ]);
-            
-            $data = $response->toArray();
-            $models = $data['models'] ?? [];
-            
-            $modelAvailable = false;
-            foreach ($models as $model) {
-                if (strpos($model['name'] ?? '', $this->model) !== false) {
-                    $modelAvailable = true;
-                    break;
-                }
-            }
-            
-            return [
-                'running' => true,
-                'model' => $this->model,
-                'model_available' => $modelAvailable,
-                'baseUrl' => $this->baseUrl,
-            ];
-            
-        } catch (\Exception $e) {
-            return [
-                'running' => false,
-                'model' => $this->model,
-                'model_available' => false,
-                'baseUrl' => $this->baseUrl,
-                'error' => $e->getMessage(),
-            ];
-        }
+        return $this->directAi->status();
     }
 }

@@ -18,7 +18,7 @@ class TwoFactorService
         private readonly GmailOAuthMailer $gmailOAuthMailer,
         private readonly \App\Service\Twilio\TwilioService $twilioService,
         private readonly string $fromEmail = 'noreply@horizon.local',
-        private readonly string $fromName = 'Horizon',
+        private readonly string $fromName = 'Syndicati',
         private readonly string $mailerDsn = 'null://null'
     ) {
     }

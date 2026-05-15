@@ -11,6 +11,7 @@ use App\Form\User\UserType;
 use App\Repository\Onboarding\OnboardingRepository;
 use App\Repository\Profile\ProfileRepository;
 use App\Repository\User\UserRepository;
+use App\Service\Media\ImageKitStorageService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -36,6 +37,24 @@ class UserController extends AbstractController
         $users = $userRepository->findBy([], ['created_at' => 'DESC']);
         $profiles = $profileRepository->findBy([], ['id_profile' => 'DESC']);
         $onboardings = $onboardingRepository->findBy([], ['id_onboarding' => 'DESC']);
+        $banStats = [
+            'totalBans' => 0,
+            'recentBans' => 0,
+            'totalUsers' => count($users),
+            'activeUsers' => 0,
+        ];
+        $recentCutoff = new \DateTimeImmutable('-7 days');
+        foreach ($users as $user) {
+            if ($user->getIsDisabled()) {
+                $banStats['totalBans']++;
+                $disabledAt = $user->getDisabledAt();
+                if ($disabledAt instanceof \DateTimeInterface && $disabledAt->getTimestamp() >= $recentCutoff->getTimestamp()) {
+                    $banStats['recentBans']++;
+                }
+            } else {
+                $banStats['activeUsers']++;
+            }
+        }
         $editUser = new User();
         $editForm = $this->createForm(UserType::class, $editUser, ['signup' => false, 'edit' => true]);
         $addUser = new User();
@@ -50,11 +69,12 @@ class UserController extends AbstractController
             'addForm' => $addForm->createView(),
             'profileEditForm' => $profileEditForm->createView(),
             'onboardingEditForm' => $onboardingEditForm->createView(),
+            'userBanStats' => $banStats,
         ]);
     }
 
     #[Route('/profile/{id}/edit', name: 'admin_profile_edit', methods: ['POST'])]
-    public function profileEdit(int $id, Request $request, ProfileRepository $profileRepository, EntityManagerInterface $em, SluggerInterface $slugger): JsonResponse
+    public function profileEdit(int $id, Request $request, ProfileRepository $profileRepository, EntityManagerInterface $em, SluggerInterface $slugger, ImageKitStorageService $imageStorage): JsonResponse
     {
         $profile = $profileRepository->find($id);
         if (!$profile instanceof Profile) {
@@ -72,8 +92,13 @@ class UserController extends AbstractController
                 $targetDir = $this->getParameter('kernel.project_dir') . '/public/profile_images';
 
                 try {
-                    $avatarFile->move($targetDir, $newFilename);
-                    $profile->setAvatar('profile_images/' . $newFilename);
+                    $profile->setAvatar($imageStorage->storeUploadedFile(
+                        $avatarFile,
+                        $targetDir,
+                        'profile_images',
+                        '/syndicati/profile_images',
+                        $newFilename
+                    ));
                 } catch (FileException $e) {
                     return new JsonResponse(['success' => false, 'message' => 'Failed to upload avatar.'], 500);
                 }
@@ -160,6 +185,61 @@ class UserController extends AbstractController
         $em->remove($user);
         $em->flush();
         return new JsonResponse(['success' => true, 'message' => 'User deleted successfully.']);
+    }
+
+    #[Route('/users/{id}/ban', name: 'admin_users_ban', methods: ['POST'])]
+    public function userBan(int $id, Request $request, UserRepository $userRepository, EntityManagerInterface $em, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
+    {
+        $token = $request->request->get('_token');
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('user_ban_' . $id, $token ?? ''))) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+        }
+
+        $user = $userRepository->find($id);
+        if (!$user instanceof User) {
+            return new JsonResponse(['success' => false, 'message' => 'User not found.'], 404);
+        }
+
+        $sessionUser = $request->getSession()->get('user');
+        $currentUserId = is_array($sessionUser) && isset($sessionUser['id']) ? (int) $sessionUser['id'] : null;
+        if ($currentUserId === $user->getIdUser()) {
+            return new JsonResponse(['success' => false, 'message' => 'You cannot ban your own account.'], 400);
+        }
+
+        $reason = trim((string) $request->request->get('reason', ''));
+        if ($reason === '') {
+            return new JsonResponse(['success' => false, 'message' => 'Please provide a ban reason.'], 400);
+        }
+
+        $user->setIsDisabled(true);
+        $user->setDisabledAt(new \DateTime());
+        $user->setDisabledReason(substr($reason, 0, 500));
+        $user->setUpdatedAt(new \DateTime());
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'User ban applied successfully.']);
+    }
+
+    #[Route('/users/{id}/unban', name: 'admin_users_unban', methods: ['POST'])]
+    public function userUnban(int $id, Request $request, UserRepository $userRepository, EntityManagerInterface $em, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
+    {
+        $token = $request->request->get('_token');
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('user_unban_' . $id, $token ?? ''))) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+        }
+
+        $user = $userRepository->find($id);
+        if (!$user instanceof User) {
+            return new JsonResponse(['success' => false, 'message' => 'User not found.'], 404);
+        }
+
+        $user->setIsDisabled(false);
+        $user->setDisabledAt(null);
+        $user->setDisabledReason(null);
+        $user->setUpdatedAt(new \DateTime());
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'User ban revoked successfully.']);
     }
 
     #[Route('/onboarding/{id}/edit', name: 'admin_onboarding_edit', methods: ['POST'])]

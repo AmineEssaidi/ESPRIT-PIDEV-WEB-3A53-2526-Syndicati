@@ -21,28 +21,51 @@ class ReclamationRepository extends ServiceEntityRepository
         parent::__construct($registry, Reclamation::class);
     }
 
-    //    /**
-//     * @return Reclamation[] Returns an array of Reclamation objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('r.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findByUserId(int $userId): array
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.user = :userId')
+            ->setParameter('userId', $userId)
+            ->orderBy('r.created_at', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 
-    //    public function findOneBySomeField($value): ?Reclamation
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function findByStatut(string $statut): array
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.statutreclamation = :statut')
+            ->setParameter('statut', $statut)
+            ->orderBy('r.created_at', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getOperationalStats(): array
+    {
+        $rows = $this->createQueryBuilder('r')
+            ->select('r.statutreclamation AS status, COUNT(r.id) AS total')
+            ->groupBy('r.statutreclamation')
+            ->getQuery()
+            ->getArrayResult();
+
+        $stats = [
+            'total' => 0,
+            'active' => 0,
+            'en_attente' => 0,
+            'refuse' => 0,
+            'termine' => 0,
+        ];
+
+        foreach ($rows as $row) {
+            $status = (string) ($row['status'] ?? '');
+            $total = (int) ($row['total'] ?? 0);
+            if (array_key_exists($status, $stats)) {
+                $stats[$status] = $total;
+            }
+            $stats['total'] += $total;
+        }
+
+        return $stats;
+    }
 }

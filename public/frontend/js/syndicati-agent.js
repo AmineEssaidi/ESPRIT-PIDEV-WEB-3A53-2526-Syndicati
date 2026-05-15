@@ -5,6 +5,9 @@
 (function () {
   'use strict';
 
+  if (window.SyndicatiAgentLoaded) return;
+  window.SyndicatiAgentLoaded = true;
+
   // Create styles
   const style = document.createElement('style');
   style.textContent = `
@@ -662,31 +665,22 @@
    * Check services status - always logs to console, only shows loader if services aren't ready.
    */
   async function checkServicesStatus() {
-    console.log('%c[Syndicati AI] Checking services status (Ollama, LangGraph, Playwright)...', 'color: #764ba2; font-weight: bold;');
+    console.log('%c[Syndicati AI] Checking direct Gemini/Groq agent status...', 'color: #764ba2; font-weight: bold;');
 
     try {
-      // Check current status (use cache if all ready, otherwise force refresh)
       const boot = await bootstrapAgentSilent(!isBootstrapped);
+      const directReady = boot.directApi?.running || boot.ready;
 
-      const o = boot.ollama?.running ? true : false;
-      const l = boot.langgraph?.running ? true : false;
-      const p = boot.playwright?.running ? true : false;
-
-      // Always log to console (3-step verification)
       console.log('%c[Syndicati AI] Service status:', 'color: #888;');
-      console.log('  Ollama:    ' + (o ? '✅ Running' : '❌ Offline'));
-      console.log('  LangGraph: ' + (l ? '✅ Running' : '❌ Offline'));
-      console.log('  Playwright: ' + (p ? '✅ Running' : '❌ Offline'));
       console.table({
-        'Ollama': o ? '✅ Running' : '❌ Offline',
-        'LangGraph': l ? '✅ Running' : '❌ Offline',
-        'Playwright': p ? '✅ Running' : '❌ Offline'
+        'Direct API': directReady ? 'Ready' : 'Missing key',
+        'Model': boot.directApi?.model || 'unknown',
+        'Mode': 'Browser local actions'
       });
 
-      if (boot.ready && o && l && p) {
-        console.log('%c[Syndicati AI] All 3 services are ready.', 'color: #22c55e; font-weight: bold;');
+      if (directReady) {
+        console.log('%c[Syndicati AI] Direct agent is ready.', 'color: #22c55e; font-weight: bold;');
         isBootstrapped = true;
-        // Hide loader if it was showing
         const loader = document.getElementById('agent-loader');
         if (loader) {
           loader.style.opacity = '0';
@@ -694,52 +688,41 @@
           setTimeout(() => { loader.style.display = 'none'; }, 300);
         }
       } else {
-        // Services not ready - show loader and retry
         await performBootstrap();
       }
     } catch (e) {
       console.error('[Syndicati AI] Status check error:', e);
-      // If error, try full bootstrap
       await performBootstrap();
     }
   }
 
   /**
-   * Perform bootstrap with loader animation - only called when services aren't ready.
+   * Perform bootstrap with loader animation when the direct API key is not ready.
    */
   async function performBootstrap() {
     const loader = document.getElementById('agent-loader');
     const detail = document.getElementById('agent-loader-detail');
     if (!loader || !detail) return;
 
-    // Show loader when services aren't ready
     loader.style.display = 'flex';
     loader.style.opacity = '1';
     loader.style.pointerEvents = 'auto';
-    detail.textContent = 'Checking services...';
+    detail.textContent = 'Checking direct AI...';
 
     try {
-      // Force fresh bootstrap (no cache) so backend auto-starts and we get current status
       const boot = await bootstrapAgentSilent(true);
+      const directReady = boot.directApi?.running || boot.ready;
 
-      const o = boot.ollama?.running ? true : false;
-      const l = boot.langgraph?.running ? true : false;
-      const p = boot.playwright?.running ? true : false;
-
-      if (boot.ready && o && l && p) {
-        console.log('%c[Syndicati AI] All 3 services are ready.', 'color: #22c55e; font-weight: bold;');
-        detail.textContent = 'All services ready.';
+      if (directReady) {
+        console.log('%c[Syndicati AI] Direct agent is ready.', 'color: #22c55e; font-weight: bold;');
+        detail.textContent = 'Direct AI ready.';
         isBootstrapped = true;
         loader.style.opacity = '0';
         loader.style.pointerEvents = 'none';
         setTimeout(() => { loader.style.display = 'none'; }, 500);
       } else {
-        const missing = [];
-        if (!o) missing.push('Ollama');
-        if (!l) missing.push('LangGraph');
-        if (!p) missing.push('Playwright');
-        detail.textContent = 'Waiting for: ' + missing.join(', ') + '... (retrying)';
-        console.warn('[Syndicati AI] Some services not ready. Retrying in 2s...', missing);
+        detail.textContent = 'Waiting for GEMINI_API_KEY or GROQ_API_KEY...';
+        console.warn('[Syndicati AI] Direct API key is missing. Retrying in 2s...');
         setTimeout(performBootstrap, 2000);
       }
     } catch (e) {

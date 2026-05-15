@@ -21,7 +21,11 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use App\Service\WeatherService;
 use App\Service\UserStanding\UserStandingService;
+use App\Service\Media\ImageKitStorageService;
+use App\Service\Media\ImagePathResolver;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use App\Service\Evenement\EventRecommendationService;
+use App\Service\Evenement\EvenementNotificationService;
 
 use App\Service\FormErrorHelperTrait;
 
@@ -31,7 +35,9 @@ class EvenementController extends AbstractController
     use FormErrorHelperTrait;
     public function __construct(
         private readonly UserStandingService $userStandingService,
-        private readonly \App\Service\User\NotificationService $notifService
+        private readonly \App\Service\User\NotificationService $notifService,
+        private readonly ImageKitStorageService $imageStorage,
+        private readonly ImagePathResolver $imagePathResolver
     ) {
     }
     #[Route('/weather/preview', name: 'app_evenement_weather_preview', methods: ['GET'])]
@@ -60,7 +66,16 @@ class EvenementController extends AbstractController
     }
 
     #[Route('/', name: 'app_evenement_index', methods: ['GET', 'POST'])]
-    public function index(Request $request, EvenementRepository $evenementRepository, \App\Repository\User\UserRepository $userRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function index(
+        Request $request,
+        EvenementRepository $evenementRepository,
+        ParticipationRepository $participationRepository,
+        \App\Repository\User\UserRepository $userRepository,
+        EntityManagerInterface $entityManager,
+        SluggerInterface $slugger,
+        EventRecommendationService $recommendationService,
+        EvenementNotificationService $evenementNotificationService
+    ): Response
     {
         $evenement = new Evenement();
         $form = $this->createForm(EvenementType::class, $evenement);
@@ -76,14 +91,24 @@ class EvenementController extends AbstractController
                         return new JsonResponse(['success' => false, 'message' => 'You must be logged in to create an event.'], 401);
                     }
 
+                    $this->normalizeCreatedEventCapacity($evenement);
+                    if ($this->isDuplicateEventCreate($request, $evenement, $user)) {
+                        return new JsonResponse(['success' => true, 'message' => 'Event created successfully!', 'duplicate' => true]);
+                    }
+
                     $imageFile = $form->get('image_event')->getData();
                     if ($imageFile) {
                         $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
                         $safeFilename = $slugger->slug($originalFilename);
                         $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
                         try {
-                            $imageFile->move($this->getParameter('event_images_directory'), $newFilename);
-                            $evenement->setImageEvent($newFilename);
+                            $evenement->setImageEvent($this->imageStorage->storeUploadedFile(
+                                $imageFile,
+                                $this->getParameter('event_images_directory'),
+                                'event_images',
+                                '/syndicati/event_images',
+                                $newFilename
+                            ));
                         } catch (\Exception $e) {
                             // Fallback if move fails (e.g. permission or dir missing)
                         }
@@ -91,6 +116,8 @@ class EvenementController extends AbstractController
 
                     $entityManager->persist($evenement);
                     $entityManager->flush();
+                    $this->rememberEventCreate($request, $evenement, $user);
+                    $evenementNotificationService->notifyEventCreation($evenement);
 
                     $this->notifService->notify(
                         $user,
@@ -116,6 +143,8 @@ class EvenementController extends AbstractController
         }
 
         $participatedEventIds = [];
+        $participationIdsByEvent = [];
+        $participationHistory = [];
         $userForCheck = $this->getUser();
         if (!$userForCheck) {
             $sessionUser = $request->getSession()->get('user');
@@ -127,16 +156,15 @@ class EvenementController extends AbstractController
         }
 
         if ($userForCheck) {
-            $participatedEventIds = $entityManager->createQueryBuilder()
-                ->select('e.id')
-                ->from(Participation::class, 'p')
-                ->join('p.evenement', 'e')
-                ->where('p.user = :user')
-                ->andWhere('p.statut_participation != :status')
-                ->setParameter('user', $userForCheck)
-                ->setParameter('status', 'annule')
-                ->getQuery()
-                ->getSingleColumnResult();
+            $participationHistory = $participationRepository->findByUserWithEvent($userForCheck);
+            foreach ($participationHistory as $participation) {
+                $event = $participation->getEvenement();
+                if (!$event || $participation->getStatutParticipation() === 'annule') {
+                    continue;
+                }
+                $participatedEventIds[] = $event->getId();
+                $participationIdsByEvent[$event->getId()] = $participation->getId();
+            }
         }
 
         /** @var User|null $user */
@@ -144,11 +172,15 @@ class EvenementController extends AbstractController
         $currentUserId = ($user instanceof User) ? $user->getIdUser() : null;
         $currentUserRole = ($user instanceof User) ? $user->getRoleUser() : null;
 
+        $events = $evenementRepository->findAllWithUser();
+
         return $this->render('frontend/evenement/index.html.twig', [
-            'evenements' => $evenementRepository->findAllWithUser(),
+            'evenements' => $events,
+            'recommendedEvents' => $recommendationService->recommend($events, $participationHistory),
             'form' => $form->createView(),
             'participationForm' => $this->createForm(ParticipationType::class)->createView(),
             'participatedEventIds' => $participatedEventIds,
+            'participationIdsByEvent' => $participationIdsByEvent,
             'currentUserId' => $currentUserId,
             'currentUserRole' => $currentUserRole,
         ]);
@@ -178,7 +210,8 @@ class EvenementController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         SluggerInterface $slugger,
-        \App\Repository\User\UserRepository $userRepository
+        \App\Repository\User\UserRepository $userRepository,
+        EvenementNotificationService $evenementNotificationService
     ): JsonResponse {
         $evenement = new Evenement();
         $user = $this->getUser();
@@ -200,20 +233,32 @@ class EvenementController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $this->normalizeCreatedEventCapacity($evenement);
+            if ($this->isDuplicateEventCreate($request, $evenement, $user instanceof User ? $user : null)) {
+                return new JsonResponse(['success' => true, 'message' => 'Event created successfully!', 'duplicate' => true]);
+            }
+
             $imageFile = $form->get('image_event')->getData();
             if ($imageFile) {
                 $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
                 $safeFilename = $slugger->slug($originalFilename);
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
                 try {
-                    $imageFile->move($this->getParameter('event_images_directory'), $newFilename);
-                    $evenement->setImageEvent($newFilename);
+                    $evenement->setImageEvent($this->imageStorage->storeUploadedFile(
+                        $imageFile,
+                        $this->getParameter('event_images_directory'),
+                        'event_images',
+                        '/syndicati/event_images',
+                        $newFilename
+                    ));
                 } catch (\Exception $e) {
                 }
             }
 
             $entityManager->persist($evenement);
             $entityManager->flush();
+            $this->rememberEventCreate($request, $evenement, $user instanceof User ? $user : null);
+            $evenementNotificationService->notifyEventCreation($evenement);
 
             if ($user instanceof User) {
                 $this->notifService->notify(
@@ -406,7 +451,8 @@ class EvenementController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         SluggerInterface $slugger,
-        \App\Repository\User\UserRepository $userRepository
+        \App\Repository\User\UserRepository $userRepository,
+        EvenementNotificationService $evenementNotificationService
     ): JsonResponse {
         try {
             $evenement = new Evenement();
@@ -422,6 +468,11 @@ class EvenementController extends AbstractController
                         return new JsonResponse(['success' => false, 'message' => 'Session expired. Please log in again.'], 401);
                     }
 
+                    $this->normalizeCreatedEventCapacity($evenement);
+                    if ($this->isDuplicateEventCreate($request, $evenement, $user)) {
+                        return new JsonResponse(['success' => true, 'message' => 'Event created successfully!', 'duplicate' => true]);
+                    }
+
                     /** @var UploadedFile $imageFile */
                     $imageFile = $form->get('image_event')->getData();
 
@@ -431,14 +482,21 @@ class EvenementController extends AbstractController
                         $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
                         try {
-                            $imageFile->move($this->getParameter('event_images_directory'), $newFilename);
-                            $evenement->setImageEvent($newFilename);
+                            $evenement->setImageEvent($this->imageStorage->storeUploadedFile(
+                                $imageFile,
+                                $this->getParameter('event_images_directory'),
+                                'event_images',
+                                '/syndicati/event_images',
+                                $newFilename
+                            ));
                         } catch (\Exception $e) {
                         }
                     }
 
                     $entityManager->persist($evenement);
                     $entityManager->flush();
+                    $this->rememberEventCreate($request, $evenement, $user);
+                    $evenementNotificationService->notifyEventCreation($evenement);
 
                     if ($user instanceof User) {
                         $this->notifService->notify(
@@ -498,8 +556,13 @@ class EvenementController extends AbstractController
                     $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
                     try {
-                        $imageFile->move($this->getParameter('event_images_directory'), $newFilename);
-                        $evenement->setImageEvent($newFilename);
+                        $evenement->setImageEvent($this->imageStorage->storeUploadedFile(
+                            $imageFile,
+                            $this->getParameter('event_images_directory'),
+                            'event_images',
+                            '/syndicati/event_images',
+                            $newFilename
+                        ));
                     } catch (\Exception $e) {
                     }
                 }
@@ -573,6 +636,51 @@ class EvenementController extends AbstractController
             }
         }
         return $user instanceof User ? $user : null;
+    }
+
+    private function normalizeCreatedEventCapacity(Evenement $evenement): void
+    {
+        $places = max(0, (int) $evenement->getNbPlaces());
+        $remaining = $evenement->getNbRestants();
+
+        if ($remaining === null || $remaining > $places) {
+            $evenement->setNbRestants($places);
+        }
+
+        if ($evenement->getStatutEvent() === null) {
+            $evenement->setStatutEvent('planifie');
+        }
+    }
+
+    private function isDuplicateEventCreate(Request $request, Evenement $evenement, ?User $user): bool
+    {
+        $last = $request->getSession()->get('last_event_create');
+        if (!is_array($last)) {
+            return false;
+        }
+
+        return ($last['fingerprint'] ?? null) === $this->eventCreateFingerprint($evenement, $user)
+            && ((time() - (int) ($last['time'] ?? 0)) < 12);
+    }
+
+    private function rememberEventCreate(Request $request, Evenement $evenement, ?User $user): void
+    {
+        $request->getSession()->set('last_event_create', [
+            'fingerprint' => $this->eventCreateFingerprint($evenement, $user),
+            'time' => time(),
+        ]);
+    }
+
+    private function eventCreateFingerprint(Evenement $evenement, ?User $user): string
+    {
+        return hash('sha256', implode('|', [
+            $user?->getIdUser() ?? 0,
+            mb_strtolower(trim((string) $evenement->getTitreEvent())),
+            $evenement->getDateEvent()?->format('c') ?? '',
+            mb_strtolower(trim((string) $evenement->getLieuEvent())),
+            (string) $evenement->getNbPlaces(),
+            (string) $evenement->getTypeEvent(),
+        ]));
     }
 }
 

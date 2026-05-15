@@ -22,16 +22,20 @@ class Reclamation
 
     #[ORM\Column(type: 'string', length: 255, name: 'titrereclamations')]
     #[Assert\NotBlank(message: "The subject cannot be blank.")]
-    #[Assert\Length(min: 5, minMessage: "The subject must be at least 5 characters long.")]
+    #[Assert\Length(min: 10, max: 255, minMessage: "The subject must be at least 10 characters long.", maxMessage: "The subject cannot exceed 255 characters.")]
     #[Assert\Regex(
-        pattern: "/^[a-zA-Z0-9\s.,!?'\"-]*$/",
-        message: "The subject can only contain letters, numbers, spaces, and common punctuation."
+        pattern: "/^[\p{L}][\p{L}0-9\s.,!?'\"-]*$/u",
+        message: "The subject must start with a letter and can only contain letters, numbers, spaces, and common punctuation."
     )]
     private $titrereclamations;
 
     #[ORM\Column(type: 'string', length: 255, name: 'descreclamation')]
     #[Assert\NotBlank(message: "The description cannot be blank.")]
-    #[Assert\Length(min: 10, minMessage: "The description must be at least 10 characters long.")]
+    #[Assert\Length(min: 10, max: 255, minMessage: "The description must be at least 10 characters long.", maxMessage: "The description cannot exceed 255 characters.")]
+    #[Assert\Regex(
+        pattern: "/^[\p{L}]/u",
+        message: "The description must start with a letter."
+    )]
     private $descreclamation;
 
     #[ORM\Column(type: 'datetime', name: 'datereclamation')]

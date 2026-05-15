@@ -7,6 +7,10 @@ use App\Entity\Forum\Publication;
 use App\Repository\Forum\CommentaireRepository;
 use App\Repository\Forum\PublicationRepository;
 use App\Repository\Forum\ReactionRepository;
+use App\Service\DirectAiClient;
+use App\Service\Forum\ContentModerationService;
+use App\Service\Media\ImageKitStorageService;
+use App\Service\Media\ImagePathResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,7 +25,9 @@ class CommentaireController extends AbstractController
 {
     public function __construct(
         private readonly UserStandingService $userStandingService,
-        private readonly \App\Service\User\NotificationService $notifService
+        private readonly \App\Service\User\NotificationService $notifService,
+        private readonly ImageKitStorageService $imageStorage,
+        private readonly ImagePathResolver $imagePathResolver
     ) {
     }
     #[Route('/list/{id}', name: 'forum_comment_list', methods: ['GET'])]
@@ -116,7 +122,7 @@ class CommentaireController extends AbstractController
                 'canEdit' => ($currentUserId == $user->getIdUser() || $isUserModerator),
                 'canDelete' => ($currentUserId == $user->getIdUser() || $isUserModerator),
                 'deleteToken' => $csrfTokenManager->getToken('delete_comment' . $comment->getIdCommentaire())->getValue(),
-                'image' => $comment->getImageCommentaire() ? '/commentaire_images/' . $comment->getImageCommentaire() : null,
+                'image' => $this->imagePathResolver->publicUrl($comment->getImageCommentaire(), 'commentaire_images'),
                 'reactions' => $currentUserEntity ? array_map(fn($r) => ['kind' => $r->getKind(), 'emoji' => $r->getEmoji()], $reactionRepository->findByCommentAndUser($comment, $currentUserEntity)) : [],
                 'counts' => [
                     'Like' => $reactionRepository->countByCommentAndKind($comment->getIdCommentaire(), 'Like'),
@@ -136,7 +142,8 @@ class CommentaireController extends AbstractController
         EntityManagerInterface $entityManager,
         SluggerInterface $slugger,
         \App\Service\Forum\ForumNotificationService $notificationService,
-        \Symfony\Component\Validator\Validator\ValidatorInterface $validator
+        \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
+        ContentModerationService $moderationService
     ): JsonResponse {
         $publication = $publicationRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -156,6 +163,15 @@ class CommentaireController extends AbstractController
         $visibility = $request->request->get('visibility') === 'on'; // Checkbox
 
         if (!empty($description)) {
+            $flaggedCategories = $moderationService->checkContent($description);
+            if ($flaggedCategories !== []) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Inappropriate content detected: ' . implode(', ', $flaggedCategories),
+                    'moderation' => $flaggedCategories,
+                ], 422);
+            }
+
             $commentaire = new Commentaire();
             $commentaire->setDescriptionCommentaire($description);
             $commentaire->setVisibility($visibility);
@@ -170,11 +186,13 @@ class CommentaireController extends AbstractController
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
                 try {
-                    $imageFile->move(
+                    $commentaire->setImageCommentaire($this->imageStorage->storeUploadedFile(
+                        $imageFile,
                         $this->getParameter('commentaire_images_directory'),
+                        'commentaire_images',
+                        '/syndicati/commentaire_images',
                         $newFilename
-                    );
-                    $commentaire->setImageCommentaire($newFilename);
+                    ));
                 } catch (\Exception $e) {
                     // Log or handle error if needed
                 }
@@ -226,6 +244,20 @@ class CommentaireController extends AbstractController
         return new JsonResponse(['success' => false, 'message' => 'Empty description'], 400);
     }
 
+    #[Route('/feeling/{id}', name: 'forum_comment_feeling', methods: ['POST'])]
+    public function feeling(int $id, CommentaireRepository $commentaireRepository, DirectAiClient $ai): JsonResponse
+    {
+        $commentaire = $commentaireRepository->find($id);
+        if (!$commentaire) {
+            return new JsonResponse(['success' => false, 'message' => 'Comment not found.'], 404);
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'feeling' => $ai->analyzeFeeling($commentaire->getDescriptionCommentaire() ?? ''),
+        ]);
+    }
+
     #[Route('/delete/{id}', name: 'forum_comment_delete', methods: ['POST'])]
     public function delete(
         int $id,
@@ -268,7 +300,8 @@ class CommentaireController extends AbstractController
         Request $request,
         CommentaireRepository $commentaireRepository,
         EntityManagerInterface $entityManager,
-        SluggerInterface $slugger
+        SluggerInterface $slugger,
+        ContentModerationService $moderationService
     ): JsonResponse {
         $commentaire = $commentaireRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -290,6 +323,15 @@ class CommentaireController extends AbstractController
 
         $description = $request->request->get('description_commentaire');
         if (!empty($description)) {
+            $flaggedCategories = $moderationService->checkContent($description);
+            if ($flaggedCategories !== []) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Inappropriate content detected: ' . implode(', ', $flaggedCategories),
+                    'moderation' => $flaggedCategories,
+                ], 422);
+            }
+
             $commentaire->setDescriptionCommentaire($description);
 
             // Handle Image Edit (Optional: replace or keep)
@@ -300,12 +342,13 @@ class CommentaireController extends AbstractController
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
                 try {
-                    $imageFile->move(
+                    $commentaire->setImageCommentaire($this->imageStorage->storeUploadedFile(
+                        $imageFile,
                         $this->getParameter('commentaire_images_directory'),
+                        'commentaire_images',
+                        '/syndicati/commentaire_images',
                         $newFilename
-                    );
-                    // Optional: Delete old image here if you want
-                    $commentaire->setImageCommentaire($newFilename);
+                    ));
                 } catch (\Exception $e) {
                 }
             }

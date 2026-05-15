@@ -22,6 +22,7 @@ class Reponse
 
     #[ORM\Column(type: 'string', length: 255, name: 'messagereponse')]
     #[Assert\NotBlank]
+    #[Assert\Length(max: 255, maxMessage: "The response message cannot exceed 255 characters.")]
     private $messagereponse;
 
     #[ORM\Column(type: 'string', length: 255, name: 'imagereponse', nullable: true)]

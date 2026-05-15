@@ -252,7 +252,7 @@
         .premium-switcher-container {
             padding: 4px; background: rgba(10, 10, 10, 0.45); backdrop-filter: blur(20px) saturate(180%);
             border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 100px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); position: relative; z-index: 10; min-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); position: relative; z-index: 10; min-width: 520px;
         }
         .premium-switcher-pill { display: flex; position: relative; width: 100%; height: 44px; }
         .premium-switcher-slider {
@@ -319,6 +319,86 @@
             letter-spacing: 0.1em;
             font-size: 0.85rem;
         }
+        .review-score-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 999px;
+            background: rgba(255, 193, 7, 0.12);
+            border: 1px solid rgba(255, 193, 7, 0.25);
+            color: #ffd166;
+            font-weight: 900;
+        }
+        .review-star-picker {
+            display: grid;
+            grid-template-columns: repeat(11, minmax(34px, 1fr));
+            gap: 0.45rem;
+            padding: 0.75rem;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.035);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .review-star-option {
+            height: 38px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.055);
+            color: rgba(255,255,255,0.62);
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.2rem;
+            cursor: pointer;
+            transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+        }
+        .review-star-option:hover,
+        .review-star-option.active {
+            transform: translateY(-1px);
+            color: #fff;
+            border-color: rgba(255, 193, 7, 0.72);
+            background: linear-gradient(135deg, rgba(255,107,107,0.95), rgba(255,211,106,0.85), rgba(255,143,214,0.8));
+            box-shadow: 0 10px 26px rgba(255,107,107,0.22);
+        }
+        .review-star-caption {
+            margin-top: 0.65rem;
+            color: rgba(255,255,255,0.62);
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+        .review-summary-strip {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+        .review-summary-card {
+            padding: 1rem 1.2rem;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 16px 35px rgba(0,0,0,0.28);
+        }
+        .review-summary-label {
+            display: block;
+            color: rgba(255,255,255,0.46);
+            font-size: 0.74rem;
+            font-weight: 850;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .review-summary-value {
+            display: block;
+            color: #fff;
+            font-size: 1.7rem;
+            font-weight: 950;
+            margin-top: 0.35rem;
+        }
+        @media (max-width: 900px) {
+            .premium-switcher-container { min-width: 0; width: min(100%, 560px); }
+            .review-summary-strip { grid-template-columns: 1fr; }
+        }
     </style>
 {% endblock %}
 
@@ -332,6 +412,7 @@
             <button class="premium-switcher-tab active" data-page="1">Residences</button>
             <button class="premium-switcher-tab" data-page="2">Appartements</button>
             <button class="premium-switcher-tab" data-page="3">Maintenance</button>
+            <button class="premium-switcher-tab" data-page="4">Reviews</button>
         </div>
     </div>
 </div>
@@ -912,6 +993,177 @@
             </div>
         </div>
     </div>
+
+    <!-- Page 4: Reviews -->
+    <div class="residence-page-content" data-page="4" style="display: none;">
+        <div class="glass-table-container">
+            <div id="reviewGlassSwitcher" class="glass-switcher style-slide">
+                <div class="glass-switcher-face glass-switcher-face-main">
+                    <div class="glass-toolbar">
+                        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">Reviews</h3>
+                        <div style="flex: 1;"></div>
+                        <button type="button" class="glass-btn-save" id="review-btn-add" style="padding: 0.6rem 1.5rem; font-size: 0.9rem;">
+                            <i class="bx bx-plus"></i> Add Review
+                        </button>
+                    </div>
+
+                    <div class="review-summary-strip">
+                        <div class="review-summary-card">
+                            <span class="review-summary-label">Total Reviews</span>
+                            <span class="review-summary-value">{{ reviewStats.total|default(0) }}</span>
+                        </div>
+                        <div class="review-summary-card">
+                            <span class="review-summary-label">Average Score</span>
+                            <span class="review-summary-value">{{ reviewStats.average|default(0)|number_format(1) }}/10</span>
+                        </div>
+                        <div class="review-summary-card">
+                            <span class="review-summary-label">Rated Apartments</span>
+                            <span class="review-summary-value">{{ reviewStats.ratedApartments|default(0) }}</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-toolbar" style="margin-bottom: 1.5rem;">
+                        <div class="glass-search-container">
+                            <i class="bx bx-search glass-search-icon"></i>
+                            <input type="text" class="glass-search-input review-search-input" placeholder="Search reviews...">
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <div class="glass-pill glass-pill-active review-sort-option" data-value="score" onclick="selectReviewSortPill(this)">Score</div>
+                            <div class="glass-pill review-sort-option" data-value="residence" onclick="selectReviewSortPill(this)">Residence</div>
+                            <div class="glass-pill review-sort-option" data-value="user" onclick="selectReviewSortPill(this)">User</div>
+                            <button class="glass-pagination-btn" id="review-sort-dir-pill" style="width: 38px; height: 38px;">
+                                <span id="review-sort-dir-icon-svg"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="glass-table-scroll">
+                        <table class="glass-table" id="review-table">
+                            <thead>
+                                <tr>
+                                    <th>Residence</th>
+                                    <th>Apartment</th>
+                                    <th>User</th>
+                                    <th>Score</th>
+                                    <th style="text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="review-table-body"><!-- Rendered by JS --></tbody>
+                        </table>
+                    </div>
+                    <div class="glass-pagination-bar" id="review-pagination">
+                        <button class="glass-pagination-btn" id="review-table-prev"><i class="bx bx-chevron-left"></i></button>
+                        <div id="review-table-pages" style="display: flex; gap: 0.5rem;"></div>
+                        <button class="glass-pagination-btn" id="review-table-next"><i class="bx bx-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <div class="glass-switcher-face glass-switcher-face-details" id="review-view-face">
+                    <div id="review-view-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div><h3>Review Details</h3><p class="users-edit-modal-subtitle">Resident rating information</p></div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('review-view-modal')">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                <div class="glass-view-details">
+                                    <div class="glass-view-row"><div class="glass-view-label">Residence</div><div class="glass-view-value" id="view-review-residence">-</div></div>
+                                    <div class="glass-view-row"><div class="glass-view-label">Apartment</div><div class="glass-view-value" id="view-review-apartment">-</div></div>
+                                    <div class="glass-view-row"><div class="glass-view-label">User</div><div class="glass-view-value" id="view-review-user">-</div></div>
+                                    <div class="glass-view-row"><div class="glass-view-label">Score</div><div class="glass-view-value"><span class="review-score-pill" id="view-review-score">-</span></div></div>
+                                </div>
+                                <div class="users-view-modal-actions" style="margin-top: 2.5rem;">
+                                    <button type="button" class="users-btn-modify" id="view-review-modify-btn"><i class="bx bx-edit"></i> Modify Review</button>
+                                    <form id="view-review-delete-form" method="post" style="display: inline-block; margin-left: 1rem;">
+                                        <input type="hidden" name="_token" id="view-review-delete-token" value="">
+                                        <button type="submit" class="users-btn-delete" data-delete-title="Delete Review"><i class="bx bx-trash"></i> Delete Review</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-switcher-face glass-switcher-face-edit" id="review-edit-face">
+                    <div id="review-edit-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div><h3>Edit Review</h3><p class="users-edit-modal-subtitle">Adjust the score for this review</p></div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('review-edit-modal')">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                <form id="review-edit-form" method="post" class="users-edit-form">
+                                    <input type="hidden" name="_token" id="review-edit-token" value="">
+                                    <div class="glass-form-group">
+                                        <label class="glass-label" for="review-edit-score">Score / 10</label>
+                                        <input id="review-edit-score" name="score" type="hidden" min="0" max="10" required>
+                                        <div class="review-star-picker" data-target="review-edit-score"></div>
+                                        <div class="review-star-caption" data-caption-for="review-edit-score">Choose a score from 0 to 10 stars.</div>
+                                    </div>
+                                    <div class="users-edit-modal-actions">
+                                        <button type="button" class="users-btn-cancel" onclick="closeModal('review-edit-modal')"><i class="bx bx-x"></i> Discard</button>
+                                        <span class="users-edit-modal-actions-spacer"></span>
+                                        <button type="submit" class="users-btn-modify"><i class="bx bx-check"></i> Update Review</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-switcher-face glass-switcher-face-extra" id="review-add-face">
+                    <div id="review-add-modal" class="users-edit-modal">
+                        <div class="users-edit-modal-card">
+                            <div class="users-edit-modal-header">
+                                <div><h3>Add Review</h3><p class="users-edit-modal-subtitle">Rate an apartment on behalf of a resident</p></div>
+                                <button type="button" class="users-edit-modal-close" onclick="closeModal('review-add-modal')">&times;</button>
+                            </div>
+                            <div class="users-edit-modal-body">
+                                <form id="review-add-form" action="{{ path('admin_residence_review_add') }}" method="post" class="users-edit-form">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('review_add')|e('html_attr') }}">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="glass-form-group">
+                                                <label class="glass-label" for="review-add-user">User</label>
+                                                <select class="glass-input" id="review-add-user" name="user_id" required>
+                                                    <option value="">Select User</option>
+                                                    {% for u in users|default([]) %}
+                                                        <option value="{{ u.idUser }}">{{ u.emailUser }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="glass-form-group">
+                                                <label class="glass-label" for="review-add-apartment">Apartment</label>
+                                                <select class="glass-input" id="review-add-apartment" name="appartement_id" required>
+                                                    <option value="">Select Apartment</option>
+                                                    {% for a in appartements|default([]) %}
+                                                        <option value="{{ a.idApp }}">{{ a.residence ? a.residence.nomR : 'Residence' }} - Apt {{ a.appartementInfo ? a.appartementInfo.number|default(a.idApp) : a.idApp }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="glass-form-group">
+                                        <label class="glass-label" for="review-add-score">Score / 10</label>
+                                        <input id="review-add-score" name="score" type="hidden" min="0" max="10" required>
+                                        <div class="review-star-picker" data-target="review-add-score"></div>
+                                        <div class="review-star-caption" data-caption-for="review-add-score">Choose a score from 0 to 10 stars.</div>
+                                    </div>
+                                    <div class="users-edit-modal-actions">
+                                        <button type="button" class="users-btn-cancel" onclick="closeModal('review-add-modal')"><i class="bx bx-x"></i> Discard</button>
+                                        <span class="users-edit-modal-actions-spacer"></span>
+                                        <button type="submit" class="users-btn-modify"><i class="bx bx-plus"></i> Create Review</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -919,7 +1171,7 @@
 
     const residencesData = [{% for r in residences|default([]) %} [ "{{ r.nomR|e('js') }}", "{{ r.adresse|e('js') }}", "{{ r.imageR|e('js') }}", "{{ r.idResidence }}", "{{ r.nAppartements }}", "{{ r.nEtages }}", "{{ r.nBlocs }}", "{{ csrf_token('delete' ~ r.idResidence)|e('js') }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
     const appartementsData = [{% for a in appartements|default([]) %} [ 
-        "{{ a.appartementInfo.number|default('—')|e('js') }}", 
+        "{{ a.appartementInfo ? a.appartementInfo.number|default('—')|e('js') : '—' }}", 
         "{{ a.residence ? a.residence.nomR|e('js') : '—' }}", 
         "{{ a.disponible ? 'Available' : 'Occupied' }}", 
         "{{ a.idApp }}", 
@@ -927,8 +1179,8 @@
         "{{ a.user ? a.user.idUser : '' }}", 
         "{{ a.typeA|e('js') }}", 
         "{{ a.parking ? 'true' : 'false' }}", 
-        "{{ a.appartementInfo.bloc|default('')|e('js') }}", 
-        "{{ a.appartementInfo.floor|default('')|e('js') }}", 
+        "{{ a.appartementInfo ? a.appartementInfo.bloc|default('')|e('js') : '' }}", 
+        "{{ a.appartementInfo ? a.appartementInfo.floor|default('')|e('js') : '' }}", 
         "{{ a.imageA|e('js') }}", 
         "{{ a.superficie|default('—')|e('js') }}", 
         "{{ a.prixLocation|default('—')|e('js') }}", 
@@ -941,7 +1193,7 @@
     
     const maintenancesData = [{% for m in maintenances|default([]) %} [
         "{{ m.idMaintenance }}",
-        "{{ m.appartement ? m.appartement.appartementInfo.number : '—' }}",
+        "{{ m.appartement and m.appartement.appartementInfo ? m.appartement.appartementInfo.number|default('—')|e('js') : '—' }}",
         "{{ m.etatApp|capitalize|e('js') }}",
         "{{ m.dateDerniereMaintenance ? m.dateDerniereMaintenance|date('Y-m-d') : '—' }}",
         "{{ m.descriptionMaint|e('js')|replace({"\n": ' ', "\r": ''}) }}",
@@ -950,16 +1202,30 @@
         "{{ m.etatChauffage|capitalize|e('js') }}",
         "{{ m.recommendationIa|default('Aucune recommandation générée.')|e('js')|replace({"\n": ' ', "\r": ''}) }}"
     ]{% if not loop.last %},{% endif %} {% endfor %}];
+
+    const reviewsData = [{% for review in reviews|default([]) %} [
+        "{{ review.idReview }}",
+        "{{ review.appartement and review.appartement.residence ? review.appartement.residence.nomR|e('js') : '---' }}",
+        "{{ review.appartement and review.appartement.appartementInfo ? review.appartement.appartementInfo.number|default(review.appartement.idApp)|e('js') : (review.appartement ? review.appartement.idApp : '---') }}",
+        "{{ review.user ? ((review.user.firstName ~ ' ' ~ review.user.lastName)|trim|default(review.user.emailUser)|e('js')) : '---' }}",
+        "{{ review.user ? review.user.emailUser|e('js') : '---' }}",
+        "{{ review.score }}",
+        "{{ csrf_token('review_edit_' ~ review.idReview)|e('js') }}",
+        "{{ csrf_token('review_delete_' ~ review.idReview)|e('js') }}"
+    ]{% if not loop.last %},{% endif %} {% endfor %}];
     
     const editResUrlTemplate = "{{ path('admin_residence_edit', {id: 'ID_PLACEHOLDER'}) }}";
     const deleteResUrlTemplate = "{{ path('admin_residence_delete', {id: 'ID_PLACEHOLDER'}) }}";
     const editAppUrlTemplate = "{{ path('app_appartement_edit', {idApp: 'ID_PLACEHOLDER'}) }}";
     const deleteAppUrlTemplate = "{{ path('app_appartement_delete', {idApp: 'ID_PLACEHOLDER'}) }}";
+    const editReviewUrlTemplate = "{{ path('admin_residence_review_edit', {id: 'ID_PLACEHOLDER'}) }}";
+    const deleteReviewUrlTemplate = "{{ path('admin_residence_review_delete', {id: 'ID_PLACEHOLDER'}) }}";
 
-    let resPage = 1, appPage = 1, maintPage = 1, resRows = [...residencesData], appRows = [...appartementsData], maintRows = [...maintenancesData], rowsPP = 10;
+    let resPage = 1, appPage = 1, maintPage = 1, reviewPage = 1, resRows = [...residencesData], appRows = [...appartementsData], maintRows = [...maintenancesData], reviewRows = [...reviewsData], rowsPP = 10;
     let resSortValue = 'name', resSortDir = 'asc';
     let appSortValue = 'number', appSortDir = 'asc';
     let maintSortValue = 'date', maintSortDir = 'desc';
+    let reviewSortValue = 'score', reviewSortDir = 'desc';
 
     function updateResSortIcon() {
         const el = document.getElementById('res-sort-dir-icon-svg'); if(!el) return;
@@ -972,6 +1238,10 @@
     function updateMaintSortIcon() {
         const el = document.getElementById('maint-sort-dir-icon-svg'); if(!el) return;
         el.innerHTML = maintSortDir === 'asc' ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>` : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
+    }
+    function updateReviewSortIcon() {
+        const el = document.getElementById('review-sort-dir-icon-svg'); if(!el) return;
+        el.innerHTML = reviewSortDir === 'asc' ? `<i class="bx bx-sort-up" style="color: #00c6ff; font-size: 1.2rem;"></i>` : `<i class="bx bx-sort-down" style="color: #00c6ff; font-size: 1.2rem;"></i>`;
     }
 
     window.selectResSortPill = function(pill) {
@@ -993,6 +1263,13 @@
         document.querySelectorAll('.maint-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
         pill.classList.add('glass-pill-active');
         filterSortMaintenances();
+    };
+
+    window.selectReviewSortPill = function(pill) {
+        reviewSortValue = pill.dataset.value;
+        document.querySelectorAll('.review-sort-option').forEach(p => p.classList.remove('glass-pill-active'));
+        pill.classList.add('glass-pill-active');
+        filterSortReviews();
     };
 
     function filterSortResidences() {
@@ -1046,6 +1323,30 @@
         maintRows = rows; maintPage = 1; renderMaintenanceTable();
     }
 
+    function filterSortReviews() {
+        const input = document.querySelector('.review-search-input');
+        const val = input ? input.value.toLowerCase() : '';
+        let rows = reviewsData.filter(d =>
+            d[1].toLowerCase().includes(val) ||
+            String(d[2]).toLowerCase().includes(val) ||
+            d[3].toLowerCase().includes(val) ||
+            d[4].toLowerCase().includes(val)
+        );
+
+        let idx = 5;
+        if (reviewSortValue === 'residence') idx = 1;
+        else if (reviewSortValue === 'user') idx = 3;
+
+        rows.sort((a, b) => {
+            if (idx === 5) {
+                return reviewSortDir === 'asc' ? Number(a[5]) - Number(b[5]) : Number(b[5]) - Number(a[5]);
+            }
+            const vA = String(a[idx]).toLowerCase(), vB = String(b[idx]).toLowerCase();
+            return reviewSortDir === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
+        });
+        reviewRows = rows; reviewPage = 1; renderReviewTable();
+    }
+
     function renderResTable() {
         const tb = document.getElementById('res-table-body'); tb.innerHTML = '';
         const start = (resPage-1)*rowsPP, end = Math.min(start+rowsPP, resRows.length);
@@ -1095,6 +1396,38 @@
             b.textContent = i; 
             b.onclick = () => { maintPage = i; renderMaintenanceTable(); }; 
             cont.appendChild(b); 
+        }
+    }
+
+    function renderReviewTable() {
+        const tb = document.getElementById('review-table-body'); if(!tb) return;
+        tb.innerHTML = '';
+        const start = (reviewPage - 1) * rowsPP, end = Math.min(start + rowsPP, reviewRows.length);
+        if (!reviewRows.length) {
+            tb.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; color:rgba(255,255,255,0.55);">No reviews found.</td></tr>';
+        }
+        for (let i = start; i < end; i++) {
+            const d = reviewRows[i]; const r = document.createElement('tr');
+            r.innerHTML = `
+                <td><strong>${d[1]}</strong></td>
+                <td>Apartment ${d[2]}</td>
+                <td>${d[3]}<br><small style="color: rgba(255,255,255,0.45);">${d[4]}</small></td>
+                <td><span class="review-score-pill">${d[5]}/10</span></td>
+                <td style="text-align: right;">
+                    <button class="glass-btn-save" style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" onclick="event.stopPropagation(); viewReview(${i})">
+                        <i class="bx bx-show"></i> View
+                    </button>
+                </td>`;
+            tb.appendChild(r);
+        }
+        const total = Math.ceil(reviewRows.length / rowsPP), cont = document.getElementById('review-table-pages'); if(!cont) return;
+        cont.innerHTML = '';
+        for(let i=1; i<=total; i++) {
+            const b = document.createElement('button');
+            b.className = 'glass-pagination-btn' + (i === reviewPage ? ' active' : '');
+            b.textContent = i;
+            b.onclick = () => { reviewPage = i; renderReviewTable(); };
+            cont.appendChild(b);
         }
     }
 
@@ -1184,31 +1517,151 @@
         openModal('maint-view-modal');
     };
 
+    window.viewReview = function(idx) {
+        const d = reviewRows[idx];
+        document.getElementById('view-review-residence').textContent = d[1];
+        document.getElementById('view-review-apartment').textContent = 'Apartment ' + d[2];
+        document.getElementById('view-review-user').textContent = `${d[3]} (${d[4]})`;
+        document.getElementById('view-review-score').textContent = `${d[5]}/10`;
+
+        document.getElementById('view-review-delete-token').value = d[7];
+        document.getElementById('view-review-delete-form').action = deleteReviewUrlTemplate.replace('ID_PLACEHOLDER', d[0]);
+        document.getElementById('view-review-modify-btn').onclick = () => {
+            const f = document.getElementById('review-edit-form');
+            f.action = editReviewUrlTemplate.replace('ID_PLACEHOLDER', d[0]);
+            document.getElementById('review-edit-token').value = d[6];
+            setReviewStarValue('review-edit-score', d[5]);
+            openModal('review-edit-modal');
+        };
+
+        const vModal = document.getElementById('review-view-modal');
+        if (vModal) {
+            vModal.style.display = 'flex';
+            void vModal.offsetWidth;
+            vModal.classList.add('active');
+        }
+        openModal('review-view-modal');
+    };
+
+    function setReviewStarValue(inputId, value) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const numericValue = Math.max(0, Math.min(10, parseInt(value || 0, 10)));
+        input.value = numericValue;
+        document.querySelectorAll(`.review-star-picker[data-target="${inputId}"] .review-star-option`).forEach(btn => {
+            btn.classList.toggle('active', Number(btn.dataset.value) <= numericValue);
+        });
+        const caption = document.querySelector(`[data-caption-for="${inputId}"]`);
+        if (caption) caption.textContent = `${numericValue}/10 stars selected`;
+    }
+
+    function initReviewStarPickers() {
+        document.querySelectorAll('.review-star-picker').forEach(picker => {
+            const target = picker.dataset.target;
+            if (!target || picker.dataset.ready === 'true') return;
+            picker.dataset.ready = 'true';
+            for (let score = 0; score <= 10; score++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'review-star-option';
+                btn.dataset.value = score;
+                btn.innerHTML = score === 0 ? '0' : `${score}<i class='bx bxs-star'></i>`;
+                btn.addEventListener('click', () => setReviewStarValue(target, score));
+                picker.appendChild(btn);
+            }
+            setReviewStarValue(target, document.getElementById(target)?.value || 0);
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         const sl = document.getElementById('residence-switcher-slider'), ts = document.querySelectorAll('.premium-switcher-tab'), ps = document.querySelectorAll('.residence-page-content');
+        const tabWidth = ts.length ? (100 / ts.length) : 25;
         ts.forEach((t, i) => t.addEventListener('click', () => {
-            ts.forEach(x => x.classList.remove('active')); t.classList.add('active'); sl.style.left = (i * 33.33) + '%'; sl.style.width = '33.33%';
+            ts.forEach(x => x.classList.remove('active')); t.classList.add('active'); sl.style.left = (i * tabWidth) + '%'; sl.style.width = tabWidth + '%';
             ps.forEach(p => p.style.display = p.dataset.page === t.dataset.page ? 'block' : 'none');
             const as = document.querySelector(`.residence-page-content[data-page="${t.dataset.page}"] .glass-switcher`); if(as) switchGlassFace('main', as.id);
         }));
-        sl.style.width = '33.33%'; 
+        sl.style.width = tabWidth + '%'; 
         renderResTable(); 
         renderAppTable(); 
         renderMaintenanceTable();
+        renderReviewTable();
+        initReviewStarPickers();
+        setReviewStarValue('review-add-score', 0);
         updateResSortIcon();
         updateAppSortIcon();
         updateMaintSortIcon();
+        updateReviewSortIcon();
         switchGlassFace('main', 'residenceGlassSwitcher');
 
         document.getElementById('res-sort-dir-pill').onclick = () => { resSortDir = resSortDir === 'asc' ? 'desc' : 'asc'; updateResSortIcon(); filterSortResidences(); };
         document.getElementById('app-sort-dir-pill').onclick = () => { appSortDir = appSortDir === 'asc' ? 'desc' : 'asc'; updateAppSortIcon(); filterSortAppartements(); };
         document.getElementById('maint-sort-dir-pill').onclick = () => { maintSortDir = maintSortDir === 'asc' ? 'desc' : 'asc'; updateMaintSortIcon(); filterSortMaintenances(); };
+        const reviewSortDirPill = document.getElementById('review-sort-dir-pill');
+        if (reviewSortDirPill) reviewSortDirPill.onclick = () => { reviewSortDir = reviewSortDir === 'asc' ? 'desc' : 'asc'; updateReviewSortIcon(); filterSortReviews(); };
 
         document.querySelector('.res-search-input').oninput = () => filterSortResidences();
         document.querySelector('.app-search-input').oninput = () => filterSortAppartements();
         document.querySelector('.maint-search-input').oninput = () => filterSortMaintenances();
+        const reviewSearchInput = document.querySelector('.review-search-input');
+        if (reviewSearchInput) reviewSearchInput.oninput = () => filterSortReviews();
 
         document.getElementById('res-btn-add').onclick = () => openModal('res-add-modal');
+        const reviewAddBtn = document.getElementById('review-btn-add');
+        if (reviewAddBtn) reviewAddBtn.onclick = () => openModal('review-add-modal');
+
+        const notify = (icon, title, text) => {
+            if (window.Swal) {
+                Swal.fire({ icon, title, text, background: '#1a1a1a', color: '#fff', confirmButtonColor: '#ff6b6b' });
+            } else {
+                alert(text || title);
+            }
+        };
+        const bindReviewAjax = (form, confirmMessage = null) => {
+            if (!form) return;
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const submit = () => {
+                    fetch(form.action, {
+                        method: form.method || 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: new FormData(form)
+                    })
+                    .then(async response => {
+                        const data = await response.json().catch(() => ({}));
+                        if (!response.ok || data.success === false) {
+                            throw new Error(data.message || 'Review action failed.');
+                        }
+                        notify('success', 'Done', data.message || 'Review saved.');
+                        setTimeout(() => window.location.reload(), 500);
+                    })
+                    .catch(error => notify('error', 'Review Error', error.message));
+                };
+
+                if (!confirmMessage) {
+                    submit();
+                    return;
+                }
+
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: confirmMessage,
+                        text: 'This cannot be undone.',
+                        showCancelButton: true,
+                        confirmButtonText: 'Delete',
+                        background: '#1a1a1a',
+                        color: '#fff',
+                        confirmButtonColor: '#ff4d4d'
+                    }).then(result => { if (result.isConfirmed) submit(); });
+                } else if (confirm(confirmMessage)) {
+                    submit();
+                }
+            });
+        };
+        bindReviewAjax(document.getElementById('review-add-form'));
+        bindReviewAjax(document.getElementById('review-edit-form'));
+        bindReviewAjax(document.getElementById('view-review-delete-form'), 'Delete this review?');
         
         // Modified to initialize dropdowns when modal opens
         document.getElementById('app-btn-add').onclick = () => {

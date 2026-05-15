@@ -26,41 +26,9 @@ class AdminDashboardService
 
         // Total Users
         $totalUsers = $this->userRepository->count([]);
-
-        $conn = $this->em->getConnection();
-
-        // Active Today (Unique user_id in logs)
-        try {
-            // Count distinct active sessions: prefer user_id, fall back to IP for anonymous
-            $sqlActive = "
-                SELECT COUNT(DISTINCT COALESCE(
-                    CAST(user_id AS CHAR),
-                    JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.ip'))
-                ))
-                FROM app_event_log
-                WHERE created_at >= :today
-            ";
-            $activeToday = $conn->fetchOne($sqlActive, ['today' => $today->format('Y-m-d H:i:s')]);
-
-            // Total Interactions Today
-            $sqlInteractions = "SELECT COUNT(*) FROM app_event_log WHERE created_at >= :today";
-            $interactionsToday = $conn->fetchOne($sqlInteractions, ['today' => $today->format('Y-m-d H:i:s')]);
-
-            // Active users this week (users with a user_id OR distinct IPs)
-            $sqlNewActivity = "
-                SELECT COUNT(DISTINCT COALESCE(
-                    CAST(user_id AS CHAR),
-                    JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.ip'))
-                ))
-                FROM app_event_log
-                WHERE created_at >= :date
-            ";
-            $newUsersWeek = $conn->fetchOne($sqlNewActivity, ['date' => $sevenDaysAgo->format('Y-m-d H:i:s')]);
-        } catch (\Exception $e) {
-            $activeToday = 0;
-            $interactionsToday = 0;
-            $newUsersWeek = 0;
-        }
+        $activeToday = $this->logRepository->countActiveIdentitiesSince($today);
+        $interactionsToday = $this->logRepository->countSince($today);
+        $newUsersWeek = $this->logRepository->countActiveIdentitiesSince($sevenDaysAgo);
 
         return [
             'total_users' => (int) $totalUsers,
@@ -72,60 +40,22 @@ class AdminDashboardService
 
     public function getInteractionTrends(): array
     {
-        $conn = $this->em->getConnection();
-        $sql = "
-            SELECT 
-                DATE(created_at) as log_date,
-                SUM(CASE WHEN event_type = 'PAGE_VIEW' THEN 1 ELSE 0 END) as views,
-                SUM(CASE WHEN event_type = 'UI_CLICK' THEN 1 ELSE 0 END) as clicks
-            FROM app_event_log
-            WHERE created_at >= :date
-            GROUP BY DATE(created_at)
-            ORDER BY log_date ASC
-        ";
-
-        $sevenDaysAgo = new \DateTime('-7 days');
-        return $conn->fetchAllAssociative($sql, ['date' => $sevenDaysAgo->format('Y-m-d')]);
+        return $this->logRepository->fetchInteractionTrends(new \DateTime('-7 days'));
     }
 
     public function getTopPages(): array
     {
-        $conn = $this->em->getConnection();
-        // Extracting route from JSON metadata. Use JSON_EXTRACT for compatibility.
-        $sql = "
-            SELECT 
-                COALESCE(JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.route')), 'Direct/Unknown') as route,
-                COUNT(*) as visit_count
-            FROM app_event_log
-            WHERE event_type = 'PAGE_VIEW'
-            GROUP BY route
-            ORDER BY visit_count DESC
-            LIMIT 5
-        ";
-        return $conn->fetchAllAssociative($sql);
+        return $this->logRepository->fetchTopPages(5);
     }
 
     public function getTopClicks(): array
     {
-        $conn = $this->em->getConnection();
-        // Extracting target or text from JSON metadata
-        $sql = "
-            SELECT 
-                JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.text')) as element_text,
-                JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.target')) as target,
-                COUNT(*) as click_count
-            FROM app_event_log
-            WHERE event_type = 'UI_CLICK'
-            GROUP BY element_text, target
-            ORDER BY click_count DESC
-            LIMIT 5
-        ";
-        return $conn->fetchAllAssociative($sql);
+        return $this->logRepository->fetchTopClicks(5);
     }
 
     public function getRecentActivity(): array
     {
-        return $this->logRepository->findBy([], ['created_at' => 'DESC'], 10);
+        return $this->logRepository->findRecent(10);
     }
 
     public function getCommunityStats(): array
@@ -154,85 +84,12 @@ class AdminDashboardService
 
     public function getDeviceBreakdown(): array
     {
-        $conn = $this->em->getConnection();
-        // Fetch User-Agents from the last 30 days
-        $sql = "
-            SELECT JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.user_agent')) as ua
-            FROM app_event_log
-            WHERE created_at >= :date AND JSON_EXTRACT(metadata, '$.user_agent') IS NOT NULL
-        ";
-        $thirtyDaysAgo = new \DateTime('-30 days');
-        $statements = $conn->fetchAllAssociative($sql, ['date' => $thirtyDaysAgo->format('Y-m-d')]);
-
-        $stats = [
-            'desktop' => 0,
-            'mobile' => 0,
-            'chrome' => 0,
-            'safari' => 0,
-            'firefox' => 0,
-            'edge' => 0,
-            'other' => 0
-        ];
-
-        foreach ($statements as $row) {
-            $ua = strtolower($row['ua'] ?? '');
-            if (!$ua)
-                continue;
-
-            // Platform
-            if (preg_match('/mobi|android|touch|mini/i', $ua)) {
-                $stats['mobile']++;
-            } else {
-                $stats['desktop']++;
-            }
-
-            // Browser
-            if (str_contains($ua, 'edg/')) {
-                $stats['edge']++;
-            } elseif (str_contains($ua, 'chrome') || str_contains($ua, 'crios')) {
-                $stats['chrome']++;
-            } elseif (str_contains($ua, 'firefox') || str_contains($ua, 'fxios')) {
-                $stats['firefox']++;
-            } elseif (str_contains($ua, 'safari') && !str_contains($ua, 'chrome')) {
-                $stats['safari']++;
-            } else {
-                $stats['other']++;
-            }
-        }
-
-        $total = count($statements) ?: 1;
-
-        return [
-            'desktop_pct' => round(($stats['desktop'] / $total) * 100),
-            'mobile_pct' => round(($stats['mobile'] / $total) * 100),
-            'browsers' => [
-                'Chrome' => round(($stats['chrome'] / $total) * 100),
-                'Safari' => round(($stats['safari'] / $total) * 100),
-                'Firefox' => round(($stats['firefox'] / $total) * 100),
-                'Edge' => round(($stats['edge'] / $total) * 100),
-                'Other' => round(($stats['other'] / $total) * 100),
-            ]
-        ];
+        return $this->logRepository->fetchDeviceBreakdown(new \DateTime('-30 days'));
     }
 
     public function getTopUsers(): array
     {
-        $conn = $this->em->getConnection();
-        $sql = "
-            SELECT 
-                u.first_name, 
-                u.last_name, 
-                u.role_user,
-                COUNT(l.id) as activity_count
-            FROM app_event_log l
-            JOIN user u ON l.user_id = u.id_user
-            WHERE l.created_at >= :date
-            GROUP BY u.id_user, u.first_name, u.last_name, u.role_user
-            ORDER BY activity_count DESC
-            LIMIT 5
-        ";
-        $sevenDaysAgo = new \DateTime('-7 days');
-        return $conn->fetchAllAssociative($sql, ['date' => $sevenDaysAgo->format('Y-m-d H:i:s')]);
+        return $this->logRepository->fetchTopUsers(new \DateTime('-7 days'), 5);
     }
 
     public function getRecentSignups(): array
@@ -254,9 +111,11 @@ class AdminDashboardService
                 case 'users':
                     $stats['total'] = (int) $conn->fetchOne("SELECT COUNT(*) FROM user");
                     $stats['verified'] = (int) $conn->fetchOne("SELECT COUNT(*) FROM user WHERE is_verified = 1");
+                    $stats['disabled'] = (int) $conn->fetchOne("SELECT COUNT(*) FROM user WHERE is_disabled = 1");
                     $stats['roles'] = $conn->fetchAllKeyValue("SELECT role_user, COUNT(*) FROM user GROUP BY role_user");
                     // Assuming activity log has registration events, otherwise track weekly active users
                     $stats['active_this_week'] = (int) $conn->fetchOne("SELECT COUNT(DISTINCT user_id) FROM app_event_log WHERE created_at >= :date", ['date' => (new \DateTime('-7 days'))->format('Y-m-d H:i:s')]);
+                    $stats['auth_failures_30d'] = (int) $conn->fetchOne("SELECT COUNT(*) FROM app_event_log WHERE created_at >= :date AND (event_type = 'AUTH_FAILURE' OR outcome = 'FAILURE')", ['date' => (new \DateTime('-30 days'))->format('Y-m-d H:i:s')]);
                     $stats['recent_users'] = $conn->fetchAllAssociative("
                         SELECT first_name, last_name, role_user, created_at 
                         FROM user 
@@ -325,5 +184,52 @@ class AdminDashboardService
         }
 
         return $stats;
+    }
+
+    public function getActivityModuleStats(): array
+    {
+        $today = new \DateTimeImmutable('today');
+        $week = new \DateTimeImmutable('-7 days');
+        $month = new \DateTimeImmutable('-30 days');
+
+        return [
+            'active_today' => $this->logRepository->countActiveIdentitiesSince($today),
+            'interactions_today' => $this->logRepository->countSince($today),
+            'page_views_week' => $this->logRepository->countSince($week, 'PAGE_VIEW'),
+            'clicks_week' => $this->logRepository->countSince($week, 'UI_CLICK'),
+            'auth_failures_month' => $this->countAuthFailuresSince($month),
+            'security_events_month' => $this->countSecurityEventsSince($month),
+            'recent_activity' => $this->logRepository->findRecent(60),
+            'risk_signals' => $this->logRepository->fetchRiskSignals(8),
+            'outcomes' => $this->logRepository->fetchOutcomeBreakdown($month),
+            'levels' => $this->logRepository->fetchLevelBreakdown($month),
+            'devices' => $this->logRepository->fetchDeviceBreakdown($month),
+            'features' => $this->logRepository->fetchFeatureUsage(8),
+            'suspicious_users' => $this->logRepository->fetchSuspiciousUsers($month, 2, 6),
+        ];
+    }
+
+    private function countAuthFailuresSince(\DateTimeInterface $since): int
+    {
+        try {
+            return (int) $this->em->getConnection()->fetchOne(
+                "SELECT COUNT(*) FROM app_event_log WHERE created_at >= :since AND (event_type = 'AUTH_FAILURE' OR outcome = 'FAILURE')",
+                ['since' => $since->format('Y-m-d H:i:s')]
+            );
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    private function countSecurityEventsSince(\DateTimeInterface $since): int
+    {
+        try {
+            return (int) $this->em->getConnection()->fetchOne(
+                "SELECT COUNT(*) FROM app_event_log WHERE created_at >= :since AND (category IN ('AUTH','SECURITY') OR event_type LIKE 'AUTH_%' OR event_type LIKE 'SECURITY_%')",
+                ['since' => $since->format('Y-m-d H:i:s')]
+            );
+        } catch (\Throwable) {
+            return 0;
+        }
     }
 }

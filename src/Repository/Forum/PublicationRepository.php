@@ -54,14 +54,18 @@ class PublicationRepository extends ServiceEntityRepository
 //        ;
 //    }
 
-    public function findAllLatest(): array
+    public function findAllLatest(?int $limit = null): array
     {
-        return $this->createQueryBuilder('p')
+        $qb = $this->createQueryBuilder('p')
             ->leftJoin('p.user', 'u')
             ->addSelect('u')
-            ->orderBy('p.date_creation_pub', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('p.date_creation_pub', 'DESC');
+
+        if ($limit !== null) {
+            $qb->setMaxResults($limit);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
@@ -105,7 +109,7 @@ class PublicationRepository extends ServiceEntityRepository
         return $final;
     }
 
-    public function findByCategory(?string $category): array
+    public function findByCategory(?string $category, ?int $limit = null): array
     {
         $qb = $this->createQueryBuilder('p')
             ->leftJoin('p.user', 'u')
@@ -118,6 +122,10 @@ class PublicationRepository extends ServiceEntityRepository
         } elseif ($category === 'General') {
             $qb->andWhere('p.categorie_pub != :cat')
                 ->setParameter('cat', 'Announcement');
+        }
+
+        if ($limit !== null) {
+            $qb->setMaxResults($limit);
         }
 
         return $qb->getQuery()->getResult();

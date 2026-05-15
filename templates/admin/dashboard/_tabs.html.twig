@@ -83,6 +83,171 @@
         </div>
     </div>
 
+{% elseif module == 'activity' %}
+    <div class="hz-stat-grid">
+        <div class="hz-stat-card hz-stat-green">
+            <div class="hz-stat-icon"><i class='bx bx-user-voice'></i></div>
+            <div class="hz-stat-body">
+                <p class="hz-stat-label">Active Today</p>
+                <p class="hz-stat-num">{{ stats.active_today|default(0) }}</p>
+                <p class="hz-stat-sub"><span class="hz-pill hz-pill-green">Unique identities</span></p>
+            </div>
+            <div class="hz-stat-glow hz-glow-green"></div>
+        </div>
+        <div class="hz-stat-card hz-stat-blue">
+            <div class="hz-stat-icon"><i class='bx bx-pulse'></i></div>
+            <div class="hz-stat-body">
+                <p class="hz-stat-label">Interactions Today</p>
+                <p class="hz-stat-num">{{ stats.interactions_today|default(0) }}</p>
+                <p class="hz-stat-sub"><span class="hz-pill hz-pill-blue">{{ stats.page_views_week|default(0) }} page views this week</span></p>
+            </div>
+            <div class="hz-stat-glow hz-glow-blue"></div>
+        </div>
+        <div class="hz-stat-card hz-stat-amber">
+            <div class="hz-stat-icon"><i class='bx bx-shield-quarter'></i></div>
+            <div class="hz-stat-body">
+                <p class="hz-stat-label">Security Events</p>
+                <p class="hz-stat-num">{{ stats.security_events_month|default(0) }}</p>
+                <p class="hz-stat-sub"><span class="hz-pill hz-pill-amber">Last 30 days</span></p>
+            </div>
+            <div class="hz-stat-glow hz-glow-amber"></div>
+        </div>
+        <div class="hz-stat-card hz-stat-purple">
+            <div class="hz-stat-icon"><i class='bx bx-error-circle'></i></div>
+            <div class="hz-stat-body">
+                <p class="hz-stat-label">Auth Failures</p>
+                <p class="hz-stat-num">{{ stats.auth_failures_month|default(0) }}</p>
+                <p class="hz-stat-sub"><span class="hz-pill hz-pill-purple">30-day watch</span></p>
+            </div>
+            <div class="hz-stat-glow hz-glow-purple"></div>
+        </div>
+    </div>
+
+    <div class="hz-activity-dashboard-grid">
+        <section class="hz-glass hz-chart-card hz-activity-timeline-card">
+            <div class="hz-panel-head">
+                <div>
+                    <h2 class="hz-panel-title"><i class='bx bx-radio-circle-marked' style="color:#34d399;margin-right:6px;animation:hz-blink 1.5s infinite"></i> Activity Timeline</h2>
+                    <p class="hz-panel-sub">Java and web events from the shared activity log</p>
+                </div>
+                <span class="hz-live-badge">LIVE</span>
+            </div>
+            <div class="hz-activity-timeline">
+                {% for log in stats.recent_activity|default([]) %}
+                    {% set isFailure = log.outcome|default('') == 'FAILURE' or log.level|default('INFO') in ['WARN','WARNING','ERROR','CRITICAL'] %}
+                    {% set accent = isFailure ? '#f87171' : (log.category|default('') in ['AUTH','SECURITY'] ? '#fbbf24' : '#60a5fa') %}
+                    <article class="hz-activity-row" style="--row-accent: {{ accent }};">
+                        <div class="hz-activity-dot"><i class='bx {{ log.category|default('') in ['AUTH','SECURITY'] ? 'bx-shield-quarter' : 'bx-bolt-circle' }}'></i></div>
+                        <div class="hz-activity-copy">
+                            <div class="hz-activity-title">
+                                <span>{{ log.eventType|default('EVENT')|replace({'_':' '})|title }}</span>
+                                <small>{{ log.createdAt ? log.createdAt|date('M d H:i') : '-' }}</small>
+                            </div>
+                            <p>{{ log.displayMessage|default(log.action|default(log.entityType|default('Activity'))) }}</p>
+                            <div class="hz-activity-meta">
+                                <span>{{ log.category|default('APPLICATION') }}</span>
+                                <span>{{ log.outcome|default('UNKNOWN') }}</span>
+                                <span>{{ log.user ? log.user.firstName ~ ' ' ~ log.user.lastName : 'Visitor' }}</span>
+                                {% if log.traceId %}<span title="{{ log.traceId }}">trace {{ log.traceId|slice(0, 8) }}</span>{% endif %}
+                            </div>
+                        </div>
+                    </article>
+                {% else %}
+                    <div class="hz-empty-state"><i class='bx bx-time-five'></i><p>No activity events found yet.</p></div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <aside class="hz-activity-side">
+            <section class="hz-glass hz-chart-card">
+                <div class="hz-panel-head">
+                    <h2 class="hz-panel-title"><i class='bx bx-radar' style="color:#f87171;margin-right:6px"></i> Risk Signals</h2>
+                    <span class="hz-panel-sub">Highest score</span>
+                </div>
+                <div class="hz-signal-list">
+                    {% for signal in stats.risk_signals|default([]) %}
+                        {% set risk = signal.risk_score|default(0) + 0 %}
+                        {% set color = risk >= 60 ? '#f87171' : (risk >= 30 ? '#fbbf24' : '#34d399') %}
+                        <div class="hz-signal-row">
+                            <div>
+                                <strong>{{ signal.event_type|default('EVENT')|replace({'_':' '})|title }}</strong>
+                                <span>{{ signal.outcome|default('UNKNOWN') }} - {{ signal.level|default('INFO') }}</span>
+                            </div>
+                            <b style="color:{{ color }}">{{ signal.risk_score|default('0') }}</b>
+                        </div>
+                    {% else %}
+                        <p class="hz-empty-state">No risk signals.</p>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="hz-glass hz-chart-card">
+                <div class="hz-panel-head">
+                    <h2 class="hz-panel-title"><i class='bx bx-devices' style="color:#34d399;margin-right:6px"></i> Access Mix</h2>
+                    <span class="hz-panel-sub">30 days</span>
+                </div>
+                <div class="hz-access-mix">
+                    <div><i class='bx bx-laptop'></i><b>{{ stats.devices.desktop_pct|default(0) }}%</b><span>Desktop</span></div>
+                    <div><i class='bx bx-mobile-alt'></i><b>{{ stats.devices.mobile_pct|default(0) }}%</b><span>Mobile</span></div>
+                </div>
+                <div class="hz-signal-list">
+                    {% for name, pct in stats.devices.browsers|default({}) %}
+                        <div class="hz-signal-row hz-compact-signal">
+                            <span>{{ name }}</span>
+                            <div class="hz-mini-meter"><i style="width:{{ pct }}%"></i></div>
+                            <b>{{ pct }}%</b>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <div class="hz-activity-dashboard-grid hz-activity-dashboard-grid-bottom">
+        <section class="hz-glass hz-chart-card">
+            <div class="hz-panel-head">
+                <h2 class="hz-panel-title"><i class='bx bx-shield-x' style="color:#f87171;margin-right:6px"></i> Suspicious Users</h2>
+                <span class="hz-panel-sub">Failure clusters</span>
+            </div>
+            <div class="hz-signal-list">
+                {% for row in stats.suspicious_users|default([]) %}
+                    <div class="hz-signal-row">
+                        <div>
+                            <strong>{{ row.email|default('User #' ~ row.user_id) }}</strong>
+                            <span>Last seen {{ row.last_seen|default('-') }}</span>
+                        </div>
+                        <b style="color:#f87171">{{ row.failure_count|default(0) }}</b>
+                    </div>
+                {% else %}
+                    <p class="hz-empty-state">No suspicious login clusters.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="hz-glass hz-chart-card">
+            <div class="hz-panel-head">
+                <h2 class="hz-panel-title"><i class='bx bx-layer' style="color:#a78bfa;margin-right:6px"></i> Outcomes & Levels</h2>
+                <span class="hz-panel-sub">30 days</span>
+            </div>
+            <div class="hz-two-column-signals">
+                <div class="hz-signal-list">
+                    {% for row in stats.outcomes|default([]) %}
+                        <div class="hz-signal-row hz-compact-signal"><span>{{ row.label }}</span><b>{{ row.count }}</b></div>
+                    {% else %}
+                        <p class="hz-empty-state">No outcome data.</p>
+                    {% endfor %}
+                </div>
+                <div class="hz-signal-list">
+                    {% for row in stats.levels|default([]) %}
+                        <div class="hz-signal-row hz-compact-signal"><span>{{ row.label }}</span><b>{{ row.count }}</b></div>
+                    {% else %}
+                        <p class="hz-empty-state">No level data.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </div>
+
 {% elseif module == 'forum' %}
     <div class="hz-stat-grid">
         <div class="hz-stat-card hz-stat-purple">
@@ -135,7 +300,7 @@
                 {% for pub in stats.recent_pubs|default([]) %}
                     <div style="position: relative; height: 180px; border-radius: 16px; overflow: hidden; background: #1a1a1a;" class="hover-bump">
                         {% if pub.image_pub %}
-                            <img src="/forum_images/{{ pub.image_pub }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.6; transition: opacity 0.3s;" class="hover-bright"/>
+                            <img src="{{ media_url(pub.image_pub, 'forum_images') }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.6; transition: opacity 0.3s;" class="hover-bright"/>
                         {% else %}
                             <div style="width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); display:flex; align-items:center; justify-content:center;">
                                 <i class='bx bx-book-content' style="font-size: 3rem; color: rgba(255,255,255,0.1)"></i>
@@ -210,7 +375,7 @@
             {% for event in stats.recent_events|default([]) %}
                 <div style="position: relative; height: 220px; border-radius: 16px; overflow: hidden; background: #1a1a1a;" class="hover-bump">
                     {% if event.image_event %}
-                        <img src="/event_images/{{ event.image_event }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;" class="hover-bright"/>
+                        <img src="{{ media_url(event.image_event, 'event_images') }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;" class="hover-bright"/>
                     {% else %}
                         <div style="width: 100%; height: 100%; background: linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, rgba(255,255,255,0.02) 100%); display:flex; align-items:center; justify-content:center;">
                             <i class='bx bx-calendar' style="font-size: 3.5rem; color: rgba(255,255,255,0.05)"></i>
@@ -283,7 +448,7 @@
                     
                     {% if rec.imagereclamation %}
                         <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #000;">
-                            <img src="/reclamation_images/{{ rec.imagereclamation }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;"/>
+                            <img src="{{ media_url(rec.imagereclamation, 'reclamation_images') }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;"/>
                         </div>
                     {% else %}
                         <div style="width: 60px; height: 60px; border-radius: 8px; flex-shrink: 0; background: rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center;">
@@ -339,7 +504,7 @@
                 <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden;" class="hover-bump">
                     <div style="height: 140px; width: 100%; background: #111; position: relative;">
                         {% if res.image_r %}
-                            <img src="/residence_images/{{ res.image_r }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;" class="hover-bright"/>
+                            <img src="{{ media_url(res.image_r, 'residence_images') }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;" class="hover-bright"/>
                         {% else %}
                             <div style="width: 100%; height: 100%; display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg, rgba(96, 165, 250, 0.1) 0%, rgba(255,255,255,0.02) 100%);">
                                 <i class='bx bxs-city' style="font-size: 3rem; color: rgba(255,255,255,0.1);"></i>

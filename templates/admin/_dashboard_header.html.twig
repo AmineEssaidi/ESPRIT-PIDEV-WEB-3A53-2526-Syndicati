@@ -1,6 +1,6 @@
 {# Shared dashboard header partial for admin section pages #}
 {% set _user = app.session.get('user')|default([]) %}
-{% set _session_avatar_url = (_user.avatar is defined and _user.avatar) ? (_user.avatar starts with 'http' ? _user.avatar : asset(_user.avatar)) : null %}
+{% set _session_avatar_url = (_user.avatar is defined and _user.avatar) ? media_url(_user.avatar, 'profile_images') : null %}
 {% set _avatar_url = profile_avatar_url|default(_session_avatar_url)|default('https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/avatars/1.png') %}
 {% set _user_name = _user.name|default('User') %}
 {% set _user_email = _user.email|default('user@example.com') %}

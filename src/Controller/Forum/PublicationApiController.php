@@ -4,6 +4,7 @@ namespace App\Controller\Forum;
 
 use App\Entity\Forum\Publication;
 use App\Repository\Forum\PublicationRepository;
+use App\Service\Forum\DiscordWebhookService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,7 +20,8 @@ class PublicationApiController extends AbstractController
         Request $request,
         PublicationRepository $publicationRepository,
         EntityManagerInterface $entityManager,
-        \Symfony\Component\Validator\Validator\ValidatorInterface $validator
+        \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
+        DiscordWebhookService $discordWebhook
     ): JsonResponse {
         $publication = $publicationRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -64,6 +66,7 @@ class PublicationApiController extends AbstractController
         }
 
         $entityManager->flush();
+        $discordWebhook->announceJeuxVideo($publication, true);
 
         return new JsonResponse([
             'success' => true,

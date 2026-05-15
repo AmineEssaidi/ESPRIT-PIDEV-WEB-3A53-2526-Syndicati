@@ -1,11 +1,19 @@
 {% extends targetBlock is defined ? 'base_ajax.html.twig' : 'base_symfony.html.twig' %}
 
-{% block title %}Residences - Horizon{% endblock %}
+{% block title %}Residences - Syndicati{% endblock %}
 
 {% block stylesheets %}
     {% if not targetBlock is defined %}
         <link href="{{ asset('frontend/css/residence.css') }}" rel="stylesheet">
         <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
+        <style>
+            .apartment-review-widget { border: 1px solid rgba(255, 107, 107, 0.28); border-radius: 24px; background: linear-gradient(135deg, rgba(255, 107, 107, 0.12), rgba(255, 255, 255, 0.04)); box-shadow: 0 18px 60px rgba(0, 0, 0, 0.25); }
+            .apt-review-score-grid { display: grid; grid-template-columns: repeat(11, minmax(36px, 1fr)); gap: 8px; }
+            .apt-review-score-btn { min-height: 40px; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 12px; color: rgba(255, 255, 255, 0.72); background: rgba(255, 255, 255, 0.06); font-weight: 800; transition: transform .16s ease, border-color .16s ease, background .16s ease, color .16s ease; }
+            .apt-review-score-btn:hover, .apt-review-score-btn.active { transform: translateY(-2px); color: #fff; border-color: rgba(255, 107, 107, 0.72); background: linear-gradient(135deg, #ff6b6b, #ffd166, #ff9de2); box-shadow: 0 10px 28px rgba(255, 107, 107, 0.25); }
+            .apt-review-meta { color: rgba(255, 255, 255, 0.62); font-size: .86rem; }
+            @media (max-width: 768px) { .apt-review-score-grid { grid-template-columns: repeat(6, minmax(36px, 1fr)); } }
+        </style>
     {% endif %}
 {% endblock %}
 
@@ -40,7 +48,7 @@
                                         <i class='bx bx-home-alt-2'></i> Premium Living
                                     </span>
                                     <h1 class="residence-title">Luxury Living<br>Redefined.</h1>
-                                    <p class="residence-subtitle">Explore our curated selection of high-end residences and apartments. Experience a new standard of comfort and elegance with Horizon.</p>
+                                    <p class="residence-subtitle">Explore our curated selection of high-end residences and apartments. Experience a new standard of comfort and elegance with Syndicati.</p>
                                     
                                     <div class="d-flex gap-3">
                                         <a href="#showcase" class="syndicat-btn-submit" style="width: auto; padding: 1rem 3rem; margin-top: 0; text-decoration: none;">
@@ -150,7 +158,7 @@
                         <div class="residence-card">
                             <div class="position-relative overflow-hidden">
                                 {% if res.imageR %}
-                                    <img src="{{ asset('residence_images/' ~ res.imageR) }}" alt="{{ res.nomR }}" class="residence-card-img">
+                                    <img src="{{ media_url(res.imageR, 'residence_images') }}" alt="{{ res.nomR }}" class="residence-card-img">
                                 {% else %}
                                     <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" alt="Residence" class="residence-card-img">
                                 {% endif %}
@@ -216,9 +224,9 @@
                         <div class="residence-card">
                             <div class="position-relative overflow-hidden">
                                 {% if apt.imageA %}
-                                    <img src="{{ asset('appartement_images/' ~ apt.imageA) }}" class="residence-card-img">
+                                    <img src="{{ media_url(apt.imageA, 'appartement_images') }}" class="residence-card-img">
                                 {% else %}
-                                    <img src="{{ asset('residence_images/' ~ residence.imageR) }}" class="residence-card-img" style="filter:brightness(10%) blur(5px)">
+                                    <img src="{{ media_url(residence.imageR, 'residence_images') }}" class="residence-card-img" style="filter:brightness(10%) blur(5px)">
                                 {% endif %}
                                 <div class="residence-card-overlay">
                                     <span class="residence-price-tag">{{ apt.disponible ? 'Available' : 'Rented' }}</span>
@@ -285,9 +293,9 @@
                 <div class="col-lg-6">
                     <div class="residence-card p-0 overflow-hidden">
                         {% if appartement.imageA %}
-                            <img src="{{ asset('appartement_images/' ~ appartement.imageA) }}" class="w-100" style="height: 400px; object-fit: cover;">
+                            <img src="{{ media_url(appartement.imageA, 'appartement_images') }}" class="w-100" style="height: 400px; object-fit: cover;">
                         {% else %}
-                            <img src="{{ asset('residence_images/' ~ appartement.residence.imageR) }}" class="w-100" style="height: 400px; object-fit: cover; filter: brightness(30%) blur(5px);">
+                            <img src="{{ media_url(appartement.residence.imageR, 'residence_images') }}" class="w-100" style="height: 400px; object-fit: cover; filter: brightness(30%) blur(5px);">
                         {% endif %}
                     </div>
                 </div>
@@ -324,6 +332,34 @@
                 </div>
             </div>
 
+            <div class="apartment-review-widget mt-4 p-4"
+                 data-apartment-review
+                 data-save-url="{{ path('frontend_residence_review_save', {'id': appartement.idApp}) }}"
+                 data-token="{{ csrf_token('review_frontend_' ~ appartement.idApp) }}"
+                 data-current-score="{{ currentReviewScore|default(0) }}">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                    <div>
+                        <span class="residence-badge mb-2"><i class='bx bxs-star'></i> Your review</span>
+                        <h3 class="mb-1">Rate this apartment</h3>
+                        <p class="text-white-50 mb-0">Choose a score from 0 to 10. Your latest score is saved per apartment.</p>
+                    </div>
+                    <div class="text-end">
+                        <div class="fs-3 fw-bold"><span data-review-average>{{ reviewAverage|default(0) }}</span><span class="fs-6 text-white-50">/10</span></div>
+                        <div class="apt-review-meta"><span data-review-count>{{ reviewCount|default(0) }}</span> review{{ reviewCount|default(0) == 1 ? '' : 's' }}</div>
+                    </div>
+                </div>
+                <div class="apt-review-score-grid" data-review-score-grid>
+                    {% for score in 0..10 %}
+                        <button type="button" class="apt-review-score-btn {{ currentReviewScore|default(0) == score ? 'active' : '' }}" data-score="{{ score }}">{{ score }}</button>
+                    {% endfor %}
+                </div>
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
+                    <div class="apt-review-meta">Selected: <strong data-review-selected>{{ currentReviewScore|default(0) }}</strong>/10</div>
+                    <button type="button" class="glass-btn-save" data-review-submit style="width: auto; min-width: 180px;">Save review</button>
+                </div>
+                <div class="apt-review-meta mt-2" data-review-status></div>
+            </div>
+
             <!-- Recommendations -->
             {% if app_recommende is defined %}
             <div class="mt-5">
@@ -335,9 +371,9 @@
                             <div class="residence-card p-0 overflow-hidden">
                                 <div class="position-relative">
                                     {% if apt_rec.imageA %}
-                                        <img src="{{ asset('appartement_images/' ~ apt_rec.imageA) }}" class="residence-card-img" style="height: 180px;">
+                                        <img src="{{ media_url(apt_rec.imageA, 'appartement_images') }}" class="residence-card-img" style="height: 180px;">
                                     {% else %}
-                                        <img src="{{ asset('residence_images/' ~ apt_rec.residence.imageR) }}" class="residence-card-img" style="height: 180px; filter: brightness(20%) blur(5px);">
+                                        <img src="{{ media_url(apt_rec.residence.imageR, 'residence_images') }}" class="residence-card-img" style="height: 180px; filter: brightness(20%) blur(5px);">
                                     {% endif %}
                                     <div class="residence-card-overlay">
                                         <span class="residence-price-tag" style="font-size: 0.7rem;">{{ item.score|round }}% Match</span>
@@ -378,10 +414,21 @@
                             </form>
                         </div>
                         <div class="col-lg-5 text-center">
+                            {% set ownerPhone = appartement.user ? appartement.user.phone|default('') : '' %}
+                            {% set whatsappPhone = ownerPhone|replace({'+': '', ' ': '', '-': '', '(': '', ')': '', '.': ''}) %}
+                            {% set whatsappText = 'Bonjour, je suis interesse par l appartement ' ~ appartement.typeA ~ ' a ' ~ appartement.residence.nomR %}
+                            {% set whatsappUrl = whatsappPhone ? 'https://wa.me/' ~ whatsappPhone ~ '?text=' ~ whatsappText|url_encode : absolute_url(path('send_sms', {'id': appartement.idApp})) %}
                             <div class="p-3 bg-white rounded-4 d-inline-block">
-                                <img src="{{ qr_code_url(absolute_url(path('send_sms', {'id': appartement.idApp}))) }}" alt="QR Code" style="width: 180px; height: 180px;">
+                                <a href="{{ whatsappUrl }}" target="_blank" rel="noopener">
+                                    <img src="{{ qr_code_url(whatsappUrl) }}" alt="WhatsApp QR Code" style="width: 180px; height: 180px;">
+                                </a>
                             </div>
-                            <p class="mt-3 text-white-50" style="font-size: 0.9rem;">Scannez pour envoyer un SMS</p>
+                            <p class="mt-3 text-white-50" style="font-size: 0.9rem;">Scannez pour ouvrir WhatsApp</p>
+                            {% if whatsappPhone %}
+                                <a href="{{ whatsappUrl }}" target="_blank" rel="noopener" class="glass-btn-save w-100 mt-2 d-inline-flex align-items-center justify-content-center" style="background: rgba(34, 197, 94, 0.18); border-color: rgba(34, 197, 94, 0.5); text-decoration: none;">
+                                    <i class='bx bxl-whatsapp me-2'></i>Ouvrir WhatsApp
+                                </a>
+                            {% endif %}
                             <button onclick="triggerSms({{ appartement.idApp }}, this)" class="glass-btn-save w-100 mt-2" style="background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.5);">
                                 <i class='bx bx-send me-2'></i>Envoyer demande via SMS
                             </button>
@@ -486,6 +533,7 @@
                 if (detailsLoading) detailsLoading.style.display = 'none';
                 if (detailsContent) {
                     detailsContent.innerHTML = html;
+                    initApartmentReviewWidgets(detailsContent);
                     // Manual visibility force
                     detailsContent.querySelectorAll('[data-aos]').forEach(el => {
                         el.style.opacity = '1';
@@ -499,6 +547,79 @@
                 if (detailsContent) detailsContent.innerHTML = '<div class="alert alert-danger">Error loading details.</div>';
             });
         };
+
+        function setReviewScore(widget, score) {
+            widget.dataset.currentScore = String(score);
+            widget.querySelectorAll('.apt-review-score-btn').forEach(btn => {
+                btn.classList.toggle('active', Number(btn.dataset.score) === score);
+            });
+            const selected = widget.querySelector('[data-review-selected]');
+            if (selected) selected.textContent = String(score);
+            const status = widget.querySelector('[data-review-status]');
+            if (status) status.textContent = '';
+        }
+
+        function initApartmentReviewWidgets(root = document) {
+            root.querySelectorAll('[data-apartment-review]').forEach(widget => {
+                setReviewScore(widget, Number(widget.dataset.currentScore || 0));
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            const scoreBtn = e.target.closest('.apt-review-score-btn');
+            if (scoreBtn) {
+                const widget = scoreBtn.closest('[data-apartment-review]');
+                if (widget) setReviewScore(widget, Number(scoreBtn.dataset.score || 0));
+                return;
+            }
+
+            const submitBtn = e.target.closest('[data-review-submit]');
+            if (!submitBtn) return;
+
+            const widget = submitBtn.closest('[data-apartment-review]');
+            if (!widget) return;
+
+            const status = widget.querySelector('[data-review-status]');
+            const originalText = submitBtn.innerHTML;
+            const formData = new FormData();
+            formData.append('score', widget.dataset.currentScore || '0');
+            formData.append('_token', widget.dataset.token || '');
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i>Saving...';
+            if (status) status.textContent = '';
+
+            fetch(widget.dataset.saveUrl, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+
+                if (data.status === 'success') {
+                    const average = widget.querySelector('[data-review-average]');
+                    const count = widget.querySelector('[data-review-count]');
+                    if (average) average.textContent = data.average;
+                    if (count) count.textContent = data.count;
+                    if (status) status.textContent = data.message;
+                    if (window.pushNotif) window.pushNotif('Saved', data.message, 'SUCCESS');
+                } else {
+                    if (status) status.textContent = data.message || 'Could not save review.';
+                    if (window.pushNotif) window.pushNotif('Erreur', data.message || 'Could not save review.', 'ERROR');
+                }
+            })
+            .catch(err => {
+                console.error('Error saving review:', err);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                if (status) status.textContent = 'Could not save review.';
+            });
+        });
+
+        initApartmentReviewWidgets(document);
 
         // Back navigation
         window.goBack = function(target) {

@@ -1,9 +1,15 @@
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('Horizon Forum UI Loaded');
+﻿document.addEventListener('DOMContentLoaded', function () {
+    console.log('Syndicati Forum UI Loaded');
 
     // --- CACHING & STATE ---
     window.commentCache = new Map();
     let currentCategory = 'General';
+
+    function escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value == null ? '' : String(value);
+        return div.innerHTML;
+    }
 
     // --- GLOBAL VARIABLES ---
     const glassSwitcher = document.getElementById('forumGlassSwitcher');
@@ -216,6 +222,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Load Reactions Status
         loadReactionStatus(d.id);
+
+        const feelingPanel = document.getElementById('feelingPanel');
+        if (feelingPanel) {
+            feelingPanel.classList.add('d-none');
+            feelingPanel.innerHTML = '';
+        }
     }
 
     // --- BUTTON HOOKS ---
@@ -294,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             // Clear previous errors via validator if available
-            if (form.validator) {
+            if (form.validator && typeof form.validator.clearErrors === 'function') {
                 form.validator.clearErrors();
             } else {
                 form.querySelectorAll('.main-home-validation-message, .validation-container').forEach(el => {
@@ -321,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
             } else {
-                if (data.errors && form.validator) {
+                if (data.errors && form.validator && typeof form.validator.mapErrors === 'function') {
                     form.validator.mapErrors(data.errors);
                     window.showObsidianNotification('Check your form', 'Please Correct the highlighted errors.', 'error');
                 } else {
@@ -591,6 +603,136 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
+    function feelingLoadingCard() {
+        return `
+            <div class="feeling-card feeling-loading">
+                <div class="feeling-orb"><i class='bx bx-loader-alt bx-spin'></i></div>
+                <div>
+                    <h5>Reading the room...</h5>
+                    <p>Scanning tone, emotion, and community signal.</p>
+                </div>
+            </div>
+        `;
+    }
+
+    function feelingResultCard(feeling) {
+        const confidence = Math.max(0, Math.min(100, Number(feeling.confidence || 0)));
+        const sentiment = escapeHtml(feeling.sentiment || 'neutral');
+        const emotion = escapeHtml(feeling.primaryEmotion || 'neutral');
+        const explanation = escapeHtml(feeling.explanation || 'The tone reads as mostly neutral.');
+        const signals = Array.isArray(feeling.signals) ? feeling.signals.slice(0, 3) : [];
+
+        return `
+            <div class="feeling-card feeling-${sentiment}">
+                <div class="feeling-orb"><i class='bx bx-pulse'></i></div>
+                <div class="feeling-content">
+                    <div class="feeling-topline">
+                        <span class="feeling-kicker">Feeling Scan</span>
+                        <span class="feeling-provider">${escapeHtml(feeling.provider || 'ai')}</span>
+                    </div>
+                    <div class="feeling-title">${emotion} - ${sentiment}</div>
+                    <p>${explanation}</p>
+                    <div class="feeling-meter" aria-label="Feeling confidence">
+                        <span style="width:${confidence}%"></span>
+                    </div>
+                    <div class="feeling-footer">
+                        <strong>${confidence}% confidence</strong>
+                        ${signals.map(signal => `<span>${escapeHtml(signal)}</span>`).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function feelingErrorCard(message) {
+        return `
+            <div class="feeling-card feeling-error">
+                <div class="feeling-orb"><i class='bx bx-error-circle'></i></div>
+                <div>
+                    <h5>Feeling unavailable</h5>
+                    <p>${escapeHtml(message || 'Could not analyze this content right now.')}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    window.analyzePublicationFeeling = async function () {
+        if (!window.currentPostId) return;
+
+        const panel = document.getElementById('feelingPanel');
+        const btn = document.querySelector('#splitViewActionBar .btn-feeling');
+        if (!panel) return;
+
+        panel.classList.remove('d-none');
+        panel.innerHTML = feelingLoadingCard();
+
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add('active');
+        }
+
+        try {
+            const res = await fetch(`/forum/feeling/publication/${window.currentPostId}`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            if (!data.success || !data.feeling) {
+                throw new Error(data.message || 'Feeling analysis failed');
+            }
+
+            panel.innerHTML = feelingResultCard(data.feeling);
+        } catch (err) {
+            console.error('Feeling Error:', err);
+            panel.innerHTML = feelingErrorCard(err.message);
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    };
+
+    window.analyzeCommentFeeling = async function (commentId) {
+        const item = document.querySelector(`.comment-item[data-id="${commentId}"]`);
+        const panel = document.getElementById(`commentFeelingPanel-${commentId}`);
+        const btn = item ? item.querySelector('.btn-feeling') : null;
+        if (!panel) return;
+
+        const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
+        if (isOpen) {
+            panel.style.maxHeight = '0px';
+            panel.innerHTML = '';
+            if (btn) btn.classList.remove('active');
+            return;
+        }
+
+        const editPanel = document.getElementById(`commentEditPanel-${commentId}`);
+        const reportPanel = document.getElementById(`commentReportPanel-${commentId}`);
+        if (editPanel) editPanel.style.maxHeight = '0px';
+        if (reportPanel) reportPanel.style.maxHeight = '0px';
+
+        panel.innerHTML = feelingLoadingCard();
+        panel.style.maxHeight = '520px';
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add('active');
+        }
+
+        try {
+            const res = await fetch(`/forum/comment/feeling/${commentId}`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            if (!data.success || !data.feeling) {
+                throw new Error(data.message || 'Feeling analysis failed');
+            }
+            panel.innerHTML = feelingResultCard(data.feeling);
+        } catch (err) {
+            console.error('Comment Feeling Error:', err);
+            panel.innerHTML = feelingErrorCard(err.message);
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    };
     async function loadReactionStatus(postId) {
         const reactionsBar = document.getElementById('splitViewActionBar');
         if (!reactionsBar) return;
@@ -809,6 +951,10 @@ document.addEventListener('DOMContentLoaded', function () {
                                 ${emojiReaction ? `<span style="font-size:1.1rem;">${emojiReaction.emoji}</span>` : `<i class='bx bx-smile fs-5'></i>`}
                             </button>
 
+                            <button class="comment-reaction-btn btn-feeling d-flex align-items-center gap-2 rounded-pill px-3" style="height: 36px;" onclick="window.analyzeCommentFeeling(${c.id})">
+                                <i class='bx bx-pulse fs-6'></i> <span class="small fw-bold">Feeling</span>
+                            </button>
+
                             <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.05); margin: 0 2px;"></div>
 
                             <div class="d-flex align-items-center gap-1">
@@ -848,6 +994,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 </div>
                             </div>
                         </div>
+
+                        <div id="commentFeelingPanel-${c.id}" class="comment-feeling-panel overflow-hidden mt-4" style="max-height: 0; transition: max-height 0.4s ease;"></div>
                     </div>
                     `;
                 }).join('');
@@ -951,6 +1099,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Close Edit panel if open
         const editPanel = document.getElementById(`commentEditPanel-${commentId}`);
         if (editPanel) editPanel.style.maxHeight = '0px';
+        const feelingPanel = document.getElementById(`commentFeelingPanel-${commentId}`);
+        if (feelingPanel) feelingPanel.style.maxHeight = '0px';
 
         const panel = document.getElementById(`commentReportPanel-${commentId}`);
         if (!panel) return;
@@ -961,6 +1111,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Close Report panel if open
         const reportPanel = document.getElementById(`commentReportPanel-${commentId}`);
         if (reportPanel) reportPanel.style.maxHeight = '0px';
+        const feelingPanel = document.getElementById(`commentFeelingPanel-${commentId}`);
+        if (feelingPanel) feelingPanel.style.maxHeight = '0px';
 
         const panel = document.getElementById(`commentEditPanel-${commentId}`);
         if (!panel) return;
@@ -975,7 +1127,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const fd = new FormData();
-            fd.append('description', content);
+            fd.append('description_commentaire', content);
 
             // Handle image edit
             const imgInput = panel.querySelector('.edit-comment-image-input');
@@ -992,7 +1144,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Update in-place for instant feedback
                 const item = document.querySelector(`.comment-item[data-id="${commentId}"]`);
                 if (item) {
-                    const descEl = item.querySelector('.text-white-50.ps-4');
+                    const descEl = item.querySelector('.comment-text-content');
                     if (descEl) descEl.textContent = content;
 
                     const small = item.querySelector('small.text-white-50');
@@ -1165,3 +1317,4 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 });
+

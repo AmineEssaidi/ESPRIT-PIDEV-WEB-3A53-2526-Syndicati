@@ -123,18 +123,18 @@
                     {% if show_destination_choice|default(false) %}
                         <div class="main-home-auth-destination">
                             <div class="main-home-auth-destination-header">
-                                <div class="main-home-auth-destination-icon">✓</div>
+                                <div class="main-home-auth-destination-icon"><i class="bx bx-check"></i></div>
                                 <h1 class="main-home-auth-title">You're in</h1>
                                 <p class="main-home-auth-subtitle">Where do you want to go?</p>
                             </div>
                             <div class="main-home-auth-destination-buttons">
                                 <a href="{{ path('main_home') }}" class="main-home-destination-btn main-home-destination-btn--home">
-                                    <span class="main-home-destination-btn-icon">🏠</span>
-                                    <span class="main-home-destination-btn-text">Log into Home</span>
+                                    <span class="main-home-destination-btn-icon"><i class="bx bx-home"></i></span>
+                                    <span class="main-home-destination-btn-text">Go Home</span>
                                 </a>
                                 <a href="{{ path('admin_dashboard') }}" class="main-home-destination-btn main-home-destination-btn--dashboard">
-                                    <span class="main-home-destination-btn-icon">📊</span>
-                                    <span class="main-home-destination-btn-text">Dashboard</span>
+                                    <span class="main-home-destination-btn-icon"><i class="bx bxs-dashboard"></i></span>
+                                    <span class="main-home-destination-btn-text">Go Dashboard</span>
                                 </a>
                             </div>
                         </div>
@@ -309,7 +309,7 @@
                                         try {
                                             const success = await WebAuthn.authenticate(email);
                                             if (success) {
-                                                window.location.href = "{{ path('main_home') }}";
+                                                window.location.href = success.redirect || "{{ path('main_home') }}";
                                             }
                                         } catch (err) {
                                             console.error(err);
@@ -405,7 +405,7 @@
                                         try {
                                             const result = await FaceID.authenticate(video, email, pin);
                                             if (result.status === 'ok') {
-                                                window.location.href = "{{ path('main_home') }}";
+                                                window.location.href = result.redirect || "{{ path('main_home') }}";
                                             }
                                         } catch (e) {
                                             window.pushNotif(e.message, 'ERROR');
@@ -1311,7 +1311,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         alert(data.message);
                     }
                 } else if (data.redirect) {
-                    window.location.href = data.redirect;
+                    if (window.HorizonCinematic) {
+                        window.HorizonCinematic.recover({
+                            redirect: data.redirect,
+                            steps: ['Code accepted...', 'Recovering account...', 'Preparing dashboard...', 'Opening Syndicati...'],
+                            delay: 1250
+                        });
+                    } else {
+                        window.location.href = data.redirect;
+                    }
                 } else {
                     window.location.reload();
                 }
@@ -1362,7 +1370,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (otpOverlay) otpOverlay.style.display = 'flex';
                     if (otpInput) { otpInput.value = ''; otpInput.focus(); }
                 } else if (data.redirect) {
-                    window.location.href = data.redirect;
+                    if (window.HorizonCinematic) {
+                        window.HorizonCinematic.recover({
+                            redirect: data.redirect,
+                            steps: ['Credentials accepted...', 'Restoring session...', 'Syncing profile...', 'Opening Syndicati...'],
+                            delay: 1250
+                        });
+                    } else {
+                        window.location.href = data.redirect;
+                    }
                     return;
                 } else if (data.success === false && data.error) {
                     if (authErrorEl) { authErrorEl.textContent = data.error; authErrorEl.style.display = 'block'; }
@@ -1523,7 +1539,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: JSON.stringify({ code: code })
                 });
                 const data = await response.json();
-                if (data.success && data.redirect) { window.location.href = data.redirect; return; }
+                if (data.success && data.redirect) {
+                    if (window.HorizonCinematic) {
+                        window.HorizonCinematic.recover({
+                            redirect: data.redirect,
+                            steps: ['Code verified...', 'Restoring secure session...', 'Syncing workspace...', 'Opening Syndicati...'],
+                            delay: 1250
+                        });
+                    } else {
+                        window.location.href = data.redirect;
+                    }
+                    return;
+                }
                 if (totpErrorEl) { totpErrorEl.textContent = data.message || 'Invalid code.'; totpErrorEl.style.display = 'block'; }
             } catch (err) {
                 if (totpErrorEl) { totpErrorEl.textContent = 'Something went wrong.'; totpErrorEl.style.display = 'block'; }

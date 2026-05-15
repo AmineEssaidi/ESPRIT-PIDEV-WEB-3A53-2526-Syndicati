@@ -4,6 +4,7 @@ namespace App\Service\Forum;
 use App\Entity\Forum\Publication;
 use App\Entity\Forum\Commentaire;
 use App\Repository\User\UserRepository;
+use App\Service\Media\ImagePathResolver;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -29,7 +30,8 @@ class ForumNotificationService
         string $fromEmail,
         string $fromName,
         string $mailerDsn,
-        \App\Service\User\NotificationService $hubNotifService
+        \App\Service\User\NotificationService $hubNotifService,
+        private readonly ImagePathResolver $imagePathResolver
     ) {
         $this->mailer = $mailer;
         $this->userRepository = $userRepository;
@@ -145,14 +147,14 @@ class ForumNotificationService
             $title = $target->getTitrePub();
             $content = $target->getDescriptionPub();
             if ($target->getImagePub()) {
-                $imageUrl = $this->router->getContext()->getScheme() . '://' . $this->router->getContext()->getHost() . '/forum_images/' . $target->getImagePub();
+                $imageUrl = $this->imagePathResolver->publicUrl($target->getImagePub(), 'forum_images', null, true);
             }
         } else {
             $pubTitle = $target->getPublication() ? $target->getPublication()->getTitrePub() : 'Deleted Post';
             $title = 'Comment on "' . $pubTitle . '"';
             $content = $target->getDescriptionCommentaire();
             if ($target->getImageCommentaire()) {
-                $imageUrl = $this->router->getContext()->getScheme() . '://' . $this->router->getContext()->getHost() . '/commentaire_images/' . $target->getImageCommentaire();
+                $imageUrl = $this->imagePathResolver->publicUrl($target->getImageCommentaire(), 'commentaire_images', null, true);
             }
         }
 

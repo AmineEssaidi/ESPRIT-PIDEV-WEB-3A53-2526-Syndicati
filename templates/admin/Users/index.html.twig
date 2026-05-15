@@ -302,6 +302,7 @@
             <button class="premium-switcher-tab active" data-page="1">Users</button>
             <button class="premium-switcher-tab" data-page="2">Profile</button>
             <button class="premium-switcher-tab" data-page="3">Onboarding</button>
+            <button class="premium-switcher-tab" data-page="4">User Bans</button>
         </div>
     </div>
 </div>
@@ -317,7 +318,7 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
         position: relative;
         z-index: 10;
-        min-width: 400px;
+        min-width: 520px;
     }
 
     .premium-switcher-pill {
@@ -371,8 +372,188 @@
         background: rgba(255, 255, 255, 0.05);
         border-radius: 100px;
     }
+
+    .users-page-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .users-page-content[data-page="4"] .glass-table-container {
+        min-height: 420px;
+        background: rgba(10, 10, 10, 0.72);
+    }
+
+    .user-bans-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .user-bans-stat-card,
+    .user-ban-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.055), rgba(255,255,255,0.018));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 18px;
+        box-shadow: 0 18px 45px rgba(0,0,0,0.32);
+        backdrop-filter: blur(18px);
+    }
+
+    .user-bans-stat-card {
+        padding: 1.25rem;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .user-bans-stat-card::after {
+        content: "";
+        position: absolute;
+        inset: auto -20% -55% -20%;
+        height: 90px;
+        background: radial-gradient(circle, rgba(255,108,108,0.24), transparent 70%);
+        pointer-events: none;
+    }
+
+    .user-bans-stat-label {
+        color: rgba(255,255,255,0.52);
+        font-size: 0.74rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .user-bans-stat-value {
+        color: #fff;
+        display: block;
+        font-size: 2rem;
+        font-weight: 900;
+        line-height: 1;
+        margin-top: 0.65rem;
+    }
+
+    .user-bans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+
+    .user-ban-card {
+        padding: 1.1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.95rem;
+    }
+
+    .user-ban-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
+
+    .user-ban-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 900;
+        background: linear-gradient(135deg, rgba(255,107,107,0.75), rgba(255,195,113,0.72));
+        box-shadow: 0 10px 24px rgba(255,107,107,0.18);
+        flex: 0 0 auto;
+    }
+
+    .user-ban-name {
+        color: #fff;
+        font-weight: 850;
+        line-height: 1.15;
+    }
+
+    .user-ban-email {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.82rem;
+        margin-top: 0.2rem;
+        word-break: break-all;
+    }
+
+    .user-ban-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .user-ban-chip {
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 999px;
+        color: rgba(255,255,255,0.72);
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 0.35rem 0.65rem;
+        text-transform: uppercase;
+    }
+
+    .user-ban-chip.banned {
+        background: rgba(255,59,48,0.12);
+        border-color: rgba(255,59,48,0.34);
+        color: #ff7676;
+    }
+
+    .user-ban-chip.active {
+        background: rgba(0,230,118,0.1);
+        border-color: rgba(0,230,118,0.24);
+        color: #49e08a;
+    }
+
+    .user-ban-reason {
+        min-height: 56px;
+        border-radius: 14px;
+        padding: 0.85rem;
+        color: rgba(255,255,255,0.68);
+        background: rgba(0,0,0,0.22);
+        border: 1px solid rgba(255,255,255,0.055);
+        font-size: 0.86rem;
+        line-height: 1.5;
+    }
+
+    .user-ban-form {
+        display: none;
+        flex-direction: column;
+        gap: 0.7rem;
+    }
+
+    .user-ban-form.is-open { display: flex; }
+
+    .user-ban-textarea {
+        resize: vertical;
+        min-height: 86px;
+        border-radius: 16px;
+        padding: 0.9rem 1rem;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #fff;
+        outline: none;
+    }
+
+    .user-ban-textarea:focus {
+        border-color: rgba(255,107,107,0.65);
+        box-shadow: 0 0 0 4px rgba(255,107,107,0.12);
+    }
+
+    .user-ban-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.65rem;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+        .premium-switcher-container { min-width: 0; width: min(100%, 520px); }
+        .user-bans-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
 </style>
 <div id="users-content" class="users-content" style="margin-top: 1.5rem;">
+        {% include 'admin/Users/_user_bans_panel.html.twig' %}
         <div class="users-page-content" data-page="1">
             <div class="glass-table-container">
                 <div id="usersGlassSwitcher" class="glass-switcher style-slide">
@@ -1377,7 +1558,7 @@
                                         <td>
                                             <div class="profile-avatar-container">
                                                 {% if p.avatar %}
-                                                    <img src="{{ asset(p.avatar) }}" alt="Avatar" class="profile-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                    <img src="{{ media_url(p.avatar, 'profile_images') }}" alt="Avatar" class="profile-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                                     <div class="profile-avatar-placeholder" style="display: none;"><i class="bx bx-user"></i></div>
                                                 {% else %}
                                                     <div class="profile-avatar-placeholder"><i class="bx bx-user"></i></div>
@@ -1387,7 +1568,7 @@
                                         <td style="text-align: right;">
                                             <button type="button" class="glass-btn-save profile-view-btn" 
                                                     data-profile-id="{{ p.idProfile }}" 
-                                                    data-avatar-url="{{ p.avatar ? asset(p.avatar) : '' }}"
+                                                    data-avatar-url="{{ p.avatar ? media_url(p.avatar, 'profile_images') : '' }}"
                                                     style="padding: 0.4rem 1.2rem; font-size: 0.85rem;" title="View profile details">
                                                 <i class="bx bx-show"></i> Details
                                             </button>
@@ -1675,6 +1856,101 @@
             </div><!-- End #onboardingGlassSwitcher -->
         </div><!-- End .glass-table-container -->
     </div>
+
+    <div class="users-page-content-legacy" data-page="4" style="display:none !important;">
+        <div class="glass-table-container">
+            <div class="glass-toolbar" style="margin-bottom: 1.5rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">User Bans</h3>
+                    <p style="margin: 0.35rem 0 0; color: rgba(255,255,255,0.55);">Moderate account access, reasons, and revocations.</p>
+                </div>
+            </div>
+
+            <div class="user-bans-stats">
+                <div class="user-bans-stat-card">
+                    <span class="user-bans-stat-label">Total bans</span>
+                    <span class="user-bans-stat-value">{{ userBanStats.totalBans|default(0) }}</span>
+                </div>
+                <div class="user-bans-stat-card">
+                    <span class="user-bans-stat-label">Recent 7 days</span>
+                    <span class="user-bans-stat-value">{{ userBanStats.recentBans|default(0) }}</span>
+                </div>
+                <div class="user-bans-stat-card">
+                    <span class="user-bans-stat-label">Active users</span>
+                    <span class="user-bans-stat-value">{{ userBanStats.activeUsers|default(0) }}</span>
+                </div>
+                <div class="user-bans-stat-card">
+                    <span class="user-bans-stat-label">Total users</span>
+                    <span class="user-bans-stat-value">{{ userBanStats.totalUsers|default(users|length) }}</span>
+                </div>
+            </div>
+
+            <div class="glass-toolbar" style="margin-bottom: 1.2rem;">
+                <div class="glass-search-container">
+                    <i class="bx bx-search glass-search-icon"></i>
+                    <input type="text" class="glass-search-input user-bans-search" placeholder="Search bans or users...">
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <div class="glass-pill glass-pill-active user-bans-filter" data-filter="all">All</div>
+                    <div class="glass-pill user-bans-filter" data-filter="banned">Banned</div>
+                    <div class="glass-pill user-bans-filter" data-filter="active">Active</div>
+                </div>
+            </div>
+
+            <div class="user-bans-grid" id="user-bans-grid">
+                {% for u in users|default([]) %}
+                    {% set fullName = (u.firstName ~ ' ' ~ u.lastName)|trim %}
+                    {% set isBanned = u.isDisabled %}
+                    <article class="user-ban-card" data-ban-card data-status="{{ isBanned ? 'banned' : 'active' }}" data-search="{{ (fullName ~ ' ' ~ u.emailUser ~ ' ' ~ u.roleUser ~ ' ' ~ (u.disabledReason|default('')))|lower|e('html_attr') }}">
+                        <div class="user-ban-card-header">
+                            <div class="user-ban-avatar">{{ fullName ? fullName|first|upper : 'U' }}</div>
+                            <div>
+                                <div class="user-ban-name">{{ fullName ?: 'Unnamed user' }}</div>
+                                <div class="user-ban-email">{{ u.emailUser }}</div>
+                            </div>
+                        </div>
+                        <div class="user-ban-meta">
+                            <span class="user-ban-chip">{{ u.roleUser }}</span>
+                            <span class="user-ban-chip {{ isBanned ? 'banned' : 'active' }}">{{ isBanned ? 'Banned' : 'Active' }}</span>
+                            {% if isBanned and u.disabledAt %}
+                                <span class="user-ban-chip">{{ u.disabledAt|date('Y-m-d H:i') }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="user-ban-reason">
+                            {% if isBanned %}
+                                {{ u.disabledReason ?: 'No reason recorded.' }}
+                            {% else %}
+                                This account can currently access Syndicati.
+                            {% endif %}
+                        </div>
+
+                        {% if isBanned %}
+                            <form class="user-ban-ajax-form" action="{{ path('admin_users_unban', {id: u.idUser}) }}" method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token('user_unban_' ~ u.idUser)|e('html_attr') }}">
+                                <div class="user-ban-actions">
+                                    <button type="submit" class="users-btn-modify" style="font-size: 0.85rem !important; padding: 0.7rem 1.35rem !important;"><i class="bx bx-lock-open"></i> Revoke Ban</button>
+                                </div>
+                            </form>
+                        {% else %}
+                            <form class="user-ban-ajax-form user-ban-form" action="{{ path('admin_users_ban', {id: u.idUser}) }}" method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token('user_ban_' ~ u.idUser)|e('html_attr') }}">
+                                <textarea class="user-ban-textarea" name="reason" required maxlength="500" placeholder="Reason visible in admin records..."></textarea>
+                                <div class="user-ban-actions">
+                                    <button type="button" class="users-btn-cancel user-ban-cancel" style="font-size: 0.85rem !important; padding: 0.7rem 1.15rem !important;">Cancel</button>
+                                    <button type="submit" class="users-btn-delete" style="font-size: 0.85rem !important; padding: 0.7rem 1.35rem !important;"><i class="bx bx-lock"></i> Confirm Ban</button>
+                                </div>
+                            </form>
+                            <div class="user-ban-actions user-ban-start-actions">
+                                <button type="button" class="users-btn-delete user-ban-open" style="font-size: 0.85rem !important; padding: 0.7rem 1.35rem !important;"><i class="bx bx-shield-x"></i> Apply Ban</button>
+                            </div>
+                        {% endif %}
+                    </article>
+                {% else %}
+                    <div class="user-ban-card" style="grid-column: 1 / -1; color: rgba(255,255,255,0.65);">No users found.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -1687,6 +1963,9 @@
             document.querySelectorAll('.users-page-content').forEach(div => {
                 const isMatch = div.dataset.page == page;
                 div.style.display = isMatch ? 'block' : 'none';
+                div.style.visibility = isMatch ? 'visible' : 'hidden';
+                div.style.opacity = isMatch ? '1' : '0';
+                div.style.pointerEvents = isMatch ? 'auto' : 'none';
                 
                 if (isMatch) {
                     // Find the switcher in this page
@@ -1696,6 +1975,10 @@
                         setTimeout(() => {
                             window.switchGlassFace('main', switcher.id);
                         }, 50);
+                    }
+
+                    if (String(page) === '4') {
+                        setTimeout(filterBanCards, 0);
                     }
                 }
             });
@@ -1733,6 +2016,108 @@
 
         // Initial load sync
         showUsersPage(1);
+
+        const banGrid = document.getElementById('user-bans-grid');
+        const banSearch = document.querySelector('.user-bans-search');
+        let banFilter = 'all';
+
+        function filterBanCards() {
+            if (!banGrid) return;
+            const query = (banSearch ? banSearch.value : '').trim().toLowerCase();
+            banGrid.querySelectorAll('[data-ban-card]').forEach(card => {
+                const matchesStatus = banFilter === 'all' || card.dataset.status === banFilter;
+                const matchesSearch = !query || (card.dataset.search || '').includes(query);
+                card.style.display = matchesStatus && matchesSearch ? '' : 'none';
+            });
+        }
+
+        document.querySelectorAll('.user-bans-filter').forEach(pill => {
+            pill.addEventListener('click', function() {
+                document.querySelectorAll('.user-bans-filter').forEach(item => item.classList.remove('glass-pill-active'));
+                this.classList.add('glass-pill-active');
+                banFilter = this.dataset.filter || 'all';
+                filterBanCards();
+            });
+        });
+
+        if (banSearch) {
+            banSearch.addEventListener('input', filterBanCards);
+        }
+
+        filterBanCards();
+
+        document.querySelectorAll('.user-ban-open').forEach(button => {
+            button.addEventListener('click', function() {
+                const card = this.closest('[data-ban-card]');
+                const form = card ? card.querySelector('.user-ban-form') : null;
+                const actions = card ? card.querySelector('.user-ban-start-actions') : null;
+                if (form) form.classList.add('is-open');
+                if (actions) actions.style.display = 'none';
+                const textarea = form ? form.querySelector('textarea') : null;
+                if (textarea) textarea.focus();
+            });
+        });
+
+        document.querySelectorAll('.user-ban-cancel').forEach(button => {
+            button.addEventListener('click', function() {
+                const card = this.closest('[data-ban-card]');
+                const form = card ? card.querySelector('.user-ban-form') : null;
+                const actions = card ? card.querySelector('.user-ban-start-actions') : null;
+                if (form) {
+                    form.classList.remove('is-open');
+                    form.reset();
+                }
+                if (actions) actions.style.display = '';
+            });
+        });
+
+        document.querySelectorAll('.user-ban-ajax-form').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalHtml = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Saving...';
+                }
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof showCoolPopup === 'function') {
+                            showCoolPopup('Success', data.message || 'Moderation updated.', 'success');
+                        }
+                        window.setTimeout(() => window.location.reload(), 450);
+                    } else {
+                        const message = data.message || 'Could not update moderation state.';
+                        if (typeof showCoolPopup === 'function') {
+                            showCoolPopup('Error', message, 'error');
+                        } else {
+                            alert(message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    if (typeof showCoolPopup === 'function') {
+                        showCoolPopup('Error', 'A network error occurred.', 'error');
+                    } else {
+                        alert('A network error occurred.');
+                    }
+                })
+                .finally(() => {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalHtml;
+                    }
+                });
+            });
+        });
     });
 </script>
 {% endblock %}

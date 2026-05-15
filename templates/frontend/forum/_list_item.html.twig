@@ -27,8 +27,8 @@
      data-date="{{ publication.dateCreationPub|date('M d, Y H:i') }}"
      data-user="{{ publication.user.firstName }} {{ publication.user.lastName }}"
      data-user-initial="{{ publication.user.firstName|first|upper }}"
-     data-avatar="{% if author_profile and author_profile.avatar %}{{ author_profile.avatar starts with 'http' ? author_profile.avatar : asset(author_profile.avatar) }}{% endif %}"
-     data-image="{% if publication.imagePub %}{{ asset('forum_images/' ~ publication.imagePub) }}{% endif %}"
+     data-avatar="{% if author_profile and author_profile.avatar %}{{ media_url(author_profile.avatar, 'profile_images') }}{% endif %}"
+     data-image="{{ media_url(publication.imagePub, 'forum_images')|default('') }}"
      data-token="{{ csrf_token('delete' ~ publication.id) }}">
     
     <div class="d-flex w-100 justify-content-between align-items-center mb-1">
@@ -39,7 +39,7 @@
     <div class="d-flex align-items-center mt-2">
         <div class="forum-list-avatar me-2">
             {% if author_profile and author_profile.avatar %}
-                <img src="{{ author_profile.avatar starts with 'http' ? author_profile.avatar : asset(author_profile.avatar) }}" alt="User">
+                <img src="{{ media_url(author_profile.avatar, 'profile_images') }}" alt="User">
             {% else %}
                 <span>{{ publication.user.firstName|first|upper }}</span>
             {% endif %}

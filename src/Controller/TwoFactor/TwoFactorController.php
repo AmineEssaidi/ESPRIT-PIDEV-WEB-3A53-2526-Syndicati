@@ -6,6 +6,7 @@ use App\Entity\User\User;
 use App\Repository\User\UserRepository;
 use App\Repository\Profile\ProfileRepository;
 use App\Repository\Onboarding\OnboardingRepository;
+use App\Service\Log\UserActivityLogger;
 use App\Service\TwoFactor\TwoFactorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,7 +24,8 @@ class TwoFactorController extends AbstractController
         UserRepository $userRepository,
         ProfileRepository $profileRepository,
         OnboardingRepository $onboardingRepository,
-        TwoFactorService $twoFactorService
+        TwoFactorService $twoFactorService,
+        UserActivityLogger $activityLogger
     ): Response {
         $session = $request->getSession();
         $userId = $session->get('2fa_user_id');
@@ -72,6 +74,10 @@ class TwoFactorController extends AbstractController
                 ]);
                 $session->remove('2fa_user_id');
                 $session->remove('2fa_email');
+                $activityLogger->logAuthAction('2FA_EMAIL', 'SUCCESS', 'Email OTP verified during sign-in.', [
+                    'method' => 'email_otp',
+                    'email' => $email,
+                ], $user);
 
                 $onboarding = $onboardingRepository->findOneByUser($user);
                 if ($onboarding === null || !$onboarding->isCompleted()) {
@@ -88,6 +94,10 @@ class TwoFactorController extends AbstractController
                 return $this->redirectToRoute('main_home');
             } else {
                 $error = 'Invalid or expired verification code. Please try again.';
+                $activityLogger->logAuthAction('2FA_EMAIL', 'FAILURE', $error, [
+                    'method' => 'email_otp',
+                    'email' => $email,
+                ], $user);
             }
         }
 
@@ -124,7 +134,8 @@ class TwoFactorController extends AbstractController
     public function toggle(
         Request $request,
         UserRepository $userRepository,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        UserActivityLogger $activityLogger
     ): JsonResponse {
         $session = $request->getSession();
         if (!$session->get('is_logged_in')) {
@@ -149,6 +160,10 @@ class TwoFactorController extends AbstractController
             $user->setTotpSecret(null);
         }
         $em->flush();
+        $activityLogger->logSecurityAlert($enabled ? '2FA_ENABLED' : '2FA_DISABLED', 'INFO', $enabled ? 'Two-factor authentication enabled.' : 'Two-factor authentication disabled.', [
+            'outcome' => 'SUCCESS',
+            'method' => 'email_otp',
+        ], $user);
 
         return $this->json([
             'success' => true,
@@ -215,7 +230,7 @@ class TwoFactorController extends AbstractController
             $user->setTotpSecret($secret);
             $em->flush();
 
-            $issuer = 'Horizon';
+            $issuer = 'Syndicati';
             $accountName = $user->getEmailUser();
             $qrCodeUrl = sprintf(
                 'otpauth://totp/%s:%s?secret=%s&issuer=%s',
@@ -456,7 +471,8 @@ class TwoFactorController extends AbstractController
         UserRepository $userRepository,
         ProfileRepository $profileRepository,
         OnboardingRepository $onboardingRepository,
-        TwoFactorService $twoFactorService
+        TwoFactorService $twoFactorService,
+        UserActivityLogger $activityLogger
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
         $email = isset($data['email']) ? trim((string) $data['email']) : '';
@@ -472,6 +488,10 @@ class TwoFactorController extends AbstractController
         }
 
         if (!$twoFactorService->verifyCode($user, $code)) {
+            $activityLogger->logAuthAction('2FA_EMAIL', 'FAILURE', 'Invalid or expired email OTP during sign-in.', [
+                'method' => 'email_otp',
+                'email' => $email,
+            ], $user);
             return $this->json(['success' => false, 'message' => 'Invalid or expired code'], 401);
         }
 
@@ -505,11 +525,16 @@ class TwoFactorController extends AbstractController
         } else {
             $adminRoles = ['OWNER', 'ADMIN', 'SYNDIC', 'SUPERADMIN'];
             if (in_array($user->getRoleUser(), $adminRoles, true)) {
-                $redirectUrl = $this->generateUrl('auth_sign_in') . '?destination=choice';
+                $redirectUrl = $this->generateUrl('auth_sign_in', ['destination' => 'choice']);
             } else {
                 $redirectUrl = $this->generateUrl('main_home');
             }
         }
+        $activityLogger->logAuthAction('2FA_EMAIL', 'SUCCESS', 'Email OTP verified during sign-in.', [
+            'method' => 'email_otp',
+            'destination' => $redirectUrl,
+            'email' => $email,
+        ], $user);
 
         return $this->json(['success' => true, 'redirect' => $redirectUrl]);
     }
@@ -525,7 +550,8 @@ class TwoFactorController extends AbstractController
         ProfileRepository $profileRepository,
         OnboardingRepository $onboardingRepository,
         TotpAuthenticatorInterface $totpAuthenticator,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        UserActivityLogger $activityLogger
     ): JsonResponse {
         $session = $request->getSession();
         $userId = $session->get('2fa_user_id');
@@ -566,6 +592,10 @@ class TwoFactorController extends AbstractController
         }
 
         if (!$totpAuthenticator->checkCode($user, $code)) {
+            $activityLogger->logAuthAction('2FA_TOTP', 'FAILURE', 'Invalid authenticator app code during sign-in.', [
+                'method' => 'totp',
+                'email' => $email,
+            ], $user);
             return $this->json(['success' => false, 'message' => 'Invalid code. Please try again.'], 401);
         }
 
@@ -599,9 +629,14 @@ class TwoFactorController extends AbstractController
         } else {
             $adminRoles = ['OWNER', 'ADMIN', 'SYNDIC', 'SUPERADMIN'];
             if (in_array($user->getRoleUser(), $adminRoles, true)) {
-                $redirectUrl = $this->generateUrl('auth_sign_in') . '?destination=choice';
+                $redirectUrl = $this->generateUrl('auth_sign_in', ['destination' => 'choice']);
             }
         }
+        $activityLogger->logAuthAction('2FA_TOTP', 'SUCCESS', 'Authenticator app code verified during sign-in.', [
+            'method' => 'totp',
+            'destination' => $redirectUrl,
+            'email' => $email,
+        ], $user);
 
         return $this->json(['success' => true, 'redirect' => $redirectUrl]);
     }

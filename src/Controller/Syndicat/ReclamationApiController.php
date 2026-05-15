@@ -4,6 +4,7 @@ namespace App\Controller\Syndicat;
 
 use App\Entity\Syndicat\Reclamation;
 use App\Repository\Syndicat\ReclamationRepository;
+use App\Service\Media\ImageKitStorageService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,7 +24,10 @@ class ReclamationApiController extends AbstractController
         Request $request,
         ReclamationRepository $reclamationRepository,
         EntityManagerInterface $entityManager,
-        SluggerInterface $slugger
+        SluggerInterface $slugger,
+        \App\Service\Syndicat\SyndicatNotificationService $notificationService,
+        \App\Service\Log\UserActivityLogger $activityLogger,
+        ImageKitStorageService $imageStorage
     ): JsonResponse {
         $reclamation = $reclamationRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -48,6 +52,7 @@ class ReclamationApiController extends AbstractController
         $title = $request->request->get('title');
         $description = $request->request->get('description');
         $status = $request->request->get('status');
+        $previousStatus = $reclamation->getStatutreclamation();
 
         if ($title)
             $reclamation->setTitrereclamations($title);
@@ -77,8 +82,13 @@ class ReclamationApiController extends AbstractController
                         if (!is_dir($targetDirectory)) {
                             mkdir($targetDirectory, 0777, true);
                         }
-                        $imageFile->move($targetDirectory, $newFilename);
-                        $savedImagePaths[] = $folderName . '/' . $newFilename;
+                        $savedImagePaths[] = $imageStorage->storeUploadedFile(
+                            $imageFile,
+                            $this->getParameter('reclamations_directory'),
+                            'reclamation_images',
+                            '/syndicati/reclamation_images',
+                            $folderName . '/' . $newFilename
+                        );
                     } catch (\Exception $e) {
                         error_log("API Reclamation Upload Error: " . $e->getMessage());
                     }
@@ -88,6 +98,17 @@ class ReclamationApiController extends AbstractController
         }
 
         $entityManager->flush();
+        if ($previousStatus !== $reclamation->getStatutreclamation()) {
+            $notificationService->notifyReclamationStatusChanged($reclamation, $user, $previousStatus);
+        }
+        $activityLogger->log('RECLAMATION_UPDATED', 'RECLAMATION', $reclamation->getId(), [
+            'category' => 'SYNDICAT',
+            'action' => 'UPDATE_RECLAMATION',
+            'outcome' => 'SUCCESS',
+            'message' => 'Reclamation updated from the Syndicat API.',
+            'previous_status' => $previousStatus,
+            'status' => $reclamation->getStatutreclamation(),
+        ], $user);
 
         return new JsonResponse(['success' => true, 'message' => 'Reclamation updated successfully.']);
     }
@@ -97,7 +118,8 @@ class ReclamationApiController extends AbstractController
         int $id,
         Request $request,
         ReclamationRepository $reclamationRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        \App\Service\Log\UserActivityLogger $activityLogger
     ): JsonResponse {
         $reclamation = $reclamationRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -124,6 +146,13 @@ class ReclamationApiController extends AbstractController
             unset($images[$key]);
             $reclamation->setImagereclamation(json_encode(array_values($images)));
             $entityManager->flush();
+            $activityLogger->log('RECLAMATION_ATTACHMENT_DELETED', 'RECLAMATION', $reclamation->getId(), [
+                'category' => 'SYNDICAT',
+                'action' => 'DELETE_RECLAMATION_ATTACHMENT',
+                'outcome' => 'SUCCESS',
+                'message' => 'A reclamation attachment was removed.',
+                'image_path' => $imagePath,
+            ], $user);
             return new JsonResponse(['success' => true, 'message' => 'Image deleted successfully.']);
         }
 

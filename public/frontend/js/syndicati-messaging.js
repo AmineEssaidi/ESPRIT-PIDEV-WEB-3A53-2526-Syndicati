@@ -294,13 +294,23 @@
     }
 
     async function initInternal() {
-      try { const r = await fetch('/api/messaging/me'); const d = await r.json(); myUid = d.id; } catch (e) { }
+      try {
+        const r = await fetch('/api/messaging/me', { cache: 'no-store' });
+        const d = await r.json();
+        if (d.id && myUid && d.id !== myUid) {
+          stopPoll();
+          curConvId = null;
+          activeRecipientId = null;
+          files = [];
+        }
+        myUid = d.id || null;
+      } catch (e) { }
     }
     initInternal();
 
     trigger.onclick = () => {
       panel.classList.toggle('open');
-      if (panel.classList.contains('open')) { switchView('list'); loadConvs(); }
+      if (panel.classList.contains('open')) { initInternal().then(() => { switchView('list'); loadConvs(); }); }
       else stopPoll();
     };
     panel.querySelector('.msg-close').onclick = () => { panel.classList.remove('open'); stopPoll(); };
@@ -313,7 +323,7 @@
       const c = document.getElementById('conv-list-container');
       c.innerHTML = '<div class="empty-state"><div class="empty-icon">📂</div><span>Syncing secure channels...</span></div>';
       try {
-        const r = await fetch('/api/messaging/conversations'); const d = await r.json();
+        const r = await fetch('/api/messaging/conversations', { cache: 'no-store' }); const d = await r.json();
         if (!d.length) { c.innerHTML = '<div class="empty-state"><div class="empty-icon">💎</div><span>No active conversations.<br>Select a friend to begin.</span></div>'; return; }
         c.innerHTML = '';
         d.forEach(cv => {
@@ -352,7 +362,7 @@
       if (!curConvId || isFetching) return;
       isFetching = true;
       try {
-        const r = await fetch('/api/messaging/messages/' + curConvId);
+        const r = await fetch('/api/messaging/messages/' + curConvId, { cache: 'no-store' });
         if (!r.ok) {
           const text = await r.text();
           if (text.includes('<!-- Typed')) throw new Error('Server Error (500 HTML)');
@@ -402,7 +412,7 @@
       files.forEach(f => fd.append('files[]', f));
       i.value = ''; files = []; updatePre();
       try {
-        const r = await fetch('/api/messaging/send', { method: 'POST', body: fd }); const d = await r.json();
+        const r = await fetch('/api/messaging/send', { method: 'POST', body: fd, cache: 'no-store' }); const d = await r.json();
         if (d.success) {
           if (d.conversation_id && !curConvId) {
             curConvId = d.conversation_id;

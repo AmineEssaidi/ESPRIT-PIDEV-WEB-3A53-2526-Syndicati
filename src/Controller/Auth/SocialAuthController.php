@@ -90,7 +90,7 @@ class SocialAuthController extends AbstractController
                     $user->setGoogleId($googleId);
                     $this->entityManager->flush();
 
-                    $this->addFlash('success', 'Successfully linked your existing Horizon account to Google.');
+                    $this->addFlash('success', 'Successfully linked your existing Syndicati account to Google.');
                     $this->sendLinkNotificationEmail($user);
                 } else {
                     // 3. Create new user
@@ -139,8 +139,8 @@ class SocialAuthController extends AbstractController
                 'role' => $user->getRoleUser(),
             ]);
 
-            return ($user->getRoleUser() === 'ADMIN' || $user->getRoleUser() === 'SUPERADMIN')
-                ? $this->redirectToRoute('admin_dashboard')
+            return in_array($user->getRoleUser(), ['OWNER', 'ADMIN', 'SYNDIC', 'SUPERADMIN'], true)
+                ? $this->redirectToRoute('auth_sign_in', ['destination' => 'choice'])
                 : $this->redirectToRoute('main_home');
 
         } catch (\Throwable $e) {
@@ -162,7 +162,7 @@ class SocialAuthController extends AbstractController
         $email = (new Email())
             ->from(sprintf('%s <%s>', $this->fromName, $this->fromEmail))
             ->to($user->getEmailUser())
-            ->subject('Horizon Identity Protocol: Google Account Linked')
+            ->subject('Syndicati Identity Protocol: Google Account Linked')
             ->html($this->twig->render('emails/google_linked_premium.html.twig', [
                 'user' => $user
             ]));
@@ -185,7 +185,7 @@ class SocialAuthController extends AbstractController
         $email = (new Email())
             ->from(sprintf('%s <%s>', $this->fromName, $this->fromEmail))
             ->to($user->getEmailUser())
-            ->subject('Horizon Identity Protocol: Account Synchronized')
+            ->subject('Syndicati Identity Protocol: Account Synchronized')
             ->html($this->twig->render('emails/google_welcome_premium.html.twig', [
                 'user' => $user,
                 'password' => $password

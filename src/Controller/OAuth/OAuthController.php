@@ -3,6 +3,7 @@
 namespace App\Controller\OAuth;
 
 use App\Repository\User\UserRepository;
+use App\Service\Log\UserActivityLogger;
 use App\Service\OAuth\GoogleOAuthService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,7 +45,8 @@ class OAuthController extends AbstractController
     public function gmailCallback(
         Request $request,
         GoogleOAuthService $googleOAuthService,
-        UserRepository $userRepository
+        UserRepository $userRepository,
+        UserActivityLogger $activityLogger
     ): Response {
         $session = $request->getSession();
         $state = $request->query->get('state');
@@ -85,8 +87,17 @@ class OAuthController extends AbstractController
         try {
             $redirectUri = $this->getRedirectUri($request);
             $googleOAuthService->exchangeCodeAndStore($user, $code, $redirectUri);
+            $activityLogger->logSecurityAlert('GMAIL_OAUTH_CONNECTED', 'INFO', 'Gmail OAuth account connected.', [
+                'outcome' => 'SUCCESS',
+                'provider' => 'google',
+            ], $user);
             $this->addFlash('success', 'Gmail account connected. You can now use it to send mail.');
         } catch (\Throwable $e) {
+            $activityLogger->logSecurityAlert('GMAIL_OAUTH_FAILED', 'WARN', 'Gmail OAuth connection failed.', [
+                'outcome' => 'FAILURE',
+                'provider' => 'google',
+                'error' => $e->getMessage(),
+            ], $user ?? null);
             $this->addFlash('danger', 'Failed to connect Gmail: ' . $e->getMessage());
         }
 
@@ -94,7 +105,7 @@ class OAuthController extends AbstractController
     }
 
     #[Route('/oauth/gmail/disconnect', name: 'oauth_gmail_disconnect', methods: ['POST'])]
-    public function gmailDisconnect(Request $request, \App\Repository\OAuth\OAuthRepository $oauthRepository, \App\Repository\User\UserRepository $userRepository, \Doctrine\ORM\EntityManagerInterface $em): Response
+    public function gmailDisconnect(Request $request, \App\Repository\OAuth\OAuthRepository $oauthRepository, \App\Repository\User\UserRepository $userRepository, \Doctrine\ORM\EntityManagerInterface $em, UserActivityLogger $activityLogger): Response
     {
         $session = $request->getSession();
         $userId = $session->get('is_logged_in') && isset($session->get('user')['id']) ? (int) $session->get('user')['id'] : null;
@@ -110,6 +121,10 @@ class OAuthController extends AbstractController
         if ($oauth) {
             $em->remove($oauth);
             $em->flush();
+            $activityLogger->logSecurityAlert('GMAIL_OAUTH_DISCONNECTED', 'INFO', 'Gmail OAuth account disconnected.', [
+                'outcome' => 'SUCCESS',
+                'provider' => 'google',
+            ], $user);
             $this->addFlash('success', 'Gmail account disconnected.');
         }
 

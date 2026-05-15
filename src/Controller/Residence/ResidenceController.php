@@ -5,6 +5,7 @@ namespace App\Controller\Residence;
 use App\Service\FormErrorHelperTrait;
 
 use App\Entity\Residence\Residence;
+use App\Entity\Residence\Review;
 use App\Form\Residence\ResidenceType;
 use App\Service\SmsGenerator;
 use App\Repository\Residence\ResidenceRepository;
@@ -13,6 +14,7 @@ use App\Entity\Residence\Appartement;
 use App\Form\Residence\AppartementType;
 use App\Repository\Residence\AppartementRepository;
 use App\Repository\Residence\MaintenanceRepository;
+use App\Repository\Residence\ReviewRepository;
 use App\Service\PageStatusService;
 use App\Service\RecommendationAppartement;
 use App\Service\User\NotificationService;
@@ -29,12 +31,21 @@ use Symfony\Component\Form\FormFactoryInterface;
 use Sensiolabs\GotenbergBundle\GotenbergPdfInterface;
 use App\Service\MachineLearning;
 use App\Service\MaintenancePrediction;
+use App\Service\Media\ImageKitStorageService;
+use App\Service\Media\ImagePathResolver;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 #[Route('/residence')]
 class ResidenceController extends AbstractController
 {
     use FormErrorHelperTrait;
+
+    public function __construct(
+        private readonly ImageKitStorageService $imageStorage,
+        private readonly ImagePathResolver $imagePathResolver
+    ) {
+    }
+
     #[Route('/', name: 'app_residence_index', methods: ['GET', 'POST'])]
     public function index(Request $request, ResidenceRepository $residenceRepository, \Knp\Component\Pager\PaginatorInterface $paginator): Response
     {
@@ -61,6 +72,8 @@ class ResidenceController extends AbstractController
         ResidenceRepository $residenceRepository,
         AppartementRepository $appartementRepository,
         MaintenanceRepository $maintenanceRepository,
+        ReviewRepository $reviewRepository,
+        UserRepository $userRepository,
         FormFactoryInterface $formFactory,
         MachineLearning $predictor,
         ParameterBagInterface $params
@@ -69,6 +82,7 @@ class ResidenceController extends AbstractController
 
         // --- Residence Logic ---
         $residences = $residenceRepository->findAll();
+        $users = $userRepository->findBy([], ['created_at' => 'DESC']);
         $residenceAddForm = $this->createForm(ResidenceType::class, new Residence(), [
             'action' => $this->generateUrl('admin_residence_add'),
             'method' => 'POST',
@@ -107,11 +121,29 @@ class ResidenceController extends AbstractController
 
         // --- Maintenance Logic ---
         $maintenances = $maintenanceRepository->findAll();
+        $reviews = $reviewRepository->findBy([], ['idReview' => 'DESC']);
+        $reviewSummaryByApartment = [];
+        foreach ($reviewRepository->getApartmentScoreSummary() as $summary) {
+            $reviewSummaryByApartment[(int) $summary['apartment_id']] = [
+                'average' => round((float) $summary['average_score'], 1),
+                'count' => (int) $summary['review_count'],
+            ];
+        }
+        $reviewScoreTotal = array_reduce($reviews, static fn (int $total, Review $review): int => $total + (int) $review->getScore(), 0);
+        $reviewStats = [
+            'total' => count($reviews),
+            'average' => count($reviews) > 0 ? round($reviewScoreTotal / count($reviews), 1) : 0.0,
+            'ratedApartments' => count($reviewSummaryByApartment),
+        ];
 
         return $this->render('admin/Residence/index.html.twig', [
             'residences' => $residences,
             'appartements' => $appartements,
             'maintenances' => $maintenances,
+            'reviews' => $reviews,
+            'users' => $users,
+            'reviewSummaryByApartment' => $reviewSummaryByApartment,
+            'reviewStats' => $reviewStats,
             'predictions' => $predictions,
             'predictionsmaintenance' => $predictionsmaintenance,
             'residenceAddForm' => $residenceAddForm->createView(),
@@ -141,8 +173,13 @@ class ResidenceController extends AbstractController
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
                 try {
-                    $imageFile->move($this->getParameter('residences_directory'), $newFilename);
-                    $residence->setImageR($newFilename);
+                    $residence->setImageR($this->imageStorage->storeUploadedFile(
+                        $imageFile,
+                        $this->getParameter('residences_directory'),
+                        'residence_images',
+                        '/syndicati/residence_images',
+                        $newFilename
+                    ));
                 } catch (\Exception $e) {
                 }
             }
@@ -165,7 +202,7 @@ class ResidenceController extends AbstractController
                     'apartments' => $residence->getNAppartements(),
                     'floors' => $residence->getNEtages(),
                     'blocs' => $residence->getNBlocs(),
-                    'image' => $residence->getImageR() ? '/uploads/images/' . $residence->getImageR() : '/frontend/images/property-placeholder.jpg',
+                    'image' => $this->imagePathResolver->publicUrl($residence->getImageR(), 'residence_images', '/frontend/images/property-placeholder.jpg'),
                     'deleteToken' => $csrfTokenManager->getToken('residence_delete')->getValue()
                 ]
             ]);
@@ -202,8 +239,13 @@ class ResidenceController extends AbstractController
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
                 try {
-                    $imageFile->move($this->getParameter('residences_directory'), $newFilename);
-                    $residence->setImageR($newFilename);
+                    $residence->setImageR($this->imageStorage->storeUploadedFile(
+                        $imageFile,
+                        $this->getParameter('residences_directory'),
+                        'residence_images',
+                        '/syndicati/residence_images',
+                        $newFilename
+                    ));
                 } catch (\Exception $e) {
                 }
             }
@@ -258,8 +300,13 @@ class ResidenceController extends AbstractController
                 $safeFilename = $slugger->slug($originalFilename);
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
                 try {
-                    $imageFile->move($this->getParameter('appartements_directory'), $newFilename);
-                    $appartement->setImageA($newFilename);
+                    $appartement->setImageA($this->imageStorage->storeUploadedFile(
+                        $imageFile,
+                        $this->getParameter('appartements_directory'),
+                        'appartement_images',
+                        '/syndicati/appartement_images',
+                        $newFilename
+                    ));
                 } catch (\Exception $e) {
                 }
             }
@@ -289,7 +336,7 @@ class ResidenceController extends AbstractController
                     'isParking' => (bool) $appartement->isParking(),
                     'status' => $appartement->isDisponible() ? 'Available' : 'Occupied',
                     'isAvailable' => (bool) $appartement->isDisponible(),
-                    'image' => $appartement->getImageA() ? '/uploads/images/' . $appartement->getImageA() : '/frontend/images/property-placeholder.jpg',
+                    'image' => $this->imagePathResolver->publicUrl($appartement->getImageA(), 'appartement_images', '/frontend/images/property-placeholder.jpg'),
                     'superficie' => $appartement->getSuperficie() ?: '—',
                     'prixLocation' => $appartement->getPrixLocation() ?: '—',
                     'prixVente' => $appartement->getPrixVente() ?: '—',
@@ -328,8 +375,13 @@ class ResidenceController extends AbstractController
                 $safeFilename = $slugger->slug($originalFilename);
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
                 try {
-                    $imageFile->move($this->getParameter('appartements_directory'), $newFilename);
-                    $appartement->setImageA($newFilename);
+                    $appartement->setImageA($this->imageStorage->storeUploadedFile(
+                        $imageFile,
+                        $this->getParameter('appartements_directory'),
+                        'appartement_images',
+                        '/syndicati/appartement_images',
+                        $newFilename
+                    ));
                 } catch (\Exception $e) {
                 }
             }
@@ -361,7 +413,7 @@ class ResidenceController extends AbstractController
                     'isParking' => (bool) $appartement->isParking(),
                     'status' => $appartement->isDisponible() ? 'Available' : 'Occupied',
                     'isAvailable' => (bool) $appartement->isDisponible(),
-                    'image' => $appartement->getImageA() ? '/uploads/images/' . $appartement->getImageA() : '/frontend/images/property-placeholder.jpg',
+                    'image' => $this->imagePathResolver->publicUrl($appartement->getImageA(), 'appartement_images', '/frontend/images/property-placeholder.jpg'),
                     'superficie' => $appartement->getSuperficie() ?: '—',
                     'prixLocation' => $appartement->getPrixLocation() ?: '—',
                     'prixVente' => $appartement->getPrixVente() ?: '—',
@@ -391,6 +443,79 @@ class ResidenceController extends AbstractController
         }
 
         return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+    }
+
+    #[Route('/admin/review/add', name: 'admin_residence_review_add', methods: ['POST'])]
+    public function addReview(Request $request, UserRepository $userRepository, AppartementRepository $appartementRepository, ReviewRepository $reviewRepository, EntityManagerInterface $em, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
+    {
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('review_add', $request->request->get('_token') ?? ''))) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+        }
+
+        $user = $userRepository->find((int) $request->request->get('user_id'));
+        $appartement = $appartementRepository->find((int) $request->request->get('appartement_id'));
+        $score = (int) $request->request->get('score');
+
+        if (!$user || !$appartement) {
+            return new JsonResponse(['success' => false, 'message' => 'Select a valid user and apartment.'], 400);
+        }
+        if ($score < 0 || $score > 10) {
+            return new JsonResponse(['success' => false, 'message' => 'Score must be between 0 and 10.'], 400);
+        }
+        if ($reviewRepository->findOneByUserAndAppartement($user, $appartement)) {
+            return new JsonResponse(['success' => false, 'message' => 'This user already reviewed this apartment.'], 400);
+        }
+
+        $review = (new Review())
+            ->setUser($user)
+            ->setAppartement($appartement)
+            ->setScore($score);
+
+        $em->persist($review);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Review added successfully.']);
+    }
+
+    #[Route('/admin/review/{id}/edit', name: 'admin_residence_review_edit', methods: ['POST'])]
+    public function editReview(int $id, Request $request, ReviewRepository $reviewRepository, EntityManagerInterface $em, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
+    {
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('review_edit_' . $id, $request->request->get('_token') ?? ''))) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+        }
+
+        $review = $reviewRepository->find($id);
+        if (!$review instanceof Review) {
+            return new JsonResponse(['success' => false, 'message' => 'Review not found.'], 404);
+        }
+
+        $score = (int) $request->request->get('score');
+        if ($score < 0 || $score > 10) {
+            return new JsonResponse(['success' => false, 'message' => 'Score must be between 0 and 10.'], 400);
+        }
+
+        $review->setScore($score);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Review updated successfully.']);
+    }
+
+    #[Route('/admin/review/{id}/delete', name: 'admin_residence_review_delete', methods: ['POST'])]
+    public function deleteReview(int $id, Request $request, ReviewRepository $reviewRepository, EntityManagerInterface $em, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
+    {
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('review_delete_' . $id, $request->request->get('_token') ?? ''))) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
+        }
+
+        $review = $reviewRepository->find($id);
+        if (!$review instanceof Review) {
+            return new JsonResponse(['success' => false, 'message' => 'Review not found.'], 404);
+        }
+
+        $em->remove($review);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Review deleted successfully.']);
     }
 
     #[Route('/{id}/details', name: 'app_residence_details', methods: ['GET'])]
@@ -455,7 +580,24 @@ class ResidenceController extends AbstractController
             return $this->redirectToRoute('auth_sign_in');
         }
 
-        $destNumber = $user->getPhone();
+        $appartement = $appartementRepository->find($id);
+        if (!$appartement) {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['status' => 'error', 'message' => 'Appartement non trouve'], 404);
+            }
+            $this->addFlash('error', 'Appartement non trouve.');
+            return $this->redirectToRoute('app_residence_index');
+        }
+
+        $owner = $appartement->getUser();
+        $destNumber = $owner?->getPhone();
+        if (!$destNumber) {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['status' => 'error', 'message' => 'Le proprietaire n a pas de numero de telephone configure.'], 400);
+            }
+            $this->addFlash('error', 'Le proprietaire n a pas de numero de telephone configure.');
+            return $this->redirectToRoute('app_residence_index');
+        }
         if (!$destNumber) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['status' => 'error', 'message' => 'Veuillez ajouter un numéro de téléphone à votre profil pour recevoir le SMS.'], 400);
@@ -463,8 +605,6 @@ class ResidenceController extends AbstractController
             $this->addFlash('error', 'Veuillez ajouter un numéro de téléphone à votre profil.');
             return $this->redirectToRoute('app_residence_index');
         }
-
-        $appartement = $appartementRepository->find($id);
 
         $name = $user->getFirstName() . ' ' . $user->getLastName();
         $text = "Intéressé par l'appartement " . ($appartement ? $appartement->getTypeA() . " à " . $appartement->getResidence()->getNomR() : "ID: " . $id);
@@ -521,14 +661,27 @@ class ResidenceController extends AbstractController
     }
 
     #[Route('/appartementform/{id}', name: 'app_appartement_show')]
-    public function showApp($id, Appartement $appartement, RecommendationAppartement $recommender, Request $request): Response
+    public function showApp($id, Appartement $appartement, RecommendationAppartement $recommender, Request $request, ReviewRepository $reviewRepository, UserRepository $userRepository): Response
     {
         $app_recommende = $recommender->AppartementsSimilaires($appartement, limit: 4);
+        $reviewSummary = $this->getApartmentReviewSummary($reviewRepository, $appartement);
+        $currentReviewScore = null;
+        $userData = $request->getSession()->get('user');
+        $userId = is_array($userData) ? ($userData['id'] ?? $userData['id_user'] ?? null) : null;
+        $currentUser = $userId ? $userRepository->find($userId) : null;
+
+        if ($currentUser) {
+            $currentReview = $reviewRepository->findOneByUserAndAppartement($currentUser, $appartement);
+            $currentReviewScore = $currentReview?->getScore();
+        }
 
         if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
             return $this->render('frontend/residence/index.html.twig', [
                 'appartement' => $appartement,
                 'app_recommende' => $app_recommende,
+                'currentReviewScore' => $currentReviewScore,
+                'reviewAverage' => $reviewSummary['average'],
+                'reviewCount' => $reviewSummary['count'],
                 'targetBlock' => 'details'
             ]);
         }
@@ -536,6 +689,56 @@ class ResidenceController extends AbstractController
         return $this->render('frontend/residence/index.html.twig', [
             'appartement' => $appartement,
             'app_recommende' => $app_recommende,
+            'currentReviewScore' => $currentReviewScore,
+            'reviewAverage' => $reviewSummary['average'],
+            'reviewCount' => $reviewSummary['count'],
+        ]);
+    }
+
+    #[Route('/appartement/{id}/review', name: 'frontend_residence_review_save', methods: ['POST'])]
+    public function saveFrontendReview(
+        Appartement $appartement,
+        Request $request,
+        UserRepository $userRepository,
+        ReviewRepository $reviewRepository,
+        EntityManagerInterface $em,
+        CsrfTokenManagerInterface $csrfTokenManager
+    ): JsonResponse {
+        $userData = $request->getSession()->get('user');
+        $userId = is_array($userData) ? ($userData['id'] ?? $userData['id_user'] ?? null) : null;
+        $user = $userId ? $userRepository->find($userId) : null;
+
+        if (!$user) {
+            return new JsonResponse(['status' => 'error', 'message' => 'Connexion requise pour noter cet appartement.'], 401);
+        }
+
+        $token = (string) $request->request->get('_token', '');
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('review_frontend_' . $appartement->getIdApp(), $token))) {
+            return new JsonResponse(['status' => 'error', 'message' => 'Jeton de securite invalide.'], 400);
+        }
+
+        $score = (int) $request->request->get('score', -1);
+        if ($score < 0 || $score > 10) {
+            return new JsonResponse(['status' => 'error', 'message' => 'La note doit etre comprise entre 0 et 10.'], 400);
+        }
+
+        $review = $reviewRepository->findOneByUserAndAppartement($user, $appartement);
+        if (!$review) {
+            $review = (new Review())->setUser($user)->setAppartement($appartement);
+            $em->persist($review);
+        }
+
+        $review->setScore($score);
+        $em->flush();
+
+        $summary = $this->getApartmentReviewSummary($reviewRepository, $appartement);
+
+        return new JsonResponse([
+            'status' => 'success',
+            'message' => 'Votre note a ete enregistree.',
+            'score' => $score,
+            'average' => $summary['average'],
+            'count' => $summary['count'],
         ]);
     }
 
@@ -558,6 +761,25 @@ class ResidenceController extends AbstractController
     }
 
     private ?MachineLearning $cachedPredictor = null;
+
+    /**
+     * @return array{average: float, count: int}
+     */
+    private function getApartmentReviewSummary(ReviewRepository $reviewRepository, Appartement $appartement): array
+    {
+        $row = $reviewRepository->createQueryBuilder('r')
+            ->select('AVG(r.score) AS average_score')
+            ->addSelect('COUNT(r.idReview) AS review_count')
+            ->andWhere('r.appartement = :apartment')
+            ->setParameter('apartment', $appartement)
+            ->getQuery()
+            ->getSingleResult();
+
+        return [
+            'average' => round((float) ($row['average_score'] ?? 0), 1),
+            'count' => (int) ($row['review_count'] ?? 0),
+        ];
+    }
 
     #[Route('/admin/prediction', name: 'prediction_prix', methods: ['POST'])]
     public function predictPrice(

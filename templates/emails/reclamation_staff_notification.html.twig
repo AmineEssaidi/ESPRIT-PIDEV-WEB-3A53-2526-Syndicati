@@ -1,0 +1,26 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block body %}
+    <h2 style="color: #ff4b5c;">New Support Request</h2>
+    <p>Hello {{ recipient.firstName }},</p>
+    <p><strong>{{ authorName }}</strong> submitted a new reclamation that needs syndicate review.</p>
+
+    <div style="background: rgba(255, 75, 92, 0.03); padding: 30px; border-radius: 20px; border: 1px solid rgba(255, 75, 92, 0.2); margin: 35px 0;">
+        <h3 style="margin-bottom: 12px; color: #ff4b5c; font-size: 18px;">{{ reclamation.titrereclamations }}</h3>
+        <p style="margin: 0 0 16px 0; font-size: 13px; color: rgba(255, 255, 255, 0.5);">
+            Status: <strong style="color:#ffffff; text-transform: uppercase;">{{ reclamation.statutreclamation }}</strong>
+            {% if reclamation.datereclamation %} · Filed {{ reclamation.datereclamation|date('M d, Y H:i') }}{% endif %}
+        </p>
+        <div style="padding: 18px; background: rgba(0,0,0,0.3); border-radius: 14px; border-left: 4px solid #ff4b5c;">
+            <p style="margin: 0; font-size: 15px; color: rgba(255, 255, 255, 0.9); line-height: 1.6;">{{ reclamation.descreclamation|nl2br }}</p>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 35px;">
+        <a href="{{ url('admin_syndicat') }}" class="button" style="display: inline-block; background: rgba(255, 75, 92, 0.1); border: 1px solid rgba(255, 75, 92, 0.4); color: #ff4b5c !important; padding: 16px 36px; border-radius: 16px; text-decoration: none; font-weight: 800; text-transform: uppercase;">Open Syndicat Desk</a>
+    </div>
+{% endblock %}
+
+{% block footer_extra %}
+    <p style="margin-top: 15px; font-style: italic; color: #ff4b5c;">REC-{{ reclamation.id }} · Staff Broadcast</p>
+{% endblock %}

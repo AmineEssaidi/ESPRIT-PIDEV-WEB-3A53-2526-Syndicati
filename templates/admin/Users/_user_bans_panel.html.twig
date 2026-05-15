@@ -1,0 +1,94 @@
+<div class="users-page-content" data-page="4" style="display:none;">
+    <div class="glass-table-container">
+        <div class="glass-toolbar" style="margin-bottom: 1.5rem;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff;">User Bans</h3>
+                <p style="margin: 0.35rem 0 0; color: rgba(255,255,255,0.55);">Moderate account access, reasons, and revocations.</p>
+            </div>
+        </div>
+
+        <div class="user-bans-stats">
+            <div class="user-bans-stat-card">
+                <span class="user-bans-stat-label">Total bans</span>
+                <span class="user-bans-stat-value">{{ userBanStats.totalBans|default(0) }}</span>
+            </div>
+            <div class="user-bans-stat-card">
+                <span class="user-bans-stat-label">Recent 7 days</span>
+                <span class="user-bans-stat-value">{{ userBanStats.recentBans|default(0) }}</span>
+            </div>
+            <div class="user-bans-stat-card">
+                <span class="user-bans-stat-label">Active users</span>
+                <span class="user-bans-stat-value">{{ userBanStats.activeUsers|default(0) }}</span>
+            </div>
+            <div class="user-bans-stat-card">
+                <span class="user-bans-stat-label">Total users</span>
+                <span class="user-bans-stat-value">{{ userBanStats.totalUsers|default(users|length) }}</span>
+            </div>
+        </div>
+
+        <div class="glass-toolbar" style="margin-bottom: 1.2rem;">
+            <div class="glass-search-container">
+                <i class="bx bx-search glass-search-icon"></i>
+                <input type="text" class="glass-search-input user-bans-search" placeholder="Search bans or users...">
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <div class="glass-pill glass-pill-active user-bans-filter" data-filter="all">All</div>
+                <div class="glass-pill user-bans-filter" data-filter="banned">Banned</div>
+                <div class="glass-pill user-bans-filter" data-filter="active">Active</div>
+            </div>
+        </div>
+
+        <div class="user-bans-grid" id="user-bans-grid">
+            {% for u in users|default([]) %}
+                {% set fullName = (u.firstName ~ ' ' ~ u.lastName)|trim %}
+                {% set isBanned = u.isDisabled %}
+                <article class="user-ban-card" data-ban-card data-status="{{ isBanned ? 'banned' : 'active' }}" data-search="{{ (fullName ~ ' ' ~ u.emailUser ~ ' ' ~ u.roleUser ~ ' ' ~ (u.disabledReason|default('')))|lower|e('html_attr') }}">
+                    <div class="user-ban-card-header">
+                        <div class="user-ban-avatar">{{ fullName ? fullName|first|upper : 'U' }}</div>
+                        <div>
+                            <div class="user-ban-name">{{ fullName ?: 'Unnamed user' }}</div>
+                            <div class="user-ban-email">{{ u.emailUser }}</div>
+                        </div>
+                    </div>
+                    <div class="user-ban-meta">
+                        <span class="user-ban-chip">{{ u.roleUser }}</span>
+                        <span class="user-ban-chip {{ isBanned ? 'banned' : 'active' }}">{{ isBanned ? 'Banned' : 'Active' }}</span>
+                        {% if isBanned and u.disabledAt %}
+                            <span class="user-ban-chip">{{ u.disabledAt|date('Y-m-d H:i') }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="user-ban-reason">
+                        {% if isBanned %}
+                            {{ u.disabledReason ?: 'No reason recorded.' }}
+                        {% else %}
+                            This account can currently access Syndicati.
+                        {% endif %}
+                    </div>
+
+                    {% if isBanned %}
+                        <form class="user-ban-ajax-form" action="{{ path('admin_users_unban', {id: u.idUser}) }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('user_unban_' ~ u.idUser)|e('html_attr') }}">
+                            <div class="user-ban-actions">
+                                <button type="submit" class="users-btn-modify" style="font-size: 0.85rem !important; padding: 0.7rem 1.35rem !important;"><i class="bx bx-lock-open"></i> Revoke Ban</button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <form class="user-ban-ajax-form user-ban-form" action="{{ path('admin_users_ban', {id: u.idUser}) }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('user_ban_' ~ u.idUser)|e('html_attr') }}">
+                            <textarea class="user-ban-textarea" name="reason" required maxlength="500" placeholder="Reason visible in admin records..."></textarea>
+                            <div class="user-ban-actions">
+                                <button type="button" class="users-btn-cancel user-ban-cancel" style="font-size: 0.85rem !important; padding: 0.7rem 1.15rem !important;">Cancel</button>
+                                <button type="submit" class="users-btn-delete" style="font-size: 0.85rem !important; padding: 0.7rem 1.35rem !important;"><i class="bx bx-lock"></i> Confirm Ban</button>
+                            </div>
+                        </form>
+                        <div class="user-ban-actions user-ban-start-actions">
+                            <button type="button" class="users-btn-delete user-ban-open" style="font-size: 0.85rem !important; padding: 0.7rem 1.35rem !important;"><i class="bx bx-shield-x"></i> Apply Ban</button>
+                        </div>
+                    {% endif %}
+                </article>
+            {% else %}
+                <div class="user-ban-card" style="grid-column: 1 / -1; color: rgba(255,255,255,0.65);">No users found.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

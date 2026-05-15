@@ -20,4 +20,19 @@ class ParticipationRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Participation::class);
     }
+
+    /**
+     * @return Participation[]
+     */
+    public function findByUserWithEvent(object $user): array
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.evenement', 'e')
+            ->addSelect('e')
+            ->where('p.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('p.date_participation', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

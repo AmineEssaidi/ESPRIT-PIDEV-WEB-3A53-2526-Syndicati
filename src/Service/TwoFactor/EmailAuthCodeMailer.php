@@ -17,7 +17,7 @@ class EmailAuthCodeMailer
         private readonly MailerInterface $mailer,
         private readonly Environment $twig,
         private readonly string $fromEmail = 'noreply@horizon.local',
-        private readonly string $fromName = 'Horizon'
+        private readonly string $fromName = 'Syndicati'
     ) {
     }
 

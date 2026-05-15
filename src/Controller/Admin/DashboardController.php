@@ -8,6 +8,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 class DashboardController extends AbstractController
 {
@@ -37,25 +39,50 @@ class DashboardController extends AbstractController
             'syndicatStats' => $dashboardService->getModuleStats('syndicat'),
             'residenceStats' => $dashboardService->getModuleStats('residence'),
             'evenementStats' => $dashboardService->getModuleStats('evenement'),
+            'activityStats' => $dashboardService->getActivityModuleStats(),
         ]);
     }
 
     #[Route('/admin/dashboard/live', name: 'admin_dashboard_live', methods: ['GET'])]
-    public function dashboardLive(Request $request, AdminDashboardService $dashboardService): Response
+    public function dashboardLive(Request $request, AdminDashboardService $dashboardService, CacheInterface $cache): Response
     {
         $module = $request->query->get('module', 'general');
-        $data = ['html' => '', 'stats' => []];
-
-        if ($module === 'general') {
-            $data['stats'] = $dashboardService->getHeartbeatStats();
-        } else {
-            $stats = $dashboardService->getModuleStats($module);
-            $data['html'] = $this->renderView('admin/dashboard/_tabs.html.twig', [
-                'module' => $module,
-                'stats' => $stats
-            ]);
-            $data['stats'] = $stats;
+        $allowedModules = ['general', 'users', 'forum', 'syndicat', 'residence', 'evenement', 'activity'];
+        if (!in_array($module, $allowedModules, true)) {
+            $module = 'general';
         }
+
+        $data = $cache->get('admin_dashboard_live_' . $module, function (ItemInterface $item) use ($module, $dashboardService) {
+            $item->expiresAfter(20);
+            $data = ['html' => '', 'stats' => []];
+
+            if ($module === 'general') {
+                $data['stats'] = $dashboardService->getHeartbeatStats();
+            } elseif ($module === 'activity') {
+                $stats = $dashboardService->getActivityModuleStats();
+                $data['html'] = $this->renderView('admin/dashboard/_tabs.html.twig', [
+                    'module' => $module,
+                    'stats' => $stats
+                ]);
+                $data['stats'] = [
+                    'active_today' => $stats['active_today'] ?? 0,
+                    'interactions_today' => $stats['interactions_today'] ?? 0,
+                    'page_views_week' => $stats['page_views_week'] ?? 0,
+                    'clicks_week' => $stats['clicks_week'] ?? 0,
+                    'auth_failures_month' => $stats['auth_failures_month'] ?? 0,
+                    'security_events_month' => $stats['security_events_month'] ?? 0,
+                ];
+            } else {
+                $stats = $dashboardService->getModuleStats($module);
+                $data['html'] = $this->renderView('admin/dashboard/_tabs.html.twig', [
+                    'module' => $module,
+                    'stats' => $stats
+                ]);
+                $data['stats'] = $stats;
+            }
+
+            return $data;
+        });
 
         return $this->json($data);
     }

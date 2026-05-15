@@ -55,12 +55,16 @@ class FaceController extends AbstractController
             $serializedEmbedding = json_encode($embedding);
             $encryptedData = $this->encryptionService->encrypt($serializedEmbedding, $key);
 
+            // Hash the PIN using bcrypt
+            $pinHash = password_hash($pin, PASSWORD_BCRYPT);
+
             // Check if device already has a credential
             $credential = $this->faceRepository->findActiveForUserAndDevice($user, $deviceId) ?: new FaceCredential();
 
             $credential->setUser($user);
             $credential->setDeviceId($deviceId);
             $credential->setEncryptedFaceid($encryptedData);
+            $credential->setPinHash($pinHash);
             $credential->setUpdatedAt(new \DateTime());
             $credential->setFlag('active');
 
@@ -101,6 +105,12 @@ class FaceController extends AbstractController
         }
 
         try {
+            // Verify PIN hash first
+            $pinHash = $credential->getPinHash();
+            if (!$pinHash || !password_verify($pin, $pinHash)) {
+                return $this->json(['error' => 'Invalid PIN'], Response::HTTP_UNAUTHORIZED);
+            }
+
             $key = $this->encryptionService->deriveKey($pin, $user->getEmailUser());
             $decryptedEmbeddingJson = $this->encryptionService->decrypt($packedData, $key);
 
@@ -137,16 +147,79 @@ class FaceController extends AbstractController
                     'settings' => $userSettings,
                 ]);
 
+                $redirectUrl = in_array($user->getRoleUser(), ['OWNER', 'ADMIN', 'SYNDIC', 'SUPERADMIN'], true)
+                    ? $this->generateUrl('auth_sign_in', ['destination' => 'choice'])
+                    : $this->generateUrl('main_home');
+
                 return $this->json([
                     'status' => 'ok',
                     'message' => 'Face verified successfully',
-                    'distance' => $distance
+                    'distance' => $distance,
+                    'redirect' => $redirectUrl,
                 ]);
             }
 
             return $this->json(['error' => 'Face mismatch', 'distance' => $distance], Response::HTTP_UNAUTHORIZED);
         } catch (\Throwable $e) {
             return $this->json(['error' => 'Authentication failed: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    #[Route('/check', name: 'check', methods: ['POST'])]
+    public function check(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $userId = $data['userId'] ?? null;
+        $deviceId = $data['deviceId'] ?? null;
+
+        if (!$userId || !$deviceId) {
+            return $this->json(['error' => 'Missing required data'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $user = $this->userRepository->find((int) $userId);
+        if (!$user) {
+            return $this->json(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $credential = $this->faceRepository->findActiveForUserAndDevice($user, $deviceId);
+
+        return $this->json([
+            'enrolled' => $credential !== null,
+            'deviceId' => $deviceId
+        ]);
+    }
+
+    #[Route('/remove', name: 'remove', methods: ['POST'])]
+    public function remove(Request $request): JsonResponse
+    {
+        $session = $request->getSession();
+        if (!$session->get('is_logged_in') || !$session->get('user')) {
+            return $this->json(['error' => 'User not logged in'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $userId = $data['userId'] ?? null;
+        $deviceId = $data['deviceId'] ?? null;
+
+        if (!$userId || !$deviceId) {
+            return $this->json(['error' => 'Missing required data'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $user = $this->userRepository->find((int) $userId);
+        if (!$user) {
+            return $this->json(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $credential = $this->faceRepository->findActiveForUserAndDevice($user, $deviceId);
+        if (!$credential) {
+            return $this->json(['error' => 'No Face ID enrollment found'], Response::HTTP_NOT_FOUND);
+        }
+
+        try {
+            $this->faceRepository->remove($credential, true);
+            return $this->json(['status' => 'ok', 'message' => 'Face ID enrollment removed']);
+        } catch (\Throwable $e) {
+            return $this->json(['error' => 'Removal failed: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

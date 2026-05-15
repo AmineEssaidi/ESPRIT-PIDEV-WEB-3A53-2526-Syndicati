@@ -13,6 +13,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Sensiolabs\GotenbergBundle\GotenbergPdfInterface;
 use App\Entity\Syndicat\Reponse;
 use App\Form\Syndicat\ReponseType;
+use App\Service\Media\ImageKitStorageService;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 use App\Service\FormErrorHelperTrait;
@@ -26,7 +27,9 @@ class SyndicatController extends AbstractController
         EntityManagerInterface $entityManager,
         SluggerInterface $slugger,
         \App\Repository\User\UserRepository $userRepository,
-        \App\Service\Syndicat\SyndicatNotificationService $notificationService
+        \App\Service\Syndicat\SyndicatNotificationService $notificationService,
+        \App\Service\Log\UserActivityLogger $activityLogger,
+        ImageKitStorageService $imageStorage
     ): Response {
         $reclamation = new Reclamation();
         $form = $this->createForm(ReclamationType::class, $reclamation);
@@ -88,8 +91,13 @@ class SyndicatController extends AbstractController
                             if (!is_dir($targetDirectory)) {
                                 mkdir($targetDirectory, 0777, true);
                             }
-                            $imageFile->move($targetDirectory, $newFilename);
-                            $savedImagePaths[] = $folderName . '/' . $newFilename;
+                            $savedImagePaths[] = $imageStorage->storeUploadedFile(
+                                $imageFile,
+                                $this->getParameter('reclamations_directory'),
+                                'reclamation_images',
+                                '/syndicati/reclamation_images',
+                                $folderName . '/' . $newFilename
+                            );
                         } catch (\Exception $e) {
                             error_log("File upload error: " . $e->getMessage());
                             if ($request->isXmlHttpRequest()) {
@@ -109,6 +117,14 @@ class SyndicatController extends AbstractController
 
                 // Send Confirmation Email
                 $notificationService->notifyReclamationConfirmation($reclamation);
+                $notificationService->notifyReclamationBroadcastToStaff($reclamation);
+                $activityLogger->log('RECLAMATION_CREATED', 'RECLAMATION', $reclamation->getId(), [
+                    'category' => 'SYNDICAT',
+                    'action' => 'CREATE_RECLAMATION',
+                    'outcome' => 'SUCCESS',
+                    'message' => 'Reclamation submitted from the Syndicat portal.',
+                    'status' => $reclamation->getStatutreclamation(),
+                ], $user);
             } catch (\Exception $e) {
                 error_log("Reclamation Persistence Failed: " . $e->getMessage());
                 if ($request->isXmlHttpRequest() || $request->headers->get('Accept') === 'application/json') {
@@ -140,7 +156,9 @@ class SyndicatController extends AbstractController
         EntityManagerInterface $entityManager,
         \App\Repository\User\UserRepository $userRepository,
         SluggerInterface $slugger,
-        \App\Service\Syndicat\SyndicatNotificationService $notificationService
+        \App\Service\Syndicat\SyndicatNotificationService $notificationService,
+        \App\Service\Log\UserActivityLogger $activityLogger,
+        ImageKitStorageService $imageStorage
     ): Response {
         $session = $request->getSession();
         $userSession = $session->get('user');
@@ -169,11 +187,18 @@ class SyndicatController extends AbstractController
                 if ($imageFile) {
                     $newFilename = bin2hex(random_bytes(6)) . '.' . $imageFile->guessExtension();
                     try {
-                        $targetDir = $this->getParameter('reclamations_directory');
+                        $targetDir = $this->getParameter('reponse_images_directory');
                         if (!is_dir($targetDir))
                             mkdir($targetDir, 0777, true);
-                        $imageFile->move($targetDir, $newFilename);
-                        $reponse->setImagereponse($newFilename);
+                        $reponse->setImagereponse(json_encode([
+                            $imageStorage->storeUploadedFile(
+                                $imageFile,
+                                $targetDir,
+                                'reponse_images',
+                                '/syndicati/reponse_images',
+                                $newFilename
+                            )
+                        ]));
                     } catch (\Exception $e) {
                     }
                 }
@@ -183,6 +208,13 @@ class SyndicatController extends AbstractController
 
                 // Send Reply Notification
                 $notificationService->notifyReclamationReply($reponse);
+                $activityLogger->log('RECLAMATION_REPLY_CREATED', 'REPONSE', $reponse->getId(), [
+                    'category' => 'SYNDICAT',
+                    'action' => 'CREATE_REPONSE',
+                    'outcome' => 'SUCCESS',
+                    'message' => 'Response added to a reclamation.',
+                    'reclamation_id' => $reclamation->getId(),
+                ], $user);
 
                 if ($request->isXmlHttpRequest()) {
                     return new JsonResponse(['success' => true, 'message' => 'Response added!']);

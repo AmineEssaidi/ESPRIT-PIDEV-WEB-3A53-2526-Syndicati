@@ -1,0 +1,22 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block body %}
+    <h2 style="color: #ff4b5c;">Your Event Is Live</h2>
+    <p>Hello {{ user.firstName }},</p>
+    <p>Your event <strong>{{ evenement.titreEvent }}</strong> has been published on Syndicati.</p>
+
+    <div style="background: rgba(255, 75, 92, 0.03); padding: 30px; border-radius: 24px; border: 1px solid rgba(255, 75, 92, 0.2); margin: 35px 0;">
+        <h3 style="margin-bottom: 20px; color: #ff4b5c; font-size: 20px;">Event Details</h3>
+        <p style="margin: 0 0 12px 0;"><strong>Location:</strong> {{ evenement.lieuEvent }}</p>
+        <p style="margin: 0 0 12px 0;"><strong>Date:</strong> {{ evenement.dateEvent|date('F d, Y @ H:i') }}</p>
+        <p style="margin: 0;"><strong>Capacity:</strong> {{ evenement.nbPlaces }} places</p>
+    </div>
+
+    <div class="button-container">
+        <a href="{{ url('app_evenement_index') }}" class="button">View Event Dashboard</a>
+    </div>
+{% endblock %}
+
+{% block footer_extra %}
+    <p style="margin-top: 15px; font-style: italic; color: #ff4b5c; font-size: 11px;">Event Token: EVT-{{ evenement.id }} - Published</p>
+{% endblock %}

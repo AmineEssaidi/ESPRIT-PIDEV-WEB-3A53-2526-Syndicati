@@ -6,6 +6,8 @@ use App\Entity\Syndicat\Reponse;
 use App\Repository\Syndicat\ReclamationRepository;
 use App\Repository\Syndicat\ReponseRepository;
 use App\Repository\User\UserRepository;
+use App\Service\Media\ImageKitStorageService;
+use App\Service\Media\ImagePathResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,7 +25,9 @@ class ReponseApiController extends AbstractController
         \App\Repository\Syndicat\ReclamationRepository $reclamationRepository,
         EntityManagerInterface $entityManager,
         SluggerInterface $slugger,
-        \App\Service\Syndicat\SyndicatNotificationService $notificationService
+        \App\Service\Syndicat\SyndicatNotificationService $notificationService,
+        \App\Service\Log\UserActivityLogger $activityLogger,
+        ImageKitStorageService $imageStorage
     ): JsonResponse {
         $reclamation = $reclamationRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -61,8 +65,15 @@ class ReponseApiController extends AbstractController
                 if (!is_dir($targetDirectory)) {
                     mkdir($targetDirectory, 0777, true);
                 }
-                $imageFile->move($targetDirectory, $newFilename);
-                $reponse->setImagereponse(json_encode([$folderName . '/' . $newFilename]));
+                $reponse->setImagereponse(json_encode([
+                    $imageStorage->storeUploadedFile(
+                        $imageFile,
+                        $this->getParameter('reponse_images_directory'),
+                        'reponse_images',
+                        '/syndicati/reponse_images',
+                        $folderName . '/' . $newFilename
+                    )
+                ]));
             } catch (\Exception $e) {
                 error_log("API Reponse Add Upload Error: " . $e->getMessage());
             }
@@ -73,6 +84,13 @@ class ReponseApiController extends AbstractController
 
         // Send Reply Notification
         $notificationService->notifyReclamationReply($reponse);
+        $activityLogger->log('RECLAMATION_REPLY_CREATED', 'REPONSE', $reponse->getId(), [
+            'category' => 'SYNDICAT',
+            'action' => 'CREATE_REPONSE',
+            'outcome' => 'SUCCESS',
+            'message' => 'Response added to a reclamation.',
+            'reclamation_id' => $reclamation->getId(),
+        ], $user);
 
         return new JsonResponse(['success' => true, 'message' => 'Response added successfully.']);
     }
@@ -83,7 +101,8 @@ class ReponseApiController extends AbstractController
         ReclamationRepository $reclamationRepository,
         ReponseRepository $reponseRepository,
         Request $request,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ImagePathResolver $imagePathResolver
     ): JsonResponse {
         $reclamation = $reclamationRepository->find($id);
         if (!$reclamation) {
@@ -129,9 +148,7 @@ class ReponseApiController extends AbstractController
             }
 
             $images = json_decode($r->getImagereponse() ?? '[]', true) ?: [];
-            $imageUrls = array_map(function ($path) {
-                return '/reponse_images/' . $path;
-            }, $images);
+            $imageUrls = $imagePathResolver->publicUrls($images, 'reponse_images');
 
             $data[] = [
                 'id' => $r->getId(),
@@ -156,7 +173,9 @@ class ReponseApiController extends AbstractController
         Request $request,
         ReponseRepository $reponseRepository,
         EntityManagerInterface $entityManager,
-        SluggerInterface $slugger
+        SluggerInterface $slugger,
+        \App\Service\Log\UserActivityLogger $activityLogger,
+        ImageKitStorageService $imageStorage
     ): JsonResponse {
         $reponse = $reponseRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -207,8 +226,13 @@ class ReponseApiController extends AbstractController
                         if (!is_dir($targetDirectory)) {
                             mkdir($targetDirectory, 0777, true);
                         }
-                        $imageFile->move($targetDirectory, $newFilename);
-                        $savedImagePaths[] = $folderName . '/' . $newFilename;
+                        $savedImagePaths[] = $imageStorage->storeUploadedFile(
+                            $imageFile,
+                            $this->getParameter('reponse_images_directory'),
+                            'reponse_images',
+                            '/syndicati/reponse_images',
+                            $folderName . '/' . $newFilename
+                        );
                     } catch (\Exception $e) {
                         error_log("API Reponse Upload Error: " . $e->getMessage());
                     }
@@ -218,6 +242,13 @@ class ReponseApiController extends AbstractController
         }
 
         $entityManager->flush();
+        $activityLogger->log('RECLAMATION_REPLY_UPDATED', 'REPONSE', $reponse->getId(), [
+            'category' => 'SYNDICAT',
+            'action' => 'UPDATE_REPONSE',
+            'outcome' => 'SUCCESS',
+            'message' => 'Response updated from the Syndicat API.',
+            'reclamation_id' => $reponse->getReclamation()?->getId(),
+        ], $user);
 
         return new JsonResponse(['success' => true, 'message' => 'Response updated successfully.']);
     }

@@ -4,6 +4,8 @@ namespace App\Service\Syndicat;
 use App\Entity\Syndicat\Reclamation;
 use App\Entity\Syndicat\Reponse;
 use App\Entity\User\User;
+use App\Repository\User\UserRepository;
+use App\Service\Media\ImagePathResolver;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -23,6 +25,8 @@ class SyndicatNotificationService
         UrlGeneratorInterface $router,
         \Twig\Environment $twig,
         \App\Service\OAuth\GmailOAuthMailer $gmailOAuthMailer,
+        private readonly UserRepository $userRepository,
+        private readonly ImagePathResolver $imagePathResolver,
         string $fromEmail,
         string $fromName,
         string $mailerDsn
@@ -51,7 +55,7 @@ class SyndicatNotificationService
         }
 
         foreach ($images as $img) {
-            $imageUrls[] = $this->router->getContext()->getScheme() . '://' . $this->router->getContext()->getHost() . '/reclamation_images/' . $img;
+            $imageUrls[] = $this->imagePathResolver->publicUrl((string) $img, 'reclamation_images', null, true);
         }
 
         $message = (new \Symfony\Component\Mime\Email())
@@ -67,6 +71,76 @@ class SyndicatNotificationService
         $this->sendEmail($message);
     }
 
+    public function notifyReclamationBroadcastToStaff(Reclamation $reclamation): void
+    {
+        $author = $reclamation->getUser();
+        $authorName = $author ? trim($author->getFirstName() . ' ' . $author->getLastName()) : 'A resident';
+
+        foreach ($this->userRepository->findAll() as $recipient) {
+            if (!$recipient instanceof User || !$recipient->getEmailUser()) {
+                continue;
+            }
+
+            if ($author && $recipient->getIdUser() === $author->getIdUser()) {
+                continue;
+            }
+
+            if (!in_array($recipient->getRoleUser(), ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'], true)) {
+                continue;
+            }
+
+            $message = (new \Symfony\Component\Mime\Email())
+                ->from(sprintf('%s <%s>', $this->fromName, $this->fromEmail))
+                ->to($recipient->getEmailUser())
+                ->subject('New Support Request: ' . $reclamation->getTitrereclamations())
+                ->html($this->twig->render('emails/reclamation_staff_notification.html.twig', [
+                    'recipient' => $recipient,
+                    'reclamation' => $reclamation,
+                    'authorName' => $authorName,
+                ]));
+
+            $this->sendEmail($message);
+        }
+    }
+
+    public function notifyReclamationStatusChanged(Reclamation $reclamation, ?User $performer = null, ?string $previousStatus = null): void
+    {
+        $author = $reclamation->getUser();
+        if ($author && $author->getEmailUser()) {
+            $message = (new \Symfony\Component\Mime\Email())
+                ->from(sprintf('%s <%s>', $this->fromName, $this->fromEmail))
+                ->to($author->getEmailUser())
+                ->subject('Update on your reclamation: ' . $reclamation->getTitrereclamations())
+                ->html($this->twig->render('emails/reclamation_status_changed.html.twig', [
+                    'recipientName' => $author->getFirstName(),
+                    'reclamation' => $reclamation,
+                    'previousStatus' => $previousStatus,
+                    'newStatus' => $reclamation->getStatutreclamation(),
+                    'performerName' => $performer ? trim($performer->getFirstName() . ' ' . $performer->getLastName()) : null,
+                    'isPerformerCopy' => false,
+                ]));
+
+            $this->sendEmail($message);
+        }
+
+        if ($performer && $performer->getEmailUser() && (!$author || $performer->getIdUser() !== $author->getIdUser())) {
+            $message = (new \Symfony\Component\Mime\Email())
+                ->from(sprintf('%s <%s>', $this->fromName, $this->fromEmail))
+                ->to($performer->getEmailUser())
+                ->subject('Confirmation: Status updated for ' . $reclamation->getTitrereclamations())
+                ->html($this->twig->render('emails/reclamation_status_changed.html.twig', [
+                    'recipientName' => $performer->getFirstName(),
+                    'reclamation' => $reclamation,
+                    'previousStatus' => $previousStatus,
+                    'newStatus' => $reclamation->getStatutreclamation(),
+                    'performerName' => trim($performer->getFirstName() . ' ' . $performer->getLastName()),
+                    'isPerformerCopy' => true,
+                ]));
+
+            $this->sendEmail($message);
+        }
+    }
+
     public function notifyReclamationReply(Reponse $reponse): void
     {
         $reclamation = $reponse->getReclamation();
@@ -79,7 +153,7 @@ class SyndicatNotificationService
         $imageUrls = [];
         $images = json_decode($reponse->getImagereponse() ?? '[]', true) ?: [];
         foreach ($images as $img) {
-            $imageUrls[] = $this->router->getContext()->getScheme() . '://' . $this->router->getContext()->getHost() . '/reponse_images/' . $img;
+            $imageUrls[] = $this->imagePathResolver->publicUrl((string) $img, 'reponse_images', null, true);
         }
 
         $senderName = $reponse->getUser()->getFirstName() . ' ' . $reponse->getUser()->getLastName();

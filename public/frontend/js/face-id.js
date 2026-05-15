@@ -6,7 +6,7 @@ const FaceID = (function () {
 
     const CONFIG = {
         modelPath: (function () {
-            // Support for subfolder setups (e.g., /Horizon/public/...)
+            // Support for subfolder setups (e.g., /Syndicati/public/...)
             const pathParts = window.location.pathname.split('/');
             const publicIdx = pathParts.indexOf('public');
             if (publicIdx !== -1) {

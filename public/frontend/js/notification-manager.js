@@ -2,15 +2,18 @@
  * NotificationManager.js
  * Handles real-time notifications and UI updates for the "Obsidian Hub" navbar.
  */
-class NotificationManager {
+window.NotificationManager = window.NotificationManager || class NotificationManager {
     constructor() {
+        if (window.SyndicatiNotificationManagerLoaded) return;
+        window.SyndicatiNotificationManagerLoaded = true;
+
         this.bell = document.getElementById('notifBell');
         this.hub = document.getElementById('notifHub');
         this.scrollContainer = document.getElementById('notifScroll');
         this.badge = document.getElementById('notifBadge');
         this.markAllBtn = document.getElementById('notifMarkAllRead');
 
-        this.pollInterval = 10000; // 10 seconds
+        this.pollInterval = 30000; // 30 seconds
         this.isFetching = false;
         this.lastCount = -1;
         this.lastId = -1;
@@ -44,6 +47,7 @@ class NotificationManager {
     }
 
     async fetchNotifications() {
+        if (document.hidden) return;
         if (this.isFetching) return;
         this.isFetching = true;
 
@@ -77,6 +81,9 @@ class NotificationManager {
 
     startPolling() {
         setInterval(() => this.fetchNotifications(), this.pollInterval);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) this.fetchNotifications();
+        });
     }
 
     renderNotifications(notifications, unreadCount) {
@@ -296,7 +303,7 @@ class NotificationManager {
         `;
         document.head.appendChild(style);
     }
-}
+};
 
 // Global scope helper
 window.pushNotif = function (title, content, type = 'SUCCESS') {
@@ -309,9 +316,9 @@ window.pushNotif = function (title, content, type = 'SUCCESS') {
 // or dynamically injected after the DOM is already ready.
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        window.notificationManager = new NotificationManager();
+        window.notificationManager = new window.NotificationManager();
     });
 } else {
     // DOM already ready (script was injected dynamically)
-    window.notificationManager = new NotificationManager();
+    window.notificationManager = new window.NotificationManager();
 }

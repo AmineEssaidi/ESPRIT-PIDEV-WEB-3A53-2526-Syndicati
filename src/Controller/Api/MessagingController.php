@@ -238,7 +238,7 @@ class MessagingController extends AbstractController
         $this->em->persist($message);
 
         // Handle attachments
-        foreach ($request->files as $file) {
+        foreach ($this->flattenUploadedFiles($request->files->all()) as $file) {
             /** @var UploadedFile $file */
             $originalName = $file->getClientOriginalName();
             $mimeType = $file->getMimeType();
@@ -297,6 +297,7 @@ class MessagingController extends AbstractController
         return $this->json([
             'success' => true,
             'id' => $message->getId(),
+            'conversation_id' => $conversation->getId(),
             'created_at' => $message->getCreatedAt()->format('c')
         ]);
     }
@@ -447,9 +448,32 @@ class MessagingController extends AbstractController
     {
         $session = $request->getSession();
         $userData = $session->get('user');
-        if (!$userData || !isset($userData['id'])) {
+        if (!$userData) {
             return null;
         }
-        return $this->userRepo->find($userData['id']);
+        $userId = is_array($userData)
+            ? ($userData['id'] ?? $userData['id_user'] ?? null)
+            : (method_exists($userData, 'getIdUser') ? $userData->getIdUser() : (method_exists($userData, 'getId') ? $userData->getId() : null));
+
+        return $userId ? $this->userRepo->find($userId) : null;
+    }
+
+    /**
+     * @return list<UploadedFile>
+     */
+    private function flattenUploadedFiles(array $files): array
+    {
+        $flat = [];
+        foreach ($files as $file) {
+            if ($file instanceof UploadedFile) {
+                $flat[] = $file;
+                continue;
+            }
+            if (is_array($file)) {
+                array_push($flat, ...$this->flattenUploadedFiles($file));
+            }
+        }
+
+        return $flat;
     }
 }

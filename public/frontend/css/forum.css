@@ -504,6 +504,177 @@
     background: rgba(255, 255, 255, 0.2);
 }
 
+.btn-feeling {
+    background: linear-gradient(135deg, rgba(255, 120, 120, 0.16), rgba(255, 190, 105, 0.12));
+    border-color: rgba(var(--main-home-accent-rgb), 0.32);
+}
+
+.btn-feeling.active,
+.btn-feeling:hover {
+    color: #fff;
+    border-color: rgba(var(--main-home-accent-rgb), 0.65);
+    box-shadow: 0 0 24px rgba(var(--main-home-accent-rgb), 0.18);
+}
+
+.forum-feeling-panel {
+    animation: feelingRise 0.28s ease both;
+}
+
+.comment-feeling-panel {
+    transition: max-height 0.4s ease;
+}
+
+.comment-feeling-panel .feeling-card {
+    margin-top: 0.15rem;
+    padding: 1rem;
+}
+
+.comment-feeling-panel .feeling-orb {
+    width: 46px;
+    height: 46px;
+    border-radius: 16px;
+}
+
+.comment-feeling-panel .feeling-title {
+    font-size: 1rem;
+}
+
+.feeling-card {
+    position: relative;
+    display: flex;
+    gap: 1rem;
+    align-items: stretch;
+    padding: 1.15rem;
+    border-radius: 22px;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 15% 0%, rgba(var(--main-home-accent-rgb), 0.22), transparent 32%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025));
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.28);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.feeling-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    transform: translateX(-110%);
+    animation: feelingSweep 2.8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.feeling-orb {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    color: #fff;
+    background: var(--main-home-accent-gradient);
+    box-shadow: 0 0 26px rgba(var(--main-home-accent-rgb), 0.35);
+}
+
+.feeling-orb i {
+    font-size: 1.55rem;
+}
+
+.feeling-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.feeling-topline,
+.feeling-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.feeling-kicker,
+.feeling-provider,
+.feeling-footer span,
+.feeling-footer strong {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.feeling-title {
+    margin-top: 0.35rem;
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: 900;
+    text-transform: capitalize;
+}
+
+.feeling-card p {
+    margin: 0.35rem 0 0.75rem;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.feeling-meter {
+    height: 8px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.08);
+    margin-bottom: 0.75rem;
+}
+
+.feeling-meter span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--main-home-accent-gradient);
+    box-shadow: 0 0 18px rgba(var(--main-home-accent-rgb), 0.35);
+    transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.feeling-positive .feeling-orb {
+    background: linear-gradient(135deg, #22c55e, #84cc16);
+}
+
+.feeling-negative .feeling-orb {
+    background: linear-gradient(135deg, #ef4444, #f97316);
+}
+
+.feeling-mixed .feeling-orb {
+    background: linear-gradient(135deg, #8b5cf6, #f472b6);
+}
+
+.feeling-error {
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+@keyframes feelingRise {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes feelingSweep {
+    0%, 55% {
+        transform: translateX(-110%);
+    }
+    100% {
+        transform: translateX(110%);
+    }
+}
+
 /* MOBILE */
 @media (max-width: 992px) {
     .forum-split-container {

@@ -692,7 +692,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="main-home-feature-card glass-residence-card" onclick="location.href='{{ path('app_residence_index') }}?id={{ residence.idResidence }}'">
                             <div class="residence-card-img-wrapper">
                                 {% if residence.imageR %}
-                                    <img src="{{ asset('residence_images/' ~ residence.imageR) }}" alt="{{ residence.nomR }}" class="residence-card-img-new">
+                                    <img src="{{ media_url(residence.imageR, 'residence_images') }}" alt="{{ residence.nomR }}" class="residence-card-img-new">
                                 {% else %}
                                     <div class="residence-card-img-placeholder">
                                         <i class='bx bx-building-house'></i>
@@ -882,7 +882,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <div class="event-card-top">
                                                 <div class="event-thumbnail">
                                                     {% if event.imageEvent %}
-                                                        <img src="{{ asset('event_images/' ~ event.imageEvent) }}" alt="{{ event.titreEvent }}" class="event-card-img-new">
+                                                        <img src="{{ media_url(event.imageEvent, 'event_images') }}" alt="{{ event.titreEvent }}" class="event-card-img-new">
                                                     {% else %}
                                                         <div class="event-card-img-placeholder">
                                                             <i class='bx bx-calendar-event'></i>
@@ -930,10 +930,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     {% set avatar_path = prof.avatar %}
                                                     {% if avatar_path starts with 'http' %}
                                                         <img src="{{ avatar_path }}" class="pulse-avatar" alt="Avatar">
-                                                    {% elseif 'profile_images/' in avatar_path %}
-                                                        <img src="{{ asset(avatar_path) }}" class="pulse-avatar" alt="Avatar">
                                                     {% else %}
-                                                        <img src="{{ asset('profile_images/' ~ avatar_path) }}" class="pulse-avatar" alt="Avatar">
+                                                        <img src="{{ media_url(avatar_path, 'profile_images') }}" class="pulse-avatar" alt="Avatar">
                                                     {% endif %}
                                                 {% else %}
                                                     <div class="pulse-avatar">{{ post.user.firstName|slice(0, 1) }}{{ post.user.lastName|slice(0, 1) }}</div>

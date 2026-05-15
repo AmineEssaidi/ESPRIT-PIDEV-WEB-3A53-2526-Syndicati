@@ -1,5 +1,5 @@
 {% extends 'base_symfony.html.twig' %}
-{% block title %}Forum - Horizon Community{% endblock %}
+{% block title %}Forum - Syndicati Community{% endblock %}
 
 {% block stylesheets %}
     <link href="{{ asset('frontend/css/forum.css') }}" rel="stylesheet">
@@ -26,7 +26,7 @@
                             <span class="forum-hero-badge">
                                 <i class='bx bxs-conversation'></i> Community Hub
                             </span>
-                            <h1 class="forum-hero-title">Voices of<br>Horizon.</h1>
+                            <h1 class="forum-hero-title">Voices of<br>Syndicati.</h1>
                             <p class="forum-hero-text">
                                 Join the conversation. Connect with neighbors, share ideas, and help shape our community together.
                             </p>
@@ -61,7 +61,7 @@
                                         <h1 id="splitViewTitle" class="text-white fw-bold mb-3 display-6" style="text-shadow: 0 4px 10px rgba(0,0,0,0.5);">Welcome to the Forum</h1>
                                         <div class="d-flex align-items-center">
                                             <div id="splitViewAvatar" class="forum-list-avatar me-2">H</div>
-                                            <span id="splitViewAuthor" class="text-white fw-semibold">Horizon Community</span>
+                                            <span id="splitViewAuthor" class="text-white fw-semibold">Syndicati Community</span>
                                         </div>
                                     </div>
                                 </div>
@@ -113,6 +113,9 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <button class="reaction-btn btn-feeling" onclick="window.analyzePublicationFeeling()" title="Analyze Feeling">
+                                                    <i class='bx bx-pulse'></i> Feeling
+                                                </button>
                                                 <button class="reaction-btn btn-bookmark" onclick="window.toggleReaction('Bookmark')" title="Bookmark">
                                                     <i class='bx bx-bookmark'></i>
                                                 </button>
@@ -128,6 +131,8 @@
                                                 <i class='bx bx-flag'></i>
                                             </button>
                                         </div>
+
+                                        <div id="feelingPanel" class="forum-feeling-panel d-none mb-4"></div>
 
                                         <!-- INLINE REPORT PANEL -->
                                         <div id="reportPanel" class="report-panel mb-4 overflow-hidden" style="max-height: 0; transition: max-height 0.3s ease-out;">

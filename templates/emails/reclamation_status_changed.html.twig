@@ -1,0 +1,29 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block body %}
+    <h2 style="color: #ff4b5c;">Reclamation Status Updated</h2>
+    <p>Hello {{ recipientName }},</p>
+    <p>
+        {% if isPerformerCopy %}
+            This confirms your status update for "<strong>{{ reclamation.titrereclamations }}</strong>".
+        {% else %}
+            Your reclamation "<strong>{{ reclamation.titrereclamations }}</strong>" has a new status.
+        {% endif %}
+    </p>
+
+    <div style="background: rgba(255, 75, 92, 0.03); padding: 30px; border-radius: 20px; border: 1px solid rgba(255, 75, 92, 0.2); margin: 35px 0;">
+        <p style="margin: 0 0 10px 0; color: rgba(255, 255, 255, 0.65); font-size: 14px;">Previous status</p>
+        <p style="margin: 0 0 22px 0; color: rgba(255, 255, 255, 0.9); font-size: 18px; font-weight: 800; text-transform: uppercase;">{{ previousStatus|default('Unknown') }}</p>
+
+        <p style="margin: 0 0 10px 0; color: rgba(255, 255, 255, 0.65); font-size: 14px;">New status</p>
+        <p style="margin: 0; color: #ff4b5c; font-size: 24px; font-weight: 900; text-transform: uppercase;">{{ newStatus }}</p>
+
+        {% if performerName %}
+            <p style="margin: 22px 0 0 0; color: rgba(255, 255, 255, 0.5); font-size: 13px;">Updated by {{ performerName }}</p>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block footer_extra %}
+    <p style="margin-top: 15px; font-style: italic; color: #ff4b5c;">REC-{{ reclamation.id }} · Status Protocol</p>
+{% endblock %}

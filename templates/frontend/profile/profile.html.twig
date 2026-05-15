@@ -53,9 +53,28 @@
         /* Clickable avatar upload */
         .profile-avatar-form { display: block; margin: 0; padding: 0; }
         .profile-avatar-file-input { position: absolute; width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; z-index: -1; }
-        .main-home-profile-avatar-clickable { display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; }
+        .main-home-profile-avatar-clickable { display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; border: 0; padding: 0; }
         .main-home-profile-avatar-clickable:hover .profile-avatar-upload-hint { opacity: 1; }
         .profile-avatar-upload-hint { position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: #fff; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem; opacity: 0; transition: opacity 0.2s; border-radius: 50%; }
+        .profile-avatar-choice-backdrop { position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center; padding: 1.5rem; background: rgba(0,0,0,0.62); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+        .profile-avatar-choice-backdrop.is-open { display: flex; }
+        .profile-avatar-choice-card { width: min(520px, 100%); border-radius: 24px; padding: 1.35rem; background: linear-gradient(145deg, rgba(18,18,22,0.96), rgba(35,18,22,0.94)); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 28px 80px rgba(0,0,0,0.55); color: #fff; }
+        .profile-avatar-choice-head { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; margin-bottom: 1rem; }
+        .profile-avatar-choice-title { font-size: 1.25rem; font-weight: 900; margin: 0; }
+        .profile-avatar-choice-subtitle { color: rgba(255,255,255,0.56); margin: 0.25rem 0 0; font-size: 0.9rem; }
+        .profile-avatar-choice-close { width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+        .profile-avatar-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; margin-bottom: 1rem; }
+        .profile-avatar-choice-action { border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 1rem; min-height: 112px; color: #fff; background: rgba(255,255,255,0.045); display: flex; flex-direction: column; gap: 0.55rem; text-align: left; transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease; }
+        .profile-avatar-choice-action:hover { transform: translateY(-3px); border-color: rgba(var(--main-home-accent-rgb),0.55); background: rgba(var(--main-home-accent-rgb),0.11); }
+        .profile-avatar-choice-action i { font-size: 1.65rem; color: var(--main-home-accent-color); }
+        .profile-avatar-choice-action strong { font-size: 0.98rem; }
+        .profile-avatar-choice-action span { color: rgba(255,255,255,0.55); font-size: 0.78rem; line-height: 1.4; }
+        .profile-avatar-ai-panel { display: none; gap: 0.75rem; }
+        .profile-avatar-ai-panel.is-open { display: grid; }
+        .profile-avatar-ai-input { width: 100%; min-height: 88px; resize: vertical; border-radius: 16px; padding: 0.95rem 1rem; color: #fff; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.1); outline: none; }
+        .profile-avatar-ai-input:focus { border-color: rgba(var(--main-home-accent-rgb),0.7); box-shadow: 0 0 0 4px rgba(var(--main-home-accent-rgb),0.12); }
+        .profile-avatar-generate-btn { justify-self: end; border: none; border-radius: 999px; padding: 0.85rem 1.3rem; color: #fff; font-weight: 800; background: var(--main-home-accent-gradient); box-shadow: 0 12px 28px rgba(var(--main-home-accent-rgb),0.24); }
+        @media (max-width: 560px) { .profile-avatar-choice-grid { grid-template-columns: 1fr; } }
         .profile-onboarding-pill { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
         .profile-onboarding-pill-label { font-size: 0.8rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.05em; }
         .profile-onboarding-pill-value { font-size: 1rem; font-weight: 600; color: rgba(255,255,255,0.95); }
@@ -998,7 +1017,7 @@
 
 <div class="main-home-layout-wrapper">
     <div class="main-home-page">
-        {% set _navbar_avatar_url = profile.avatar ? (profile.avatar starts with 'http' ? profile.avatar : asset(profile.avatar)) : null %}
+        {% set _navbar_avatar_url = profile.avatar ? media_url(profile.avatar, 'profile_images') : null %}
         {% include 'frontend/shared/_main_navbar.html.twig' with {'active_tab': 'profile', 'profile_avatar_url': _navbar_avatar_url} %}
 
         <div class="main-home-content-wrapper">
@@ -1030,16 +1049,44 @@
                                 <div class="main-home-profile-avatar-container">
                                     <form id="profile-avatar-upload-form" action="{{ path('frontend_profile_avatar_upload') }}" method="post" enctype="multipart/form-data" class="profile-avatar-form">
                                         <input type="hidden" name="_token" value="{{ csrf_token('profile_avatar_upload') }}">
+                                        <input type="hidden" name="avatar_source" id="profile-avatar-source" value="upload">
                                         <input type="file" name="avatar_file" id="profile-avatar-file-input" accept="image/jpeg,image/png,image/gif,image/webp" class="profile-avatar-file-input">
-                                        <label for="profile-avatar-file-input" class="main-home-profile-avatar main-home-profile-avatar-clickable" title="Click to upload a new photo">
+                                        <button type="button" id="profile-avatar-choice-btn" class="main-home-profile-avatar main-home-profile-avatar-clickable" title="Change profile photo">
                                             {% if profile.avatar %}
-                                                <img src="{{ profile.avatar starts with 'http' ? profile.avatar : asset(profile.avatar) }}" alt="Avatar" class="main-home-profile-avatar-img" id="profile-avatar-img">
+                                                <img src="{{ media_url(profile.avatar, 'profile_images') }}" alt="Avatar" class="main-home-profile-avatar-img" id="profile-avatar-img">
                                             {% else %}
                                                 <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face" alt="Profile Picture" class="main-home-profile-avatar-img" id="profile-avatar-img">
                                             {% endif %}
-                                            <span class="profile-avatar-upload-hint"><i class="bx bx-camera"></i> Upload</span>
-                                        </label>
+                                            <span class="profile-avatar-upload-hint"><i class="bx bx-camera"></i> Change</span>
+                                        </button>
                                     </form>
+                                    <div id="profile-avatar-choice-modal" class="profile-avatar-choice-backdrop" aria-hidden="true">
+                                        <div class="profile-avatar-choice-card" role="dialog" aria-modal="true" aria-labelledby="profile-avatar-choice-title">
+                                            <div class="profile-avatar-choice-head">
+                                                <div>
+                                                    <h3 id="profile-avatar-choice-title" class="profile-avatar-choice-title">Update profile image</h3>
+                                                    <p class="profile-avatar-choice-subtitle">Upload your own photo or generate a fresh resident avatar with AI.</p>
+                                                </div>
+                                                <button type="button" class="profile-avatar-choice-close" id="profile-avatar-choice-close" aria-label="Close"><i class="bx bx-x"></i></button>
+                                            </div>
+                                            <div class="profile-avatar-choice-grid">
+                                                <button type="button" class="profile-avatar-choice-action" id="profile-avatar-upload-choice">
+                                                    <i class="bx bx-image-add"></i>
+                                                    <strong>Choose from PC</strong>
+                                                    <span>Pick a JPG, PNG, GIF, or WebP image and store it through ImageKit.</span>
+                                                </button>
+                                                <button type="button" class="profile-avatar-choice-action" id="profile-avatar-ai-choice">
+                                                    <i class="bx bx-sparkles"></i>
+                                                    <strong>Generate with AI</strong>
+                                                    <span>Describe the style and let Syndicati create a new avatar.</span>
+                                                </button>
+                                            </div>
+                                            <div class="profile-avatar-ai-panel" id="profile-avatar-ai-panel">
+                                                <textarea id="profile-avatar-prompt" class="profile-avatar-ai-input" maxlength="500" placeholder="Example: confident resident portrait, modern suit, soft cinematic lighting"></textarea>
+                                                <button type="button" id="profile-avatar-generate-btn" class="profile-avatar-generate-btn"><i class="bx bx-sparkles"></i> Generate Avatar</button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="main-home-profile-details">
                                     {# === DEFAULT HERO INFO (visible when switcher is closed) === #}
@@ -1236,7 +1283,7 @@
                                             <div class="glass-avatar-section mb-4" style="text-align: center;">
                                                 <div class="glass-avatar-wrapper mx-auto" onclick="document.getElementById('profile_avatarFile').click()" style="width: 100px; height: 100px; border-radius: 30px; position: relative; overflow: hidden; cursor: pointer; border: 2px solid rgba(255,255,255,0.1);">
                                                     {% if profile.avatar %}
-                                                        <img src="{{ asset(profile.avatar) }}" alt="Avatar" id="hero-avatar-preview" style="width:100%; height:100%; object-fit:cover;">
+                                                        <img src="{{ media_url(profile.avatar, 'profile_images') }}" alt="Avatar" id="hero-avatar-preview" style="width:100%; height:100%; object-fit:cover;">
                                                     {% else %}
                                                         <img src="https://ui-avatars.com/api/?name={{ user.firstName }}+{{ user.lastName }}&background=random" alt="Avatar" id="hero-avatar-preview" style="width:100%; height:100%; object-fit:cover;">
                                                     {% endif %}
@@ -1314,15 +1361,15 @@
                             <div class="main-home-profile-card h-100">
                                 <div class="standing-header-flex">
                                     <div class="standing-lvl-box">
-                                        <div class="standing-lvl-num">{{ userStanding.level }}</div>
+                                        <div class="standing-lvl-num" data-live-count="standing.level">{{ userStanding.level }}</div>
                                         <div class="standing-lvl-txt">LVL</div>
                                     </div>
                                     <div>
                                         <h4 class="text-white fw-900 mb-1" style="letter-spacing: 1px;">RESIDENT STANDING</h4>
-                                        <p class="text-muted small mb-0">Your status within the Horizon community</p>
+                                        <p class="text-muted small mb-0">Your status within the Syndicati community</p>
                                     </div>
                                     <div class="ms-auto text-end">
-                                        <div class="text-white fw-900 h3 mb-0">{{ userStanding.points }}</div>
+                                        <div class="text-white fw-900 h3 mb-0" data-live-count="standing.points">{{ userStanding.points }}</div>
                                         <div class="text-muted small fw-bold" style="letter-spacing: 1px;">SYNDIC PTS</div>
                                     </div>
                                 </div>
@@ -1398,9 +1445,9 @@
                                 <div class="d-flex align-items-center justify-content-between mb-3">
                                     <h5 class="text-white fw-800 mb-0" style="letter-spacing: 0.5px;">CIRCLE</h5>
                                     <div class="d-flex gap-2 ms-auto">
-                                        <span class="glass-badge glass-badge-info" id="circle-friends-badge" style="padding: 0.2rem 0.6rem; font-size: 0.65rem;">{{ friendCount }} FRIENDS</span>
+                                        <span class="glass-badge glass-badge-info" id="circle-friends-badge" style="padding: 0.2rem 0.6rem; font-size: 0.65rem;"><span data-live-count="circle.friends">{{ friendCount }}</span> FRIENDS</span>
                                         {% if pendingFriendCount > 0 %}
-                                            <span class="glass-badge glass-badge-danger animate-pulse" id="circle-pending-badge" style="padding: 0.2rem 0.6rem; font-size: 0.65rem; cursor: pointer;" onclick="circleSetTab('pending')">{{ pendingFriendCount }} PENDING</span>
+                                            <span class="glass-badge glass-badge-danger animate-pulse" id="circle-pending-badge" style="padding: 0.2rem 0.6rem; font-size: 0.65rem; cursor: pointer;" onclick="circleSetTab('pending')"><span data-live-count="circle.pending">{{ pendingFriendCount }}</span> PENDING</span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -1411,7 +1458,7 @@
                                         <i class="bx bx-group me-1"></i> Friends
                                     </button>
                                     <button class="circle-tab-btn" id="circle-tab-pending" onclick="circleSetTab('pending')" style="flex: 1; padding: 0.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.5); font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; cursor: pointer; transition: all .2s;">
-                                        <i class="bx bx-bell me-1"></i> Pending{% if pendingFriendCount > 0 %} <span style="background: #f04747; color: #fff; border-radius: 20px; padding: 0 5px; font-size: 0.65rem;">{{ pendingFriendCount }}</span>{% endif %}
+                                        <i class="bx bx-bell me-1"></i> Pending{% if pendingFriendCount > 0 %} <span style="background: #f04747; color: #fff; border-radius: 20px; padding: 0 5px; font-size: 0.65rem;" data-live-count="circle.pending">{{ pendingFriendCount }}</span>{% endif %}
                                     </button>
                                 </div>
 
@@ -1455,7 +1502,7 @@
                                                 {% set sender = rel.status == 'PENDING_FIRST_SECOND' ? rel.userFirst : rel.userSecond %}
                                                 {% set sav = pendingAvatarMap[sender.idUser] ?? null %}
                                                 <div class="pending-request-row d-flex align-items-center gap-3" data-rel-id="{{ rel.id }}" style="padding: 0.75rem; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);">
-                                                    <img src="{% if sav %}{{ sav starts with 'http' ? sav : asset(sav) }}{% else %}{{ 'https://ui-avatars.com/api/?name=' ~ sender.firstName|url_encode ~ '+' ~ sender.lastName|url_encode ~ '&background=random&color=fff&bold=true' }}{% endif %}"
+                                                    <img src="{% if sav %}{{ media_url(sav, 'profile_images') }}{% else %}{{ 'https://ui-avatars.com/api/?name=' ~ sender.firstName|url_encode ~ '+' ~ sender.lastName|url_encode ~ '&background=random&color=fff&bold=true' }}{% endif %}"
                                                          alt="{{ sender.firstName }}"
                                                          style="width: 42px; height: 42px; border-radius: 12px; object-fit: cover; flex-shrink: 0;">
                                                     <div class="flex-grow-1 overflow-hidden">
@@ -1509,6 +1556,9 @@
                         <div class="profile-nav-container">
                             <div class="profile-nav-pill active" data-tab="account">
                                 <i class="bx bx-user"></i> Account
+                            </div>
+                            <div class="profile-nav-pill" data-tab="security">
+                                <i class="bx bx-shield-quarter"></i> Security
                             </div>
                             <div class="profile-nav-pill" data-tab="forum">
                                 <i class="bx bx-message-square-detail"></i> Forum
@@ -1676,6 +1726,130 @@
                 {% endif %}
                 </div>
 
+                <div id="tab-security" class="profile-tab-content">
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-4">
+                            <div class="main-home-profile-card h-100">
+                                <div class="main-home-card-header">
+                                    <h3 class="main-home-card-title"><i class="bx bx-shield-quarter"></i> Security Center</h3>
+                                </div>
+                                <div class="profile-security-metrics">
+                                    <div class="profile-security-metric">
+                                        <span>Events 30d</span>
+                                        <strong>{{ profileSecuritySummary.total_30d|default(0) }}</strong>
+                                    </div>
+                                    <div class="profile-security-metric">
+                                        <span>Security</span>
+                                        <strong>{{ profileSecuritySummary.security_30d|default(0) }}</strong>
+                                    </div>
+                                    <div class="profile-security-metric {{ profileSecuritySummary.failures_30d|default(0) > 0 ? 'is-warning' : '' }}">
+                                        <span>Failures</span>
+                                        <strong>{{ profileSecuritySummary.failures_30d|default(0) }}</strong>
+                                    </div>
+                                </div>
+                                <div class="profile-security-status-list">
+                                    <div class="profile-security-status-row">
+                                        <i class="bx bx-check-shield"></i>
+                                        <div>
+                                            <span>Account verification</span>
+                                            <strong>{{ user.isVerified ? 'Verified' : 'Pending verification' }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="profile-security-status-row">
+                                        <i class="bx bx-lock-alt"></i>
+                                        <div>
+                                            <span>Two-factor authentication</span>
+                                            <strong>{{ two_factor_enabled|default(user.twoFactorEnabled) ? 'Enabled' : 'Disabled' }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="profile-security-status-row">
+                                        <i class="bx bx-qr-scan"></i>
+                                        <div>
+                                            <span>Authenticator app</span>
+                                            <strong>{{ totp_configured|default(false) ? 'Configured' : 'Not configured' }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="profile-security-status-row">
+                                        <i class="bx bx-mail-send"></i>
+                                        <div>
+                                            <span>Gmail OAuth</span>
+                                            <strong>{{ gmail_oauth_connected|default(false) ? 'Connected' : 'Disconnected' }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="profile-security-status-row">
+                                        <i class="bx bx-time-five"></i>
+                                        <div>
+                                            <span>Last activity</span>
+                                            <strong>{{ profileSecuritySummary.last_seen|default(null) ? profileSecuritySummary.last_seen|date('M d H:i') : 'No events yet' }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-8">
+                            <div class="main-home-profile-card h-100">
+                                <div class="main-home-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <h3 class="main-home-card-title mb-0"><i class="bx bx-radio-circle-marked"></i> Recent Security Activity</h3>
+                                    <span class="glass-badge glass-badge-info">Java + Web synced</span>
+                                </div>
+                                <div class="profile-security-timeline">
+                                    {% for log in profileSecurityLogs|default([]) %}
+                                        {% set isFailure = log.outcome|default('') == 'FAILURE' or log.level|default('INFO') in ['WARN','WARNING','ERROR','CRITICAL'] %}
+                                        <article class="profile-security-log {{ isFailure ? 'is-warning' : '' }}">
+                                            <div class="profile-security-log-icon">
+                                                <i class="bx {{ isFailure ? 'bx-error-circle' : 'bx-check-shield' }}"></i>
+                                            </div>
+                                            <div class="profile-security-log-copy">
+                                                <div class="profile-security-log-title">
+                                                    <strong>{{ log.eventType|default('SECURITY')|replace({'_':' '})|title }}</strong>
+                                                    <span>{{ log.createdAt ? log.createdAt|date('M d, H:i') : '-' }}</span>
+                                                </div>
+                                                <p>{{ log.displayMessage|default(log.action|default('Security event')) }}</p>
+                                                <div class="profile-security-log-meta">
+                                                    <span>{{ log.outcome|default('UNKNOWN') }}</span>
+                                                    <span>{{ log.level|default('INFO') }}</span>
+                                                    {% if log.metadata.route|default(null) %}<span>{{ log.metadata.route }}</span>{% endif %}
+                                                    {% if log.traceId %}<span title="{{ log.traceId }}">trace {{ log.traceId|slice(0, 8) }}</span>{% endif %}
+                                                </div>
+                                            </div>
+                                        </article>
+                                    {% else %}
+                                        <div class="text-center py-5">
+                                            <i class="bx bx-shield-quarter mb-3 d-block" style="font-size: 3rem; opacity: 0.12; color: #fff;"></i>
+                                            <p class="text-muted mb-0">No security activity recorded yet.</p>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="main-home-profile-card">
+                                <div class="main-home-card-header">
+                                    <h3 class="main-home-card-title"><i class="bx bx-history"></i> Activity Timeline</h3>
+                                </div>
+                                <div class="profile-activity-grid">
+                                    {% for log in profileActivityLogs|default([]) %}
+                                        <article class="profile-activity-chip">
+                                            <i class="bx {{ log.eventType == 'PAGE_VIEW' ? 'bx-show' : (log.eventType == 'UI_CLICK' ? 'bx-mouse' : 'bx-bolt-circle') }}"></i>
+                                            <div>
+                                                <strong>{{ log.eventType|default('ACTIVITY')|replace({'_':' '})|title }}</strong>
+                                                <span>{{ log.metadata.route|default(log.entityType|default('Activity')) }}</span>
+                                            </div>
+                                            <time>{{ log.createdAt ? log.createdAt|date('M d H:i') : '-' }}</time>
+                                        </article>
+                                    {% else %}
+                                        <div class="text-center py-4 text-muted">No activity events recorded yet.</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Tab Content: Page 4 (Residence) -->
                 <div id="tab-residence" class="profile-tab-content">
                     <div class="row">
@@ -1745,7 +1919,7 @@
                                                             </div>
                                                             {% if appt.imageA %}
                                                                 <div class="mt-3" style="width: 100px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
-                                                                    <img src="{{ asset('appartement_images/' ~ appt.imageA) }}" alt="Apartment Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="openLightbox(this.src)">
+                                                                    <img src="{{ media_url(appt.imageA, 'appartement_images') }}" alt="Apartment Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="openLightbox(this.src)">
                                                                 </div>
                                                             {% endif %}
                                                         </div>
@@ -1851,7 +2025,7 @@
                                                                             <p class="mb-0 text-white-50" style="font-size: 0.8rem;"><i class="bx bx-calendar"></i> <span id="pub-date-{{ pub.id }}">{{ pub.dateCreationPub|date('d M Y') }}</span></p>
                                                                             <span style="display:none;" id="pub-category-{{ pub.id }}">{{ pub.categoriePub }}</span>
                                                                             <span style="display:none;" id="pub-desc-{{ pub.id }}">{{ pub.descriptionPub }}</span>
-                                                                            <span style="display:none;" id="pub-img-{{ pub.id }}">{% if pub.imagePub %}{{ asset('forum_images/' ~ pub.imagePub) }}{% endif %}</span>
+                                                                            <span style="display:none;" id="pub-img-{{ pub.id }}">{{ media_url(pub.imagePub, 'forum_images')|default('') }}</span>
                                                                         </div>
                                                                     </div>
                                                                     <div class="d-flex align-items-center gap-3">
@@ -1889,7 +2063,7 @@
                                                                             <small class="text-white-50 ms-3 text-end" style="min-width: 80px;" id="comm-date-{{ comm.idCommentaire }}">{{ comm.createdAt|date('d M Y') }}</small>
                                                                         </div>
                                                                         <span style="display:none;" id="comm-full-desc-{{ comm.idCommentaire }}">{{ comm.descriptionCommentaire }}</span>
-                                                                        <span style="display:none;" id="comm-img-{{ comm.idCommentaire }}">{% if comm.imageCommentaire %}{{ asset('forum_images/' ~ comm.imageCommentaire) }}{% endif %}</span>
+                                                                        <span style="display:none;" id="comm-img-{{ comm.idCommentaire }}">{{ media_url(comm.imageCommentaire, 'commentaire_images')|default('') }}</span>
                                                                     </div>
                                                                     <i class="bx bx-chevron-right text-white-50 align-self-center mt-3 ms-2" style="font-size: 1.5rem;"></i>
                                                                 </div>
@@ -1956,7 +2130,7 @@
                                                                             <p class="mb-0 text-white-50" style="font-size: 0.8rem;"><i class="bx bx-calendar"></i> <span id="pub-date-{{ pub.id }}">{{ pub.dateCreationPub|date('d M Y') }}</span></p>
                                                                             <span style="display:none;" id="pub-category-{{ pub.id }}">{{ pub.categoriePub }}</span>
                                                                             <span style="display:none;" id="pub-desc-{{ pub.id }}">{{ pub.descriptionPub }}</span>
-                                                                            <span style="display:none;" id="pub-img-{{ pub.id }}">{% if pub.imagePub %}{{ asset('forum_images/' ~ pub.imagePub) }}{% endif %}</span>
+                                                                            <span style="display:none;" id="pub-img-{{ pub.id }}">{{ media_url(pub.imagePub, 'forum_images')|default('') }}</span>
                                                                         </div>
                                                                     </div>
                                                                     <div class="d-flex align-items-center gap-3">
@@ -2028,12 +2202,12 @@
                                                          data-remaining="{{ event.nbRestants }}"
                                                          data-status="{{ event.statutEvent }}"
                                                          data-type="{{ event.typeEvent }}"
-                                                         data-image="{{ event.imageEvent ? asset('event_images/' ~ event.imageEvent) : '' }}"
+                                                         data-image="{{ media_url(event.imageEvent, 'event_images')|default('') }}"
                                                          style="cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 1.25rem; background: rgba(255,255,255,0.02);">
                                                         <div class="d-flex flex-column flex-md-row gap-4">
                                                             {% if event.imageEvent %}
                                                                 <div class="event-list-image-wrap" style="width: 140px; height: 100px; border-radius: 14px; overflow: hidden; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1);">
-                                                                    <img src="{{ asset('event_images/' ~ event.imageEvent) }}" alt="{{ event.titreEvent }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                                                    <img src="{{ media_url(event.imageEvent, 'event_images') }}" alt="{{ event.titreEvent }}" style="width: 100%; height: 100%; object-fit: cover;">
                                                                 </div>
                                                             {% else %}
                                                                 <div class="event-list-image-wrap d-flex align-items-center justify-content-center" style="width: 140px; height: 100px; border-radius: 14px; background: rgba(var(--syndicat-accent-rgb), 0.05); flex-shrink: 0; border: 1px dashed rgba(255,255,255,0.1);">
@@ -3206,17 +3380,54 @@
 (function() {
     var form = document.getElementById('profile-avatar-upload-form');
     var fileInput = document.getElementById('profile-avatar-file-input');
-    if (form && fileInput) {
-        fileInput.addEventListener('change', function() {
-            if (!fileInput.files || !fileInput.files.length) return;
-            
-            // Visual feedback - show spinner on avatar
-            const avatarImg = document.getElementById('profile-avatar-img');
-            const originalSrc = avatarImg.src;
-            const hint = form.querySelector('.profile-avatar-upload-hint');
-            if (hint) hint.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>';
+    var sourceInput = document.getElementById('profile-avatar-source');
+    var choiceBtn = document.getElementById('profile-avatar-choice-btn');
+    var modal = document.getElementById('profile-avatar-choice-modal');
+    var closeBtn = document.getElementById('profile-avatar-choice-close');
+    var uploadChoice = document.getElementById('profile-avatar-upload-choice');
+    var aiChoice = document.getElementById('profile-avatar-ai-choice');
+    var aiPanel = document.getElementById('profile-avatar-ai-panel');
+    var promptInput = document.getElementById('profile-avatar-prompt');
+    var generateBtn = document.getElementById('profile-avatar-generate-btn');
 
-            const formData = new FormData(form);
+    function avatarUrl(value) {
+        if (!value) return '';
+        if (/^https?:\/\//i.test(value) || value.charAt(0) === '/') return value;
+        return '/' + value;
+    }
+
+    function openAvatarModal() {
+        if (!modal) return;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        if (aiPanel) aiPanel.classList.remove('is-open');
+    }
+
+    function closeAvatarModal() {
+        if (!modal) return;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function submitAvatar(source) {
+        if (!form) return;
+
+        const avatarImg = document.getElementById('profile-avatar-img');
+        const hint = form.querySelector('.profile-avatar-upload-hint');
+        const originalHint = hint ? hint.innerHTML : '';
+        const originalGenerate = generateBtn ? generateBtn.innerHTML : '';
+        if (hint) hint.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>';
+        if (generateBtn && source === 'generate') {
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Generating...';
+        }
+
+        const formData = new FormData(form);
+        formData.set('avatar_source', source);
+        if (source === 'generate') {
+            formData.set('avatar_prompt', promptInput ? promptInput.value.trim() : '');
+        }
+
             fetch(form.action, {
                 method: 'POST',
                 body: formData,
@@ -3225,7 +3436,10 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    if (avatarImg) avatarImg.src = '/' + data.avatar;
+                    if (avatarImg) avatarImg.src = avatarUrl(data.avatar);
+                    closeAvatarModal();
+                    if (fileInput) fileInput.value = '';
+                    if (promptInput) promptInput.value = '';
                     if (typeof showCoolPopup === 'function') {
                         showCoolPopup('Success', data.message, 'success');
                     }
@@ -3242,8 +3456,59 @@
                 }
             })
             .finally(() => {
-                if (hint) hint.innerHTML = '<i class="bx bx-camera"></i> Upload';
+                if (hint) hint.innerHTML = originalHint || '<i class="bx bx-camera"></i> Change';
+                if (generateBtn) {
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = originalGenerate || '<i class="bx bx-sparkles"></i> Generate Avatar';
+                }
             });
+    }
+
+    if (form && fileInput) {
+        if (choiceBtn) choiceBtn.addEventListener('click', openAvatarModal);
+        if (closeBtn) closeBtn.addEventListener('click', closeAvatarModal);
+        if (modal) {
+            modal.addEventListener('click', function(event) {
+                if (event.target === modal) closeAvatarModal();
+            });
+        }
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') closeAvatarModal();
+        });
+
+        if (uploadChoice) {
+            uploadChoice.addEventListener('click', function() {
+                if (sourceInput) sourceInput.value = 'upload';
+                fileInput.click();
+            });
+        }
+
+        if (aiChoice) {
+            aiChoice.addEventListener('click', function() {
+                if (sourceInput) sourceInput.value = 'generate';
+                if (aiPanel) aiPanel.classList.add('is-open');
+                if (promptInput) promptInput.focus();
+            });
+        }
+
+        if (generateBtn) {
+            generateBtn.addEventListener('click', function() {
+                if (!promptInput || !promptInput.value.trim()) {
+                    if (typeof showCoolPopup === 'function') {
+                        showCoolPopup('Prompt needed', 'Describe the avatar style first.', 'error');
+                    } else {
+                        alert('Describe the avatar style first.');
+                    }
+                    return;
+                }
+                submitAvatar('generate');
+            });
+        }
+
+        fileInput.addEventListener('change', function() {
+            if (!fileInput.files || !fileInput.files.length) return;
+            if (sourceInput) sourceInput.value = 'upload';
+            submitAvatar('upload');
         });
     }
 })();
@@ -3528,7 +3793,7 @@ function attachReplyHandler(recId) {
                             {% if pub.imagePub %}
                                 <div class="mt-5 rounded-4 overflow-hidden position-relative group shadow-2xl" style="border: 1px solid rgba(255,255,255,0.1);">
                                     <div class="position-absolute top-0 start-0 w-100 h-100 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
-                                    <img src="{{ asset('forum_images/' ~ pub.imagePub) }}" alt="Publication Image" 
+                                    <img src="{{ media_url(pub.imagePub, 'forum_images') }}" alt="Publication Image" 
                                          class="w-100" style="max-height: 500px; object-fit: cover; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); cursor: zoom-in;"
                                          onclick="openLightbox(this.src)" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
                                 </div>

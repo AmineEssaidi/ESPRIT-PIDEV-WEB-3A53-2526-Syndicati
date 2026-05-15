@@ -31,6 +31,14 @@ parameters:
     livekit_url: '%env(string:LIVEKIT_URL)%'
     livekit_api_key: '%env(string:LIVEKIT_API_KEY)%'
     livekit_api_secret: '%env(string:LIVEKIT_API_SECRET)%'
+    imagekit_private_key_default: ''
+    imagekit_url_endpoint_default: ''
+    imagekit_enabled_default: false
+    imagekit_private_key: '%env(default:imagekit_private_key_default:IMAGEKIT_PRIVATE_KEY)%'
+    imagekit_url_endpoint: '%env(default:imagekit_url_endpoint_default:IMAGEKIT_URL_ENDPOINT)%'
+    imagekit_enabled: '%env(bool:default:imagekit_enabled_default:IMAGEKIT_ENABLED)%'
+    discord_forum_webhook_url_default: ''
+    discord_forum_webhook_url: '%env(default:discord_forum_webhook_url_default:DISCORD_FORUM_WEBHOOK_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -73,18 +81,6 @@ services:
             $fromEmail: '%mailer_from_email%'
             $fromName: '%mailer_from_name%'
 
-    # Agent Controller
-    App\Controller\AgentController:
-        arguments:
-            $projectDir: '%kernel.project_dir%'
-
-    # Syndicati Agent Service
-    App\Service\SyndicatiAgent:
-        public: true
-        arguments:
-            $ollamaUrl: '%env(default::OLLAMA_BASE_URL)%'
-            $model: '%env(default::OLLAMA_MODEL)%'
-
     # Smart Route Mapping Service
     App\Service\SmartRouteMappingService:
         public: true
@@ -99,25 +95,11 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Service\SyndicatiNativeAgentRuntime:
-        public: true
-        arguments:
-            $routes: '@App\Service\SmartRouteMappingService'
-
     App\Controller\SyndicatiNativeAgentController:
-        public: true
-
-    App\Service\PlaywrightToolServerManager:
         public: true
 
     App\Controller\SyndicatiAgentBootstrapController:
         public: true
-
-    App\Service\LangGraphClient:
-        autowire: true
-
-    App\Service\PlaywrightService:
-        autowire: true
 
     # Forum Notification Service
     App\Service\Forum\ForumNotificationService:
@@ -166,6 +148,12 @@ services:
             $apiKey: '%livekit_api_key%'
             $apiSecret: '%livekit_api_secret%'
             $liveKitUrl: '%livekit_url%'
+
+    App\Service\Media\ImageKitStorageService:
+        arguments:
+            $privateKey: '%imagekit_private_key%'
+            $urlEndpoint: '%imagekit_url_endpoint%'
+            $enabled: '%imagekit_enabled%'
 
     # Activity Listener
     App\EventListener\ActivityListener:

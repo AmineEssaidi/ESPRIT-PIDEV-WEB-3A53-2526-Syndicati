@@ -4,6 +4,8 @@ namespace App\Controller\Evenement;
 
 use App\Entity\Evenement\Evenement;
 use App\Repository\Evenement\EvenementRepository;
+use App\Service\Media\ImageKitStorageService;
+use App\Service\Media\ImagePathResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,7 +26,9 @@ class EvenementApiController extends AbstractController
         EvenementRepository $evenementRepository,
         EntityManagerInterface $entityManager,
         SluggerInterface $slugger,
-        \Symfony\Component\Validator\Validator\ValidatorInterface $validator
+        \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
+        ImageKitStorageService $imageStorage,
+        ImagePathResolver $imagePathResolver
     ): JsonResponse {
         $evenement = $evenementRepository->find($id);
         $userSession = $request->getSession()->get('user');
@@ -64,6 +68,9 @@ class EvenementApiController extends AbstractController
 
         $remaining = $request->request->get('nb_restants');
         if ($remaining !== null) {
+            if ((int) $remaining > (int) $places) {
+                return new JsonResponse(['success' => false, 'message' => 'Remaining places cannot exceed total capacity.'], 400);
+            }
             $evenement->setNbRestants((int) $remaining);
         }
 
@@ -87,11 +94,13 @@ class EvenementApiController extends AbstractController
             $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
             try {
-                $imageFile->move(
+                $evenement->setImageEvent($imageStorage->storeUploadedFile(
+                    $imageFile,
                     $this->getParameter('event_images_directory'),
+                    'event_images',
+                    '/syndicati/event_images',
                     $newFilename
-                );
-                $evenement->setImageEvent($newFilename);
+                ));
             } catch (\Exception $e) {
                 return new JsonResponse(['success' => false, 'message' => 'Image upload failed.'], 500);
             }
@@ -124,7 +133,7 @@ class EvenementApiController extends AbstractController
                 'title' => $evenement->getTitreEvent(),
                 'description' => $evenement->getDescriptionEvent(),
                 'status' => $evenement->getStatutEvent(),
-                'image' => $evenement->getImageEvent() ? '/event_images/' . $evenement->getImageEvent() : null,
+                'image' => $imagePathResolver->publicUrl($evenement->getImageEvent(), 'event_images'),
                 'date' => $evenement->getDateEvent()->format('d M Y, H:i'),
                 'remaining' => $evenement->getNbRestants()
             ]

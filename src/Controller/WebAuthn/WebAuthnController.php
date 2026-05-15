@@ -259,7 +259,15 @@ class WebAuthnController extends AbstractController
                 'settings' => $userSettings,
             ]);
 
-            return $this->json(['status' => 'ok', 'message' => 'Authenticated successfully']);
+            $redirectUrl = in_array($user->getRoleUser(), ['OWNER', 'ADMIN', 'SYNDIC', 'SUPERADMIN'], true)
+                ? $this->generateUrl('auth_sign_in', ['destination' => 'choice'])
+                : $this->generateUrl('main_home');
+
+            return $this->json([
+                'status' => 'ok',
+                'message' => 'Authenticated successfully',
+                'redirect' => $redirectUrl,
+            ]);
 
         } catch (\Throwable $e) {
             return $this->json(['error' => 'Authentication failed: ' . $e->getMessage()], Response::HTTP_UNAUTHORIZED);

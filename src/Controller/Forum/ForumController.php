@@ -5,7 +5,12 @@ namespace App\Controller\Forum;
 use App\Entity\Forum\Publication;
 use App\Form\Forum\PublicationType;
 use App\Repository\Forum\PublicationRepository;
+use App\Service\DirectAiClient;
+use App\Service\Forum\ContentModerationService;
+use App\Service\Forum\DiscordWebhookService;
+use App\Service\Media\ImageKitStorageService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +22,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class ForumController extends AbstractController
 {
     #[Route('/forum', name: 'frontend_forum', methods: ['GET', 'POST'])]
-    public function index(Request $request, PublicationRepository $publicationRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Service\Forum\ForumNotificationService $notificationService): Response
+    public function index(Request $request, PublicationRepository $publicationRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Service\Forum\ForumNotificationService $notificationService, ContentModerationService $moderationService, ImageKitStorageService $imageStorage, DiscordWebhookService $discordWebhook): Response
     {
         $publication = new Publication();
         $session = $request->getSession();
@@ -56,6 +61,21 @@ class ForumController extends AbstractController
             }
 
             if ($form->isValid()) {
+                $flaggedCategories = $moderationService->checkContent(
+                    ($publication->getTitrePub() ?? '') . ' ' . ($publication->getDescriptionPub() ?? '')
+                );
+                if ($flaggedCategories !== []) {
+                    if ($isAjax) {
+                        return $this->json([
+                            'success' => false,
+                            'message' => 'Inappropriate content detected: ' . implode(', ', $flaggedCategories),
+                            'moderation' => $flaggedCategories,
+                        ], 422);
+                    }
+
+                    throw $this->createAccessDeniedException('Inappropriate content detected.');
+                }
+
                 /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $imageFile */
                 $imageFile = $form->get('image_pub')->getData();
 
@@ -65,17 +85,18 @@ class ForumController extends AbstractController
                     $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
                     try {
-                        $imageFile->move(
+                        $publication->setImagePub($imageStorage->storeUploadedFile(
+                            $imageFile,
                             $this->getParameter('publications_directory'),
+                            'forum_images',
+                            '/syndicati/forum_images',
                             $newFilename
-                        );
+                        ));
                     } catch (\Exception $e) {
                         if ($isAjax) {
                             return $this->json(['success' => false, 'message' => 'Failed to upload image.'], 500);
                         }
                     }
-
-                    $publication->setImagePub($newFilename);
                 }
 
                 $entityManager->persist($publication);
@@ -85,6 +106,7 @@ class ForumController extends AbstractController
                 if ($publication->getCategoriePub() === 'Announcement') {
                     $notificationService->notifyNewAnnouncement($publication);
                 }
+                $discordWebhook->announceJeuxVideo($publication, false);
 
                 if ($isAjax) {
                     return $this->json(['success' => true, 'message' => 'Post created successfully!']);
@@ -103,7 +125,7 @@ class ForumController extends AbstractController
             }
         }
 
-        $publications = $publicationRepository->findAllLatest();
+        $publications = $publicationRepository->findAllLatest(36);
 
         // Fetch all profiles for these publications' authors
         $authorIds = [];
@@ -179,7 +201,7 @@ class ForumController extends AbstractController
     }
 
     #[Route('/forum/edit/{id}', name: 'frontend_forum_edit', methods: ['POST'])]
-    public function edit(int $id, Request $request, PublicationRepository $publicationRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger, ValidatorInterface $validator): Response
+    public function edit(int $id, Request $request, PublicationRepository $publicationRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger, ValidatorInterface $validator, ImageKitStorageService $imageStorage, DiscordWebhookService $discordWebhook): Response
     {
         $publication = $publicationRepository->find($id);
         $isAjax = $request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
@@ -237,11 +259,13 @@ class ForumController extends AbstractController
             $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
             try {
-                $imageFile->move(
+                $publication->setImagePub($imageStorage->storeUploadedFile(
+                    $imageFile,
                     $this->getParameter('publications_directory'),
+                    'forum_images',
+                    '/syndicati/forum_images',
                     $newFilename
-                );
-                $publication->setImagePub($newFilename);
+                ));
             } catch (\Exception $e) {
                 if ($isAjax)
                     return $this->json(['success' => false, 'message' => 'Failed to upload image.'], 500);
@@ -249,6 +273,7 @@ class ForumController extends AbstractController
         }
 
         $entityManager->flush();
+        $discordWebhook->announceJeuxVideo($publication, true);
 
         if ($isAjax) {
             return $this->json(['success' => true, 'message' => 'Post updated successfully!']);
@@ -261,7 +286,7 @@ class ForumController extends AbstractController
     public function ajaxList(Request $request, PublicationRepository $publicationRepository, EntityManagerInterface $entityManager): Response
     {
         $category = $request->query->get('category', 'General');
-        $publications = $publicationRepository->findByCategory($category);
+        $publications = $publicationRepository->findByCategory($category, 36);
 
         // Fetch profiles
         $authorIds = [];
@@ -287,6 +312,27 @@ class ForumController extends AbstractController
         return $this->render('frontend/forum/_ajax_list.html.twig', [
             'publications' => $publications,
             'author_profiles' => $profiles,
+        ]);
+    }
+
+    #[Route('/forum/feeling/publication/{id}', name: 'frontend_forum_feeling_publication', methods: ['POST'])]
+    public function feelingPublication(int $id, PublicationRepository $publicationRepository, DirectAiClient $ai): JsonResponse
+    {
+        $publication = $publicationRepository->find($id);
+        if (!$publication) {
+            return $this->json(['success' => false, 'message' => 'Post not found.'], 404);
+        }
+
+        $text = trim(sprintf(
+            "Title: %s\nCategory: %s\nContent: %s",
+            $publication->getTitrePub() ?? '',
+            $publication->getCategoriePub() ?? '',
+            $publication->getDescriptionPub() ?? ''
+        ));
+
+        return $this->json([
+            'success' => true,
+            'feeling' => $ai->analyzeFeeling($text),
         ]);
     }
 

@@ -12,6 +12,9 @@ use App\Entity\Forum\Reaction;
 use App\Form\Forum\ReactionType;
 use App\Repository\Forum\ReactionRepository;
 use App\Service\PageStatusService;
+use App\Service\Media\ImageKitStorageService;
+use App\Service\Media\ImagePathResolver;
+use App\Service\Forum\DiscordWebhookService;
 use App\Entity\User\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,7 +34,10 @@ class PublicationController extends AbstractController
     use FormErrorHelperTrait;
     public function __construct(
         private readonly UserStandingService $userStandingService,
-        private readonly \App\Service\User\NotificationService $notifService
+        private readonly \App\Service\User\NotificationService $notifService,
+        private readonly ImageKitStorageService $imageStorage,
+        private readonly ImagePathResolver $imagePathResolver,
+        private readonly DiscordWebhookService $discordWebhook
     ) {
     }
     #[Route('/', name: 'app_publication_index', methods: ['GET'])]
@@ -103,8 +109,13 @@ class PublicationController extends AbstractController
                 $safeFilename = $slugger->slug($originalFilename);
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
                 try {
-                    $imageFile->move($this->getParameter('publications_directory'), $newFilename);
-                    $publication->setImagePub($newFilename);
+                    $publication->setImagePub($this->imageStorage->storeUploadedFile(
+                        $imageFile,
+                        $this->getParameter('publications_directory'),
+                        'forum_images',
+                        '/syndicati/forum_images',
+                        $newFilename
+                    ));
                 } catch (\Exception $e) {
                 }
             }
@@ -132,6 +143,7 @@ class PublicationController extends AbstractController
             if ($publication->getCategoriePub() === 'Announcement') {
                 $notificationService->notifyNewAnnouncement($publication);
             }
+            $this->discordWebhook->announceJeuxVideo($publication, false);
 
             return new JsonResponse([
                 'success' => true,
@@ -142,7 +154,7 @@ class PublicationController extends AbstractController
                     'content' => $publication->getDescriptionPub(),
                     'date' => $publication->getDateCreationPub()->format('Y-m-d H:i'),
                     'author' => $user->getEmailUser(),
-                    'image' => $publication->getImagePub() ? '/uploads/publications/' . $publication->getImagePub() : null
+                    'image' => $this->imagePathResolver->publicUrl($publication->getImagePub(), 'forum_images')
                 ]
             ]);
         }
@@ -173,12 +185,18 @@ class PublicationController extends AbstractController
                 $safeFilename = $slugger->slug($originalFilename);
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
                 try {
-                    $imageFile->move($this->getParameter('publications_directory'), $newFilename);
-                    $publication->setImagePub($newFilename);
+                    $publication->setImagePub($this->imageStorage->storeUploadedFile(
+                        $imageFile,
+                        $this->getParameter('publications_directory'),
+                        'forum_images',
+                        '/syndicati/forum_images',
+                        $newFilename
+                    ));
                 } catch (\Exception $e) {
                 }
             }
             $em->flush();
+            $this->discordWebhook->announceJeuxVideo($publication, true);
 
             $user = $this->getUser();
             if ($user) {
@@ -199,7 +217,7 @@ class PublicationController extends AbstractController
                     'id' => $publication->getId(),
                     'title' => $publication->getTitrePub(),
                     'content' => $publication->getDescriptionPub(),
-                    'image' => $publication->getImagePub() ? '/uploads/publications/' . $publication->getImagePub() : null
+                    'image' => $this->imagePathResolver->publicUrl($publication->getImagePub(), 'forum_images')
                 ]
             ]);
         }
@@ -225,8 +243,13 @@ class PublicationController extends AbstractController
                 $safeFilename = $slugger->slug($originalFilename);
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
                 try {
-                    $imageFile->move($this->getParameter('commentaire_images_directory'), $newFilename);
-                    $comment->setImageCommentaire($newFilename);
+                    $comment->setImageCommentaire($this->imageStorage->storeUploadedFile(
+                        $imageFile,
+                        $this->getParameter('commentaire_images_directory'),
+                        'commentaire_images',
+                        '/syndicati/commentaire_images',
+                        $newFilename
+                    ));
                 } catch (\Exception $e) {
                 }
             }
@@ -239,7 +262,7 @@ class PublicationController extends AbstractController
                 'comment' => [
                     'id' => $comment->getIdCommentaire(),
                     'content' => $comment->getDescriptionCommentaire(),
-                    'image' => $comment->getImageCommentaire() ? '/uploads/comments/' . $comment->getImageCommentaire() : null
+                    'image' => $this->imagePathResolver->publicUrl($comment->getImageCommentaire(), 'commentaire_images')
                 ]
             ]);
         }
@@ -319,11 +342,13 @@ class PublicationController extends AbstractController
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
                 try {
-                    $imageFile->move(
+                    $publication->setImagePub($this->imageStorage->storeUploadedFile(
+                        $imageFile,
                         $this->getParameter('publications_directory'),
+                        'forum_images',
+                        '/syndicati/forum_images',
                         $newFilename
-                    );
-                    $publication->setImagePub($newFilename);
+                    ));
                 } catch (\Exception $e) {
                 }
             }
@@ -350,6 +375,7 @@ class PublicationController extends AbstractController
             if ($publication->getCategoriePub() === 'Announcement') {
                 $notificationService->notifyNewAnnouncement($publication);
             }
+            $this->discordWebhook->announceJeuxVideo($publication, false);
 
             return new JsonResponse([
                 'success' => true,
@@ -379,16 +405,19 @@ class PublicationController extends AbstractController
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
                 try {
-                    $imageFile->move(
+                    $publication->setImagePub($this->imageStorage->storeUploadedFile(
+                        $imageFile,
                         $this->getParameter('publications_directory'),
+                        'forum_images',
+                        '/syndicati/forum_images',
                         $newFilename
-                    );
-                    $publication->setImagePub($newFilename);
+                    ));
                 } catch (\Exception $e) {
                 }
             }
 
             $entityManager->flush();
+            $this->discordWebhook->announceJeuxVideo($publication, true);
 
             return new JsonResponse([
                 'success' => true,

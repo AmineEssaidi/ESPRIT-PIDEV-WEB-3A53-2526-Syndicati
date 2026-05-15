@@ -3,7 +3,7 @@
  * Handles real-time input validation and mapping AJAX errors to field placeholders.
  */
 
-class FormValidator {
+window.FormValidator = window.FormValidator || class FormValidator {
     constructor(formId, config = {}) {
         this.form = (typeof formId === 'string') ? document.getElementById(formId) : formId;
         if (!this.form) return;
@@ -148,11 +148,7 @@ class FormValidator {
 
     mapErrors(errors) {
         // Clear all previous feedbacks
-        this.form.querySelectorAll(this.config.validationContainerSelector).forEach(el => {
-            el.textContent = '';
-            el.classList.remove(this.config.activeClass, this.config.errorClass, this.config.successClass);
-        });
-        this.form.querySelectorAll('.' + this.config.inputErrorClass).forEach(el => el.classList.remove(this.config.inputErrorClass));
+        this.clearErrors();
 
         for (const [fieldName, message] of Object.entries(errors)) {
             const input = this.form.querySelector(`[name*="[${fieldName}]"]`) ||
@@ -165,11 +161,23 @@ class FormValidator {
             }
         }
     }
-}
+
+    clearErrors() {
+        if (!this.form) return;
+
+        this.form.querySelectorAll(this.config.validationContainerSelector).forEach(el => {
+            el.textContent = '';
+            el.classList.remove(this.config.activeClass, this.config.errorClass, this.config.successClass);
+        });
+
+        this.form.querySelectorAll('.' + this.config.inputErrorClass).forEach(el => el.classList.remove(this.config.inputErrorClass));
+        this.form.querySelectorAll('.' + this.config.inputSuccessClass).forEach(el => el.classList.remove(this.config.inputSuccessClass));
+    }
+};
 
 // Global initialization helper
 window.initRealTimeValidation = function (formId, customRules = {}) {
-    const validator = new FormValidator(formId);
+    const validator = new window.FormValidator(formId);
     if (validator.form) {
         validator.rules = Object.assign(validator.rules, customRules);
     }
@@ -181,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const initAllAjaxForms = () => {
         document.querySelectorAll('form[data-ajax="true"]').forEach(form => {
             if (!form.validator) {
-                form.validator = new FormValidator(form);
+                form.validator = new window.FormValidator(form);
             }
         });
     };
@@ -194,10 +202,10 @@ document.addEventListener('DOMContentLoaded', () => {
             mutation.addedNodes.forEach(node => {
                 if (node.nodeType === 1) {
                     if (node.tagName === 'FORM' && node.getAttribute('data-ajax') === 'true') {
-                        if (!node.validator) node.validator = new FormValidator(node);
+                        if (!node.validator) node.validator = new window.FormValidator(node);
                     } else {
                         node.querySelectorAll('form[data-ajax="true"]').forEach(form => {
-                            if (!form.validator) form.validator = new FormValidator(form);
+                            if (!form.validator) form.validator = new window.FormValidator(form);
                         });
                     }
                 }

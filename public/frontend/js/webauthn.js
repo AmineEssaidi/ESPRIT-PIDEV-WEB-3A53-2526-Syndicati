@@ -163,7 +163,7 @@ const WebAuthn = (function () {
 
             const verifyJson = await verifyResponse.json();
             if (verifyResponse.ok && verifyJson.status === 'ok') {
-                return true;
+                return verifyJson;
             } else {
                 throw new Error(verifyJson.error || 'Authentication failed');
             }

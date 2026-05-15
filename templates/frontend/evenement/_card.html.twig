@@ -2,6 +2,8 @@
      class="event-card glass-switcher style-slide"
      data-lieu="{{ evenement.lieuEvent }}"
      data-date="{{ evenement.dateEvent|date('Y-m-d') }}"
+     data-title="{{ evenement.titreEvent|lower|e('html_attr') }}"
+     data-type="{{ evenement.typeEvent|lower|e('html_attr') }}"
      data-event-id="{{ evenement.id }}">
     <!-- FACE 1: MAIN CARD -->
     <div class="glass-switcher-face glass-switcher-face-main">
@@ -9,7 +11,7 @@
             <span class="event-type-tag">{{ evenement.typeEvent }}</span>
             <div class="event-card-image-overlay"></div>
             {% if evenement.imageEvent %}
-                <img src="{{ asset('event_images/' ~ evenement.imageEvent) }}" alt="{{ evenement.titreEvent }}" loading="lazy">
+                <img src="{{ media_url(evenement.imageEvent, 'event_images') }}" alt="{{ evenement.titreEvent }}" loading="lazy">
             {% else %}
                 <div style="width: 100%; height: 100%; background: var(--event-gradient);"></div>
             {% endif %}
@@ -29,7 +31,7 @@
                     <span class="avail-count">{{ evenement.nbRestants ?? 0 }}</span>
                     <span class="avail-label">Places Left</span>
                 </div>
-                <div class="btn-event-action" 
+                <div class="btn-event-action view-event-details" 
                    style="cursor: pointer;"
                    onclick="switchGlassCard('evenementCardSwitcher_{{ evenement.id }}', 'details')">
                     View Details
@@ -54,7 +56,7 @@
                 <!-- Internal Image -->
                 <div class="event-details-image mb-3">
                     {% if evenement.imageEvent %}
-                        <img src="{{ asset('event_images/' ~ evenement.imageEvent) }}" alt="{{ evenement.titreEvent }}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 16px;">
+                        <img src="{{ media_url(evenement.imageEvent, 'event_images') }}" alt="{{ evenement.titreEvent }}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 16px;">
                     {% else %}
                         <div style="width: 100%; height: 160px; background: var(--event-gradient); border-radius: 16px;"></div>
                     {% endif %}
@@ -123,6 +125,16 @@
                 <div class="glass-description-text" style="font-size: 0.95rem; opacity: 0.6; padding: 1.5rem; background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 2rem;">
                     {{ evenement.descriptionEvent }}
                 </div>
+
+                <div class="event-share-strip">
+                    <span>Share with friends</span>
+                    <button type="button" class="event-mini-action" onclick="shareEvent('facebook', '{{ evenement.titreEvent|e('js') }}', '{{ evenement.descriptionEvent|e('js') }}', '{{ evenement.lieuEvent|e('js') }}', '{{ evenement.dateEvent|date('Y-m-d H:i')|e('js') }}')">
+                        <i class='bx bxl-facebook'></i> Facebook
+                    </button>
+                    <button type="button" class="event-mini-action" onclick="shareEvent('whatsapp', '{{ evenement.titreEvent|e('js') }}', '{{ evenement.descriptionEvent|e('js') }}', '{{ evenement.lieuEvent|e('js') }}', '{{ evenement.dateEvent|date('Y-m-d H:i')|e('js') }}')">
+                        <i class='bx bxl-whatsapp'></i> WhatsApp
+                    </button>
+                </div>
             </div>
 
             <div class="mt-auto pt-3 border-top border-white-10">
@@ -136,6 +148,13 @@
                         <button class="main-home-btn-auth-submit w-100 disabled" style="margin: 0; filter: grayscale(1); opacity: 0.5; pointer-events: none;">
                             Full Capacity
                         </button>
+                    {% endif %}
+
+                    {% set participationId = participationIdsByEvent[evenement.id]|default(null) %}
+                    {% if participationId %}
+                        <a href="{{ path('app_participation_ticket', {'id': participationId}) }}" class="event-ticket-link" download>
+                            <i class='bx bxs-file-pdf'></i> Download Ticket
+                        </a>
                     {% endif %}
 
                     {% set authorId = evenement.user.idUser|default(evenement.user.id|default('')) %}

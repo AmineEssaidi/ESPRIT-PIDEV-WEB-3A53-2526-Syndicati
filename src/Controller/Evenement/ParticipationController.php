@@ -15,6 +15,9 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use App\Service\FormErrorHelperTrait;
 use App\Service\User\NotificationService;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use Endroid\QrCode\Builder\Builder;
 
 #[Route('/participation')]
 class ParticipationController extends AbstractController
@@ -135,7 +138,11 @@ class ParticipationController extends AbstractController
                 }
 
                 if ($isAjax) {
-                    return new JsonResponse(['success' => true, 'message' => 'Your participation request has been sent!']);
+                    return new JsonResponse([
+                        'success' => true,
+                        'message' => 'Your participation request has been sent!',
+                        'ticketUrl' => $this->generateUrl('app_participation_ticket', ['id' => $participation->getId()]),
+                    ]);
                 }
                 return $this->redirectToRoute('app_evenement_index');
             }
@@ -156,5 +163,76 @@ class ParticipationController extends AbstractController
             }
             throw $e;
         }
+    }
+
+    #[Route('/ticket/{id}', name: 'app_participation_ticket', methods: ['GET'])]
+    public function ticket(
+        int $id,
+        Request $request,
+        \App\Repository\Evenement\ParticipationRepository $participationRepository,
+        UserRepository $userRepository
+    ): Response {
+        $participation = $participationRepository->find($id);
+        if (!$participation) {
+            throw $this->createNotFoundException('Participation not found.');
+        }
+
+        $currentUser = $this->resolveUser($request, $userRepository);
+        $owner = $participation->getUser();
+        $sessionUser = $request->getSession()->get('user');
+        $sessionRole = is_array($sessionUser) ? ($sessionUser['role'] ?? $sessionUser['role_user'] ?? null) : null;
+        if (!$sessionRole && $currentUser && method_exists($currentUser, 'getRoleUser')) {
+            $sessionRole = $currentUser->getRoleUser();
+        }
+        $moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC', 'ROLE_ADMIN'];
+        $isOwner = $currentUser && $owner && $currentUser->getIdUser() === $owner->getIdUser();
+        $isModerator = $sessionRole && in_array($sessionRole, $moderatorRoles, true);
+
+        if (!$isOwner && !$isModerator) {
+            return new JsonResponse(['success' => false, 'message' => 'Unauthorized ticket access.'], 403);
+        }
+
+        $event = $participation->getEvenement();
+        $qrPayload = sprintf(
+            'SYNDICATI-PART-%s-%s',
+            $participation->getId(),
+            $owner ? $owner->getIdUser() : 'GUEST'
+        );
+        $qrDataUri = (new Builder())->build(data: $qrPayload, size: 160, margin: 8)->getDataUri();
+
+        $html = $this->renderView('frontend/evenement/ticket_pdf.html.twig', [
+            'participation' => $participation,
+            'evenement' => $event,
+            'user' => $owner,
+            'qrDataUri' => $qrDataUri,
+            'qrPayload' => $qrPayload,
+        ]);
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A6', 'portrait');
+        $dompdf->render();
+
+        $fileName = sprintf('Ticket_%s_%d.pdf', preg_replace('/[^A-Za-z0-9]+/', '_', $event?->getTitreEvent() ?? 'event'), $participation->getId());
+
+        return new Response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
+
+    private function resolveUser(Request $request, UserRepository $userRepository): ?\App\Entity\User\User
+    {
+        $user = $this->getUser();
+        if ($user instanceof \App\Entity\User\User) {
+            return $user;
+        }
+
+        $sessionUser = $request->getSession()->get('user');
+        $userId = is_array($sessionUser) ? ($sessionUser['id_user'] ?? $sessionUser['id'] ?? null) : null;
+
+        return $userId ? $userRepository->find($userId) : null;
     }
 }

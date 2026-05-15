@@ -6,13 +6,50 @@
 (function () {
     'use strict';
 
-    const LOADER_DURATION = 400; // 0.4 seconds
+    const LOADER_DURATION = 120;
     const loader = document.getElementById('pageLoader');
 
     if (!loader) return;
+    let cinematicTimers = [];
+
+    function clearCinematicTimers() {
+        cinematicTimers.forEach(clearTimeout);
+        cinematicTimers = [];
+    }
+
+    function ensureCinematicShell() {
+        let content = loader.querySelector('.loader-content');
+        if (!content) {
+            content = document.createElement('div');
+            content.className = 'loader-content';
+            loader.appendChild(content);
+        }
+        if (content.querySelector('.loader-cinematic-title')) return content;
+        content.innerHTML = `
+            <div class="loader-cinematic-orbit" aria-hidden="true"></div>
+            <div class="loader-cinematic-title">Syndicati</div>
+            <div class="loader-cinematic-subtitle">Preparing workspace...</div>
+            <div class="loader-cinematic-track"><div class="loader-cinematic-fill"></div></div>
+        `;
+        return content;
+    }
 
     // Function to show the loader immediately
-    function showLoader() {
+    function showLoader(options = {}) {
+        clearCinematicTimers();
+        if (options.cinematic) {
+            loader.classList.add('cinematic');
+            const content = ensureCinematicShell();
+            const subtitle = content.querySelector('.loader-cinematic-subtitle');
+            const fill = content.querySelector('.loader-cinematic-fill');
+            const steps = options.steps || ['Recovering session...', 'Syncing profile...', 'Warming workspace...', 'Ready.'];
+            steps.forEach((step, index) => {
+                cinematicTimers.push(setTimeout(() => {
+                    if (subtitle) subtitle.textContent = step;
+                    if (fill) fill.style.width = `${Math.min(96, 22 + ((index + 1) / steps.length) * 74)}%`;
+                }, index * (options.stepDelay || 420)));
+            });
+        }
         loader.classList.remove('fade-out');
         loader.classList.add('active');
         // Force browser to paint immediately
@@ -21,6 +58,7 @@
 
     // Function to hide the loader
     function hideLoader() {
+        clearCinematicTimers();
         loader.classList.add('fade-out');
         setTimeout(() => {
             loader.classList.remove('active', 'fade-out');
@@ -30,7 +68,11 @@
     // Function to navigate after loader is visible
     function navigateWithLoader(url) {
         // Show loader first
-        showLoader();
+        showLoader({
+            cinematic: true,
+            steps: ['Leaving current view...', 'Keeping session alive...', 'Loading destination...', 'Almost there...'],
+            stepDelay: 160
+        });
 
         // Use requestAnimationFrame to ensure loader is rendered before navigating
         requestAnimationFrame(() => {
@@ -91,6 +133,35 @@
         navigateWithLoader(href);
     }, true); // Use capture phase to intercept early
 
+    window.HorizonCinematic = {
+        show: (options = {}) => showLoader(Object.assign({ cinematic: true }, options)),
+        hide: hideLoader,
+        navigate: function (url, options = {}) {
+            showLoader(Object.assign({ cinematic: true }, options));
+            const delay = options.delay || Math.max(900, ((options.steps || []).length || 3) * 360);
+            setTimeout(() => { window.location.href = url; }, delay);
+        },
+        recover: async function (options = {}) {
+            showLoader(Object.assign({
+                cinematic: true,
+                steps: ['Recovering session...', 'Checking identity...', 'Syncing live data...', 'Opening workspace...']
+            }, options));
+            try {
+                await fetch('/api/session/status', {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                    credentials: 'same-origin',
+                    cache: 'no-store'
+                });
+            } catch (e) {}
+            if (options.redirect) {
+                setTimeout(() => { window.location.href = options.redirect; }, options.delay || 650);
+            } else {
+                setTimeout(hideLoader, options.delay || 500);
+            }
+        }
+    };
+
     // Handle form submissions
     document.addEventListener('submit', function (e) {
         const form = e.target;
@@ -111,7 +182,11 @@
             if (action.indexOf('sign-in') !== -1) return;
         } catch (err) { }
 
-        showLoader();
+        showLoader({
+            cinematic: true,
+            steps: ['Submitting securely...', 'Keeping session alive...', 'Refreshing data...'],
+            stepDelay: 180
+        });
     }, true);
 
     // Handle browser back/forward buttons
@@ -126,6 +201,26 @@
     window.addEventListener('load', function () {
         hideLoader();
     });
+
+    if (document.body && document.body.dataset.userInfo === 'true') {
+        window.setTimeout(() => {
+            fetch('/api/session/status', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                credentials: 'same-origin',
+                cache: 'no-store'
+            }).catch(() => {});
+        }, 1200);
+        window.setInterval(() => {
+            if (document.hidden) return;
+            fetch('/api/session/status', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                credentials: 'same-origin',
+                cache: 'no-store'
+            }).catch(() => {});
+        }, 240000);
+    }
 
     // Also hide on DOMContentLoaded as backup
     if (document.readyState === 'loading') {

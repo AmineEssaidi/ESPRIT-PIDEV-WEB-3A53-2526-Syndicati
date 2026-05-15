@@ -32,14 +32,32 @@ class ActivityListener implements EventSubscriberInterface
 
         $request = $event->getRequest();
         $route = $request->attributes->get('_route');
+        $path = $request->getPathInfo();
 
-        // Skip profiler, toolbar, and activity log endpoint itself
+        // Skip profiler, toolbar, API/AJAX polling, and asset-like requests.
         if (
             $route && (
                 str_starts_with($route, '_wdt') ||
                 str_starts_with($route, '_profiler') ||
-                $route === 'activity_log'
+                $route === 'activity_log' ||
+                $route === 'api_log_event' ||
+                $route === 'admin_dashboard_live' ||
+                str_starts_with($route, 'api_') ||
+                str_contains($route, '_status') ||
+                str_contains($route, '_live') ||
+                str_contains($route, 'notification') ||
+                str_contains($route, 'messaging')
             )
+        ) {
+            return;
+        }
+
+        if (
+            $request->isXmlHttpRequest() ||
+            str_starts_with($path, '/api/') ||
+            str_contains($path, '/live') ||
+            str_contains($path, '/status') ||
+            preg_match('#\.(?:css|js|map|png|jpe?g|webp|gif|svg|ico|woff2?|ttf|mp4|webm|json)$#i', $path)
         ) {
             return;
         }

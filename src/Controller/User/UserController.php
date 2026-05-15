@@ -14,6 +14,8 @@ use App\Repository\UserRelationship\UserRelationshipRepository;
 use App\Repository\Syndicat\ReclamationRepository;
 use App\Service\PageStatusService;
 use App\Service\UserStanding\UserStandingService;
+use App\Service\Log\UserActivityLogger;
+use App\Service\Media\ImageKitStorageService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -37,7 +39,8 @@ class UserController extends AbstractController
     public function __construct(
         private readonly CacheInterface $cache,
         private readonly UserStandingService $userStandingService,
-        private readonly \App\Service\User\NotificationService $notifService
+        private readonly \App\Service\User\NotificationService $notifService,
+        private readonly ImageKitStorageService $imageStorage
     ) {
     }
 
@@ -153,6 +156,7 @@ class UserController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         HttpClientInterface $httpClient,
         TwoFactorService $twoFactorService,
+        UserActivityLogger $activityLogger,
         EntityManagerInterface $em,
         #[Autowire(param: 'hcaptcha_site_key')]
         string $hcaptchaSiteKey = '',
@@ -228,6 +232,7 @@ class UserController extends AbstractController
             $email = trim((string) $request->request->get('email'));
             $password = $request->request->get('password');
             $lastEmail = $email;
+            $user = null;
 
             // Require hCaptcha verification when keys are configured
             if ($hcaptchaSecretKey !== '' && $hcaptchaSiteKey !== '') {
@@ -263,6 +268,10 @@ class UserController extends AbstractController
                                 // Authenticator app: set session and either return JSON (AJAX) or render with popup
                                 $session->set('2fa_user_id', $user->getIdUser());
                                 $session->set('2fa_email', $user->getEmailUser());
+                                $activityLogger->logAuthAction('LOGIN_CHALLENGE', 'SUCCESS', 'Password accepted; authenticator app verification required.', [
+                                    'method' => 'password_totp',
+                                    'email' => $email,
+                                ], $user);
                                 if ($isAjax) {
                                     return $this->json(['success' => true, 'requireTotp' => true]);
                                 }
@@ -277,6 +286,10 @@ class UserController extends AbstractController
                             $twoFactorService->sendCode($user);
                             $session->set('2fa_user_id', $user->getIdUser());
                             $session->set('2fa_email', $user->getEmailUser());
+                            $activityLogger->logAuthAction('LOGIN_CHALLENGE', 'SUCCESS', 'Password accepted; email OTP verification required.', [
+                                'method' => 'password_email_otp',
+                                'email' => $email,
+                            ], $user);
                             if ($isAjax) {
                                 return $this->json(['success' => true, 'requireEmailOtp' => true]);
                             }
@@ -314,6 +327,11 @@ class UserController extends AbstractController
                                 $redirectUrl = $this->generateUrl('auth_sign_in', ['destination' => 'choice']);
                             }
                         }
+                        $activityLogger->logAuthAction('LOGIN', 'SUCCESS', 'User signed in with password.', [
+                            'method' => 'password',
+                            'destination' => $redirectUrl,
+                            'email' => $email,
+                        ], $user);
                         if ($isAjax) {
                             return $this->json(['success' => true, 'redirect' => $redirectUrl]);
                         }
@@ -335,6 +353,13 @@ class UserController extends AbstractController
                 }
             } elseif ($error === null) {
                 $error = 'Please enter your email and password.';
+            }
+
+            if ($error !== null) {
+                $activityLogger->logAuthAction('LOGIN', 'FAILURE', $error, [
+                    'method' => 'password',
+                    'email' => $lastEmail,
+                ], $user);
             }
 
             if ($isAjax) {
@@ -404,11 +429,13 @@ class UserController extends AbstractController
         \App\Repository\Evenement\EvenementRepository $evenementRepository,
         \App\Repository\Residence\AppartementRepository $appartementRepository,
         \App\Repository\OAuth\OAuthRepository $oauthRepository,
+        \App\Repository\Log\AppEventLogRepository $appEventLogRepository,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $em,
         SluggerInterface $slugger,
         \App\Repository\UserStanding\UserStandingRepository $userStandingRepository,
         \App\Repository\UserRelationship\UserRelationshipRepository $userRelationshipRepository,
+        HttpClientInterface $httpClient,
         #[\Symfony\Component\DependencyInjection\Attribute\Autowire(param: 'mailer_oauth_user_id')]
         int $mailerOauthUserId = 0
     ): Response {
@@ -443,6 +470,9 @@ class UserController extends AbstractController
 
         $gmailOauthConnected = $oauthRepository->findOneByUserId($userId) !== null;
         $isMailerOauthUser = $mailerOauthUserId > 0 && $userId === $mailerOauthUserId;
+        $profileActivityLogs = $appEventLogRepository->findLatestByUser($userId, 14);
+        $profileSecurityLogs = $appEventLogRepository->findSecurityByUser($userId, 10);
+        $profileSecuritySummary = $appEventLogRepository->getUserSecuritySummary($userId);
 
         $profile = $profileRepository->findOneByUser($user);
         if (!$profile) {
@@ -507,23 +537,29 @@ class UserController extends AbstractController
         $profileForm = $this->createForm(ProfileType::class, $profile);
         $profileForm->handleRequest($request);
         if ($profileForm->isSubmitted() && $profileForm->isValid()) {
-            /** @var UploadedFile|null $avatarFile */
-            $avatarFile = $profileForm->get('avatarFile')->getData();
-            if ($avatarFile) {
-                $originalFilename = pathinfo($avatarFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = 'avatar_' . $userId . '_' . uniqid() . '.' . $avatarFile->guessExtension();
-                $targetDir = $this->getParameter('kernel.project_dir') . '/public/profile_images';
+            $avatarSource = (string) $request->request->get('avatar_source', 'upload');
+            $avatarPrompt = trim((string) $request->request->get('avatar_prompt', ''));
 
-                try {
-                    $avatarFile->move($targetDir, $newFilename);
-                    $profile->setAvatar('profile_images/' . $newFilename);
+            try {
+                if ($avatarSource === 'generate') {
+                    $generatedAvatar = $this->generateProfileAvatarFromPrompt($httpClient, $avatarPrompt, $userId);
+                    $profile->setAvatar($generatedAvatar);
                     $userData = $session->get('user', []);
-                    $userData['avatar'] = 'profile_images/' . $newFilename;
+                    $userData['avatar'] = $generatedAvatar;
                     $session->set('user', $userData);
-                } catch (FileException $e) {
-                    $this->addFlash('danger', 'Failed to upload avatar.');
+                } else {
+                    /** @var UploadedFile|null $avatarFile */
+                    $avatarFile = $profileForm->get('avatarFile')->getData();
+                    if ($avatarFile) {
+                        $storedAvatar = $this->storeProfileAvatarFile($avatarFile, $userId);
+                        $profile->setAvatar($storedAvatar);
+                        $userData = $session->get('user', []);
+                        $userData['avatar'] = $storedAvatar;
+                        $session->set('user', $userData);
+                    }
                 }
+            } catch (\Throwable $e) {
+                $this->addFlash('danger', $e->getMessage());
             }
 
             $currentPassword = $profileForm->get('currentPassword')->getData();
@@ -564,9 +600,9 @@ class UserController extends AbstractController
 
         $isAdmin = in_array($user->getRoleUser(), ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC']);
         if ($isAdmin) {
-            $reclamations = $reclamationRepository->findBy([], ['created_at' => 'DESC']);
+            $reclamations = $reclamationRepository->findBy([], ['created_at' => 'DESC'], 24);
         } else {
-            $reclamations = $reclamationRepository->findBy(['user' => $user], ['created_at' => 'DESC']);
+            $reclamations = $reclamationRepository->findBy(['user' => $user], ['created_at' => 'DESC'], 24);
         }
 
         $publicDir = $this->getParameter('kernel.project_dir') . '/public/reclamation_images/';
@@ -577,17 +613,14 @@ class UserController extends AbstractController
             $rec->decodedImages = $this->cache->get($cacheKey, function (ItemInterface $item) use ($rec, $publicDir) {
                 $item->expiresAfter(604800);
                 $imgStr = $rec->getImagereclamation();
-                $detectedFolders = [];
                 if ($imgStr) {
                     $jsonDecoded = json_decode($imgStr, true);
-                    if (is_array($jsonDecoded) && !empty($jsonDecoded)) {
-                        foreach ($jsonDecoded as $path) {
-                            $parts = explode('/', str_replace('\\', '/', $path));
-                            if (count($parts) > 1) {
-                                $detectedFolders[] = $parts[0];
-                            }
-                        }
+                    if (is_array($jsonDecoded)) {
+                        return array_values(array_filter($jsonDecoded, static fn ($path) => is_string($path) && $path !== ''));
                     }
+                }
+                $detectedFolders = [];
+                if ($imgStr) {
                     preg_match_all('/([a-zA-Z0-9_\-\.]+_[0-9\-\_]{10,20})/', $imgStr, $matches);
                     if (!empty($matches[0])) {
                         $detectedFolders = array_merge($detectedFolders, $matches[0]);
@@ -639,17 +672,17 @@ class UserController extends AbstractController
         }
 
         if ($isAdmin) {
-            $publications = $publicationRepository->findAllLatest();
-            $commentaires = $commentaireRepository->findBy([], ['created_at' => 'DESC']);
-            $reactions = $reactionRepository->findBy([], ['created_at' => 'DESC']);
-            $events = $evenementRepository->findAllWithUser();
-            $appartements = $appartementRepository->findAll();
+            $publications = $publicationRepository->findBy([], ['date_creation_pub' => 'DESC'], 24);
+            $commentaires = $commentaireRepository->findBy([], ['created_at' => 'DESC'], 24);
+            $reactions = $reactionRepository->findBy([], ['created_at' => 'DESC'], 48);
+            $events = $evenementRepository->findBy([], ['date_event' => 'DESC'], 24);
+            $appartements = $appartementRepository->findBy([], [], 24);
         } else {
-            $publications = $publicationRepository->findBy(['user' => $user], ['date_creation_pub' => 'DESC']);
-            $commentaires = $commentaireRepository->findBy(['user' => $user], ['created_at' => 'DESC']);
-            $reactions = $reactionRepository->findBy(['user' => $user], ['created_at' => 'DESC']);
-            $events = $evenementRepository->findBy(['user' => $user], ['date_event' => 'DESC']);
-            $appartements = $appartementRepository->findBy(['user' => $user]);
+            $publications = $publicationRepository->findBy(['user' => $user], ['date_creation_pub' => 'DESC'], 24);
+            $commentaires = $commentaireRepository->findBy(['user' => $user], ['created_at' => 'DESC'], 24);
+            $reactions = $reactionRepository->findBy(['user' => $user], ['created_at' => 'DESC'], 48);
+            $events = $evenementRepository->findBy(['user' => $user], ['date_event' => 'DESC'], 24);
+            $appartements = $appartementRepository->findBy(['user' => $user], [], 24);
         }
 
         $response = $this->render('frontend/profile/profile.html.twig', [
@@ -676,6 +709,9 @@ class UserController extends AbstractController
             'pendingRequests' => $pendingRequests,
             'friendAvatarMap' => $friendAvatarMap,
             'pendingAvatarMap' => $pendingAvatarMap,
+            'profileActivityLogs' => $profileActivityLogs,
+            'profileSecurityLogs' => $profileSecurityLogs,
+            'profileSecuritySummary' => $profileSecuritySummary,
         ]);
         $response->setPrivate();
         $response->setMaxAge(0);
@@ -752,7 +788,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/profile/avatar-upload', name: 'frontend_profile_avatar_upload', methods: ['POST'])]
-    public function profileAvatarUpload(Request $request, UserRepository $userRepository, ProfileRepository $profileRepository, EntityManagerInterface $em, #[Autowire('%kernel.project_dir%')] string $projectDir): Response
+    public function profileAvatarUpload(Request $request, UserRepository $userRepository, ProfileRepository $profileRepository, EntityManagerInterface $em, HttpClientInterface $httpClient): Response
     {
         $session = $request->getSession();
         if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
@@ -782,39 +818,36 @@ class UserController extends AbstractController
             return $this->redirectToRoute('frontend_profile');
         }
 
-        /** @var UploadedFile|null $file */
-        $file = $request->files->get('avatar_file');
-        if (!$file || !$file->isValid()) {
-            $this->addFlash('danger', 'Please choose a valid image file.');
-            return $this->redirectToRoute('frontend_profile');
-        }
-
-        $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (!\in_array($file->getMimeType(), $allowed, true)) {
-            $this->addFlash('danger', 'Only JPEG, PNG, GIF and WebP images are allowed.');
-            return $this->redirectToRoute('frontend_profile');
-        }
-
-        $ext = $file->guessExtension() ?: pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION) ?: 'jpg';
-        $safeExt = \in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif', 'webp'], true) ? strtolower($ext) : 'jpg';
-        $filename = 'avatar_' . $userId . '_' . uniqid('', true) . '.' . $safeExt;
-        $dir = $projectDir . '/public/profile_images';
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
+        $avatarSource = (string) $request->request->get('avatar_source', 'upload');
+        $avatarPrompt = trim((string) $request->request->get('avatar_prompt', ''));
 
         try {
-            $file->move($dir, $filename);
-        } catch (FileException $e) {
-            $this->addFlash('danger', 'Could not save the image. Please try again.');
+            if ($avatarSource === 'generate') {
+                $avatarPath = $this->generateProfileAvatarFromPrompt($httpClient, $avatarPrompt, $userId);
+            } else {
+                /** @var UploadedFile|null $file */
+                $file = $request->files->get('avatar_file');
+                if (!$file || !$file->isValid()) {
+                    throw new \RuntimeException('Please choose a valid image file.');
+                }
+
+                $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (!\in_array($file->getMimeType(), $allowed, true)) {
+                    throw new \RuntimeException('Only JPEG, PNG, GIF and WebP images are allowed.');
+                }
+
+                $avatarPath = $this->storeProfileAvatarFile($file, $userId);
+            }
+        } catch (\Throwable $e) {
+            $this->addFlash('danger', $e->getMessage());
             return $this->redirectToRoute('frontend_profile');
         }
 
-        $profile->setAvatar('profile_images/' . $filename);
+        $profile->setAvatar($avatarPath);
         $em->flush();
 
         $userData = $session->get('user', []);
-        $userData['avatar'] = 'profile_images/' . $filename;
+        $userData['avatar'] = $avatarPath;
         $session->set('user', $userData);
 
         if ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest') {
@@ -823,6 +856,80 @@ class UserController extends AbstractController
 
         $this->addFlash('success', 'Avatar updated.');
         return $this->redirectToRoute('frontend_profile');
+    }
+
+    private function storeProfileAvatarFile(UploadedFile $file, int $userId): string
+    {
+        $ext = $file->guessExtension() ?: pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION) ?: 'jpg';
+        $safeExt = \in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif', 'webp'], true) ? strtolower($ext) : 'jpg';
+        $filename = 'avatar_' . $userId . '_' . uniqid('', true) . '.' . $safeExt;
+        $dir = $this->getParameter('kernel.project_dir') . '/public/profile_images';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        try {
+            return $this->imageStorage->storeUploadedFile(
+                $file,
+                $dir,
+                'profile_images',
+                '/syndicati/profile_images',
+                $filename
+            );
+        } catch (FileException $e) {
+            throw new \RuntimeException('Could not save the image. Please try again.');
+        }
+    }
+
+    private function generateProfileAvatarFromPrompt(HttpClientInterface $httpClient, string $prompt, int $userId): string
+    {
+        $prompt = trim(preg_replace('/\\s+/', ' ', $prompt) ?? '');
+        if ($prompt === '') {
+            throw new \RuntimeException('Please provide a prompt for the AI image.');
+        }
+
+        $prompt = mb_substr($prompt, 0, 180);
+        $url = 'https://image.pollinations.ai/prompt/' . rawurlencode($prompt) . '?width=512&height=512&nologo=true&enhance=true';
+
+        try {
+            $response = $httpClient->request('GET', $url, ['timeout' => 60]);
+            if ($response->getStatusCode() !== 200) {
+                throw new \RuntimeException('Pollinations AI could not generate the image right now.');
+            }
+
+            $headers = $response->getHeaders(false);
+            $contentType = strtolower((string) ($headers['content-type'][0] ?? ''));
+            if (!str_starts_with($contentType, 'image/')) {
+                throw new \RuntimeException('Pollinations returned an invalid image response.');
+            }
+
+            $extension = 'png';
+            if (str_contains($contentType, 'jpeg') || str_contains($contentType, 'jpg')) {
+                $extension = 'jpg';
+            } elseif (str_contains($contentType, 'webp')) {
+                $extension = 'webp';
+            } elseif (str_contains($contentType, 'gif')) {
+                $extension = 'gif';
+            }
+
+            $imageData = $response->getContent();
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('AI image generation failed. Please try again.');
+        }
+
+        $filename = 'avatar_' . $userId . '_' . uniqid('', true) . '.' . $extension;
+        $dir = $this->getParameter('kernel.project_dir') . '/public/profile_images';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $saved = @file_put_contents($dir . '/' . $filename, $imageData);
+        if ($saved === false) {
+            throw new \RuntimeException('Could not save the generated image. Please try again.');
+        }
+
+        return $this->imageStorage->uploadLocalFile($dir . '/' . $filename, '/syndicati/profile_images', $filename)
+            ?: 'profile_images/' . $filename;
     }
 
     #[Route('/check-email', name: 'check_email', methods: ['GET'])]

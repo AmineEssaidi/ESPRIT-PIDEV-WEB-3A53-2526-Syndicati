@@ -184,7 +184,7 @@
                 {% for img in images %}
                     <div class="image-container">
                         {# In Gotenberg context, you often need absolute URL or base64 for images, but asset() with absolute=true usually works #}
-                        <img src="{{ absolute_url(asset('reclamation_images/' ~ img)) }}" class="evidence-img">
+                        <img src="{{ media_url(img, 'reclamation_images', null, true) }}" class="evidence-img">
                     </div>
                 {% endfor %}
             </div>

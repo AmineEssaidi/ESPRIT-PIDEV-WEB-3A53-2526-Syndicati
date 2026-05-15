@@ -1,6 +1,7 @@
 <?php
 namespace App\Service\Evenement;
 
+use App\Entity\Evenement\Evenement;
 use App\Entity\Evenement\Participation;
 use Twig\Environment;
 use Symfony\Component\Mailer\MailerInterface;
@@ -52,6 +53,25 @@ class EvenementNotificationService
                 'participation' => $participation,
                 'evenement' => $evenement,
                 'user' => $user
+            ]));
+
+        $this->sendEmail($message);
+    }
+
+    public function notifyEventCreation(Evenement $evenement): void
+    {
+        $user = $evenement->getUser();
+        if (!$user || !$user->getEmailUser()) {
+            return;
+        }
+
+        $message = (new \Symfony\Component\Mime\Email())
+            ->from(sprintf('%s <%s>', $this->fromName, $this->fromEmail))
+            ->to($user->getEmailUser())
+            ->subject('Syndicati: Your event is live!')
+            ->html($this->twig->render('emails/event_creation_notification.html.twig', [
+                'evenement' => $evenement,
+                'user' => $user,
             ]));
 
         $this->sendEmail($message);

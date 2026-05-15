@@ -1,14 +1,82 @@
 /* ==========================================================================
    EVENEMENT MODULE JAVASCRIPT
-   "Horizon" Sick UI Interactivity
+   "Syndicati" Sick UI Interactivity
    ========================================================================== */
+
+if (!window.SyndicatiEvenementLoaded) {
+window.SyndicatiEvenementLoaded = true;
 
 document.addEventListener('DOMContentLoaded', function () {
     // --- BUTTONS ---
     const btnOpenEdit = document.getElementById('btnOpenEdit');
     const btnOpenDeleteConfirm = document.getElementById('btnOpenDeleteConfirm');
+    const eventSearchInput = document.getElementById('eventSearchInput');
+    const eventVoiceSearchBtn = document.getElementById('eventVoiceSearchBtn');
     // --- ADVANCED MAP & WEATHER LOGIC ---
     let activeMaps = {};
+
+    window.focusEventCard = function (eventId) {
+        const card = document.getElementById(`evenementCardSwitcher_${eventId}`);
+        if (!card) return;
+        if (card.style.display === 'none') {
+            card.style.display = 'block';
+        }
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('event-card-spotlight');
+        setTimeout(() => card.classList.remove('event-card-spotlight'), 1600);
+        if (typeof switchGlassCard === 'function') {
+            setTimeout(() => switchGlassCard(card.id, 'details'), 300);
+        }
+    };
+
+    window.shareEvent = function (channel, title, description, location, date) {
+        const currentUrl = window.location.href.split('#')[0];
+        let url = '';
+
+        if (channel === 'facebook') {
+            const quote = `Check out this event: ${title}\n${description || ''}`;
+            url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}&quote=${encodeURIComponent(quote)}`;
+        } else if (channel === 'whatsapp') {
+            const text = `New Event: ${title}\nLocation: ${location}\nDate: ${date}\n\nJoin us via Syndicati: ${currentUrl}`;
+            url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+        }
+
+        if (url) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+    };
+
+    if (eventVoiceSearchBtn && eventSearchInput) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = document.documentElement.lang || 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                eventVoiceSearchBtn.classList.add('listening');
+                eventVoiceSearchBtn.innerHTML = "<i class='bx bx-radio-circle-marked'></i>";
+            };
+            recognition.onend = () => {
+                eventVoiceSearchBtn.classList.remove('listening');
+                eventVoiceSearchBtn.innerHTML = "<i class='bx bx-microphone'></i>";
+            };
+            recognition.onresult = (event) => {
+                const transcript = event.results?.[0]?.[0]?.transcript || '';
+                if (transcript) {
+                    eventSearchInput.value = transcript;
+                    eventSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    if (window.pushNotif) window.pushNotif('Voice Search', transcript, 'SUCCESS');
+                }
+            };
+
+            eventVoiceSearchBtn.addEventListener('click', () => recognition.start());
+        } else {
+            eventVoiceSearchBtn.disabled = true;
+            eventVoiceSearchBtn.title = 'Voice search is not supported by this browser';
+        }
+    }
 
     async function geocodeLocation(location) {
         if (!location) return null;
@@ -403,6 +471,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (data.success) {
                 window.pushNotif('Spot Secured!', data.message, 'SUCCESS');
+                if (data.ticketUrl) {
+                    const ticketLink = document.createElement('a');
+                    ticketLink.href = data.ticketUrl;
+                    ticketLink.download = '';
+                    ticketLink.className = 'event-ticket-toast-link';
+                    ticketLink.innerHTML = "<i class='bx bxs-file-pdf'></i> Download your ticket";
+                    form.appendChild(ticketLink);
+                    setTimeout(() => ticketLink.classList.add('show'), 20);
+                }
                 setTimeout(() => window.location.reload(), 1500);
             } else {
                 if (data.errors && form.validator) {
@@ -641,8 +718,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     async function handleAjaxEventAction(form) {
+        if (form.dataset.submitting === 'true') {
+            return;
+        }
+        form.dataset.submitting = 'true';
+
         const btn = form.querySelector('button[type="submit"]');
-        if (!btn) return;
+        if (!btn) {
+            delete form.dataset.submitting;
+            return;
+        }
         const originalHTML = btn.innerHTML;
         const isEdit = form.action.includes('/edit');
 
@@ -693,7 +778,10 @@ document.addEventListener('DOMContentLoaded', function () {
         } finally {
             btn.innerHTML = originalHTML;
             btn.disabled = false;
+            delete form.dataset.submitting;
         }
     }
 });
+
+}
 

@@ -780,46 +780,46 @@
     // --- Data Templates ---
     const publicationsData = [
         {% for p in publications|default([]) %}
-        [
-            "{{ p.titrePub|e('js') }}",
-            "{{ p.categoriePub|e('js') }}",
-            "{{ p.user ? (p.user.firstName ~ ' ' ~ p.user.lastName)|e('js') : '—' }}",
-            "{{ p.dateCreationPub|date('Y-m-d H:i') }}",
-            "{{ p.id }}",
-            "{{ p.descriptionPub|e('js') }}",
-            "{{ p.imagePub|e('js') }}",
-            "{{ csrf_token('delete' ~ p.id)|e('js') }}"
-        ]{% if not loop.last %},{% endif %}
+            {{ [
+                p.titrePub,
+                p.categoriePub,
+                p.user ? (p.user.firstName ~ ' ' ~ p.user.lastName) : '-',
+                p.dateCreationPub ? p.dateCreationPub|date('Y-m-d H:i') : '',
+                p.id,
+                p.descriptionPub,
+                p.imagePub ? media_url(p.imagePub, 'forum_images') : '',
+                csrf_token('delete' ~ p.id)
+            ]|json_encode|raw }}{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
 
     const commentsData = [
         {% for c in commentaires|default([]) %}
-        [
-            "{{ c.descriptionCommentaire|e('js')|slice(0,50) }}...",
-            "{{ c.publication ? c.publication.titrePub|e('js') : 'Deleted' }}",
-            "{{ c.user ? (c.user.firstName ~ ' ' ~ c.user.lastName)|e('js') : '—' }}",
-            "{{ c.createdAt|date('Y-m-d H:i') }}",
-            "{{ c.idCommentaire }}",
-            "{{ c.descriptionCommentaire|e('js') }}",
-            "{{ c.visibility ? 'true' : 'false' }}",
-            "{{ csrf_token('delete' ~ c.idCommentaire)|e('js') }}"
-        ]{% if not loop.last %},{% endif %}
+            {{ [
+                (c.descriptionCommentaire|default(''))|slice(0, 50) ~ '...',
+                c.publication ? c.publication.titrePub : 'Deleted',
+                c.user ? (c.user.firstName ~ ' ' ~ c.user.lastName) : '-',
+                c.createdAt ? c.createdAt|date('Y-m-d H:i') : '',
+                c.idCommentaire,
+                c.descriptionCommentaire,
+                c.visibility ? 'true' : 'false',
+                csrf_token('delete' ~ c.idCommentaire)
+            ]|json_encode|raw }}{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
 
     const reactionsData = [
         {% for r in reactions|default([]) %}
-        [
-            "{{ r.kind|e('js') }}",
-            "{{ (r.publication ? 'Pub: ' ~ r.publication.titrePub : (r.commentaire ? 'Comm: ' ~ r.commentaire.descriptionCommentaire|slice(0,30) : 'N/A'))|e('js') }}",
-            "{{ r.user ? (r.user.firstName ~ ' ' ~ r.user.lastName)|e('js') : '—' }}",
-            "{{ r.createdAt|date('Y-m-d H:i') }}",
-            "{{ r.idReaction }}",
-            "{{ r.emoji|e('js') }}",
-            "{{ r.reportReason|e('js') }}",
-            "{{ csrf_token('delete' ~ r.idReaction)|e('js') }}"
-        ]{% if not loop.last %},{% endif %}
+            {{ [
+                r.kind,
+                r.publication ? 'Pub: ' ~ r.publication.titrePub : (r.commentaire ? 'Comm: ' ~ (r.commentaire.descriptionCommentaire|slice(0, 30)) : 'N/A'),
+                r.user ? (r.user.firstName ~ ' ' ~ r.user.lastName) : '-',
+                r.createdAt ? r.createdAt|date('Y-m-d H:i') : '',
+                r.idReaction,
+                r.emoji,
+                r.reportReason,
+                csrf_token('delete' ~ r.idReaction)
+            ]|json_encode|raw }}{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
 
@@ -947,6 +947,10 @@
         renderReactionTable();
     }
 
+    window.filterSortPublications = forumFilterSortPubs;
+    window.filterSortComments = forumFilterSortComments;
+    window.filterSortReactions = forumFilterSortReactions;
+
     function renderPubTable() {
         const tbody = document.getElementById('forum-pub-table-body');
         tbody.innerHTML = '';
@@ -1072,7 +1076,7 @@
         
         const imgRow = document.getElementById('view-pub-image-row');
         if(data[6]) {
-            document.getElementById('view-pub-image').src = '/uploads/publications/' + data[6];
+            document.getElementById('view-pub-image').src = data[6];
             imgRow.style.display = 'flex';
         } else {
             imgRow.style.display = 'none';

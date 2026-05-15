@@ -34,6 +34,9 @@ class FaceCredential
     #[ORM\Column(name: 'last_used_at', type: 'datetime')]
     private ?\DateTimeInterface $lastUsedAt = null;
 
+    #[ORM\Column(name: 'pin_hash', type: 'string', length: 255, nullable: true)]
+    private ?string $pinHash = null;
+
     /**
      * Note: Using string to map MySQL SET type.
      */
@@ -136,6 +139,17 @@ class FaceCredential
     public function setFlag(string $flag): self
     {
         $this->flag = $flag;
+        return $this;
+    }
+
+    public function getPinHash(): ?string
+    {
+        return $this->pinHash;
+    }
+
+    public function setPinHash(?string $pinHash): self
+    {
+        $this->pinHash = $pinHash;
         return $this;
     }
 }

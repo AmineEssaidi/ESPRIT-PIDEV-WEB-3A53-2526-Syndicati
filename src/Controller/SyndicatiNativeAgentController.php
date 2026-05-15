@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Service\SyndicatiNativeAgentRuntime;
+use App\Service\DirectAiClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -10,7 +10,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class SyndicatiNativeAgentController extends AbstractController
 {
-    public function __construct(private readonly SyndicatiNativeAgentRuntime $agent)
+    public function __construct(private readonly DirectAiClient $agent)
     {
     }
 
@@ -33,7 +33,7 @@ class SyndicatiNativeAgentController extends AbstractController
         }
 
         try {
-            $result = $this->agent->execute($goal, $context, $sessionId);
+            $result = $this->agent->executeAgent($goal, $context, $sessionId);
             return $this->json($result);
         } catch (\Throwable $e) {
             error_log('[SyndicatiNativeAgentController] Execute error: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
