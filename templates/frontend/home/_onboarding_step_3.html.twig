@@ -1,0 +1,37 @@
+<div class="onboarding-step" data-step="3">
+    <h1 class="onboarding-title">{{ 'forms.your_property'|trans }}</h1>
+    <p class="onboarding-subtitle">{{ 'forms.tell_us_property'|trans }}</p>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'forms.property_type'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'APARTMENT':'Apartment','STUDIO':'Studio','DUPLEX':'Duplex'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="property_type" id="pt_{{ val }}" value="{{ val }}" {{ (_prefs.property_type|default('APARTMENT')) == val ? 'checked' : '' }}>
+                    <label for="pt_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'forms.occupancy_status'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'OWNER_OCCUPIED':'Owner occupied','OWNER_RENTING':'Owner renting','TENANT':'Tenant','TEMPORARY':'Temporary occupant'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="occupancy_status" id="os_{{ val }}" value="{{ val }}" {{ (_prefs.occupancy_status|default('OWNER_OCCUPIED')) == val ? 'checked' : '' }}>
+                    <label for="os_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'syndicat.parking'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'NONE':'No parking','OUTDOOR':'Outdoor','COVERED':'Covered','UNDERGROUND':'Underground','MULTIPLE':'Multiple spots'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="parking_type" id="pk_{{ val }}" value="{{ val }}" {{ (_prefs.parking_type|default('NONE')) == val ? 'checked' : '' }}>
+                    <label for="pk_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

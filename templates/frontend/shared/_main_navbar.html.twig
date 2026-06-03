@@ -223,8 +223,10 @@
         <div class="main-home-search-icon-container">
             <a href="{{ path('main_home') }}" class="main-home-search-icon-btn" title="Home / Search">
                 <span class="main-home-search-logo-wrapper">
-                    <img src="/images/logo/syndicati.png" alt="Syndicati Logo" class="main-home-search-logo main-home-search-logo-light" />
-                    <img src="/images/logo/syndicatioffwhite.png" alt="Syndicati Logo" class="main-home-search-logo main-home-search-logo-dark" />
+                    <img src="{{ asset('images/logo/syndicati-logo-light.png') }}" alt="Syndicati Logo" class="main-home-search-logo main-home-search-logo-full main-home-logo-for-dark" />
+                    <img src="{{ asset('images/logo/syndicati-logo-dark.png') }}" alt="Syndicati Logo" class="main-home-search-logo main-home-search-logo-full main-home-logo-for-light" />
+                    <img src="{{ asset('images/logo/syndicati-logo-notext-light.png') }}" alt="Syndicati Mark" class="main-home-search-logo main-home-search-logo-mark main-home-logo-for-dark" />
+                    <img src="{{ asset('images/logo/syndicati-logo-notext-dark.png') }}" alt="Syndicati Mark" class="main-home-search-logo main-home-search-logo-mark main-home-logo-for-light" />
                 </span>
             </a>
             <div class="main-home-search-expand">
@@ -244,18 +246,18 @@
             <div class="main-home-nav-tab {{ active_tab|default('') == 'services' ? 'active' : '' }}">
                 <span class="main-home-tab-text"><a href="#"  style="text-decoration: none; color: inherit;">{{ 'nav.services'|trans }}</a></span>
                 <div class="main-home-tab-dropdown">
-                    <a href="{{ path('app_residence_index') }}" class="main-home-dropdown-item" >{{ 'nav.residence'|trans }}</a>
-                    <a href="{{ path('frontend_forum') }}" class="main-home-dropdown-item" >{{ 'nav.forum'|trans }}</a>
-                    <a href="{{ path('frontend_syndicat') }}" class="main-home-dropdown-item" >{{ 'nav.syndicat'|trans }}</a>
-                    <a href="{{ path('app_evenement_index') }}" class="main-home-dropdown-item" >{{ 'nav.evenement'|trans }}</a>
+                    <a href="{{ path('app_residence_index') }}" class="main-home-dropdown-item" >Residences</a>
+                    <a href="{{ path('frontend_forum') }}" class="main-home-dropdown-item" >Forum</a>
+                    <a href="{{ path('frontend_syndicat') }}" class="main-home-dropdown-item" >Syndic</a>
+                    <a href="{{ path('app_evenement_index') }}" class="main-home-dropdown-item" >Events</a>
                 </div>
             </div>
             <div class="main-home-nav-tab {{ active_tab|default('') == 'about' ? 'active' : '' }}">
                 <span class="main-home-tab-text"><a href="{{ path('frontend_our_team') }}" style="text-decoration: none; color: inherit;" >{{ 'nav.about'|trans }}</a></span>
                 <div class="main-home-tab-dropdown">
-                    <a href="{{ path('frontend_our_team') }}" class="main-home-dropdown-item" >{{ 'nav.our_team'|trans }}</a>
-                    <a href="#" class="main-home-dropdown-item" >{{ 'nav.company'|trans }}</a>
-                    <a href="{{ path('frontend_contact') }}" class="main-home-dropdown-item" >{{ 'nav.contact'|trans }}</a>
+                    <a href="{{ path('frontend_our_team') }}" class="main-home-dropdown-item" >Our Team</a>
+                    <a href="#" class="main-home-dropdown-item" >Company</a>
+                    <a href="{{ path('frontend_contact') }}" class="main-home-dropdown-item" >Contact</a>
                 </div>
             </div>
         </div>
@@ -392,7 +394,8 @@
     {% if app.session.get('is_logged_in') %}
     {# Load notification manager if not already loaded (standalone pages that don't extend a base template) #}
     <script>
-    if (typeof NotificationManager === 'undefined') {
+    if (typeof NotificationManager === 'undefined' && !window.SyndicatiNotificationManagerLoaded && !window.SyndicatiNotificationManagerLoading) {
+        window.SyndicatiNotificationManagerLoading = true;
         var _nmScript = document.createElement('script');
         _nmScript.src = '{{ asset('frontend/js/notification-manager.js') }}';
         document.head.appendChild(_nmScript);

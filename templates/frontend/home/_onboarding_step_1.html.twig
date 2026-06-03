@@ -1,0 +1,38 @@
+<div class="onboarding-step" data-step="1">
+    <div class="onboarding-welcome-icon">✨</div>
+    <h1 class="onboarding-title">
+        <span>{{ 'syndicat.welcome_title'|trans }}</span>
+        {% if user is defined and user %}
+            <span class="onboarding-user-name">, {{ user.firstName|default('') }} {{ user.lastName|default('') }}</span>
+        {% endif %}
+    </h1>
+    <p class="onboarding-subtitle">{{ 'syndicat.welcome_sub'|trans }}</p>
+    {% set _prefs = prefs|default({}) %}
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'settings.language_title'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'FR':'French','EN':'English','AR':'Arabic','FR_AR':'French / Arabic'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="language_preference" id="lang_{{ val }}" value="{{ val }}" {{ (_prefs.language_preference|default('FR')) == val ? 'checked' : '' }}>
+                    <label for="lang_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="onboarding-section">
+        <label class="onboarding-label">Theme</label>
+        <div class="onboarding-options">
+            <div class="onboarding-opt">
+                <input type="radio" name="theme_preference" id="theme_light" value="LIGHT" {{ (_prefs.theme_preference|default('DARK')) == 'LIGHT' ? 'checked' : '' }}>
+                <label for="theme_light">☀️ <span>{{ 'settings.light'|trans }}</span></label>
+            </div>
+            <div class="onboarding-opt">
+                <input type="radio" name="theme_preference" id="theme_dark" value="DARK" {{ (_prefs.theme_preference|default('DARK')) == 'DARK' ? 'checked' : '' }}>
+                <label for="theme_dark">🌙 <span>{{ 'settings.dark'|trans }}</span></label>
+            </div>
+        </div>
+        <div class="onboarding-theme-demo">
+            <p><strong>{{ 'settings.preview'|trans }}</strong> <span>{{ 'settings.preview_desc'|trans }}</span></p>
+        </div>
+    </div>
+</div>

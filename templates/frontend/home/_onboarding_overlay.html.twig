@@ -1,0 +1,65 @@
+<div class="onboarding-overlay">
+    <div class="onboarding-overlay-inner">
+        <div class="onboarding-orb onboarding-orb-1"></div>
+        <div class="onboarding-orb onboarding-orb-2"></div>
+        <div class="onboarding-orb onboarding-orb-3"></div>
+
+        <form id="onboardingOverlayForm"
+              method="post"
+              action="{{ path('onboarding_overlay_save') }}"
+              data-ajax="1">
+            <input type="hidden" name="_token" value="{{ csrf_token('onboarding') }}">
+            <input type="hidden" name="current_step" id="onboardingCurrentStep" value="1">
+            {% set _prefs = prefs|default({}) %}
+
+            <div class="onboarding-card">
+                <div class="onboarding-logo-island">
+                    <div class="onboarding-logo-wrapper">
+                        <img src="{{ asset('images/logo/syndicati-logo-light.png') }}" alt="Syndicati" class="onboarding-logo-full onboarding-logo-for-dark" />
+                        <img src="{{ asset('images/logo/syndicati-logo-dark.png') }}" alt="Syndicati" class="onboarding-logo-full onboarding-logo-for-light" />
+                    </div>
+                </div>
+                <input type="hidden" name="selected_locale" id="selected_locale" value="{{ (prefs.language_preference|default('FR') == 'EN') ? 'en' : (prefs.language_preference|default('FR') == 'AR' ? 'ar' : (prefs.language_preference|default('FR') == 'FR_AR' ? 'fr_ar' : 'fr')) }}">
+                <input type="hidden" name="selected_theme" id="selected_theme" value="{{ prefs.theme_preference|default('DARK') == 'LIGHT' ? 'light' : 'dark' }}">
+
+                {% include 'frontend/home/_onboarding_step_1.html.twig' %}
+                {% include 'frontend/home/_onboarding_step_2.html.twig' %}
+                {% include 'frontend/home/_onboarding_step_3.html.twig' %}
+                {% include 'frontend/home/_onboarding_step_4.html.twig' %}
+                {% include 'frontend/home/_onboarding_step_5.html.twig' %}
+                {% include 'frontend/home/_onboarding_step_6.html.twig' %}
+                {% include 'frontend/home/_onboarding_step_7.html.twig' %}
+
+                <div class="onboarding-actions">
+                    <button type="button"
+                            class="onboarding-btn onboarding-btn-prev"
+                            data-onboarding-action="prev">
+                        Previous
+                    </button>
+
+                    <div style="display:flex; gap:0.75rem;">
+                        <button type="button"
+                                class="onboarding-btn onboarding-btn-prev"
+                                data-onboarding-action="cancel"
+                                style="opacity:0.85;">
+                            Cancel
+                        </button>
+
+                        <button type="button"
+                                class="onboarding-btn onboarding-btn-next"
+                                data-onboarding-action="next">
+                            Next
+                        </button>
+
+                        <button type="button"
+                                class="onboarding-btn onboarding-btn-next"
+                                data-onboarding-action="finish"
+                                style="display:none;">
+                            Finish
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

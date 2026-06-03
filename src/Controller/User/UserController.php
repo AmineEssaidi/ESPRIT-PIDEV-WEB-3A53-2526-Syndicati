@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller\User;
 
+use App\Controller\Concerns\SessionUserAwareTrait;
 use App\Entity\Onboarding\Onboarding;
 use App\Entity\Profile\Profile;
 use App\Entity\User\User;
@@ -36,6 +37,7 @@ use App\Service\FormErrorHelperTrait;
 class UserController extends AbstractController
 {
     use FormErrorHelperTrait;
+    use SessionUserAwareTrait;
     public function __construct(
         private readonly CacheInterface $cache,
         private readonly UserStandingService $userStandingService,
@@ -444,12 +446,11 @@ class UserController extends AbstractController
         }
 
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             $this->addFlash('danger', 'Please sign in to view your profile.');
             return $this->redirectToRoute('auth_sign_in');
         }
-
-        $userId = (int) $session->get('user')['id'];
         $user = $userRepository->find($userId);
         if (!$user) {
             $session->remove('is_logged_in');
@@ -725,11 +726,11 @@ class UserController extends AbstractController
     public function profileOnboardingUpdate(Request $request, UserRepository $userRepository, OnboardingRepository $onboardingRepository, EntityManagerInterface $em): Response
     {
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             $this->addFlash('danger', 'Please sign in to update onboarding.');
             return $this->redirectToRoute('auth_sign_in');
         }
-        $userId = (int) $session->get('user')['id'];
         $user = $userRepository->find($userId);
         if (!$user) {
             return $this->redirectToRoute('auth_sign_in');
@@ -791,12 +792,11 @@ class UserController extends AbstractController
     public function profileAvatarUpload(Request $request, UserRepository $userRepository, ProfileRepository $profileRepository, EntityManagerInterface $em, HttpClientInterface $httpClient): Response
     {
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             $this->addFlash('danger', 'Please sign in to upload an avatar.');
             return $this->redirectToRoute('auth_sign_in');
         }
-
-        $userId = (int) $session->get('user')['id'];
         $user = $userRepository->find($userId);
         if (!$user) {
             $session->remove('is_logged_in');
@@ -951,7 +951,8 @@ class UserController extends AbstractController
         ProfileRepository $profileRepository
     ): JsonResponse {
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !($userId = $session->get('user')['id'] ?? null)) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
@@ -995,7 +996,8 @@ class UserController extends AbstractController
         EntityManagerInterface $em
     ): JsonResponse {
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !($userId = $session->get('user')['id'] ?? null)) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
@@ -1044,7 +1046,7 @@ class UserController extends AbstractController
             'Votre demande a été transmise à ' . $targetUser->getFirstName() . '.'
         );
 
-        // Points removed
+        $this->userStandingService->awardForAction($currentUser, 'FRIEND_REQUEST');
 
         return $this->json(['success' => true, 'message' => 'Request sent!']);
     }
@@ -1057,7 +1059,8 @@ class UserController extends AbstractController
         EntityManagerInterface $em
     ): JsonResponse {
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !($userId = $session->get('user')['id'] ?? null)) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
         $relationshipId = (int) $request->request->get('relationshipId');
@@ -1108,7 +1111,8 @@ class UserController extends AbstractController
         EntityManagerInterface $em
     ): JsonResponse {
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !($userId = $session->get('user')['id'] ?? null)) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
         $relationshipId = (int) $request->request->get('relationshipId');
@@ -1138,7 +1142,8 @@ class UserController extends AbstractController
         UserRelationshipRepository $userRelationshipRepository
     ): JsonResponse {
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !($myId = $session->get('user')['id'] ?? null)) {
+        $myId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $myId === null) {
             return $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 

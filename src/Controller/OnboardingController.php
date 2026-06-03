@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\Concerns\SessionUserAwareTrait;
 use App\Entity\Onboarding\Onboarding;
 use App\Repository\Onboarding\OnboardingRepository;
 use App\Repository\User\UserRepository;
@@ -16,6 +17,8 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 class OnboardingController extends AbstractController
 {
+    use SessionUserAwareTrait;
+
     #[Route('/onboarding', name: 'onboarding', methods: ['GET', 'POST'])]
     public function onboarding(
         Request $request,
@@ -25,12 +28,11 @@ class OnboardingController extends AbstractController
         CsrfTokenManagerInterface $csrfTokenManager
     ): Response {
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             $this->addFlash('danger', 'Please sign in to continue.');
             return $this->redirectToRoute('auth_sign_in');
         }
-
-        $userId = (int) $session->get('user')['id'];
         $user = $userRepository->find($userId);
         if (!$user) {
             $session->remove('is_logged_in');
@@ -170,11 +172,10 @@ class OnboardingController extends AbstractController
             ], 200);
         }
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             return new JsonResponse(['error' => 'unauthorized'], 401);
         }
-
-        $userId = (int) $session->get('user')['id'];
         $user = $userRepository->find($userId);
         if (!$user) {
             return new JsonResponse(['error' => 'user_not_found'], 404);

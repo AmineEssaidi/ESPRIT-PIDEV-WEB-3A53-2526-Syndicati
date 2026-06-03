@@ -1,0 +1,26 @@
+<div class="onboarding-step" data-step="2">
+    <h1 class="onboarding-title">{{ 'nav.notifications'|trans }}</h1>
+    <p class="onboarding-subtitle">{{ 'forms.how_notified'|trans }}</p>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'forms.channel'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'EMAIL':'Email','SMS':'SMS','IN_APP':"In-app",'ALL':'All','NONE':'None'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="notification_channel" id="nc_{{ val }}" value="{{ val }}" {{ (_prefs.notification_channel|default('EMAIL')) == val ? 'checked' : '' }}>
+                    <label for="nc_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'forms.frequency'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'INSTANT':'Immediately','DAILY_DIGEST':'Daily digest','WEEKLY_DIGEST':'Weekly digest','MONTHLY':'Monthly summary','IMPORTANT_ONLY':'Important only'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="notification_frequency" id="nf_{{ val }}" value="{{ val }}" {{ (_prefs.notification_frequency|default('DAILY_DIGEST')) == val ? 'checked' : '' }}>
+                    <label for="nf_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

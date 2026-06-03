@@ -2,6 +2,7 @@
 
 namespace App\Repository\Evenement;
 
+use App\Entity\Evenement\Evenement;
 use App\Entity\Evenement\Participation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -34,5 +35,15 @@ class ParticipationRepository extends ServiceEntityRepository
             ->orderBy('p.date_participation', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function deleteByEvenement(Evenement $evenement): int
+    {
+        return $this->createQueryBuilder('p')
+            ->delete()
+            ->where('p.evenement = :evenement')
+            ->setParameter('evenement', $evenement)
+            ->getQuery()
+            ->execute();
     }
 }

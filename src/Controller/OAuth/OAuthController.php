@@ -2,6 +2,7 @@
 
 namespace App\Controller\OAuth;
 
+use App\Controller\Concerns\SessionUserAwareTrait;
 use App\Repository\User\UserRepository;
 use App\Service\Log\UserActivityLogger;
 use App\Service\OAuth\GoogleOAuthService;
@@ -12,6 +13,8 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class OAuthController extends AbstractController
 {
+    use SessionUserAwareTrait;
+
     private function getRedirectUri(Request $request): string
     {
         return $request->getSchemeAndHttpHost() . $this->generateUrl('oauth_gmail_callback');
@@ -21,7 +24,7 @@ class OAuthController extends AbstractController
     public function gmailConnect(Request $request, GoogleOAuthService $googleOAuthService, UserRepository $userRepository): Response
     {
         $session = $request->getSession();
-        $userId = $session->get('is_logged_in') && isset($session->get('user')['id']) ? (int) $session->get('user')['id'] : null;
+        $userId = $session->get('is_logged_in') ? $this->getSessionUserId($session) : null;
         if (!$userId) {
             return $this->redirectToRoute('auth_sign_in');
         }
@@ -73,7 +76,7 @@ class OAuthController extends AbstractController
         }
 
         $user = $userRepository->find($userId);
-        $currentUserId = $session->get('is_logged_in') && isset($session->get('user')['id']) ? (int) $session->get('user')['id'] : null;
+        $currentUserId = $session->get('is_logged_in') ? $this->getSessionUserId($session) : null;
         if (!$user || !$currentUserId || $user->getIdUser() !== $currentUserId) {
             $this->addFlash('danger', 'User mismatch.');
             return $this->redirectToRoute('frontend_profile');
@@ -108,7 +111,7 @@ class OAuthController extends AbstractController
     public function gmailDisconnect(Request $request, \App\Repository\OAuth\OAuthRepository $oauthRepository, \App\Repository\User\UserRepository $userRepository, \Doctrine\ORM\EntityManagerInterface $em, UserActivityLogger $activityLogger): Response
     {
         $session = $request->getSession();
-        $userId = $session->get('is_logged_in') && isset($session->get('user')['id']) ? (int) $session->get('user')['id'] : null;
+        $userId = $session->get('is_logged_in') ? $this->getSessionUserId($session) : null;
         if (!$userId) {
             return $this->redirectToRoute('auth_sign_in');
         }

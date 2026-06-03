@@ -2,6 +2,7 @@
 
 namespace App\Controller\FaceCred;
 
+use App\Controller\Concerns\SessionUserAwareTrait;
 use App\Entity\FaceCred\FaceCredential;
 use App\Repository\FaceCred\FaceCredentialRepository;
 use App\Repository\Profile\ProfileRepository;
@@ -16,6 +17,8 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/face', name: 'face_')]
 class FaceController extends AbstractController
 {
+    use SessionUserAwareTrait;
+
     private const DISTANCE_THRESHOLD = 0.5; // Configurable threshold for face-api.js embeddings
 
     public function __construct(
@@ -43,7 +46,10 @@ class FaceController extends AbstractController
             return $this->json(['error' => 'Missing required data'], Response::HTTP_BAD_REQUEST);
         }
 
-        $userId = (int) $session->get('user')['id'];
+        $userId = $this->getSessionUserId($session);
+        if ($userId === null) {
+            return $this->json(['error' => 'User not found in session'], Response::HTTP_UNAUTHORIZED);
+        }
         $user = $this->userRepository->find($userId);
 
         if (!$user) {
@@ -189,6 +195,40 @@ class FaceController extends AbstractController
         ]);
     }
 
+    #[Route('/status', name: 'status', methods: ['GET', 'POST'])]
+    public function status(Request $request): JsonResponse
+    {
+        $session = $request->getSession();
+        if (!$session->get('is_logged_in') || !$session->get('user')) {
+            return $this->json(['error' => 'User not logged in'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $userId = $this->getSessionUserId($session);
+        if ($userId === null) {
+            return $this->json(['error' => 'User not found in session'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $user = $this->userRepository->find($userId);
+        if (!$user) {
+            return $this->json(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $data = json_decode($request->getContent() ?: '{}', true) ?: [];
+        $deviceId = $data['deviceId'] ?? $request->query->get('deviceId');
+        $currentDeviceCredential = $deviceId ? $this->faceRepository->findActiveForUserAndDevice($user, (string) $deviceId) : null;
+        $latestCredential = $this->faceRepository->findLatestActiveForUser($user);
+        $credential = $currentDeviceCredential ?: $latestCredential;
+
+        return $this->json([
+            'enrolled' => $credential !== null,
+            'currentDeviceEnrolled' => $currentDeviceCredential !== null,
+            'deviceId' => $deviceId,
+            'registeredDeviceId' => $credential?->getDeviceId(),
+            'updatedAt' => $credential?->getUpdatedAt()?->format(DATE_ATOM),
+            'lastUsedAt' => $credential?->getLastUsedAt()?->format(DATE_ATOM),
+        ]);
+    }
+
     #[Route('/remove', name: 'remove', methods: ['POST'])]
     public function remove(Request $request): JsonResponse
     {
@@ -198,7 +238,7 @@ class FaceController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
-        $userId = $data['userId'] ?? null;
+        $userId = $data['userId'] ?? $this->getSessionUserId($session);
         $deviceId = $data['deviceId'] ?? null;
 
         if (!$userId || !$deviceId) {

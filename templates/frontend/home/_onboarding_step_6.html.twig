@@ -1,0 +1,48 @@
+<div class="onboarding-step" data-step="6">
+    <h1 class="onboarding-title">Preferences</h1>
+    <p class="onboarding-subtitle">{{ 'forms.latest_options'|trans }}</p>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'forms.payment'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'BANK_TRANSFER':'Bank transfer','CASH':'Cash','CHECK':'Check','ONLINE':'Online','AUTO_DEBIT':'Auto debit'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="payment_method_preference" id="pm_{{ val }}" value="{{ val }}" {{ (_prefs.payment_method_preference|default('ONLINE')) == val ? 'checked' : '' }}>
+                    <label for="pm_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'forms.noise_sensitivity'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'HIGH':'Sensitive','MODERATE':'Moderate','LOW':'Low sensitivity','NOT_CONCERNED':'Not concerned'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="noise_sensitivity" id="ns_{{ val }}" value="{{ val }}" {{ (_prefs.noise_sensitivity|default('MODERATE')) == val ? 'checked' : '' }}>
+                    <label for="ns_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'forms.pets'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'NO_PETS':'None','CAT':'Cat','DOG':'Dog','MULTIPLE':'Multiple','OTHER':'Other'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="pets_status" id="ps_{{ val }}" value="{{ val }}" {{ (_prefs.pets_status|default('NO_PETS')) == val ? 'checked' : '' }}>
+                    <label for="ps_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'forms.accessibility'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'NONE':'None','ELEVATOR_REQUIRED':'Elevator required','WHEELCHAIR':'Wheelchair','VISUAL_IMPAIRMENT':'Visual impairment','OTHER':'Other'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="accessibility_needs" id="an_{{ val }}" value="{{ val }}" {{ (_prefs.accessibility_needs|default('NONE')) == val ? 'checked' : '' }}>
+                    <label for="an_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

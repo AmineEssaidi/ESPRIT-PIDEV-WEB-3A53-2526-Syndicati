@@ -2,6 +2,7 @@
 
 namespace App\Controller\WebAuthn;
 
+use App\Controller\Concerns\SessionUserAwareTrait;
 use App\Entity\WebAuthn\WebAuthnCredential;
 use App\Repository\Profile\ProfileRepository;
 use App\Repository\User\UserRepository;
@@ -29,6 +30,8 @@ use Webauthn\AuthenticatorSelectionCriteria;
 #[Route('/webauthn', name: 'webauthn_')]
 class WebAuthnController extends AbstractController
 {
+    use SessionUserAwareTrait;
+
     public function __construct(
         private readonly PublicKeyCredentialCreationOptionsFactory $creationOptionsFactory,
         private readonly PublicKeyCredentialRequestOptionsFactory $requestOptionsFactory,
@@ -46,11 +49,10 @@ class WebAuthnController extends AbstractController
     {
         // Use session-based authentication (matching the app's auth system)
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             return $this->json(['error' => 'User not logged in'], Response::HTTP_UNAUTHORIZED);
         }
-
-        $userId = (int) $session->get('user')['id'];
         $user = $userRepository->find($userId);
 
         if (!$user) {
@@ -65,10 +67,19 @@ class WebAuthnController extends AbstractController
                 return $this->json(['error' => 'WebAuthn user not found'], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
 
+            $existingCredentials = $this->credentialRepository->findAllEntitiesForUserId($user->getIdUser());
+            $excludeCredentials = array_map(function (WebAuthnCredential $cred) {
+                return new \Webauthn\PublicKeyCredentialDescriptor(
+                    \Webauthn\PublicKeyCredentialDescriptor::CREDENTIAL_TYPE_PUBLIC_KEY,
+                    $this->base64url_decode($cred->getCredentialId()),
+                    $cred->getTransports() ?: ['internal', 'hybrid', 'usb', 'nfc', 'ble']
+                );
+            }, $existingCredentials);
+
             $publicKeyCredentialCreationOptions = $this->creationOptionsFactory->create(
                 'default',
                 $webAuthnUser,
-                [], // excludeCredentials
+                $excludeCredentials,
                 AuthenticatorSelectionCriteria::create(
                     null,
                     AuthenticatorSelectionCriteria::USER_VERIFICATION_REQUIREMENT_REQUIRED,
@@ -232,7 +243,7 @@ class WebAuthnController extends AbstractController
             );
 
             // Update credential sign count and last used date
-            $credentialEntity = $this->credentialRepository->findOneEntityByCredentialId($publicKeyCredential->rawId);
+            $credentialEntity = $this->credentialRepository->findOneEntityByCredentialId($this->base64url_encode($publicKeyCredential->rawId));
             if ($credentialEntity) {
                 $credentialEntity->setSignCount($source->counter);
                 $credentialEntity->setLastUsedAt(new \DateTime());
@@ -279,11 +290,10 @@ class WebAuthnController extends AbstractController
     {
         // Use session-based authentication
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             return $this->json(['error' => 'User not logged in'], Response::HTTP_UNAUTHORIZED);
         }
-
-        $userId = (int) $session->get('user')['id'];
         $user = $userRepository->find($userId);
 
         if (!$user) {
@@ -320,8 +330,8 @@ class WebAuthnController extends AbstractController
 
             $encodedId = $this->base64url_encode($publicKeyCredential->rawId);
 
-            // Save the credential
-            $webAuthnCredential = new WebAuthnCredential();
+            // Save or update the credential for the current session user.
+            $webAuthnCredential = $this->credentialRepository->findOneEntityByCredentialIdAndUserId($encodedId, $user->getIdUser()) ?? new WebAuthnCredential();
             $webAuthnCredential->setUser($user);
             // Use the base64url encoded version from the request data
             $webAuthnCredential->setCredentialId($encodedId);
@@ -331,7 +341,14 @@ class WebAuthnController extends AbstractController
 
             $this->credentialRepository->save($webAuthnCredential, true);
 
-            return $this->json(['status' => 'ok', 'message' => 'Authenticator registered successfully']);
+            $savedCredentials = $this->credentialRepository->findAllEntitiesForUserId($user->getIdUser());
+
+            return $this->json([
+                'status' => 'ok',
+                'message' => 'Authenticator registered successfully',
+                'credentialId' => $encodedId,
+                'credentialCount' => count($savedCredentials),
+            ]);
 
         } catch (\Throwable $e) {
             return $this->json(['error' => 'Registration failed: ' . $e->getMessage()], Response::HTTP_BAD_REQUEST);
@@ -343,11 +360,10 @@ class WebAuthnController extends AbstractController
     {
         // Use session-based authentication
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             return $this->json(['error' => 'User not logged in'], Response::HTTP_UNAUTHORIZED);
         }
-
-        $userId = (int) $session->get('user')['id'];
         $user = $userRepository->find($userId);
 
         if (!$user) {
@@ -355,13 +371,13 @@ class WebAuthnController extends AbstractController
         }
 
         /** @var WebAuthnCredential[] $credentials */
-        $credentials = $this->credentialRepository->findAllEntitiesForUser($user);
+        $credentials = $this->credentialRepository->findAllEntitiesForUserId($user->getIdUser());
 
         $data = [];
         foreach ($credentials as $cred) {
             $data[] = [
                 'id' => $cred->getCredentialId(), // Raw ID
-                'id_encoded' => base64_encode($cred->getCredentialId()),
+                'id_encoded' => $cred->getCredentialId(),
                 'type' => 'public-key',
                 'transports' => $cred->getTransports(),
                 'created_at' => $cred->getCreatedAt() ? $cred->getCreatedAt()->format('Y-m-d H:i:s') : null,
@@ -377,31 +393,22 @@ class WebAuthnController extends AbstractController
     {
         // Use session-based authentication
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             return $this->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
         }
-
-        $userId = (int) $session->get('user')['id'];
         $user = $userRepository->find($userId);
 
         if (!$user) {
             return $this->json(['error' => 'User not found'], Response::HTTP_UNAUTHORIZED);
         }
 
-        // The ID from frontend is likely base64 encoded
-        $credentialId = base64_decode($id, true);
-        if ($credentialId === false) {
-            $credentialId = $id;
-        }
+        $credentialId = $id;
 
-        $credential = $this->credentialRepository->findOneEntityByCredentialId($credentialId);
+        $credential = $this->credentialRepository->findOneEntityByCredentialIdAndUserId($credentialId, $user->getIdUser());
 
         if (!$credential) {
             return $this->json(['error' => 'Credential not found'], Response::HTTP_NOT_FOUND);
-        }
-
-        if ($credential->getUser() !== $user) {
-            return $this->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
         }
 
         $this->credentialRepository->remove($credential, true);

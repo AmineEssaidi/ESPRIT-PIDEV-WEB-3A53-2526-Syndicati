@@ -2,6 +2,7 @@
 
 namespace App\Controller\Forum;
 
+use App\Controller\Concerns\SessionUserAwareTrait;
 use App\Entity\Forum\Reaction;
 use App\Form\Forum\ReactionType;
 use App\Repository\Forum\ReactionRepository;
@@ -15,6 +16,8 @@ use Doctrine\ORM\EntityManagerInterface;
 #[Route('/forum/reaction')]
 class ReactionController extends AbstractController
 {
+    use SessionUserAwareTrait;
+
     public function __construct(
         private readonly \App\Service\User\NotificationService $notifService
     ) {
@@ -32,7 +35,7 @@ class ReactionController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'You must be logged in to react.'], 401);
         }
 
-        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id'] ?? null);
+        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id_user'] ?? $userSession['id'] ?? null);
         if (!$userId) {
             return new JsonResponse(['success' => false, 'message' => 'User ID not found in session.'], 401);
         }
@@ -128,7 +131,7 @@ class ReactionController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Invalid request.'], 400);
         }
 
-        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id'] ?? null);
+        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id_user'] ?? $userSession['id'] ?? null);
         if (!$userId) {
             return new JsonResponse(['success' => false, 'message' => 'User ID not found in session.'], 401);
         }
@@ -215,7 +218,7 @@ class ReactionController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Invalid report.'], 400);
         }
 
-        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id'] ?? null);
+        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id_user'] ?? $userSession['id'] ?? null);
         if (!$userId) {
             return new JsonResponse(['success' => false, 'message' => 'User ID not found in session.'], 401);
         }
@@ -252,7 +255,7 @@ class ReactionController extends AbstractController
             return new JsonResponse(['reactions' => []]);
         }
 
-        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id'] ?? null);
+        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id_user'] ?? $userSession['id'] ?? null);
         if (!$userId) {
             return new JsonResponse(['reactions' => [], 'counts' => []]);
         }
@@ -289,7 +292,7 @@ class ReactionController extends AbstractController
         if (!$userSession)
             return new JsonResponse(['success' => false, 'message' => 'Login required.'], 401);
 
-        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id'] ?? null);
+        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id_user'] ?? $userSession['id'] ?? null);
         $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($userId);
         $comment = $entityManager->getRepository(\App\Entity\Forum\Commentaire::class)->find($commentId);
 
@@ -353,7 +356,7 @@ class ReactionController extends AbstractController
         if (!$userSession || !$emoji)
             return new JsonResponse(['success' => false], 400);
 
-        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id'] ?? null);
+        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id_user'] ?? $userSession['id'] ?? null);
         $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($userId);
         $comment = $entityManager->getRepository(\App\Entity\Forum\Commentaire::class)->find($commentId);
 
@@ -415,7 +418,7 @@ class ReactionController extends AbstractController
         if (!$userSession || !$reason)
             return new JsonResponse(['success' => false], 400);
 
-        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id'] ?? null);
+        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id_user'] ?? $userSession['id'] ?? null);
         $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($userId);
         $comment = $entityManager->getRepository(\App\Entity\Forum\Commentaire::class)->find($commentId);
 
@@ -439,7 +442,7 @@ class ReactionController extends AbstractController
         if (!$userSession)
             return new JsonResponse(['reactions' => []]);
 
-        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id'] ?? null);
+        $userId = is_object($userSession) ? $userSession->getIdUser() : ($userSession['id_user'] ?? $userSession['id'] ?? null);
         $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($userId);
 
         $reactions = $reactionRepository->findBy(['user' => $user, 'commentaire' => $entityManager->getRepository(\App\Entity\Forum\Commentaire::class)->find($commentId)]);

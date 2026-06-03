@@ -2,6 +2,7 @@
 
 namespace App\Controller\Forum;
 
+use App\Controller\Concerns\SessionUserAwareTrait;
 use App\Entity\Forum\Commentaire;
 use App\Entity\Forum\Publication;
 use App\Repository\Forum\CommentaireRepository;
@@ -11,11 +12,13 @@ use App\Service\DirectAiClient;
 use App\Service\Forum\ContentModerationService;
 use App\Service\Media\ImageKitStorageService;
 use App\Service\Media\ImagePathResolver;
+use App\Message\Forum\NotifyCommentMessage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use App\Service\UserStanding\UserStandingService;
@@ -23,6 +26,8 @@ use App\Service\UserStanding\UserStandingService;
 #[Route('/forum/comment')]
 class CommentaireController extends AbstractController
 {
+    use SessionUserAwareTrait;
+
     public function __construct(
         private readonly UserStandingService $userStandingService,
         private readonly \App\Service\User\NotificationService $notifService,
@@ -74,7 +79,7 @@ class CommentaireController extends AbstractController
 
         $data = [];
         $currentUser = $request->getSession()->get('user');
-        $currentUserId = $currentUser ? ($currentUser['id_user'] ?? $currentUser['id']) : null;
+        $currentUserId = $this->getSessionUserId($request->getSession());
         $currentUserEntity = $currentUserId ? $entityManager->getRepository(\App\Entity\User\User::class)->find($currentUserId) : null;
         $currentUserRole = $currentUser ? ($currentUser['role'] ?? null) : null;
         $moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'];
@@ -92,19 +97,11 @@ class CommentaireController extends AbstractController
             $avatar = null;
             if (!$isAnonymous) {
                 $avatarVal = $profile ? $profile->getAvatar() : null;
-                if ($avatarVal) {
-                    if (strpos($avatarVal, 'http') === 0) {
-                        $avatar = $avatarVal;
-                    } elseif (strpos($avatarVal, 'profile_images/') !== false) {
-                        // Ensure it starts with / for subdirectory hosting compatibility
-                        $avatar = '/' . ltrim($avatarVal, '/');
-                    } else {
-                        $avatar = '/profile_images/' . $avatarVal;
-                    }
-                } else {
-                    // MANDATORY Fallback exactly as in _main_navbar.html.twig
-                    $avatar = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face';
-                }
+                $avatar = $this->imagePathResolver->publicUrl(
+                    $avatarVal,
+                    'profile_images',
+                    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face'
+                );
             }
 
             $data[] = [
@@ -143,17 +140,26 @@ class CommentaireController extends AbstractController
         SluggerInterface $slugger,
         \App\Service\Forum\ForumNotificationService $notificationService,
         \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
-        ContentModerationService $moderationService
+        ContentModerationService $moderationService,
+        MessageBusInterface $messageBus
     ): JsonResponse {
         $publication = $publicationRepository->find($id);
-        $userSession = $request->getSession()->get('user');
+        $session = $request->getSession();
+        $userSession = $session->get('user');
+        $sessionUserId = $this->getSessionUserId($session);
 
-        if (!$publication || !$userSession) {
+        if (!$publication || !$userSession || $sessionUserId === null) {
             return new JsonResponse(['success' => false, 'message' => 'Not found or not logged in'], 404);
         }
 
+        if ($publication->getCategoriePub() === 'Announcement') {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Comments are disabled for announcements.',
+            ], 403);
+        }
 
-        $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($userSession['id_user'] ?? $userSession['id']);
+        $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($sessionUserId);
 
         if (!$user) {
             return new JsonResponse(['success' => false, 'message' => 'User not found'], 404);
@@ -210,10 +216,10 @@ class CommentaireController extends AbstractController
             $entityManager->persist($commentaire);
             $entityManager->flush();
 
-            // Points removed
+            $this->userStandingService->awardForAction($user, 'FORUM_COMMENT');
 
             // Send Email Notification
-            $notificationService->notifyNewComment($commentaire);
+            $messageBus->dispatch(new NotifyCommentMessage($commentaire->getIdCommentaire()));
 
             // 1. Notify Author (Confirmation)
             $this->notifService->notify(
@@ -266,9 +272,11 @@ class CommentaireController extends AbstractController
         EntityManagerInterface $entityManager
     ): JsonResponse {
         $commentaire = $commentaireRepository->find($id);
-        $userSession = $request->getSession()->get('user');
+        $session = $request->getSession();
+        $userSession = $session->get('user');
+        $currentUserId = $this->getSessionUserId($session);
 
-        if (!$commentaire || !$userSession) {
+        if (!$commentaire || !$userSession || $currentUserId === null) {
             return new JsonResponse(['success' => false, 'message' => 'Not found or not logged in'], 404);
         }
 
@@ -277,7 +285,6 @@ class CommentaireController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
         }
 
-        $currentUserId = $userSession['id_user'] ?? $userSession['id'];
         $userRole = $userSession['role'] ?? null;
         $moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'];
 
@@ -304,13 +311,14 @@ class CommentaireController extends AbstractController
         ContentModerationService $moderationService
     ): JsonResponse {
         $commentaire = $commentaireRepository->find($id);
-        $userSession = $request->getSession()->get('user');
+        $session = $request->getSession();
+        $userSession = $session->get('user');
+        $currentUserId = $this->getSessionUserId($session);
 
-        if (!$commentaire || !$userSession) {
+        if (!$commentaire || !$userSession || $currentUserId === null) {
             return new JsonResponse(['success' => false, 'message' => 'Not found or not logged in'], 404);
         }
 
-        $currentUserId = $userSession['id_user'] ?? $userSession['id'];
         $userRole = $userSession['role'] ?? null;
         $moderatorRoles = ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'];
 

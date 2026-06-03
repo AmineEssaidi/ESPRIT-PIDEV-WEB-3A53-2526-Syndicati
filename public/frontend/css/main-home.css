@@ -17,56 +17,77 @@ html.theme-ready .main-home-footer-island {
     box-shadow 0.32s ease;
 }
 
-/* Search logo theme switching */
-.main-home-search-logo-dark {
-  display: none;
-}
-
-.main-home-search-logo-light {
-  display: block;
-}
-
-[data-theme="dark"] .main-home-search-logo-dark {
-  display: block;
-}
-
-[data-theme="dark"] .main-home-search-logo-light {
-  display: none;
-}
-
-.main-home-search-logo {
-  width: 40px;
-  /* Reduced from 48px */
-  height: 40px;
-  border-radius: 50%;
-  object-fit: contain;
-  transition: filter 0.3s;
-}
-
+/* Brand logo */
 .main-home-search-logo-wrapper {
-  display: contents;
-  background: none !important;
-  padding: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 132px;
+  height: 72px;
+  background: none;
+  padding: 0;
+  border: none;
+  box-shadow: none;
 }
 
 .main-home-search-logo {
-  width: 104px;
-  height: 104px;
+  width: 132px;
+  height: 72px;
   border-radius: 0 !important;
   border: none !important;
   object-fit: contain;
+  object-position: center;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s;
   box-shadow: none !important;
 }
 
+.main-home-logo-for-light {
+  display: none;
+}
+
+[data-theme="light"] .main-home-logo-for-dark {
+  display: none;
+}
+
+[data-theme="light"] .main-home-logo-for-light {
+  display: block;
+}
+
+.main-home-search-logo-mark {
+  display: none;
+  width: 62px;
+  height: 62px;
+}
+
 .main-home-search-icon-btn:hover .main-home-search-logo,
 .main-home-search-icon-btn:focus .main-home-search-logo {
-  transform: scale(1.18) rotate(-3deg);
+  transform: scale(1.06);
   box-shadow: none !important;
   border: none !important;
   filter: brightness(1.08) saturate(1.2);
+}
+
+@media (max-width: 640px) {
+  .main-home-search-logo-wrapper {
+    width: 62px;
+    height: 62px;
+  }
+
+  .main-home-search-logo-full {
+    display: none;
+  }
+
+  .main-home-search-logo-mark.main-home-logo-for-dark {
+    display: block;
+  }
+
+  [data-theme="light"] .main-home-search-logo-mark.main-home-logo-for-dark {
+    display: none;
+  }
+
+  [data-theme="light"] .main-home-search-logo-mark.main-home-logo-for-light {
+    display: block;
+  }
 }
 
 body.settings-page .main-home-ios-theme-toggle {
@@ -655,11 +676,11 @@ body.settings-page .main-home-ios-theme-toggle {
   --neon-blue: transparent;
 
   /* Main home specific variables (overridden by global-settings.js from localStorage) */
-  --main-home-accent-color: #F5F5F5;
-  --main-home-accent-gradient: linear-gradient(135deg, rgba(245, 245, 245, 0.1), rgba(245, 245, 245, 0.05));
-  --main-home-accent-rgb: 245,
-  245,
-  245;
+  --main-home-accent-color: #16a34a;
+  --main-home-accent-gradient: linear-gradient(135deg, #064e3b 0%, #16a34a 42%, #34d399 72%, #022c22 100%);
+  --main-home-accent-rgb: 22,
+  163,
+  74;
   --main-home-card-bg: rgba(0, 0, 0, 0.7);
   --main-home-backdrop-filter: blur(20px) saturate(180%);
   --main-home-card-border: 1px solid rgba(var(--main-home-accent-rgb), 0.3);
@@ -1025,6 +1046,13 @@ body {
   background: transparent;
 }
 
+.main-home-content-wrapper > .container-xxl {
+  width: min(100%, 1640px);
+  max-width: calc(100vw - 96px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
 
 /* Dynamic Island Header */
 /* Dynamic Island Header */
@@ -1381,10 +1409,12 @@ body {
 }
 
 .main-home-cards-container {
-  width: calc(100% - 60px);
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(20px, 1.8vw, 32px);
 }
 
 .main-home-feature-card {
@@ -1473,6 +1503,10 @@ body {
 }
 
 @media (max-width: 768px) {
+  .main-home-content-wrapper > .container-xxl {
+    max-width: calc(100vw - 32px);
+  }
+
   .main-home-cards-container {
     grid-template-columns: 1fr;
     gap: 15px;
@@ -6845,4 +6879,310 @@ body {
     flex-direction: column;
     gap: 0.15rem;
   }
+}
+
+/* 2026 logo and emerald header polish */
+:root {
+  --syndicati-brand-green: #16a34a;
+  --syndicati-brand-green-soft: #34d399;
+  --syndicati-brand-green-dark: #022c22;
+  --syndicati-header-gradient: linear-gradient(135deg, #052e1e 0%, #0f7b41 44%, #28c76f 74%, #041812 100%);
+  --syndicati-header-gradient-muted: linear-gradient(135deg, rgba(6, 78, 59, 0.9), rgba(22, 163, 74, 0.72), rgba(2, 44, 34, 0.9));
+}
+
+.main-home-search-logo,
+.main-home-search-logo-full,
+.main-home-search-logo-mark,
+.main-home-logo-for-dark,
+.main-home-logo-for-light {
+  display: none !important;
+}
+
+:root:not([data-theme="light"]) .main-home-search-logo-full.main-home-logo-for-dark {
+  display: block !important;
+}
+
+[data-theme="light"] .main-home-search-logo-full.main-home-logo-for-light {
+  display: block !important;
+}
+
+.main-home-search-logo-wrapper {
+  width: 210px !important;
+  height: 88px !important;
+  justify-content: flex-start !important;
+  overflow: visible !important;
+  margin-left: -42px !important;
+}
+
+.main-home-search-logo {
+  width: 235px !important;
+  height: 88px !important;
+  max-width: none !important;
+  object-fit: contain !important;
+  transform: scale(1.44) !important;
+  transform-origin: left center !important;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28)) saturate(1.08);
+}
+
+.main-home-search-icon-btn {
+  transform: translateX(-26px) !important;
+}
+
+[data-theme="light"] .main-home-search-logo {
+  filter: drop-shadow(0 8px 14px rgba(15, 23, 42, 0.16)) saturate(1.05);
+}
+
+.main-home-search-icon-btn:hover .main-home-search-logo,
+.main-home-search-icon-btn:focus .main-home-search-logo {
+  transform: scale(1.5) !important;
+  filter: drop-shadow(0 12px 20px rgba(22, 163, 74, 0.2)) saturate(1.18) brightness(1.04);
+}
+
+.main-home-search-icon-btn:hover,
+.main-home-search-icon-btn:focus {
+  transform: translateX(-26px) !important;
+}
+
+.main-home-navbar {
+  background:
+    linear-gradient(90deg, rgba(7, 19, 13, 0.78), rgba(22, 12, 16, 0.72), rgba(2, 8, 7, 0.86)) !important;
+  border-color: rgba(52, 211, 153, 0.18) !important;
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(52, 211, 153, 0.08) inset,
+    0 0 32px rgba(22, 163, 74, 0.08) !important;
+}
+
+.main-home-navbar:hover {
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(52, 211, 153, 0.16) inset,
+    0 0 42px rgba(22, 163, 74, 0.16) !important;
+}
+
+.main-home-nav-tabs {
+  background: rgba(0, 0, 0, 0.62) !important;
+  border-color: rgba(52, 211, 153, 0.18) !important;
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.34),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.055) !important;
+}
+
+.main-home-nav-tab::before {
+  background: rgba(52, 211, 153, 0.08) !important;
+}
+
+.main-home-nav-tab.active {
+  background: var(--syndicati-header-gradient-muted) !important;
+  box-shadow:
+    0 10px 24px rgba(2, 44, 34, 0.38),
+    0 0 22px rgba(52, 211, 153, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+}
+
+.main-home-nav-tab:hover .main-home-tab-text,
+.main-home-nav-tab.active .main-home-tab-text,
+.main-home-nav-tab.active .main-home-tab-text a {
+  color: #f8fffb !important;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.38);
+}
+
+.main-home-tab-dropdown .main-home-dropdown-item {
+  color: #d1fae5 !important;
+}
+
+.main-home-tab-dropdown .main-home-dropdown-item:hover {
+  background: rgba(22, 163, 74, 0.16) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .main-home-navbar {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.92), rgba(241, 253, 247, 0.88), rgba(255, 255, 255, 0.94)) !important;
+  border-color: rgba(22, 101, 52, 0.18) !important;
+  box-shadow:
+    0 12px 34px rgba(15, 23, 42, 0.1),
+    0 0 0 1px rgba(22, 101, 52, 0.08) inset,
+    0 0 28px rgba(22, 163, 74, 0.12) !important;
+}
+
+[data-theme="light"] .main-home-nav-tabs {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(22, 101, 52, 0.18) !important;
+  box-shadow:
+    0 8px 22px rgba(15, 23, 42, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme="light"] .main-home-nav-tab.active {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 48%, #86efac 100%) !important;
+  box-shadow:
+    0 10px 22px rgba(22, 101, 52, 0.14),
+    inset 0 0 0 1px rgba(22, 101, 52, 0.18) !important;
+}
+
+[data-theme="light"] .main-home-nav-tab:hover .main-home-tab-text,
+[data-theme="light"] .main-home-nav-tab.active .main-home-tab-text,
+[data-theme="light"] .main-home-nav-tab.active .main-home-tab-text a {
+  color: #052e1e !important;
+  text-shadow: none !important;
+}
+
+@media (max-width: 640px) {
+  .main-home-search-logo-wrapper {
+    width: 72px !important;
+    height: 66px !important;
+  }
+
+  .main-home-search-logo-full.main-home-logo-for-dark,
+  .main-home-search-logo-full.main-home-logo-for-light {
+    display: none !important;
+  }
+
+  :root:not([data-theme="light"]) .main-home-search-logo-mark.main-home-logo-for-dark {
+    display: block !important;
+  }
+
+  [data-theme="light"] .main-home-search-logo-mark.main-home-logo-for-light {
+    display: block !important;
+  }
+
+  .main-home-search-logo-mark {
+    width: 64px !important;
+    height: 64px !important;
+    transform: scale(1.08) !important;
+  }
+}
+
+/* Readable accent treatment: keep gradients for swatches, not long text or primary CTAs. */
+.main-home-section-title,
+.main-home-content-title,
+.main-home-cta-title,
+.main-home-value-title,
+.main-home-auth-title,
+.settings-page .main-home-hero-title,
+.settings-page .main-home-hero-subtitle,
+.settings-section-title {
+  background: none !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  -webkit-text-fill-color: currentColor !important;
+  color: #f8fffb !important;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.42) !important;
+}
+
+.main-home-btn,
+.main-home-btn-primary,
+.main-home-btn-auth-primary,
+.main-home-btn-auth-submit,
+.glass-btn-save,
+.btn-primary-gradient,
+.onboarding-btn-next {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0)),
+    rgba(var(--main-home-accent-rgb), 0.78) !important;
+  border: 1px solid rgba(255, 255, 255, 0.20) !important;
+  box-shadow:
+    0 12px 30px rgba(var(--main-home-accent-rgb), 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+}
+
+.main-home-btn::before,
+.main-home-btn-auth-primary::before,
+.main-home-btn-auth-submit::before {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+.main-home-btn:hover,
+.main-home-btn-primary:hover,
+.main-home-btn-auth-primary:hover,
+.main-home-btn-auth-submit:hover,
+.glass-btn-save:hover,
+.btn-primary-gradient:hover,
+.onboarding-btn-next:hover {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0)),
+    rgba(var(--main-home-accent-rgb), 0.88) !important;
+}
+
+html.access-high-contrast .global-video-element {
+  filter: grayscale(1) brightness(0.18) contrast(1.1) !important;
+}
+
+html.access-high-contrast .global-video-overlay {
+  background: rgba(0, 0, 0, 0.84) !important;
+  backdrop-filter: none !important;
+}
+
+/* Settings accessibility switches: hard override so cached/older page styles cannot split the knob from the track. */
+body.settings-page .settings-accessibility-toggle .settings-toggle,
+body.settings-page .settings-toggle-wrapper .settings-toggle {
+  position: relative !important;
+  display: block !important;
+  width: 58px !important;
+  min-width: 58px !important;
+  max-width: 58px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  flex: 0 0 58px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 0 !important;
+  overflow: hidden !important;
+}
+
+body.settings-page .settings-toggle input {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+  z-index: 2 !important;
+}
+
+body.settings-page .settings-toggle .settings-toggle-slider {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 58px !important;
+  height: 32px !important;
+  box-sizing: border-box !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.28) !important;
+  transition: background-color 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease !important;
+}
+
+body.settings-page .settings-toggle .settings-toggle-slider::before {
+  content: "" !important;
+  position: absolute !important;
+  width: 24px !important;
+  height: 24px !important;
+  left: 4px !important;
+  top: 3px !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  transform: translate3d(0, 0, 0) !important;
+  transition: transform 0.18s ease !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.32) !important;
+}
+
+body.settings-page .settings-toggle input:checked + .settings-toggle-slider {
+  background: rgba(var(--main-home-accent-rgb), 0.86) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 14px rgba(var(--main-home-accent-rgb), 0.20) !important;
+}
+
+body.settings-page .settings-toggle input:checked + .settings-toggle-slider::before {
+  transform: translate3d(26px, 0, 0) !important;
+}
+
+body.settings-page .settings-accessibility-toggle {
+  grid-template-columns: minmax(0, 1fr) 58px !important;
 }

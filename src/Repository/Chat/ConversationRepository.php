@@ -43,7 +43,7 @@ class ConversationRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('c');
         $qb->innerJoin('c.participants', 'p1')
             ->innerJoin('c.participants', 'p2')
-            ->where('c.is_group = 0')
+            ->where('c.isGroup = false')
             ->andWhere('p1.user = :u1')
             ->andWhere('p2.user = :u2')
             ->setParameter('u1', $u1)

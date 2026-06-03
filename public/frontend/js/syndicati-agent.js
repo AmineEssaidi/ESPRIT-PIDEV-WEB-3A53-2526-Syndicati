@@ -649,6 +649,7 @@
   let chatHistory = []; // Chat tab history
   let agentHistory = []; // Agent tab history (for context, not displayed)
   let agentSessionId = null;
+  let bootstrapRetryTimer = null;
 
   // Event handlers
   trigger.addEventListener('click', async () => {
@@ -703,6 +704,7 @@
     const loader = document.getElementById('agent-loader');
     const detail = document.getElementById('agent-loader-detail');
     if (!loader || !detail) return;
+    if (!isOpen) return;
 
     loader.style.display = 'flex';
     loader.style.opacity = '1';
@@ -717,24 +719,40 @@
         console.log('%c[Syndicati AI] Direct agent is ready.', 'color: #22c55e; font-weight: bold;');
         detail.textContent = 'Direct AI ready.';
         isBootstrapped = true;
+        if (bootstrapRetryTimer) {
+          clearTimeout(bootstrapRetryTimer);
+          bootstrapRetryTimer = null;
+        }
         loader.style.opacity = '0';
         loader.style.pointerEvents = 'none';
         setTimeout(() => { loader.style.display = 'none'; }, 500);
       } else {
         detail.textContent = 'Waiting for GEMINI_API_KEY or GROQ_API_KEY...';
         console.warn('[Syndicati AI] Direct API key is missing. Retrying in 2s...');
-        setTimeout(performBootstrap, 2000);
+        if (bootstrapRetryTimer) clearTimeout(bootstrapRetryTimer);
+        bootstrapRetryTimer = setTimeout(() => {
+          bootstrapRetryTimer = null;
+          if (isOpen) performBootstrap();
+        }, 2000);
       }
     } catch (e) {
       console.error('[Syndicati AI] Bootstrap error:', e);
       detail.textContent = 'Bootstrap failed. Check console. Retrying...';
-      setTimeout(performBootstrap, 2000);
+      if (bootstrapRetryTimer) clearTimeout(bootstrapRetryTimer);
+      bootstrapRetryTimer = setTimeout(() => {
+        bootstrapRetryTimer = null;
+        if (isOpen) performBootstrap();
+      }, 2000);
     }
   }
 
   panel.querySelector('.agent-close').addEventListener('click', () => {
     isOpen = false;
     panel.classList.remove('open');
+    if (bootstrapRetryTimer) {
+      clearTimeout(bootstrapRetryTimer);
+      bootstrapRetryTimer = null;
+    }
   });
 
   // Tab switching - load correct history when switching tabs
@@ -930,6 +948,8 @@
           return data;
         } catch (e) {
           return { success: false, ready: false, error: e.message };
+        } finally {
+          bootstrapForcePromise = null;
         }
       })();
       return bootstrapForcePromise;
@@ -950,6 +970,8 @@
         return data;
       } catch (e) {
         return { success: false, ready: false, error: e.message };
+      } finally {
+        bootstrapPromise = null;
       }
     })();
     return bootstrapPromise;
@@ -1463,6 +1485,7 @@
 
   function showScanning(show) {
     if (show) {
+      if (scanningInterval) clearInterval(scanningInterval);
       scanningOverlay.classList.add('active');
       let phase = 0;
       scanningStatusText.textContent = "Syndicati AI: Starting scan...";
@@ -1472,7 +1495,10 @@
       }, 1000);
     } else {
       scanningOverlay.classList.remove('active');
-      if (scanningInterval) clearInterval(scanningInterval);
+      if (scanningInterval) {
+        clearInterval(scanningInterval);
+        scanningInterval = null;
+      }
     }
   }
 

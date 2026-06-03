@@ -1,9 +1,10 @@
 (function () {
     const endpoint = '/sync/changes';
     const storageKey = 'syndicati-sync-versions';
-    const pollMs = 18000;
+    const pollMs = 30000;
     let timer = null;
     let inFlight = false;
+    let lastReloadAt = 0;
 
     const pageTopics = () => {
         const path = window.location.pathname.toLowerCase();
@@ -43,7 +44,10 @@
             return;
         }
 
-        window.location.reload();
+        const now = Date.now();
+        if (now - lastReloadAt < 10000) return;
+        lastReloadAt = now;
+        notify('New data is available. Refresh when you are ready.');
     };
 
     const poll = () => {

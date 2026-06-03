@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller\Syndicat;
 
+use App\Controller\Concerns\SessionUserAwareTrait;
 use App\Entity\Syndicat\Reclamation;
 use App\Form\Syndicat\ReclamationType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,6 +22,7 @@ use App\Service\FormErrorHelperTrait;
 class SyndicatController extends AbstractController
 {
     use FormErrorHelperTrait;
+    use SessionUserAwareTrait;
     #[Route('/syndicat', name: 'frontend_syndicat', methods: ['GET', 'POST'])]
     public function index(
         Request $request,
@@ -53,7 +55,7 @@ class SyndicatController extends AbstractController
             }
 
             // Project pattern for user ID from session
-            $userId = $userSession['id'] ?? $userSession['id_user'] ?? null;
+            $userId = $this->getSessionUserId($session);
             error_log("User ID from session: " . ($userId ?? 'NULL'));
 
             $user = $userId ? $userRepository->find((int) $userId) : null;
@@ -170,7 +172,13 @@ class SyndicatController extends AbstractController
             return $this->redirectToRoute('auth_sign_in');
         }
 
-        $userId = $userSession['id'] ?? $userSession['id_user'];
+        $userId = $this->getSessionUserId($session);
+        if ($userId === null) {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['success' => false, 'message' => 'Session expired. Please log in again.'], 401);
+            }
+            return $this->redirectToRoute('auth_sign_in');
+        }
         $user = $userRepository->find($userId);
 
         $reponse = new Reponse();

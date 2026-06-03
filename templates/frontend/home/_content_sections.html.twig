@@ -1,0 +1,679 @@
+﻿        <!-- Content Wrapper -->
+        <div class="main-home-content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+
+            <!-- Syndicate Overview Title -->
+            <div class="main-home-section-header reveal" style="text-align: center; margin-bottom: 4rem;">
+                <h1 id="syndicate-title" class="main-home-hero-title main-home-content-title" style="font-size: 3.5rem; margin-bottom: 1rem;">Our Complex <span class="accent-dot">.</span></h1>
+                <p class="main-home-section-subtitle" style="margin: 0 auto; max-width: 600px;">Discover our residences, services, and connected community experience.</p>
+            </div>
+    
+            <!-- Featured Grid Section -->
+            <div class="main-home-cards-section">
+                <div class="main-home-cards-container">
+                    {% for residence in featuredResidences %}
+                        <div class="main-home-feature-card glass-residence-card" onclick="location.href='{{ path('app_residence_index') }}?id={{ residence.idResidence }}'">
+                            <div class="residence-card-img-wrapper">
+                                {% if residence.imageR %}
+                                    <img src="{{ media_url(residence.imageR, 'residence_images') }}" alt="{{ residence.nomR }}" class="residence-card-img-new">
+                                {% else %}
+                                    <div class="residence-card-img-placeholder">
+                                        <i class='bx bx-building-house'></i>
+                                    </div>
+                                {% endif %}
+                                <div class="residence-card-overlay">
+                                    <span class="badge-residence">NEW</span>
+                                </div>
+                            </div>
+                            <div class="residence-card-body">
+                                <h4 class="residence-card-title">{{ residence.nomR }}</h4>
+                                <p class="residence-card-location"><i class='bx bx-map-pin'></i> {{ residence.adresse }}</p>
+                                <div class="residence-card-footer">
+                                    <span class="residence-card-type">RESIDENCE</span>
+                                    <div class="residence-card-go">
+                                        <i class='bx bx-right-arrow-alt'></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="main-home-feature-card empty">
+                            <p>No residences found</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+<style>
+.glass-residence-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+.glass-residence-card:hover {
+    transform: translateY(-12px) scale(1.02);
+    border-color: rgba(108, 92, 231, 0.4);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+.residence-card-img-wrapper {
+    height: 200px;
+    position: relative;
+    border-radius: 20px;
+    margin: 12px;
+    overflow: hidden;
+}
+.residence-card-img-new {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.glass-residence-card:hover .residence-card-img-new {
+    transform: scale(1.1);
+}
+.residence-card-img-placeholder {
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: rgba(255, 255, 255, 0.1);
+}
+.main-home-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+    z-index: 1;
+}
+</style>
+
+    
+
+        <!-- Stats Section - Syndicate Overview -->
+                            <div class="main-home-stats-section glass-stats-panel">
+                                <div class="main-home-stat-item">
+                                    <div class="main-home-stat-number counter" data-target="{{ stats.residences_count|default(0) }}">0</div>
+                                    <div class="main-home-stat-label" >Residences</div>
+                                </div>
+                                <div class="main-home-stat-item">
+                                    <div class="main-home-stat-number counter" data-target="{{ stats.apartments_count|default(0) }}">0</div>
+                                    <div class="main-home-stat-label" >Apartments</div>
+                                </div>
+                                <div class="main-home-stat-item">
+                                    <div class="main-home-stat-number counter" data-target="{{ stats.residents_count|default(0) }}">0</div>
+                                    <div class="main-home-stat-label" >Residents</div>
+                                </div>
+                                <div class="main-home-stat-item">
+                                    <div class="main-home-stat-number counter" data-target="{{ stats.events_count|default(0) }}">0</div>
+                                    <div class="main-home-stat-label" >Events</div>
+                                </div>
+                            </div>
+
+<style>
+.glass-stats-panel {
+    background: rgba(var(--main-home-accent-rgb), 0.08);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.15);
+    border-radius: clamp(32px, 5vw, 64px);
+    padding: clamp(40px, 6vw, 80px);
+    margin: 40px auto;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+    max-width: 1400px;
+    width: 95%;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+.main-home-stat-item {
+    text-align: center;
+    flex: 1;
+    min-width: 150px;
+    padding: 15px;
+}
+.main-home-stat-number {
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 900;
+    background: linear-gradient(to bottom, #fff 30%, rgba(var(--main-home-accent-rgb), 0.5) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -3px;
+    line-height: 1;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+}
+.main-home-stat-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.85rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const counters = document.querySelectorAll('.counter');
+    const speed = 200;
+
+    const animateCounters = () => {
+        counters.forEach(counter => {
+            const target = +counter.getAttribute('data-target');
+            const count = +counter.innerText;
+            const inc = target / speed;
+
+            if (count < target) {
+                counter.innerText = Math.ceil(count + inc);
+                setTimeout(animateCounters, 1);
+            } else {
+                counter.innerText = target;
+            }
+        });
+    };
+
+    // Intersection Observer to start counter when visible
+    const observer = new IntersectionObserver((entries) => {
+        if(entries[0].isIntersecting) animateCounters();
+    }, { threshold: 0.5 });
+    
+    if(counters.length) observer.observe(counters[0].parentElement);
+});
+</script>
+
+
+                            <div class="main-home-section reveal" id="evenements">
+                                <div class="centered-header" style="text-align: center; margin-bottom: 3.5rem;">
+                                    <h3 class="main-home-section-title main-home-content-title" style="font-size: 3rem;">Upcoming Events <span class="accent-dot">.</span></h3>
+                                    <p class="main-home-section-subtitle" style="margin: 0 auto 1.5rem; max-width: 600px;">Join activities that bring the residence community together.</p>
+                                    <a href="{{ path('app_evenement_index') }}" class="glass-action-link" style="display: inline-flex; justify-content: center; margin: 0 auto;">View all <i class='bx bx-right-arrow-alt'></i></a>
+                                </div>
+                                
+                                <div class="main-home-testimonials-grid">
+                                    {% for event in upcomingEvents %}
+                                        <div class="event-glass-card reveal" onclick="location.href='{{ path('app_evenement_index') }}'">
+                                            <div class="event-card-top">
+                                                <div class="event-thumbnail">
+                                                    {% if event.imageEvent %}
+                                                        <img src="{{ media_url(event.imageEvent, 'event_images') }}" alt="{{ event.titreEvent }}" class="event-card-img-new">
+                                                    {% else %}
+                                                        <div class="event-card-img-placeholder">
+                                                            <i class='bx bx-calendar-event'></i>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div class="main-home-event-badge {{ event.typeEvent|lower == 'urgent' ? 'urgent' : '' }}">{{ event.typeEvent }}</div>
+                                                </div>
+                                            </div>
+                                            <div class="event-card-content">
+                                                <h4 class="event-title">{{ event.titreEvent }}</h4>
+                                                <div class="event-meta-row">
+                                                    <span class="event-meta-item"><i class='bx bx-calendar'></i> {{ event.dateEvent|date('d M Y') }}</span>
+                                                    <span class="event-meta-item"><i class='bx bx-map-pin'></i> {{ event.lieuEvent }}</span>
+                                                </div>
+                                                <p class="event-desc">{{ event.descriptionEvent }}</p>
+                                            </div>
+                                            <div class="event-footer">
+                                                <span class="event-more">Event details <i class='bx bx-right-arrow-alt'></i></span>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="empty-state-glass">
+                                            <div class="empty-icon">📅</div>
+                                            <p>No upcoming events scheduled.</p>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Pulse of the Community (Forum) -->
+                            <div class="main-home-section reveal" id="forum-pulse">
+                                <div class="centered-header" style="text-align: center; margin-bottom: 3.5rem;">
+                                    <h3 class="main-home-section-title main-home-content-title" style="font-size: 3rem;">Community Focus <span class="accent-dot">.</span></h3>
+                                    <p class="main-home-section-subtitle" style="margin: 0 auto 1.5rem; max-width: 600px;">Catch up on the latest conversations from your neighbors.</p>
+                                    <a href="{{ path('app_publication_index') }}" class="glass-action-link" style="display: inline-flex; justify-content: center; margin: 0 auto;">Open the Forum <i class='bx bx-right-arrow-alt'></i></a>
+                                </div>
+
+                                <div class="forum-pulse-grid">
+                                    {% for item in latestForum %}
+                                        {% set post = item.post %}
+                                        {% set prof = item.prof %}
+                                        <div class="forum-pulse-card glass-card" onclick="location.href='{{ path('app_publication_index') }}'">
+                                            <div class="pulse-user-info">
+                                                {% if prof and prof.avatar %}
+                                                    {% set avatar_path = prof.avatar %}
+                                                    {% if avatar_path starts with 'http' %}
+                                                        <img src="{{ avatar_path }}" class="pulse-avatar" alt="Avatar">
+                                                    {% else %}
+                                                        <img src="{{ media_url(avatar_path, 'profile_images') }}" class="pulse-avatar" alt="Avatar">
+                                                    {% endif %}
+                                                {% else %}
+                                                    <div class="pulse-avatar">{{ post.user.firstName|slice(0, 1) }}{{ post.user.lastName|slice(0, 1) }}</div>
+                                                {% endif %}
+                                                <div>
+                                                    <p class="pulse-username">{{ post.user.firstName }} {{ post.user.lastName }}</p>
+                                                    <p class="pulse-time">{{ post.dateCreationPub|date('d/m/Y') }}</p>
+                                                </div>
+                                            </div>
+                                            <h4 class="pulse-post-title">{{ post.titrePub }}</h4>
+                                            <p class="pulse-post-desc">{{ post.descriptionPub|slice(0, 100) ~ '...' }}</p>
+                                            <div class="pulse-post-footer">
+                                                <span><i class='bx bx-message-rounded-dots'></i> Discussion</span>
+                                                <span class="pulse-reaction"><i class='bx bxs-quote-left'></i> {{ post.categoriePub }}</span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+<style>
+.section-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 3.5rem;
+}
+.glass-action-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    padding: 14px 28px;
+    background: rgba(var(--main-home-accent-rgb), 0.1);
+    border-radius: 18px;
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.15);
+}
+.glass-action-link:hover {
+    background: rgba(var(--main-home-accent-rgb), 0.2);
+    transform: translateX(10px);
+    border-color: rgba(var(--main-home-accent-rgb), 0.3);
+    box-shadow: 0 10px 25px rgba(var(--main-home-accent-rgb), 0.15);
+}
+.event-glass-card {
+    background: rgba(var(--main-home-accent-rgb), 0.04);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.15);
+    border-radius: 40px;
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.event-glass-card:hover { 
+    transform: translateY(-15px) scale(1.02); 
+    border-color: rgba(var(--main-home-accent-rgb), 0.4);
+    box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+}
+.event-card-top { padding: 15px; }
+.event-thumbnail {
+    height: 220px;
+    border-radius: 30px;
+    position: relative;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.2);
+}
+.event-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.event-glass-card:hover .event-thumbnail img {
+    transform: scale(1.1);
+}
+.event-card-content {
+    padding: 30px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+.event-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 15px;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+}
+.event-meta-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+.event-meta-item {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.event-meta-item i {
+    color: var(--accent);
+    font-size: 1.1rem;
+}
+.event-desc {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.event-footer {
+    padding: 25px 30px;
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: auto;
+}
+.event-more {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    transition: gap 0.3s;
+}
+.event-glass-card:hover .event-more {
+    gap: 15px;
+}
+
+/* Forum Pulse Styles */
+.forum-pulse-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 35px;
+}
+.forum-pulse-card {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.15);
+    border-radius: 36px;
+    padding: 35px;
+    transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    cursor: pointer;
+    box-shadow: 0 15px 45px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+}
+.forum-pulse-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 4px;
+    background: var(--primary-gradient);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+.forum-pulse-card:hover {
+    background: rgba(var(--main-home-accent-rgb), 0.08);
+    border-color: rgba(var(--main-home-accent-rgb), 0.4);
+    transform: translateY(-15px) rotate(-0.5deg);
+    box-shadow: 0 40px 90px rgba(0,0,0,0.5);
+}
+.forum-pulse-card:hover::before { opacity: 1; }
+.pulse-avatar {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-gradient);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(var(--main-home-accent-rgb), 0.3);
+}
+.pulse-username { color: #fff; font-weight: 700; font-size: 1.1rem; margin-bottom: 2px; }
+.pulse-post-title { color: #fff; font-size: 1.45rem; font-weight: 900; margin-bottom: 12px; letter-spacing: -0.5px; line-height: 1.2; }
+.pulse-post-footer {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+.pulse-reaction { color: var(--accent); opacity: 0.9; }
+
+/* Reveal Animation Class */
+.reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+.compact-grid {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+}
+.centralized-cta {
+    display: flex;
+    justify-content: center;
+    margin-top: 80px;
+    margin-bottom: 50px;
+}
+.obsidian-cta-card {
+    background: rgba(var(--main-home-accent-rgb), 0.08);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.15);
+    border-radius: 40px;
+    padding: 60px;
+    text-align: center;
+    max-width: 800px;
+    width: 100%;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.4);
+}
+.cta-desc {
+    color: rgba(255,255,255,0.6);
+    margin: 20px auto 40px;
+    max-width: 500px;
+    font-size: 1.1rem;
+}
+.centered-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.btn-cta {
+    padding: 16px 32px;
+    border-radius: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.main-home-btn-primary.btn-cta {
+    background: var(--primary-gradient);
+    border: none;
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(var(--main-home-accent-rgb), 0.3);
+}
+.main-home-btn-secondary.btn-cta {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.2);
+    color: #fff;
+}
+.btn-cta:hover {
+    transform: translateY(-8px);
+}
+
+.main-home-testimonials-grid,
+.forum-pulse-grid,
+.compact-grid {
+    width: 100%;
+    max-width: 1360px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.main-home-testimonials-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(24px, 2vw, 36px);
+}
+
+.compact-grid {
+    max-width: 1040px;
+}
+
+.event-title,
+.event-desc,
+.pulse-post-title,
+.pulse-post-desc,
+.main-home-feature-card h4,
+.main-home-feature-card p {
+    overflow-wrap: anywhere;
+}
+
+/* Keep home section headings readable with any accent, especially clear/glass gradients. */
+.main-home-content-wrapper .main-home-content-title,
+.main-home-content-wrapper .main-home-section-title,
+.main-home-content-wrapper .main-home-cta-title,
+.main-home-content-wrapper .main-home-value-title {
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    background-clip: initial !important;
+    -webkit-text-fill-color: currentColor !important;
+    color: #f8fffb !important;
+    text-shadow:
+        0 2px 16px rgba(0, 0, 0, 0.72),
+        0 0 24px rgba(var(--main-home-accent-rgb), 0.18) !important;
+}
+
+.main-home-content-wrapper .main-home-content-title::after,
+.main-home-content-wrapper .main-home-section-title::after,
+.main-home-content-wrapper .main-home-cta-title::after {
+    content: "";
+    display: block;
+    width: 74px;
+    height: 3px;
+    margin: 0.55rem auto 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(var(--main-home-accent-rgb), 0.82),
+        rgba(255, 255, 255, 0.7),
+        transparent);
+    box-shadow: 0 0 18px rgba(var(--main-home-accent-rgb), 0.28);
+}
+
+.main-home-content-wrapper .main-home-content-title[style*="center"]::after,
+.main-home-content-wrapper .main-home-section-title[style*="center"]::after {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.main-home-content-wrapper .accent-dot {
+    color: var(--main-home-accent-color, #10b981) !important;
+    -webkit-text-fill-color: var(--main-home-accent-color, #10b981) !important;
+    text-shadow: 0 0 18px rgba(var(--main-home-accent-rgb), 0.42);
+}
+
+.obsidian-cta-card {
+    background:
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.12), transparent 34%),
+        linear-gradient(145deg, rgba(18, 18, 24, 0.62), rgba(var(--main-home-accent-rgb), 0.14)) !important;
+}
+
+.obsidian-cta-card .cta-desc {
+    color: rgba(255, 255, 255, 0.82) !important;
+    font-weight: 650;
+    line-height: 1.55;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+}
+
+@media (max-width: 1200px) {
+    .main-home-testimonials-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .main-home-testimonials-grid,
+    .forum-pulse-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+
+                             <!-- Services Section -->
+                            <div class="main-home-section reveal" id="services-section">
+                                <div class="centered-header">
+                                    <h3 class="main-home-section-title main-home-content-title" style="text-align: center; font-size: 3rem;">Our Services <span class="accent-dot">.</span></h3>
+                                    <p class="main-home-section-subtitle" style="text-align: center; margin: 0 auto 3rem; max-width: 600px;">A complete set of tools for secure, organized residential living.</p>
+                                </div>
+                                
+                                <div class="main-home-features-grid compact-grid">
+                                    <div class="main-home-feature-card">
+                                        <div class="main-home-feature-icon"><i class='bx bx-buildings'></i></div>
+                                        <h4 >Residential Management</h4>
+                                        <p >Manage residences, apartments, and residents with clarity and ease.</p>
+                                    </div>
+                                    <div class="main-home-feature-card">
+                                        <div class="main-home-feature-icon"><i class='bx bx-wrench'></i></div>
+                                        <h4 >Maintenance & SAV</h4>
+                                        <p >Track complaints and schedule technical interventions from one place.</p>
+                                    </div>
+                                    <div class="main-home-feature-card">
+                                        <div class="main-home-feature-icon"><i class='bx bx-chat'></i></div>
+                                        <h4 >Communication</h4>
+                                        <p >Stay connected with neighbors through the forum and messaging system.</p>
+                                    </div>
+                                    <div class="main-home-feature-card">
+                                        <div class="main-home-feature-icon"><i class='bx bx-credit-card'></i></div>
+                                        <h4 >Secure Payments</h4>
+                                        <p >Pay residence and syndic fees online through secure payment options.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                             <!-- Quick Actions / CTA Section -->
+                            <div class="reveal centralized-cta">
+                                <div class="obsidian-cta-card">
+                                    <h2 class="main-home-content-title" style="font-size: 3rem;">Need help? <span class="accent-dot">.</span></h2>
+                                    <p class="cta-desc">Questions about your residence or need technical support? Our team is ready to help.</p>
+                                    <div class="main-home-cta-buttons centered-buttons">
+                                        <button class="main-home-btn-primary btn-cta">
+                                            Contact the Syndic <i class='bx bx-support'></i>
+                                        </button>
+                                        <button class="main-home-btn-secondary btn-cta" onclick="location.href='{{ path('app_reclamation_new') }}'">
+                                            Report an Issue <i class='bx bx-error-circle'></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            </div> {# container-xxl #}
+            <!-- Footer Integration -->
+        </div> {# main-home-content-wrapper #}

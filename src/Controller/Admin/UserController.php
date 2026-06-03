@@ -201,7 +201,9 @@ class UserController extends AbstractController
         }
 
         $sessionUser = $request->getSession()->get('user');
-        $currentUserId = is_array($sessionUser) && isset($sessionUser['id']) ? (int) $sessionUser['id'] : null;
+        $currentUserId = is_array($sessionUser)
+            ? (int) ($sessionUser['id_user'] ?? $sessionUser['id'] ?? 0)
+            : null;
         if ($currentUserId === $user->getIdUser()) {
             return new JsonResponse(['success' => false, 'message' => 'You cannot ban your own account.'], 400);
         }

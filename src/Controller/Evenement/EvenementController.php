@@ -26,6 +26,8 @@ use App\Service\Media\ImagePathResolver;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use App\Service\Evenement\EventRecommendationService;
 use App\Service\Evenement\EvenementNotificationService;
+use App\Message\Evenement\NotifyEventCreationMessage;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 use App\Service\FormErrorHelperTrait;
 
@@ -74,7 +76,8 @@ class EvenementController extends AbstractController
         EntityManagerInterface $entityManager,
         SluggerInterface $slugger,
         EventRecommendationService $recommendationService,
-        EvenementNotificationService $evenementNotificationService
+        EvenementNotificationService $evenementNotificationService,
+        MessageBusInterface $messageBus
     ): Response
     {
         $evenement = new Evenement();
@@ -117,7 +120,8 @@ class EvenementController extends AbstractController
                     $entityManager->persist($evenement);
                     $entityManager->flush();
                     $this->rememberEventCreate($request, $evenement, $user);
-                    $evenementNotificationService->notifyEventCreation($evenement);
+                    $this->userStandingService->awardForAction($user, 'CREATE_EVENT');
+                    $messageBus->dispatch(new NotifyEventCreationMessage($evenement->getId()));
 
                     $this->notifService->notify(
                         $user,
@@ -171,6 +175,8 @@ class EvenementController extends AbstractController
         $user = $userForCheck;
         $currentUserId = ($user instanceof User) ? $user->getIdUser() : null;
         $currentUserRole = ($user instanceof User) ? $user->getRoleUser() : null;
+        $adminRoles = ['ADMIN', 'ROLE_ADMIN', 'SUPERADMIN', 'ROLE_SUPER_ADMIN', 'OWNER', 'SYNDIC'];
+        $isAdmin = $currentUserRole && in_array($currentUserRole, $adminRoles, true);
 
         $events = $evenementRepository->findAllWithUser();
 
@@ -183,6 +189,7 @@ class EvenementController extends AbstractController
             'participationIdsByEvent' => $participationIdsByEvent,
             'currentUserId' => $currentUserId,
             'currentUserRole' => $currentUserRole,
+            'isAdmin' => $isAdmin,
         ]);
     }
 
@@ -211,7 +218,8 @@ class EvenementController extends AbstractController
         EntityManagerInterface $entityManager,
         SluggerInterface $slugger,
         \App\Repository\User\UserRepository $userRepository,
-        EvenementNotificationService $evenementNotificationService
+        EvenementNotificationService $evenementNotificationService,
+        MessageBusInterface $messageBus
     ): JsonResponse {
         $evenement = new Evenement();
         $user = $this->getUser();
@@ -258,7 +266,10 @@ class EvenementController extends AbstractController
             $entityManager->persist($evenement);
             $entityManager->flush();
             $this->rememberEventCreate($request, $evenement, $user instanceof User ? $user : null);
-            $evenementNotificationService->notifyEventCreation($evenement);
+            if ($user instanceof User) {
+                $this->userStandingService->awardForAction($user, 'CREATE_EVENT');
+            }
+            $messageBus->dispatch(new NotifyEventCreationMessage($evenement->getId()));
 
             if ($user instanceof User) {
                 $this->notifService->notify(
@@ -323,13 +334,7 @@ class EvenementController extends AbstractController
                 return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
             }
 
-            $participations = $participationRepository->findBy(['evenement' => $evenement]);
-            foreach ($participations as $participation) {
-                $em->remove($participation);
-            }
-
-            $em->remove($evenement);
-            $em->flush();
+            $deletedParticipations = $this->deleteEventAndParticipations($evenement, $participationRepository, $em);
 
             $user = $this->getUser();
             if ($user) {
@@ -343,7 +348,11 @@ class EvenementController extends AbstractController
                 );
             }
 
-            return new JsonResponse(['success' => true, 'message' => 'Event and its participations deleted successfully.']);
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Event and its participations deleted successfully.',
+                'deletedParticipations' => $deletedParticipations,
+            ]);
         } catch (\Exception $e) {
             return new JsonResponse(['success' => false, 'message' => 'An error occurred while deleting the event: ' . $e->getMessage()], 500);
         }
@@ -452,7 +461,8 @@ class EvenementController extends AbstractController
         EntityManagerInterface $entityManager,
         SluggerInterface $slugger,
         \App\Repository\User\UserRepository $userRepository,
-        EvenementNotificationService $evenementNotificationService
+        EvenementNotificationService $evenementNotificationService,
+        MessageBusInterface $messageBus
     ): JsonResponse {
         try {
             $evenement = new Evenement();
@@ -496,7 +506,8 @@ class EvenementController extends AbstractController
                     $entityManager->persist($evenement);
                     $entityManager->flush();
                     $this->rememberEventCreate($request, $evenement, $user);
-                    $evenementNotificationService->notifyEventCreation($evenement);
+                    $this->userStandingService->awardForAction($user, 'CREATE_EVENT');
+                    $messageBus->dispatch(new NotifyEventCreationMessage($evenement->getId()));
 
                     if ($user instanceof User) {
                         $this->notifService->notify(
@@ -539,6 +550,10 @@ class EvenementController extends AbstractController
             $user = $this->resolveUser($request, $userRepository);
             if (!$user) {
                 return new JsonResponse(['success' => false, 'message' => 'Unauthorized.'], 401);
+            }
+
+            if (!$this->canManageEvent($user, $evenement)) {
+                return new JsonResponse(['success' => false, 'message' => 'Unauthorized. Owner or admin access required.'], 403);
             }
 
             $form = $this->createForm(EvenementType::class, $evenement, [
@@ -589,36 +604,47 @@ class EvenementController extends AbstractController
                 $errors[$fieldName] = $error->getMessage();
             }
             return new JsonResponse(['success' => false, 'errors' => $errors], 400);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return new JsonResponse(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
 
     #[Route('/{id}', name: 'app_evenement_delete', methods: ['POST'])]
-    public function delete(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, \App\Repository\User\UserRepository $userRepository): JsonResponse
+    public function delete(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, \App\Repository\User\UserRepository $userRepository, ParticipationRepository $participationRepository): JsonResponse
     {
         try {
             if ($this->isCsrfTokenValid('delete' . $evenement->getId(), $request->request->get('_token'))) {
-                $entityManager->remove($evenement);
-                $entityManager->flush();
-
+                $eventId = $evenement->getId();
                 $user = $this->resolveUser($request, $userRepository);
+                if (!$user) {
+                    return new JsonResponse(['success' => false, 'message' => 'Unauthorized.'], 401);
+                }
+                if (!$this->canManageEvent($user, $evenement)) {
+                    return new JsonResponse(['success' => false, 'message' => 'Unauthorized. Owner or admin access required.'], 403);
+                }
+
+                $deletedParticipations = $this->deleteEventAndParticipations($evenement, $participationRepository, $entityManager);
+
                 if ($user) {
                     $this->notifService->notify(
                         $user,
                         'SUCCESS',
                         'EVENT',
-                        $evenement->getId(),
+                        $eventId,
                         'Événement supprimé',
                         'L\'événement a été retiré.'
                     );
                 }
 
-                return new JsonResponse(['success' => true, 'message' => 'Event deleted successfully!']);
+                return new JsonResponse([
+                    'success' => true,
+                    'message' => 'Event and its participations deleted successfully!',
+                    'deletedParticipations' => $deletedParticipations,
+                ]);
             }
 
             return new JsonResponse(['success' => false, 'message' => 'Invalid security token.'], 403);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return new JsonResponse(['success' => false, 'message' => 'Delete failed: ' . $e->getMessage()], 500);
         }
     }
@@ -636,6 +662,33 @@ class EvenementController extends AbstractController
             }
         }
         return $user instanceof User ? $user : null;
+    }
+
+    private function canManageEvent(User $user, Evenement $evenement): bool
+    {
+        $owner = $evenement->getUser();
+        if ($owner && $owner->getIdUser() === $user->getIdUser()) {
+            return true;
+        }
+
+        return $this->isEventAdmin($user);
+    }
+
+    private function isEventAdmin(User $user): bool
+    {
+        return in_array($user->getRoleUser(), ['ADMIN', 'ROLE_ADMIN', 'SUPERADMIN', 'ROLE_SUPER_ADMIN', 'OWNER', 'SYNDIC'], true);
+    }
+
+    private function deleteEventAndParticipations(
+        Evenement $evenement,
+        ParticipationRepository $participationRepository,
+        EntityManagerInterface $entityManager
+    ): int {
+        $deletedParticipations = $participationRepository->deleteByEvenement($evenement);
+        $entityManager->remove($evenement);
+        $entityManager->flush();
+
+        return (int) $deletedParticipations;
     }
 
     private function normalizeCreatedEventCapacity(Evenement $evenement): void

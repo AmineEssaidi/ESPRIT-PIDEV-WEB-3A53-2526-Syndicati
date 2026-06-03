@@ -15,12 +15,14 @@ use App\Service\PageStatusService;
 use App\Service\Media\ImageKitStorageService;
 use App\Service\Media\ImagePathResolver;
 use App\Service\Forum\DiscordWebhookService;
+use App\Message\Forum\NotifyAnnouncementMessage;
 use App\Entity\User\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -78,7 +80,8 @@ class PublicationController extends AbstractController
         EntityManagerInterface $em,
         SluggerInterface $slugger,
         FormFactoryInterface $formFactory,
-        \App\Service\Forum\ForumNotificationService $notificationService
+        \App\Service\Forum\ForumNotificationService $notificationService,
+        MessageBusInterface $messageBus
     ): JsonResponse {
         $publication = new Publication();
         $form = $formFactory->createNamed('publication_add', PublicationType::class, $publication);
@@ -137,11 +140,11 @@ class PublicationController extends AbstractController
                 'Votre publication "' . $publication->getTitrePub() . '" est maintenant en ligne.'
             );
 
-            // Points removed
+            $this->userStandingService->awardForAction($user, 'FORUM_POST');
 
             // Notify if Announcement
             if ($publication->getCategoriePub() === 'Announcement') {
-                $notificationService->notifyNewAnnouncement($publication);
+                $messageBus->dispatch(new NotifyAnnouncementMessage($publication->getId()));
             }
             $this->discordWebhook->announceJeuxVideo($publication, false);
 
@@ -321,7 +324,8 @@ class PublicationController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         SluggerInterface $slugger,
-        \App\Service\Forum\ForumNotificationService $notificationService
+        \App\Service\Forum\ForumNotificationService $notificationService,
+        MessageBusInterface $messageBus
     ): JsonResponse {
         $publication = new Publication();
         $user = $this->getUser();
@@ -368,12 +372,12 @@ class PublicationController extends AbstractController
             }
 
             if ($user instanceof User) {
-                // Points removed
+                $this->userStandingService->awardForAction($user, 'FORUM_POST');
             }
 
             // Notify if Announcement
             if ($publication->getCategoriePub() === 'Announcement') {
-                $notificationService->notifyNewAnnouncement($publication);
+                $messageBus->dispatch(new NotifyAnnouncementMessage($publication->getId()));
             }
             $this->discordWebhook->announceJeuxVideo($publication, false);
 

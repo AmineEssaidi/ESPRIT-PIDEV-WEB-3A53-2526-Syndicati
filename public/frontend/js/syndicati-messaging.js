@@ -285,6 +285,9 @@
     let pollId = null;
     let friendsList = [];
     let activeRecipientId = null;
+    let panelEverOpened = false;
+    const visiblePollDelay = 7000;
+    const hiddenPollDelay = 25000;
 
     // Navigation
     function switchView(vid) {
@@ -310,7 +313,10 @@
 
     trigger.onclick = () => {
       panel.classList.toggle('open');
-      if (panel.classList.contains('open')) { initInternal().then(() => { switchView('list'); loadConvs(); }); }
+      if (panel.classList.contains('open')) {
+        panelEverOpened = true;
+        initInternal().then(() => { switchView('list'); loadConvs(); });
+      }
       else stopPoll();
     };
     panel.querySelector('.msg-close').onclick = () => { panel.classList.remove('open'); stopPoll(); };
@@ -328,7 +334,10 @@
         c.innerHTML = '';
         d.forEach(cv => {
           const i = document.createElement('div'); i.className = 'conv-item';
-          const av = cv.is_group ? '👥' : (cv.avatar ? `<img src="/${cv.avatar}">` : '👤');
+          const avatarUrl = cv.avatar
+            ? (/^(https?:)?\/\//.test(cv.avatar) || cv.avatar.startsWith('data:') || cv.avatar.startsWith('/') ? cv.avatar : `/${cv.avatar}`)
+            : null;
+          const av = cv.is_group ? '👥' : (avatarUrl ? `<img src="${avatarUrl}">` : '👤');
           i.innerHTML = `
             <div class="conv-avatar">${av}</div>
             <div class="conv-info">
@@ -359,7 +368,7 @@
     let isFetching = false;
 
     async function fetchMsgs() {
-      if (!curConvId || isFetching) return;
+      if (!curConvId || isFetching || !panel.classList.contains('open')) return;
       isFetching = true;
       try {
         const r = await fetch('/api/messaging/messages/' + curConvId, { cache: 'no-store' });
@@ -395,7 +404,7 @@
       } finally {
         isFetching = false;
         if (curConvId && pollId) {
-          pollId = setTimeout(fetchMsgs, 5000);
+          pollId = setTimeout(fetchMsgs, document.hidden ? hiddenPollDelay : visiblePollDelay);
         }
       }
     }
@@ -597,8 +606,27 @@
       } catch (e) { }
     };
 
-    function startPoll() { stopPoll(); pollId = setTimeout(fetchMsgs, 5000); }
+    function startPoll() { stopPoll(); pollId = setTimeout(fetchMsgs, document.hidden ? hiddenPollDelay : visiblePollDelay); }
     function stopPoll() { if (pollId) { clearTimeout(pollId); pollId = null; } }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!panelEverOpened) return;
+      if (document.hidden) {
+        stopPoll();
+        if (curConvId && panel.classList.contains('open')) {
+          pollId = setTimeout(fetchMsgs, hiddenPollDelay);
+        }
+        return;
+      }
+
+      if (!panel.classList.contains('open')) return;
+      if (curConvId) {
+        startPoll();
+        fetchMsgs();
+      } else {
+        loadConvs();
+      }
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initMessaging);

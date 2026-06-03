@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\Concerns\SessionUserAwareTrait;
 use App\Entity\Profile\Profile;
 use App\Repository\Profile\ProfileRepository;
 use App\Repository\User\UserRepository;
@@ -16,6 +17,8 @@ use App\Service\FormErrorHelperTrait;
 class SettingsController extends AbstractController
 {
     use FormErrorHelperTrait;
+    use SessionUserAwareTrait;
+
     #[Route('/settings', name: 'frontend_settings', methods: ['GET'])]
     public function index(Request $request, ProfileRepository $profileRepository, UserRepository $userRepository): Response
     {
@@ -28,8 +31,8 @@ class SettingsController extends AbstractController
         ];
 
         $settings = $defaults;
-        if ($session->get('is_logged_in') && $session->get('user') && isset($session->get('user')['id'])) {
-            $userId = (int) $session->get('user')['id'];
+        $userId = $this->getSessionUserId($session);
+        if ($session->get('is_logged_in') && $userId !== null) {
             $user = $userRepository->find($userId);
             if ($user) {
                 $profile = $profileRepository->findOneByUser($user);
@@ -49,11 +52,10 @@ class SettingsController extends AbstractController
     public function update(Request $request, ProfileRepository $profileRepository, UserRepository $userRepository, EntityManagerInterface $em): JsonResponse
     {
         $session = $request->getSession();
-        if (!$session->get('is_logged_in') || !$session->get('user') || !isset($session->get('user')['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if (!$session->get('is_logged_in') || $userId === null) {
             return new JsonResponse(['error' => 'Unauthorized'], 401);
         }
-
-        $userId = (int) $session->get('user')['id'];
         $user = $userRepository->find($userId);
         if (!$user) {
             return new JsonResponse(['error' => 'User not found'], 404);

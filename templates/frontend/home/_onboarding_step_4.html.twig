@@ -1,0 +1,37 @@
+<div class="onboarding-step" data-step="4">
+    <h1 class="onboarding-title">{{ 'syndicat.communication'|trans }}</h1>
+    <p class="onboarding-subtitle">{{ 'forms.comm_prefs'|trans }}</p>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'forms.meeting_participation'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'IN_PERSON':'In person','ONLINE':'Online','HYBRID':'Hybrid','PROXY_ONLY':'Proxy only'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="meeting_participation" id="mp_{{ val }}" value="{{ val }}" {{ (_prefs.meeting_participation|default('HYBRID')) == val ? 'checked' : '' }}>
+                    <label for="mp_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'syndicat.documents'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'DIGITAL':'Digital','PAPER':'Paper','BOTH':'Both','ECO_FRIENDLY':'Eco-friendly'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="document_delivery" id="dd_{{ val }}" value="{{ val }}" {{ (_prefs.document_delivery|default('DIGITAL')) == val ? 'checked' : '' }}>
+                    <label for="dd_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'forms.pref_contact'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'EMAIL':'Email','PHONE':'Phone','WHATSAPP':'WhatsApp','IN_PERSON':'In person','NO_CONTACT':'Emergency only'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="contact_preference" id="cp_{{ val }}" value="{{ val }}" {{ (_prefs.contact_preference|default('EMAIL')) == val ? 'checked' : '' }}>
+                    <label for="cp_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

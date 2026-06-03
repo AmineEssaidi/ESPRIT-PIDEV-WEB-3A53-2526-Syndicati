@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\Concerns\SessionUserAwareTrait;
 use App\Entity\Onboarding\Onboarding;
 use App\Repository\Onboarding\OnboardingRepository;
 use App\Repository\Evenement\EvenementRepository;
@@ -20,6 +21,8 @@ use Symfony\Contracts\Cache\CacheInterface;
 
 class HomeController extends AbstractController
 {
+    use SessionUserAwareTrait;
+
     public function __construct(
         private readonly CacheInterface $cache,
         private readonly UserStandingService $userStandingService
@@ -49,11 +52,13 @@ class HomeController extends AbstractController
         $showOverlay = false;
         $prefs = [];
 
-        if ($session->get('is_logged_in') && $session->get('user') && isset($session->get('user')['id'])) {
-            $userId = (int) $session->get('user')['id'];
+        $userId = $this->getSessionUserId($session);
+        if ($session->get('is_logged_in') && $userId !== null) {
             $user = $userRepository->find($userId);
 
             if ($user) {
+                $this->userStandingService->updateHeartbeat($user, $request);
+
                 // Cache onboarding status in session to avoid database hit on every request
                 $onboardingData = $session->get('onboarding_cache');
                 if (!$onboardingData || $onboardingData['user_id'] !== $userId) {
@@ -85,9 +90,8 @@ class HomeController extends AbstractController
             }
         }
 
-        // DYNAMIC CONTENT - Optimized with Cache and Query Batching
         $stats = $this->cache->get('home_page_stats', function (\Symfony\Contracts\Cache\ItemInterface $item) use ($userRepository, $residenceRepository, $appartementRepository, $evenementRepository) {
-            $item->expiresAfter(300); // 5 minutes
+            $item->expiresAfter(60);
             return [
                 'residents_count' => $userRepository->count([]),
                 'residences_count' => $residenceRepository->count([]),
@@ -96,14 +100,9 @@ class HomeController extends AbstractController
             ];
         });
 
-        // 2. Featured Residences (Latest 4)
-        $featuredResidences = $residenceRepository->findBy([], ['dateAjout' => 'DESC'], 4);
-
-        // 3. Upcoming Events (Latest 3)
-        $upcomingEvents = $evenementRepository->findBy([], ['date_event' => 'ASC'], 3);
-
-        // 4. Latest Forum Activity (Latest 3) - JOINED QUERY (Solve N+1)
-        $latestForum = $publicationRepository->findLatestWithProfiles(3);
+        $featuredResidences = $residenceRepository->findLatestForHome(4);
+        $upcomingEvents = $evenementRepository->findUpcomingForHome(3);
+        $latestForum = $publicationRepository->findLatestWithProfiles(3, true);
 
         $response = $this->render('frontend/home/main-home.html.twig', [
             'user' => $user,
@@ -117,10 +116,10 @@ class HomeController extends AbstractController
         ]);
 
         // Ajouter des en-têtes de cache HTTP pour de meilleures performances
-        $response->setPublic();
-        $response->setMaxAge(300); // 5 minutes
+        $response->setPrivate();
+        $response->setMaxAge(0);
+        $response->headers->addCacheControlDirective('no-cache', true);
         $response->headers->addCacheControlDirective('must-revalidate', true);
-        $response->setEtag(md5($response->getContent()));
 
         return $response;
     }

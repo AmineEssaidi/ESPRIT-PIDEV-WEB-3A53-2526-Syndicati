@@ -2,6 +2,7 @@
 
 namespace App\Controller\Syndicat;
 
+use App\Controller\Concerns\SessionUserAwareTrait;
 use App\Entity\Syndicat\Reponse;
 use App\Repository\Syndicat\ReclamationRepository;
 use App\Repository\Syndicat\ReponseRepository;
@@ -18,6 +19,8 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 #[Route('/api/syndicat/reponse')]
 class ReponseApiController extends AbstractController
 {
+    use SessionUserAwareTrait;
+
     #[Route('/add/{id}', name: 'api_reponse_add', methods: ['POST'])]
     public function add(
         int $id,
@@ -30,13 +33,15 @@ class ReponseApiController extends AbstractController
         ImageKitStorageService $imageStorage
     ): JsonResponse {
         $reclamation = $reclamationRepository->find($id);
-        $userSession = $request->getSession()->get('user');
+        $session = $request->getSession();
+        $userSession = $session->get('user');
+        $sessionUserId = $this->getSessionUserId($session);
 
-        if (!$reclamation || !$userSession) {
+        if (!$reclamation || !$userSession || $sessionUserId === null) {
             return new JsonResponse(['success' => false, 'message' => 'Reclamation not found or not logged in'], 404);
         }
 
-        $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($userSession['id_user'] ?? $userSession['id']);
+        $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($sessionUserId);
         if (!$user) {
             return new JsonResponse(['success' => false, 'message' => 'User not found'], 404);
         }
@@ -109,8 +114,7 @@ class ReponseApiController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Reclamation not found'], 404);
         }
 
-        $userSession = $request->getSession()->get('user');
-        $currentUserId = $userSession ? ($userSession['id_user'] ?? $userSession['id']) : null;
+        $currentUserId = $this->getSessionUserId($request->getSession());
 
         $reponses = $reponseRepository->findBy(['reclamation' => $reclamation], ['created_at' => 'ASC']);
         $data = [];
@@ -135,17 +139,11 @@ class ReponseApiController extends AbstractController
             $profile = $profiles[$user->getIdUser()] ?? null;
 
             // Avatar logic similar to CommentaireController
-            $avatar = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face';
-            $avatarVal = $profile ? $profile->getAvatar() : null;
-            if ($avatarVal) {
-                if (strpos($avatarVal, 'http') === 0) {
-                    $avatar = $avatarVal;
-                } elseif (strpos($avatarVal, 'profile_images/') !== false) {
-                    $avatar = '/' . ltrim($avatarVal, '/');
-                } else {
-                    $avatar = '/profile_images/' . $avatarVal;
-                }
-            }
+            $avatar = $imagePathResolver->publicUrl(
+                $profile ? $profile->getAvatar() : null,
+                'profile_images',
+                'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face'
+            );
 
             $images = json_decode($r->getImagereponse() ?? '[]', true) ?: [];
             $imageUrls = $imagePathResolver->publicUrls($images, 'reponse_images');
@@ -178,14 +176,15 @@ class ReponseApiController extends AbstractController
         ImageKitStorageService $imageStorage
     ): JsonResponse {
         $reponse = $reponseRepository->find($id);
-        $userSession = $request->getSession()->get('user');
+        $session = $request->getSession();
+        $userSession = $session->get('user');
+        $sessionUserId = $this->getSessionUserId($session);
 
-        if (!$reponse || !$userSession) {
+        if (!$reponse || !$userSession || $sessionUserId === null) {
             return new JsonResponse(['success' => false, 'message' => 'Not found or not logged in'], 404);
         }
 
-        // Project pattern for single user entity retrieval
-        $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($userSession['id_user'] ?? $userSession['id']);
+        $user = $entityManager->getRepository(\App\Entity\User\User::class)->find($sessionUserId);
 
         if (!$user) {
             return new JsonResponse(['success' => false, 'message' => 'User not found'], 404);

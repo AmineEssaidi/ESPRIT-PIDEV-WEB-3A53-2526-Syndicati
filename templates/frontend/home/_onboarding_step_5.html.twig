@@ -1,0 +1,26 @@
+<div class="onboarding-step" data-step="5">
+    <h1 class="onboarding-title">Community</h1>
+    <p class="onboarding-subtitle">{{ 'forms.your_involvement'|trans }}</p>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'syndicat.maintenance'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'URGENT_ONLY':'Urgent only','PREVENTIVE':'Preventive','SCHEDULED':'Scheduled','FLEXIBLE':'Flexible'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="maintenance_priority" id="mt_{{ val }}" value="{{ val }}" {{ (_prefs.maintenance_priority|default('FLEXIBLE')) == val ? 'checked' : '' }}>
+                    <label for="mt_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="onboarding-section">
+        <label class="onboarding-label">{{ 'forms.comm_engagement'|trans }}</label>
+        <div class="onboarding-options">
+            {% for val, label in {'VERY_ACTIVE':'Very active','ACTIVE':'Active','MODERATE':'Moderate','OBSERVER':'Observer','MINIMAL':'Minimal'} %}
+                <div class="onboarding-opt">
+                    <input type="radio" name="community_engagement" id="ce_{{ val }}" value="{{ val }}" {{ (_prefs.community_engagement|default('MODERATE')) == val ? 'checked' : '' }}>
+                    <label for="ce_{{ val }}">{{ label }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

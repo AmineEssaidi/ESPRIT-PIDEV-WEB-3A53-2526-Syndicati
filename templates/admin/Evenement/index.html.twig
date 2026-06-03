@@ -605,7 +605,7 @@
 <script>
 
 
-    const eventsData = [{% for e in evenements|default([]) %} [ "{{ e.titreEvent|e('js') }}", "{{ e.lieuEvent|e('js') }}", "{{ e.descriptionEvent|e('js') }}", "{{ e.dateEvent|date('Y-m-d H:i') }}", "{{ e.imageEvent|e('js') }}", "{{ e.id }}", "{{ csrf_token('delete' ~ e.id)|e('js') }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
+    const eventsData = [{% for e in evenements|default([]) %} [ "{{ e.titreEvent|e('js') }}", "{{ e.lieuEvent|e('js') }}", "{{ e.descriptionEvent|e('js') }}", "{{ e.dateEvent|date('Y-m-d H:i') }}", "{{ media_url(e.imageEvent, 'event_images')|default('')|e('js') }}", "{{ e.id }}", "{{ csrf_token('delete' ~ e.id)|e('js') }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
     const partsData = [{% for p in participations|default([]) %} [ "{{ p.user ? p.user.emailUser|e('js') : '—' }}", "{{ p.evenement ? p.evenement.titreEvent|e('js') : '—' }}", "{{ p.dateParticipation|date('Y-m-d H:i') }}", "{{ p.id }}", "{{ csrf_token('delete' ~ p.id)|e('js') }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
 
     const editEventUrlTemplate = "{{ path('admin_evenement_edit', {id: 'ID_PLACEHOLDER'}) }}";
@@ -695,7 +695,7 @@
 
     window.viewEvent = function(idx) {
         const d = evRows[idx]; document.getElementById('view-event-title').textContent = d[0]; document.getElementById('view-event-location').textContent = d[1]; document.getElementById('view-event-description').textContent = d[2]; document.getElementById('view-event-date').textContent = d[3];
-        const ir = document.getElementById('view-event-image-row'); if(d[4]) { document.getElementById('view-event-image').src = '/uploads/events/' + d[4]; ir.style.display = 'flex'; } else ir.style.display = 'none';
+        const ir = document.getElementById('view-event-image-row'); if(d[4]) { document.getElementById('view-event-image').src = d[4]; ir.style.display = 'flex'; } else ir.style.display = 'none';
         document.getElementById('view-event-delete-token').value = d[6]; document.getElementById('view-event-delete-form').action = deleteEventUrlTemplate.replace('ID_PLACEHOLDER', d[5]);
         document.getElementById('view-event-modify-btn').onclick = () => {
             const f = document.getElementById('event-edit-form'); f.action = editEventUrlTemplate.replace('ID_PLACEHOLDER', d[5]);

@@ -71,15 +71,20 @@ class PublicationRepository extends ServiceEntityRepository
     /**
      * @return array<int, array{post: Publication, prof: \App\Entity\Profile\Profile|null}>
      */
-    public function findLatestWithProfiles(int $limit = 3): array
+    public function findLatestWithProfiles(int $limit = 3, bool $generalOnly = false): array
     {
-        $publications = $this->createQueryBuilder('p')
+        $qb = $this->createQueryBuilder('p')
             ->leftJoin('p.user', 'u')
             ->addSelect('u')
             ->orderBy('p.date_creation_pub', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+            ->setMaxResults($limit);
+
+        if ($generalOnly) {
+            $qb->andWhere('p.categorie_pub != :announcement')
+                ->setParameter('announcement', 'Announcement');
+        }
+
+        $publications = $qb->getQuery()->getResult();
 
         if (empty($publications)) {
             return [];

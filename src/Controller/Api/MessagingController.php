@@ -55,6 +55,20 @@ class MessagingController extends AbstractController
         session_write_close();
 
         $conversations = $this->conversationRepo->findUserConversations($user);
+        $otherParticipants = [];
+        foreach ($conversations as $conv) {
+            if ($conv->isGroup()) {
+                continue;
+            }
+            foreach ($conv->getParticipants() as $participant) {
+                $participantUser = $participant->getUser();
+                if ($participantUser->getIdUser() !== $user->getIdUser()) {
+                    $otherParticipants[$participantUser->getIdUser()] = $participantUser;
+                    break;
+                }
+            }
+        }
+        $profileMap = $this->buildProfileMap(array_values($otherParticipants));
         $data = [];
 
         foreach ($conversations as $conv) {
@@ -75,7 +89,7 @@ class MessagingController extends AbstractController
             $name = $conv->getName();
 
             if (!$conv->isGroup()) {
-                $profile = $this->profileRepo->findOneBy(['user' => $otherParticipant]);
+                $profile = $otherParticipant ? ($profileMap[$otherParticipant->getIdUser()] ?? null) : null;
                 $avatar = $profile ? $profile->getAvatar() : null;
                 $name = $otherParticipant->getFirstName() . ' ' . $otherParticipant->getLastName();
             }
@@ -133,7 +147,7 @@ class MessagingController extends AbstractController
             $attachments = [];
             foreach ($msg->getAttachments() as $att) {
                 $attachments[] = [
-                    'path' => $att->getFilePath(),
+                    'path' => $this->normalizePublicPath($att->getFilePath()),
                     'name' => $att->getOriginalName(),
                     'kind' => $att->getKind(),
                     'size' => $att->getSizeBytes()
@@ -312,10 +326,11 @@ class MessagingController extends AbstractController
         session_write_close();
 
         $friends = $this->relationshipRepo->findFriends($user);
+        $profileMap = $this->buildProfileMap($friends);
         $data = [];
 
         foreach ($friends as $friend) {
-            $profile = $this->profileRepo->findOneBy(['user' => $friend]);
+            $profile = $profileMap[$friend->getIdUser()] ?? null;
             $data[] = [
                 'id' => $friend->getIdUser(),
                 'name' => $friend->getFirstName() . ' ' . $friend->getLastName(),
@@ -429,9 +444,15 @@ class MessagingController extends AbstractController
             return $this->json(['error' => 'Not found'], 404);
         }
 
+        $participantUsers = [];
+        foreach ($conversation->getParticipants() as $participant) {
+            $participantUsers[$participant->getUser()->getIdUser()] = $participant->getUser();
+        }
+        $profileMap = $this->buildProfileMap(array_values($participantUsers));
+
         $data = [];
         foreach ($conversation->getParticipants() as $p) {
-            $profile = $this->profileRepo->findOneBy(['user' => $p->getUser()]);
+            $profile = $profileMap[$p->getUser()->getIdUser()] ?? null;
             $data[] = [
                 'id' => $p->getUser()->getIdUser(),
                 'name' => $p->getUser()->getFirstName() . ' ' . $p->getUser()->getLastName(),
@@ -456,6 +477,41 @@ class MessagingController extends AbstractController
             : (method_exists($userData, 'getIdUser') ? $userData->getIdUser() : (method_exists($userData, 'getId') ? $userData->getId() : null));
 
         return $userId ? $this->userRepo->find($userId) : null;
+    }
+
+    /**
+     * @param list<User> $users
+     * @return array<int, mixed>
+     */
+    private function buildProfileMap(array $users): array
+    {
+        if ($users === []) {
+            return [];
+        }
+
+        $profiles = $this->profileRepo->findBy(['user' => $users]);
+        $map = [];
+        foreach ($profiles as $profile) {
+            $profileUser = $profile->getUser();
+            if ($profileUser) {
+                $map[$profileUser->getIdUser()] = $profile;
+            }
+        }
+
+        return $map;
+    }
+
+    private function normalizePublicPath(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+
+        if (preg_match('#^(https?:)?//#', $path) || str_starts_with($path, 'data:')) {
+            return $path;
+        }
+
+        return '/' . ltrim($path, '/');
     }
 
     /**

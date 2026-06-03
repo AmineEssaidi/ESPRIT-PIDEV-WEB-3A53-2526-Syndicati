@@ -38,4 +38,17 @@ class ResidenceRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    /**
+     * @return Residence[]
+     */
+    public function findLatestForHome(int $limit = 4): array
+    {
+        return $this->createQueryBuilder('r')
+            ->orderBy('r.dateAjout', 'DESC')
+            ->addOrderBy('r.idResidence', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

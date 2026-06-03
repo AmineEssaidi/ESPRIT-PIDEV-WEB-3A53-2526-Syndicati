@@ -28,4 +28,23 @@ class EvenementRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return Evenement[]
+     */
+    public function findUpcomingForHome(int $limit = 3): array
+    {
+        return $this->createQueryBuilder('e')
+            ->leftJoin('e.user', 'u')
+            ->addSelect('u')
+            ->andWhere('e.date_event >= :now')
+            ->andWhere('e.statut_event != :cancelled')
+            ->setParameter('now', new \DateTimeImmutable('today'))
+            ->setParameter('cancelled', 'annule')
+            ->orderBy('e.date_event', 'ASC')
+            ->addOrderBy('e.edited_at', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

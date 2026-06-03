@@ -572,7 +572,8 @@ class ResidenceController extends AbstractController
             return $this->redirectToRoute('auth_sign_in');
         }
 
-        $user = $userRep->find($userData['id']);
+        $userId = is_array($userData) ? ($userData['id'] ?? $userData['id_user'] ?? null) : null;
+        $user = $userId ? $userRep->find($userId) : null;
         if (!$user) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['status' => 'error', 'message' => 'Utilisateur non trouvé'], 404);

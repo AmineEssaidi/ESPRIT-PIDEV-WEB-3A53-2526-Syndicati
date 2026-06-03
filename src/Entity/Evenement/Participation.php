@@ -20,7 +20,7 @@ class Participation
     private $id;
 
     #[ORM\ManyToOne(targetEntity: Evenement::class)]
-    #[ORM\JoinColumn(name: 'event_id', referencedColumnName: 'id_event', nullable: false)]
+    #[ORM\JoinColumn(name: 'event_id', referencedColumnName: 'id_event', nullable: false, onDelete: 'CASCADE')]
     private $evenement;
 
     #[ORM\ManyToOne(targetEntity: User::class)]

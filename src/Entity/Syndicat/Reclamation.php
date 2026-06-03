@@ -162,6 +162,9 @@ class Reclamation
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
+        if ($this->datereclamation === null) {
+            $this->datereclamation = new \DateTime();
+        }
         $this->created_at = new \DateTime();
         $this->updated_at = new \DateTime();
     }

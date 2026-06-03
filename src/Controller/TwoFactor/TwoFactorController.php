@@ -2,6 +2,7 @@
 
 namespace App\Controller\TwoFactor;
 
+use App\Controller\Concerns\SessionUserAwareTrait;
 use App\Entity\User\User;
 use App\Repository\User\UserRepository;
 use App\Repository\Profile\ProfileRepository;
@@ -9,6 +10,7 @@ use App\Repository\Onboarding\OnboardingRepository;
 use App\Service\Log\UserActivityLogger;
 use App\Service\TwoFactor\TwoFactorService;
 use Doctrine\ORM\EntityManagerInterface;
+use Endroid\QrCode\Builder\Builder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,6 +20,8 @@ use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Totp\TotpAuthenticatorInte
 
 class TwoFactorController extends AbstractController
 {
+    use SessionUserAwareTrait;
+
     #[Route('/2fa/verify', name: '2fa_verify', methods: ['GET', 'POST'])]
     public function verify(
         Request $request,
@@ -142,12 +146,11 @@ class TwoFactorController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
 
-        $userData = $session->get('user');
-        if (!$userData || !isset($userData['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if ($userId === null) {
             return $this->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
-
-        $user = $userRepository->find($userData['id']);
+        $user = $userRepository->find($userId);
         if (!$user instanceof User) {
             return $this->json(['success' => false, 'message' => 'User not found'], 404);
         }
@@ -182,12 +185,11 @@ class TwoFactorController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
 
-        $userData = $session->get('user');
-        if (!$userData || !isset($userData['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if ($userId === null) {
             return $this->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
-
-        $user = $userRepository->find($userData['id']);
+        $user = $userRepository->find($userId);
         if (!$user instanceof User) {
             return $this->json(['success' => false, 'message' => 'User not found'], 404);
         }
@@ -215,12 +217,11 @@ class TwoFactorController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
 
-        $userData = $session->get('user');
-        if (!$userData || !isset($userData['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if ($userId === null) {
             return $this->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
-
-        $user = $userRepository->find($userData['id']);
+        $user = $userRepository->find($userId);
         if (!$user instanceof User) {
             return $this->json(['success' => false, 'message' => 'User not found'], 404);
         }
@@ -239,10 +240,12 @@ class TwoFactorController extends AbstractController
                 $secret,
                 rawurlencode($issuer)
             );
+            $qrDataUri = (new Builder())->build(data: $qrCodeUrl, size: 240, margin: 8)->getDataUri();
 
             return $this->json([
                 'success' => true,
                 'qrCode' => $qrCodeUrl,
+                'qrDataUri' => $qrDataUri,
                 'secret' => $secret
             ]);
         } catch (\Throwable $e) {
@@ -254,14 +257,14 @@ class TwoFactorController extends AbstractController
     }
 
     /**
-     * Generate a TOTP-compatible secret (Base32 encoded, 32 random bytes).
+     * Generate a TOTP-compatible secret (Base32 encoded, 20 random bytes / 160 bits).
      */
     private function generateTotpSecret(): string
     {
         if (!class_exists(\ParagonIE\ConstantTime\Base32::class)) {
             throw new \RuntimeException('TOTP support requires paragonie/constant_time_encoding. Run: composer require paragonie/constant_time_encoding');
         }
-        return \ParagonIE\ConstantTime\Base32::encodeUpperUnpadded(random_bytes(32));
+        return \ParagonIE\ConstantTime\Base32::encodeUpperUnpadded(random_bytes(20));
     }
 
     #[Route('/2fa/verify-totp', name: '2fa_verify_totp', methods: ['POST'])]
@@ -276,12 +279,11 @@ class TwoFactorController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
 
-        $userData = $session->get('user');
-        if (!$userData || !isset($userData['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if ($userId === null) {
             return $this->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
-
-        $user = $userRepository->find($userData['id']);
+        $user = $userRepository->find($userId);
         if (!$user instanceof User) {
             return $this->json(['success' => false, 'message' => 'User not found'], 404);
         }
@@ -344,12 +346,10 @@ class TwoFactorController extends AbstractController
             return $this->json(['success' => false], 401);
         }
 
-        $userData = $session->get('user');
-        if (!$userData || !isset($userData['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if ($userId === null) {
             return $this->json(['success' => false], 401);
         }
-
-        $userId = (int) $userData['id'];
         $conn = $userRepository->getEntityManager()->getConnection();
         $row = $conn->fetchAssociative(
             'SELECT two_factor_enabled, totp_secret FROM user WHERE id_user = :id',
@@ -378,12 +378,11 @@ class TwoFactorController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
 
-        $userData = $session->get('user');
-        if (!$userData || !isset($userData['id'])) {
+        $userId = $this->getSessionUserId($session);
+        if ($userId === null) {
             return $this->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
-
-        $user = $userRepository->find($userData['id']);
+        $user = $userRepository->find($userId);
         if (!$user instanceof User) {
             return $this->json(['success' => false, 'message' => 'User not found'], 404);
         }
@@ -543,6 +542,46 @@ class TwoFactorController extends AbstractController
      * Verify TOTP code during sign-in (user has 2FA with authenticator app).
      * Session must contain 2fa_user_id and 2fa_email from the initial sign-in POST.
      */
+    #[Route('/2fa/start-totp-login', name: '2fa_start_totp_login', methods: ['POST'])]
+    public function startTotpLogin(
+        Request $request,
+        UserRepository $userRepository,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true) ?: [];
+        $email = isset($data['email']) ? trim((string) $data['email']) : '';
+
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->json(['success' => false, 'message' => 'Please enter your account email first.'], 400);
+        }
+
+        $user = $userRepository->findOneBy(['email_user' => $email]);
+        if (!$user instanceof User) {
+            return $this->json(['success' => false, 'message' => 'No account was found for this email.'], 404);
+        }
+
+        $row = $em->getConnection()->fetchAssociative(
+            'SELECT two_factor_enabled, totp_secret FROM user WHERE id_user = :id',
+            ['id' => $user->getIdUser()],
+            ['id' => \PDO::PARAM_INT]
+        );
+
+        $totpConfigured = $row && isset($row['totp_secret']) && $row['totp_secret'] !== '' && $row['totp_secret'] !== null;
+        if (!$totpConfigured) {
+            return $this->json(['success' => false, 'message' => 'Authenticator app is not configured for this account.'], 400);
+        }
+
+        $session = $request->getSession();
+        $session->set('2fa_user_id', $user->getIdUser());
+        $session->set('2fa_email', $user->getEmailUser());
+        $session->set('2fa_method', 'direct_totp');
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Enter the 6-digit code from your authenticator app.',
+        ]);
+    }
+
     #[Route('/2fa/verify-totp-login', name: '2fa_verify_totp_login', methods: ['POST'])]
     public function verifyTotpLogin(
         Request $request,

@@ -41,7 +41,12 @@ class SessionProfileAvatarSubscriber implements EventSubscriberInterface
         }
 
         $userData = $session->get('user');
-        if (!\is_array($userData) || empty($userData['id'])) {
+        if (!\is_array($userData)) {
+            return;
+        }
+
+        $userId = (int) ($userData['id'] ?? $userData['id_user'] ?? 0);
+        if ($userId <= 0) {
             return;
         }
 
@@ -52,7 +57,6 @@ class SessionProfileAvatarSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $userId = (int) $userData['id'];
         $user = $this->userRepository->find($userId);
         if (!$user) {
             return;

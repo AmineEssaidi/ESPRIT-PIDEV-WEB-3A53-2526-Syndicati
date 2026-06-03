@@ -17,14 +17,24 @@ const FaceID = (function () {
         })(),
         endpoints: {
             enroll: '/face/enroll',
-            auth: '/face/auth'
+            auth: '/face/auth',
+            status: '/face/status',
+            remove: '/face/remove'
         },
-        minGoodFrames: 20,
+        minGoodFrames: 12,
+        authGoodFrames: 5,
+        maxEnrollmentMs: 12000,
+        maxAuthMs: 4500,
+        captureDelayMs: 90,
+        minFaceScore: 0.42,
+        minFaceSizeRatio: 0.18,
         distanceThreshold: 0.5,
-        blinkThreshold: 0.25 // Eye aspect ratio
+        blinkThreshold: 0.23 // Eye aspect ratio
     };
 
     let modelsLoaded = false;
+    let modelLoadPromise = null;
+    let detectionOptions = null;
 
     // --- Utils ---
 
@@ -39,41 +49,91 @@ const FaceID = (function () {
 
     async function loadModels() {
         if (modelsLoaded) return;
+        if (modelLoadPromise) return modelLoadPromise;
 
-        console.log('FaceID: Loading models from', CONFIG.modelPath);
+        modelLoadPromise = (async () => {
+            console.log('FaceID: Loading models from', CONFIG.modelPath);
 
-        // Retry mechanism for faceapi availability (handles async fallback/CDN)
-        let retryCount = 0;
-        const maxRetries = 40; // 20 seconds
-        while (typeof faceapi === 'undefined' && retryCount < maxRetries) {
-            console.warn(`FaceID: faceapi undefined, retry ${retryCount + 1}/${maxRetries}...`);
-            await new Promise(resolve => setTimeout(resolve, 500));
-            retryCount++;
+            // Retry mechanism for faceapi availability (handles async fallback/CDN)
+            let retryCount = 0;
+            const maxRetries = 20; // 10 seconds
+            while (typeof faceapi === 'undefined' && retryCount < maxRetries) {
+                console.warn(`FaceID: faceapi undefined, retry ${retryCount + 1}/${maxRetries}...`);
+                await sleep(500);
+                retryCount++;
+            }
+
+            // Ensure faceapi is available (use window.faceapi in case of strict/UMD)
+            const faceapiGlobal = typeof faceapi !== 'undefined' ? faceapi : (typeof window !== 'undefined' && window.faceapi);
+            if (!faceapiGlobal) {
+                const errorMsg = 'face-api.js not loaded. Please check if face-api.min.js is correctly included and reachable.';
+                console.error(errorMsg);
+                throw new Error(errorMsg);
+            }
+            // Use the resolved global for the rest of this load
+            if (typeof globalThis !== 'undefined') globalThis.faceapi = faceapiGlobal;
+            if (typeof window !== 'undefined') window.faceapi = faceapiGlobal;
+
+            try {
+                await Promise.all([
+                    faceapiGlobal.nets.ssdMobilenetv1.loadFromUri(CONFIG.modelPath),
+                    faceapiGlobal.nets.faceLandmark68Net.loadFromUri(CONFIG.modelPath),
+                    faceapiGlobal.nets.faceRecognitionNet.loadFromUri(CONFIG.modelPath)
+                ]);
+                detectionOptions = new faceapiGlobal.SsdMobilenetv1Options({ minConfidence: CONFIG.minFaceScore });
+                modelsLoaded = true;
+                console.log('FaceID Models Loaded Successfully');
+            } catch (e) {
+                modelLoadPromise = null;
+                console.error('FaceID: Failed to load models from ' + CONFIG.modelPath, e);
+                throw new Error('Failed to load Face ID neural network models. Please ensure the models folder exists and is reachable.');
+            }
+        })();
+
+        return modelLoadPromise;
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function isVideoReady(videoElement) {
+        return videoElement && videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0;
+    }
+
+    async function waitForVideo(videoElement, timeoutMs = 3000) {
+        const started = Date.now();
+        while (!isVideoReady(videoElement)) {
+            if (Date.now() - started > timeoutMs) {
+                throw new Error('Camera stream is not ready yet. Please try again.');
+            }
+            await sleep(80);
         }
+    }
 
-        // Ensure faceapi is available (use window.faceapi in case of strict/UMD)
-        const faceapiGlobal = typeof faceapi !== 'undefined' ? faceapi : (typeof window !== 'undefined' && window.faceapi);
-        if (!faceapiGlobal) {
-            const errorMsg = 'face-api.js not loaded. (Global faceapi variable is undefined after retries). Please check if face-api.min.js is correctly included in the template and reachable.';
-            console.error(errorMsg);
-            throw new Error(errorMsg);
-        }
-        // Use the resolved global for the rest of this load
-        if (typeof globalThis !== 'undefined') globalThis.faceapi = faceapiGlobal;
-        if (typeof window !== 'undefined') window.faceapi = faceapiGlobal;
+    function isGoodDetection(detection, videoElement) {
+        if (!detection || !videoElement) return false;
 
-        try {
-            await Promise.all([
-                faceapiGlobal.nets.ssdMobilenetv1.loadFromUri(CONFIG.modelPath),
-                faceapiGlobal.nets.faceLandmark68Net.loadFromUri(CONFIG.modelPath),
-                faceapiGlobal.nets.faceRecognitionNet.loadFromUri(CONFIG.modelPath)
-            ]);
-            modelsLoaded = true;
-            console.log('FaceID Models Loaded Successfully');
-        } catch (e) {
-            console.error('FaceID: Failed to load models from ' + CONFIG.modelPath, e);
-            throw new Error('Failed to load Face ID neural network models. Please ensure the models folder exists and is reachable.');
-        }
+        const box = detection.detection.box;
+        const score = detection.detection.score ?? 1;
+        const minDimension = Math.min(videoElement.videoWidth || videoElement.clientWidth || 1, videoElement.videoHeight || videoElement.clientHeight || 1);
+        const faceSizeRatio = Math.max(box.width, box.height) / Math.max(minDimension, 1);
+
+        return score >= CONFIG.minFaceScore && faceSizeRatio >= CONFIG.minFaceSizeRatio;
+    }
+
+    async function detectFace(videoElement) {
+        const detection = await faceapi.detectSingleFace(videoElement, detectionOptions)
+            .withFaceLandmarks()
+            .withFaceDescriptor();
+
+        return isGoodDetection(detection, videoElement) ? detection : null;
+    }
+
+    function averageEmbeddings(embeddings) {
+        return embeddings[0].map((_, i) =>
+            embeddings.reduce((sum, embed) => sum + embed[i], 0) / embeddings.length
+        );
     }
 
     /**
@@ -96,6 +156,7 @@ const FaceID = (function () {
      */
     async function startEnrollment(videoElement, pin, onProgress) {
         await loadModels();
+        await waitForVideo(videoElement);
         const deviceId = getDeviceId();
         const embeddings = [];
         let hasBlinked = false;
@@ -103,12 +164,22 @@ const FaceID = (function () {
         const lastPositions = [];
 
         return new Promise((resolve, reject) => {
-            const captureInterval = setInterval(async () => {
-                const detection = await faceapi.detectSingleFace(videoElement)
-                    .withFaceLandmarks()
-                    .withFaceDescriptor();
+            const startedAt = Date.now();
+            let settled = false;
 
-                if (detection) {
+            const finish = (fn, value) => {
+                if (settled) return;
+                settled = true;
+                fn(value);
+            };
+
+            const capture = async () => {
+                if (settled) return;
+
+                try {
+                    const detection = await detectFace(videoElement);
+
+                    if (detection) {
                     const landmarks = detection.landmarks;
                     const leftEye = landmarks.getLeftEye();
                     const rightEye = landmarks.getRightEye();
@@ -119,8 +190,10 @@ const FaceID = (function () {
                     // Movement check
                     const currentPos = detection.detection.box;
                     if (lastPositions.length > 0) {
-                        const dist = Math.sqrt(Math.pow(currentPos.x - lastPositions[0].x, 2) + Math.pow(currentPos.y - lastPositions[0].y, 2));
-                        if (dist > 5) headMoved = true;
+                        const first = lastPositions[lastPositions.length - 1];
+                        const dist = Math.sqrt(Math.pow(currentPos.x - first.x, 2) + Math.pow(currentPos.y - first.y, 2));
+                        const sizeDelta = Math.abs(currentPos.width - first.width) + Math.abs(currentPos.height - first.height);
+                        if (dist > 4 || sizeDelta > 7) headMoved = true;
                     }
                     lastPositions.unshift(currentPos);
                     if (lastPositions.length > 5) lastPositions.pop();
@@ -130,17 +203,16 @@ const FaceID = (function () {
                     if (onProgress) onProgress(embeddings.length / CONFIG.minGoodFrames);
 
                     if (embeddings.length >= CONFIG.minGoodFrames) {
-                        clearInterval(captureInterval);
-
-                        if (!hasBlinked || !headMoved) {
-                            reject(new Error('Liveness check failed. Please blink and move your head slightly.'));
+                        // Browser liveness is intentionally softer than Java InsightFace:
+                        // one natural cue plus enough clean frames is more reliable than
+                        // forcing users to perform both gestures on every webcam.
+                        if (!hasBlinked && !headMoved) {
+                            finish(reject, new Error('Liveness check needs one cue. Please blink or move your head slightly.'));
                             return;
                         }
 
                         // Average embeddings
-                        const avgEmbedding = embeddings[0].map((_, i) =>
-                            embeddings.reduce((sum, embed) => sum + embed[i], 0) / embeddings.length
-                        );
+                        const avgEmbedding = averageEmbeddings(embeddings);
 
                         // Send to server
                         try {
@@ -155,14 +227,27 @@ const FaceID = (function () {
                             });
 
                             const result = await response.json();
-                            if (response.ok) resolve(result);
-                            else reject(new Error(result.error || 'Enrollment failed'));
+                            if (response.ok) finish(resolve, result);
+                            else finish(reject, new Error(result.error || 'Enrollment failed'));
                         } catch (e) {
-                            reject(e);
+                            finish(reject, e);
                         }
+                        return;
                     }
                 }
-            }, 200);
+
+                    if (Date.now() - startedAt > CONFIG.maxEnrollmentMs) {
+                        finish(reject, new Error('Face scan timed out. Use better light, center your face, then try again.'));
+                        return;
+                    }
+
+                    setTimeout(capture, CONFIG.captureDelayMs);
+                } catch (e) {
+                    finish(reject, e);
+                }
+            };
+
+            capture();
         });
     }
 
@@ -171,23 +256,33 @@ const FaceID = (function () {
      */
     async function authenticate(videoElement, email, pin) {
         await loadModels();
+        await waitForVideo(videoElement);
         const deviceId = getDeviceId();
+        const embeddings = [];
+        const startedAt = Date.now();
 
-        // Capture one good frame for auth (or average 3-5 frames for better accuracy)
-        const detection = await faceapi.detectSingleFace(videoElement)
-            .withFaceLandmarks()
-            .withFaceDescriptor();
+        while (embeddings.length < CONFIG.authGoodFrames && (Date.now() - startedAt) < CONFIG.maxAuthMs) {
+            const detection = await detectFace(videoElement);
+            if (detection) {
+                embeddings.push(Array.from(detection.descriptor));
+            }
+            if (embeddings.length < CONFIG.authGoodFrames) {
+                await sleep(CONFIG.captureDelayMs);
+            }
+        }
 
-        if (!detection) {
+        if (embeddings.length === 0) {
             throw new Error('No face detected. Please look at the camera.');
         }
+
+        const avgEmbedding = averageEmbeddings(embeddings);
 
         const response = await fetch(CONFIG.endpoints.auth, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: email,
-                embedding: Array.from(detection.descriptor),
+                embedding: avgEmbedding,
                 pin: pin,
                 deviceId: deviceId
             })
@@ -198,9 +293,38 @@ const FaceID = (function () {
         throw new Error(result.error || 'Authentication failed');
     }
 
+    async function status() {
+        const deviceId = getDeviceId();
+        const response = await fetch(CONFIG.endpoints.status, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify({ deviceId })
+        });
+
+        const result = await response.json();
+        if (response.ok) return result;
+        throw new Error(result.error || 'Could not read Face ID status');
+    }
+
+    async function remove() {
+        const deviceId = getDeviceId();
+        const response = await fetch(CONFIG.endpoints.remove, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify({ deviceId })
+        });
+
+        const result = await response.json();
+        if (response.ok) return result;
+        throw new Error(result.error || 'Could not remove Face ID');
+    }
+
     return {
+        preload: loadModels,
         startEnrollment,
         authenticate,
+        status,
+        remove,
         getDeviceId
     };
 

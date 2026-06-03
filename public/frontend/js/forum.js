@@ -11,6 +11,10 @@
         return div.innerHTML;
     }
 
+    function isAnnouncementCategory(category) {
+        return String(category || '').toLowerCase() === 'announcement';
+    }
+
     // --- GLOBAL VARIABLES ---
     const glassSwitcher = document.getElementById('forumGlassSwitcher');
     const createPostForm = document.getElementById('createPostForm');
@@ -198,8 +202,19 @@
         const commentsSection = document.getElementById('commentsSection');
         commentsSection.classList.remove('d-none');
         const addCommentForm = document.getElementById('addCommentForm');
+        const commentFormContainer = document.getElementById('commentFormContainer');
+        const announcementCommentNotice = document.getElementById('announcementCommentNotice');
+        const isAnnouncement = isAnnouncementCategory(d.categoriePub);
+
+        if (commentFormContainer) {
+            commentFormContainer.classList.toggle('d-none', isAnnouncement);
+        }
+        if (announcementCommentNotice) {
+            announcementCommentNotice.classList.toggle('d-none', !isAnnouncement);
+        }
         if (addCommentForm) {
             addCommentForm.setAttribute('data-post-id', d.id);
+            addCommentForm.dataset.locked = isAnnouncement ? 'true' : 'false';
         }
 
         // Check Cache first
@@ -290,11 +305,13 @@
     // Universal Handler function
     async function handleAjaxForm(e, form) {
         e.preventDefault();
-        const btn = form.querySelector('button[type="submit"]');
-        const originalText = btn.innerHTML;
+        const btn = form.querySelector('button[type="submit"]') || document.querySelector(`button[type="submit"][form="${form.id}"]`);
+        const originalText = btn ? btn.innerHTML : '';
 
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Processing...';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Processing...';
+        }
 
         try {
             const formData = new FormData(form);
@@ -330,8 +347,10 @@
                     window.switchGlassFace('main');
                 }
 
-                btn.disabled = false;
-                btn.innerHTML = originalText;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
             } else {
                 if (data.errors && form.validator && typeof form.validator.mapErrors === 'function') {
                     form.validator.mapErrors(data.errors);
@@ -341,14 +360,18 @@
                     window.showObsidianNotification('Please Correct the Errors', errorMsg, 'error');
                 }
 
-                btn.disabled = false;
-                btn.innerHTML = originalText;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
             }
         } catch (err) {
             console.error(err);
             window.showObsidianNotification('Error', 'An unexpected error occurred', 'error');
-            btn.disabled = false;
-            btn.innerHTML = originalText;
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         }
     }
 
@@ -362,6 +385,10 @@
         addCommentForm.onsubmit = async function (e) {
             e.preventDefault();
             const postId = this.getAttribute('data-post-id');
+            if (this.dataset.locked === 'true' || isAnnouncementCategory(window.currentPostData?.categoriePub)) {
+                window.showObsidianNotification('Read-only Announcement', 'Comments are disabled for announcements.', 'error');
+                return;
+            }
             const fd = new FormData(this);
 
             try {

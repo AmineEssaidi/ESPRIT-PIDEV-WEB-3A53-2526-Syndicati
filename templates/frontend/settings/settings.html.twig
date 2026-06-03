@@ -12,9 +12,9 @@
     <title>Settings - Syndicati</title>
 
     <link rel="preload" href="{{ asset('frontend/css/main-home.css') }}" as="style">
-    <link rel="preload" href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" as="style">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style">
     
-    <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('frontend/css/main-home.css') }}" rel="stylesheet">
     <link href="{{ asset('frontend/css/scroll-pill.css') }}" rel="stylesheet">
     <link href="{{ asset('css/page-loader.css') }}" rel="stylesheet">
@@ -91,6 +91,7 @@
                                             <p class="settings-section-desc" >{{ 'settings.customize_appearance'|trans }}</p>
                                             
                                             <div class="settings-accent-grid">
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #04130f 0%, #0a4f35 24%, #10b981 48%, #25f2a3 68%, #d6fff1 82%, #063b2d 100%)" data-color="#10b981" data-name="Syndicati"  style="background: linear-gradient(135deg, #04130f 0%, #0a4f35 24%, #10b981 48%, #25f2a3 68%, #d6fff1 82%, #063b2d 100%);"><span class="settings-accent-check">✓</span></button>
                                                 <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)" data-name="Violet"  style="background: linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4);"><span class="settings-accent-check">✓</span></button>
                                                 <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #ff1493, #8b5cf6, #06b6d4)" data-name="Rose"  style="background: linear-gradient(135deg, #ff1493, #8b5cf6, #06b6d4);"><span class="settings-accent-check">✓</span></button>
                                                 <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #06b6d4, #6c5ce7, #ff1493)" data-name="Cyan"  style="background: linear-gradient(135deg, #06b6d4, #6c5ce7, #ff1493);"><span class="settings-accent-check">✓</span></button>
@@ -102,6 +103,9 @@
                                                 <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #a29bfe, #6c5ce7, #fd79a8)" data-name="Lavender"  style="background: linear-gradient(135deg, #a29bfe, #6c5ce7, #fd79a8);"><span class="settings-accent-check">✓</span></button>
                                                 <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #00b894, #00cec9, #81ecec)" data-name="Mint"  style="background: linear-gradient(135deg, #00b894, #00cec9, #81ecec);"><span class="settings-accent-check">✓</span></button>
                                                 <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)" data-name="Sky High"  style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.05) 38%, rgba(255,255,255,0.18) 66%, rgba(255,255,255,0.03) 100%)" data-color="#f5f5f5" data-name="Clear Glass"  style="background: linear-gradient(135deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.08) 42%, rgba(255,255,255,0.30) 72%, rgba(255,255,255,0.04) 100%);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(8,12,18,0.05) 30%, rgba(255,255,255,0.26) 54%, rgba(0,0,0,0.10) 100%)" data-color="#e5e7eb" data-name="Smoked Glass"  style="background: linear-gradient(135deg, rgba(255,255,255,0.34) 0%, rgba(8,12,18,0.18) 40%, rgba(255,255,255,0.24) 64%, rgba(0,0,0,0.26) 100%);"><span class="settings-accent-check">✓</span></button>
+                                                <button type="button" class="settings-accent-btn accent-choice" data-gradient="linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.02) 28%, rgba(255,255,255,0.32) 52%, rgba(255,255,255,0.08) 100%)" data-color="#ffffff" data-name="Crystal"  style="background: linear-gradient(135deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.04) 35%, rgba(255,255,255,0.46) 58%, rgba(255,255,255,0.10) 100%);"><span class="settings-accent-check">✓</span></button>
                                             </div>
                                             
                                             <div class="settings-custom-color">
@@ -148,18 +152,121 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    <div class="settings-section">
+                                        <div class="settings-section-icon"><i class='bx bx-accessibility'></i></div>
+                                        <div class="settings-section-content">
+                                            <h3 class="settings-section-title">Accessibility</h3>
+                                            <p class="settings-section-desc">Make Syndicati easier to read, navigate, hear, and control.</p>
+
+                                            <div class="settings-accessibility-grid">
+                                                <label class="settings-toggle-wrapper settings-accessibility-toggle">
+                                                    <span>
+                                                        <strong>Reduce Motion</strong>
+                                                        <small>Minimize animated transitions and scrolling effects.</small>
+                                                    </span>
+                                                    <span class="settings-toggle">
+                                                        <input type="checkbox" id="accessReduceMotion">
+                                                        <span class="settings-toggle-slider"></span>
+                                                    </span>
+                                                </label>
+                                                <label class="settings-toggle-wrapper settings-accessibility-toggle">
+                                                    <span>
+                                                        <strong>High Contrast</strong>
+                                                        <small>Boost contrast for text, panels, and focus states.</small>
+                                                    </span>
+                                                    <span class="settings-toggle">
+                                                        <input type="checkbox" id="accessHighContrast">
+                                                        <span class="settings-toggle-slider"></span>
+                                                    </span>
+                                                </label>
+                                                <label class="settings-toggle-wrapper settings-accessibility-toggle">
+                                                    <span>
+                                                        <strong>Dyslexia-Friendly Font</strong>
+                                                        <small>Use a wider, simpler font with more spacing.</small>
+                                                    </span>
+                                                    <span class="settings-toggle">
+                                                        <input type="checkbox" id="accessDyslexiaFont">
+                                                        <span class="settings-toggle-slider"></span>
+                                                    </span>
+                                                </label>
+                                                <label class="settings-toggle-wrapper settings-accessibility-toggle">
+                                                    <span>
+                                                        <strong>Comfortable Controls</strong>
+                                                        <small>Use larger tap targets for buttons, links, and fields.</small>
+                                                    </span>
+                                                    <span class="settings-toggle">
+                                                        <input type="checkbox" id="accessComfortableTargets">
+                                                        <span class="settings-toggle-slider"></span>
+                                                    </span>
+                                                </label>
+                                                <label class="settings-toggle-wrapper settings-accessibility-toggle">
+                                                    <span>
+                                                        <strong>Voice Input</strong>
+                                                        <small>Add dictation buttons to searches, forms, comments, and complaints.</small>
+                                                    </span>
+                                                    <span class="settings-toggle">
+                                                        <input type="checkbox" id="accessVoiceInput">
+                                                        <span class="settings-toggle-slider"></span>
+                                                    </span>
+                                                </label>
+                                                <label class="settings-toggle-wrapper settings-accessibility-toggle">
+                                                    <span>
+                                                        <strong>Color-Blind Safe Status</strong>
+                                                        <small>Add symbols beside status colors so meaning is not color-only.</small>
+                                                    </span>
+                                                    <span class="settings-toggle">
+                                                        <input type="checkbox" id="accessColorblindSafe">
+                                                        <span class="settings-toggle-slider"></span>
+                                                    </span>
+                                                </label>
+                                                <label class="settings-toggle-wrapper settings-accessibility-toggle">
+                                                    <span>
+                                                        <strong>Agent Captions</strong>
+                                                        <small>Show captions/transcripts for spoken AI responses.</small>
+                                                    </span>
+                                                    <span class="settings-toggle">
+                                                        <input type="checkbox" id="accessAgentCaptions">
+                                                        <span class="settings-toggle-slider"></span>
+                                                    </span>
+                                                </label>
+                                            </div>
+
+                                            <div class="settings-scale-control">
+                                                <div>
+                                                    <strong>Text and UI Scale</strong>
+                                                    <small>Adjust the app size for easier reading.</small>
+                                                </div>
+                                                <input type="range" id="accessUiScale" min="0.9" max="1.25" step="0.05">
+                                                <div class="settings-scale-actions">
+                                                    <output id="accessUiScaleValue">100%</output>
+                                                    <button type="button" id="accessUiScaleReset" class="settings-scale-reset">Reset</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </form>
                             </div>
 
                             <style>
+                                .settings-page {
+                                    --syndicati-logo-gradient: linear-gradient(135deg, #04130f 0%, #0a4f35 24%, #10b981 48%, #25f2a3 68%, #d6fff1 82%, #063b2d 100%);
+                                    --syndicati-logo-rgb: 16, 185, 129;
+                                }
+
                                 /* Match header/footer width: they use width calc(100% - 60px) with 30px margin. */
                                 .settings-page .main-home-content-wrapper .main-home-content-box {
                                     width: calc(100% - 60px);
                                     margin: 30px auto;
                                     max-width: none;
-                                    background: rgba(0, 0, 0, 0.2);
-                                    backdrop-filter: blur(20px);
-                                    border: 1px solid rgba(255, 255, 255, 0.1);
+                                    background:
+                                        linear-gradient(145deg, rgba(2, 9, 8, 0.86), rgba(var(--main-home-accent-rgb), 0.13)),
+                                        rgba(0, 0, 0, 0.38);
+                                    backdrop-filter: none;
+                                    -webkit-backdrop-filter: none;
+                                    border: 1px solid rgba(var(--main-home-accent-rgb), 0.22);
+                                    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(214, 255, 241, 0.06) inset;
+                                    contain: paint;
                                 }
                                 .settings-master-wrapper {
                                     width: 100%;
@@ -171,6 +278,12 @@
 
                                 .settings-page .main-home-hero-title {
                                     text-align: center;
+                                    background: none;
+                                    -webkit-background-clip: border-box;
+                                    -webkit-text-fill-color: currentColor;
+                                    background-clip: border-box;
+                                    color: #f8fffb;
+                                    text-shadow: 0 2px 22px rgba(0, 0, 0, 0.48);
                                 }
                                 .settings-page .main-home-hero-subtitle {
                                     text-align: center;
@@ -178,17 +291,16 @@
                                     margin-left: auto;
                                     margin-right: auto;
                                     margin-bottom: 2rem;
-                                    background: var(--main-home-accent-gradient, linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4));
-                                    -webkit-background-clip: text;
-                                    -webkit-text-fill-color: transparent;
-                                    background-clip: text;
-                                    color: var(--main-home-accent-color, #6c5ce7);
-                                    background-size: 300% 300%;
-                                    transition: background-position 0.4s ease;
+                                    background: none;
+                                    -webkit-background-clip: border-box;
+                                    -webkit-text-fill-color: currentColor;
+                                    background-clip: border-box;
+                                    color: rgba(248, 255, 251, 0.78);
+                                    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.42);
                                 }
 
                                 html.accents-animated .settings-page .main-home-hero-subtitle {
-                                    animation: gradientBorderFlow 8s ease infinite;
+                                    animation: none;
                                 }
 
                                 .settings-container {
@@ -215,19 +327,21 @@
                                     background: rgba(255, 255, 255, 0.03);
                                     border: 1px solid rgba(255, 255, 255, 0.1);
                                     border-radius: 40px;
-                                    backdrop-filter: blur(30px);
-                                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                                    backdrop-filter: none;
+                                    -webkit-backdrop-filter: none;
+                                    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
                                     margin: 0 auto 3rem auto;
                                     width: 96%;
                                     max-width: 1500px;
                                     box-sizing: border-box;
+                                    content-visibility: auto;
+                                    contain-intrinsic-size: 380px;
                                 }
 
                                 .settings-section:hover {
-                                    background: rgba(255, 255, 255, 0.06);
-                                    border-color: rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.5);
-                                    transform: translateY(-10px);
-                                    box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.6);
+                                    background: linear-gradient(145deg, rgba(var(--main-home-accent-rgb), 0.18), rgba(0, 0, 0, 0.42) 48%, rgba(255, 255, 255, 0.06));
+                                    border-color: rgba(var(--main-home-accent-rgb), 0.42);
+                                    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32), 0 0 22px rgba(var(--main-home-accent-rgb), 0.10);
                                 }
 
                                 .settings-section-icon {
@@ -238,10 +352,11 @@
                                     display: flex;
                                     align-items: center;
                                     justify-content: center;
-                                    background: linear-gradient(135deg, rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.15), rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.05));
+                                    color: #f8fffb;
+                                    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)), rgba(var(--main-home-accent-rgb), 0.16);
                                     border-radius: 20px;
-                                    border: 1px solid rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.25);
-                                    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+                                    border: 1px solid rgba(var(--main-home-accent-rgb), 0.28);
+                                    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 0 26px rgba(var(--main-home-accent-rgb), 0.14);
                                 }
 
                                 .settings-section-content {
@@ -252,22 +367,22 @@
                                     font-size: 1.6rem;
                                     font-weight: 800;
                                     margin: 0 0 0.5rem 0;
-                                    background: var(--main-home-accent-gradient);
-                                    -webkit-background-clip: text;
-                                    -webkit-text-fill-color: transparent;
-                                    background-clip: text;
-                                    background-size: 300% 300%;
-                                    transition: background-position 0.4s ease;
+                                    background: none;
+                                    -webkit-background-clip: border-box;
+                                    -webkit-text-fill-color: currentColor;
+                                    background-clip: border-box;
+                                    color: #f8fffb;
+                                    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.38);
                                     letter-spacing: -0.5px;
                                     text-align: left;
                                 }
 
                                 html.accents-animated .settings-section-title {
-                                    animation: gradientBorderFlow 8s ease infinite;
+                                    animation: none;
                                 }
 
                                 .settings-section-desc {
-                                    color: rgba(255, 255, 255, 0.6);
+                                    color: rgba(248, 255, 251, 0.74);
                                     font-size: 1.1rem;
                                     margin: 0 0 2.5rem 0;
                                     max-width: none;
@@ -301,7 +416,7 @@
                                             display: flex;
                                             align-items: center;
                                             gap: 1rem;
-                                            transition: all 0.3s ease;
+                                            transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
                                 }
 
                                 .settings-theme-card:hover .settings-theme-card-content {
@@ -348,11 +463,11 @@
                                             display: flex;
                                             align-items: center;
                                             justify-content: center;
-                                            transition: all 0.3s ease;
+                                            transition: background-color 0.16s ease, border-color 0.16s ease;
                                 }
 
                                 .settings-theme-card input:checked + .settings-theme-card-content .settings-theme-check {
-                                            background: var(--main-home-accent-gradient, linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4));
+                                            background: var(--main-home-accent-gradient, linear-gradient(135deg, #04130f 0%, #0a4f35 24%, #10b981 48%, #25f2a3 68%, #d6fff1 82%, #063b2d 100%));
                                             border-color: transparent;
                                 }
 
@@ -365,7 +480,7 @@
 
                                 .settings-accent-grid {
                                             display: grid;
-                                            grid-template-columns: repeat(10, minmax(0, 1fr));
+                                            grid-template-columns: repeat(auto-fit, minmax(48px, 56px));
                                             gap: 0.65rem;
                                             margin-bottom: 1.5rem;
                                             max-width: 100%;
@@ -380,19 +495,19 @@
                                             border: 2px solid rgba(255, 255, 255, 0.15);
                                             cursor: pointer;
                                             overflow: hidden;
-                                            transition: all 0.25s ease;
-                                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                                            transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+                                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
                                 }
 
                                 .settings-accent-btn:hover {
                                             transform: scale(1.12);
-                                            box-shadow: 0 4px 14px rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.35);
+                                            box-shadow: 0 4px 12px rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.22);
                                             border-color: rgba(255, 255, 255, 0.35);
                                 }
 
                                 .settings-accent-btn.selected {
                                             border-color: white;
-                                            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+                                            box-shadow: 0 0 14px rgba(255, 255, 255, 0.34);
                                 }
 
                                 .settings-accent-check {
@@ -404,7 +519,7 @@
                                             font-size: 1rem;
                                             font-weight: 700;
                                             opacity: 0;
-                                            transition: all 0.25s ease;
+                                            transition: opacity 0.16s ease;
                                             text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
                                 }
 
@@ -438,12 +553,12 @@
                                     cursor: pointer;
                                     overflow: hidden;
                                     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-                                    transition: all 0.3s ease;
+                                    transition: transform 0.16s ease, box-shadow 0.16s ease;
                                 }
 
                                 .settings-color-picker:hover {
                                     transform: scale(1.1);
-                                            box-shadow: 0 6px 20px rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.4);
+                                            box-shadow: 0 6px 16px rgba(var(--main-home-accent-rgb, 108, 92, 231), 0.24);
                                 }
 
                                 .settings-color-picker::-webkit-color-swatch-wrapper {
@@ -475,7 +590,7 @@
                                     font-family: monospace;
                                     font-size: 1rem;
                                     outline: none;
-                                    transition: all 0.3s ease;
+                                    transition: border-color 0.16s ease, box-shadow 0.16s ease;
                                 }
 
                                 .settings-hex-input:focus {
@@ -504,7 +619,7 @@
                                     font-family: var(--font-primary);
                                     cursor: pointer;
                                     outline: none;
-                                    transition: all 0.3s ease;
+                                    transition: border-color 0.16s ease, box-shadow 0.16s ease;
                                     appearance: none;
                                     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236c5ce7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
                                     background-repeat: no-repeat;
@@ -536,58 +651,79 @@
 
                                 .settings-toggle {
                                     position: relative;
-                                    display: inline-block;
-                                    width: 52px;
-                                    height: 28px;
+                                    display: block;
+                                    inline-size: 58px;
+                                    block-size: 32px;
+                                    width: 58px;
+                                    min-width: 58px;
+                                    max-width: 58px;
+                                    height: 32px;
+                                    min-height: 32px !important;
+                                    max-height: 32px;
+                                    flex: 0 0 58px;
+                                    margin: 0;
+                                    padding: 0;
+                                    line-height: 0;
+                                    overflow: visible;
                                 }
 
                                 .settings-toggle input {
+                                    position: absolute;
                                     opacity: 0;
-                                    width: 0;
-                                    height: 0;
+                                    inset: 0;
+                                    width: 100%;
+                                    height: 100%;
+                                    min-height: 0 !important;
+                                    margin: 0;
+                                    cursor: pointer;
+                                    z-index: 2;
                                 }
 
                                 .settings-toggle-slider {
                                     position: absolute;
                                     cursor: pointer;
-                                    top: 0;
-                                    left: 0;
-                                    right: 0;
-                                    bottom: 0;
-                                    background-color: rgba(255, 255, 255, 0.1);
-                                    background-size: 300% 300%;
-                                    transition: all 0.4s ease, background-position 0.4s ease;
-                                    border-radius: 34px;
-                                    border: 1px solid rgba(255, 255, 255, 0.1);
+                                    inset: 0;
+                                    width: 58px;
+                                    height: 32px;
+                                    box-sizing: border-box;
+                                    background: rgba(255, 255, 255, 0.12);
+                                    background-size: auto;
+                                    transition: background-color 0.18s ease, box-shadow 0.18s ease;
+                                    border-radius: 999px;
+                                    border: 1px solid rgba(255, 255, 255, 0.16);
+                                    overflow: hidden;
+                                    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.28);
                                 }
 
                                 .settings-toggle-slider:before {
                                     position: absolute;
                                     content: "";
-                                    height: 20px;
-                                    width: 20px;
+                                    height: 24px;
+                                    width: 24px;
                                     left: 4px;
-                                    bottom: 3px;
+                                    top: 3px;
                                     background-color: white;
-                                    transition: .4s;
+                                    transition: transform 0.18s ease;
                                     border-radius: 50%;
-                                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.32);
                                 }
 
-                                input:checked + .settings-toggle-slider {
-                                    background: var(--main-home-accent-gradient);
+                                .settings-toggle input:checked + .settings-toggle-slider {
+                                    background: rgba(var(--main-home-accent-rgb), 0.86);
+                                    border-color: rgba(255, 255, 255, 0.24);
+                                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 14px rgba(var(--main-home-accent-rgb), 0.20);
                                 }
 
-                                input:focus + .settings-toggle-slider {
+                                .settings-toggle input:focus + .settings-toggle-slider {
                                     box-shadow: 0 0 0 3px rgba(var(--main-home-accent-rgb), 0.2);
                                 }
 
-                                input:checked + .settings-toggle-slider:before {
-                                    transform: translateX(24px);
+                                .settings-toggle input:checked + .settings-toggle-slider:before {
+                                    transform: translate3d(26px, 0, 0);
                                 }
 
                                 html.accents-animated .settings-toggle-slider {
-                                    animation: gradientBorderFlow 8s ease infinite;
+                                    animation: none;
                                 }
 
                                 .settings-toggle-label {
@@ -595,12 +731,118 @@
                                     color: #fff;
                                 }
 
+                                .settings-accessibility-grid {
+                                    display: grid;
+                                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                                    gap: 1rem;
+                                }
+
+                                .settings-accessibility-toggle {
+                                    display: grid;
+                                    grid-template-columns: minmax(0, 1fr) 58px;
+                                    gap: 1rem;
+                                    justify-content: stretch;
+                                    align-items: center;
+                                    padding: 1rem;
+                                    background: rgba(0, 0, 0, 0.26);
+                                    border: 1px solid rgba(var(--main-home-accent-rgb), 0.18);
+                                    border-radius: 18px;
+                                    min-height: 102px;
+                                }
+
+                                .settings-accessibility-toggle > span:first-child {
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 0.35rem;
+                                    min-width: 0;
+                                }
+
+                                .settings-accessibility-toggle .settings-toggle {
+                                    justify-self: end;
+                                    align-self: center;
+                                }
+
+                                .settings-accessibility-toggle strong,
+                                .settings-scale-control strong {
+                                    color: #fff;
+                                    font-size: 0.98rem;
+                                }
+
+                                .settings-accessibility-toggle small,
+                                .settings-scale-control small {
+                                    color: rgba(255, 255, 255, 0.56);
+                                    line-height: 1.45;
+                                }
+
+                                .settings-scale-control {
+                                    margin-top: 1rem;
+                                    padding: 1rem;
+                                    border-radius: 18px;
+                                    background: rgba(0, 0, 0, 0.26);
+                                    border: 1px solid rgba(var(--main-home-accent-rgb), 0.18);
+                                    display: grid;
+                                    grid-template-columns: minmax(220px, 1fr) minmax(220px, 360px) auto;
+                                    gap: 1rem;
+                                    align-items: center;
+                                }
+
+                                .settings-scale-control > div {
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 0.35rem;
+                                }
+
+                                .settings-scale-control input[type="range"] {
+                                    accent-color: var(--main-home-accent-color);
+                                }
+
+                                .settings-scale-control output {
+                                    color: #fff;
+                                    font-weight: 800;
+                                    min-width: 48px;
+                                    text-align: right;
+                                }
+
+                                .settings-scale-actions {
+                                    display: inline-flex;
+                                    align-items: center;
+                                    justify-content: flex-end;
+                                    gap: 0.75rem;
+                                    min-width: 130px;
+                                }
+
+                                .settings-scale-reset {
+                                    display: inline-flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    min-height: 40px;
+                                    padding: 0 1rem;
+                                    border-radius: 999px;
+                                    border: 1px solid rgba(255, 255, 255, 0.16);
+                                    background: rgba(255, 255, 255, 0.08);
+                                    color: #f8fffb;
+                                    font-weight: 800;
+                                    cursor: pointer;
+                                    transition: background-color 0.16s ease, border-color 0.16s ease;
+                                }
+
+                                .settings-scale-reset:hover {
+                                    background: rgba(var(--main-home-accent-rgb), 0.18);
+                                    border-color: rgba(var(--main-home-accent-rgb), 0.34);
+                                }
+
                                 [data-theme="light"] .settings-toggle-label {
                                     color: #1a1a2e;
                                 }
 
                                 [data-theme="light"] .settings-toggle-slider {
-                                    background-color: rgba(0, 0, 0, 0.05);
+                                    background: rgba(0, 0, 0, 0.05);
+                                    border-color: rgba(0, 0, 0, 0.1);
+                                }
+
+                                [data-theme="light"] .settings-scale-reset {
+                                    color: #1a1a2e;
+                                    background: rgba(0, 0, 0, 0.05);
                                     border-color: rgba(0, 0, 0, 0.1);
                                 }
 
@@ -635,6 +877,9 @@
 
                                     .settings-language-select {
                                         max-width: 100%;
+                                    }
+                                    .settings-scale-control {
+                                        grid-template-columns: 1fr;
                                     }
                                 }
 
@@ -681,6 +926,21 @@
                                     background: #ffffff;
                                     color: #1a1a2e;
                                 }
+
+                                [data-theme="light"] .settings-accessibility-toggle,
+                                [data-theme="light"] .settings-scale-control {
+                                    background: rgba(0, 0, 0, 0.05);
+                                }
+
+                                [data-theme="light"] .settings-accessibility-toggle strong,
+                                [data-theme="light"] .settings-scale-control strong {
+                                    color: #1a1a2e;
+                                }
+
+                                [data-theme="light"] .settings-accessibility-toggle small,
+                                [data-theme="light"] .settings-scale-control small {
+                                    color: rgba(0, 0, 0, 0.56);
+                                }
                             </style>
                 </div>
             </div>
@@ -692,7 +952,7 @@
 
 {% include 'frontend/shared/_scroll_pill.html.twig' %}
 <script src="{{ asset('frontend/js/scroll-pill.js') }}" defer></script>
-<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 <script src="{{ asset('js/page-loader.js') }}"></script>
 <script>
                                     document.addEventListener('DOMContentLoaded', function() {
@@ -727,13 +987,33 @@
                                                 if (sSettings['accent-gradient']) localStorage.setItem('accent-gradient', sSettings['accent-gradient']);
                                                 if (sSettings['accent-color']) localStorage.setItem('accent-color', sSettings['accent-color']);
                                                 if (sSettings.lang) localStorage.setItem('lang', sSettings.lang);
+                                                [
+                                                    'access-reduce-motion',
+                                                    'access-high-contrast',
+                                                    'access-dyslexia-font',
+                                                    'access-comfortable-targets',
+                                                    'access-voice-input',
+                                                    'access-colorblind-safe',
+                                                    'access-agent-captions',
+                                                    'access-ui-scale'
+                                                ].forEach(key => {
+                                                    if (sSettings[key] !== undefined) localStorage.setItem(key, sSettings[key]);
+                                                });
                                             } else {
                                                 // Auto-detect local settings and push to server if they exist
                                                 const localData = {
                                                     theme: localStorage.getItem('theme'),
                                                     'accent-gradient': localStorage.getItem('accent-gradient'),
                                                     'accent-color': localStorage.getItem('accent-color'),
-                                                    lang: localStorage.getItem('lang')
+                                                    lang: localStorage.getItem('lang'),
+                                                    'access-reduce-motion': localStorage.getItem('access-reduce-motion'),
+                                                    'access-high-contrast': localStorage.getItem('access-high-contrast'),
+                                                    'access-dyslexia-font': localStorage.getItem('access-dyslexia-font'),
+                                                    'access-comfortable-targets': localStorage.getItem('access-comfortable-targets'),
+                                                    'access-voice-input': localStorage.getItem('access-voice-input'),
+                                                    'access-colorblind-safe': localStorage.getItem('access-colorblind-safe'),
+                                                    'access-agent-captions': localStorage.getItem('access-agent-captions'),
+                                                    'access-ui-scale': localStorage.getItem('access-ui-scale')
                                                 };
                                                 const toPush = {};
                                                 Object.keys(localData).forEach(k => { if(localData[k]) toPush[k] = localData[k]; });
@@ -780,11 +1060,66 @@
                                             });
                                         }
 
+                                        const accessBooleanControls = [
+                                            ['accessReduceMotion', 'access-reduce-motion', 'access-reduce-motion', false],
+                                            ['accessHighContrast', 'access-high-contrast', 'access-high-contrast', false],
+                                            ['accessDyslexiaFont', 'access-dyslexia-font', 'access-dyslexia-font', false],
+                                            ['accessComfortableTargets', 'access-comfortable-targets', 'access-comfortable-targets', false],
+                                            ['accessVoiceInput', 'access-voice-input', null, true],
+                                            ['accessColorblindSafe', 'access-colorblind-safe', 'access-colorblind-safe', true],
+                                            ['accessAgentCaptions', 'access-agent-captions', 'access-agent-captions', true]
+                                        ];
+
+                                        accessBooleanControls.forEach(([id, storageKey, className, defaultValue]) => {
+                                            const control = document.getElementById(id);
+                                            if (!control) return;
+                                            const stored = localStorage.getItem(storageKey);
+                                            const enabled = stored === null ? defaultValue : stored === 'true';
+                                            control.checked = enabled;
+                                            if (className) document.documentElement.classList.toggle(className, enabled);
+                                            control.addEventListener('change', function() {
+                                                localStorage.setItem(storageKey, this.checked);
+                                                if (className) document.documentElement.classList.toggle(className, this.checked);
+                                                syncSettings({ [storageKey]: this.checked });
+                                                if (storageKey === 'access-voice-input' || storageKey === 'access-agent-captions') {
+                                                    window.location.reload();
+                                                }
+                                            });
+                                        });
+
+                                        const uiScale = document.getElementById('accessUiScale');
+                                        const uiScaleValue = document.getElementById('accessUiScaleValue');
+                                        const uiScaleReset = document.getElementById('accessUiScaleReset');
+                                        if (uiScale && uiScaleValue) {
+                                            const currentScale = Math.min(1.25, Math.max(0.9, parseFloat(localStorage.getItem('access-ui-scale') || '1') || 1));
+                                            uiScale.value = currentScale.toFixed(2);
+                                            uiScaleValue.value = Math.round(currentScale * 100) + '%';
+                                            uiScale.addEventListener('input', function() {
+                                                const value = parseFloat(this.value || '1') || 1;
+                                                document.documentElement.style.setProperty('--access-ui-scale', value);
+                                                uiScaleValue.value = Math.round(value * 100) + '%';
+                                            });
+                                            uiScale.addEventListener('change', function() {
+                                                const value = parseFloat(this.value || '1') || 1;
+                                                localStorage.setItem('access-ui-scale', value);
+                                                syncSettings({ 'access-ui-scale': value });
+                                            });
+                                            if (uiScaleReset) {
+                                                uiScaleReset.addEventListener('click', function() {
+                                                    uiScale.value = '1.00';
+                                                    uiScaleValue.value = '100%';
+                                                    document.documentElement.style.setProperty('--access-ui-scale', 1);
+                                                    localStorage.setItem('access-ui-scale', '1');
+                                                    syncSettings({ 'access-ui-scale': 1 });
+                                                });
+                                            }
+                                        }
+
                                         const accentChoices = document.querySelectorAll('.accent-choice');
                                         const customAccentColor = document.getElementById('customAccentColor');
                                         const customAccentHex = document.getElementById('customAccentHex');
-                                        let accent = localStorage.getItem('accent-gradient') || 'linear-gradient(135deg, #6c5ce7, #8b5cf6, #06b6d4)';
-                                        let accentColor = localStorage.getItem('accent-color') || '#6c5ce7';
+                                        let accent = localStorage.getItem('accent-gradient') || 'linear-gradient(135deg, #04130f 0%, #0a4f35 24%, #10b981 48%, #25f2a3 68%, #d6fff1 82%, #063b2d 100%)';
+                                        let accentColor = localStorage.getItem('accent-color') || '#10b981';
                                         
                                         accentChoices.forEach(btn => {
                                             if(btn.dataset.gradient === accent) {
@@ -794,7 +1129,7 @@
                                                 accentChoices.forEach(b => b.classList.remove('selected'));
                                                 this.classList.add('selected');
                                                 const grad = this.dataset.gradient;
-                                                const color = grad.match(/linear-gradient\([^,]+,\s*([^,\s)]+)/)?.[1] || '#6c5ce7';
+                                                const color = this.dataset.color || grad.match(/linear-gradient\([^,]+,\s*([^,\s)]+)/)?.[1] || '#10b981';
                                                 
                                                 localStorage.setItem('accent-gradient', grad);
                                                 localStorage.setItem('accent-color', color);
@@ -811,7 +1146,7 @@
                                         customAccentColor.value = accentColor;
                                         customAccentColor.addEventListener('change', async function() {
                                             const color = this.value;
-                                            const grad = `linear-gradient(135deg, ${color}, #8b5cf6, #06b6d4)`;
+                                            const grad = `linear-gradient(135deg, #04130f 0%, ${color} 42%, #25f2a3 70%, #d6fff1 84%, #063b2d 100%)`;
                                             localStorage.setItem('accent-gradient', grad);
                                             localStorage.setItem('accent-color', color);
                                             
@@ -827,7 +1162,7 @@
                                             let val = this.value;
                                             if (!val.startsWith('#')) val = '#' + val;
                                             if (/^#[0-9a-fA-F]{3,8}$/.test(val)) {
-                                                const grad = `linear-gradient(135deg, ${val}, #8b5cf6, #06b6d4)`;
+                                                const grad = `linear-gradient(135deg, #04130f 0%, ${val} 42%, #25f2a3 70%, #d6fff1 84%, #063b2d 100%)`;
                                                 localStorage.setItem('accent-gradient', grad);
                                                 localStorage.setItem('accent-color', val);
                                                 

@@ -158,15 +158,19 @@
                     {% endif %}
 
                     {% set authorId = evenement.user.idUser|default(evenement.user.id|default('')) %}
-                    {% if authorId == currentUserId or currentUserRole == 'ROLE_ADMIN' %}
+                    {% set canManageOwnEvent = authorId and currentUserId and authorId == currentUserId %}
+                    {% set canDeleteEvent = canManageOwnEvent or isAdmin|default(false) %}
+                    {% if canManageOwnEvent or canDeleteEvent %}
                         <div class="d-flex gap-2 mt-3 pt-3 border-top border-white-10">
-                            <button class="btn-event-action" 
-                                style="flex: 1; height: 40px; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff;"
-                                onclick="switchGlassCard('evenementCardSwitcher_{{ evenement.id }}', 'edit')">
-                                <i class='bx bxs-edit-alt me-1'></i> Edit
-                            </button>
+                            {% if canManageOwnEvent %}
+                                <button class="btn-event-action"
+                                    style="flex: 1; height: 40px; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff;"
+                                    onclick="switchGlassCard('evenementCardSwitcher_{{ evenement.id }}', 'edit')">
+                                    <i class='bx bxs-edit-alt me-1'></i> Edit
+                                </button>
+                            {% endif %}
 
-                            <button class="btn-event-action" 
+                            <button class="btn-event-action"
                                 style="flex: 1; height: 40px; font-size: 0.8rem; background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.2);"
                                 onclick="openDeleteConfirmModal('{{ evenement.id }}', '{{ path('app_evenement_delete', {'id': evenement.id}) }}', '{{ csrf_token('delete' ~ evenement.id) }}')">
                                 <i class='bx bxs-trash me-1'></i> Delete

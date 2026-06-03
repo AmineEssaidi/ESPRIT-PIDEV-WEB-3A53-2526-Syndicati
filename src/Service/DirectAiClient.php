@@ -10,6 +10,8 @@ class DirectAiClient
     private string $geminiModel;
     private string $groqKey;
     private string $groqModel;
+    /** @var string[] */
+    private array $lastProviderErrors = [];
 
     public function __construct(private readonly HttpClientInterface $client)
     {
@@ -153,6 +155,8 @@ PROMPT;
 
     private function completeJson(string $prompt, float $temperature): array
     {
+        $this->lastProviderErrors = [];
+
         if ($this->geminiKey !== '') {
             try {
                 $text = $this->callGemini($prompt, $temperature);
@@ -161,7 +165,9 @@ PROMPT;
                     $json['_provider'] = 'gemini';
                     return $json;
                 }
+                $this->lastProviderErrors[] = 'Gemini returned a non-JSON response.';
             } catch (\Throwable $e) {
+                $this->lastProviderErrors[] = 'Gemini: ' . $e->getMessage();
                 error_log('[DirectAiClient] Gemini failed: ' . $e->getMessage());
             }
         }
@@ -174,12 +180,23 @@ PROMPT;
                     $json['_provider'] = 'groq';
                     return $json;
                 }
+                $this->lastProviderErrors[] = 'Groq returned a non-JSON response.';
             } catch (\Throwable $e) {
+                $this->lastProviderErrors[] = 'Groq: ' . $e->getMessage();
                 error_log('[DirectAiClient] Groq failed: ' . $e->getMessage());
             }
         }
 
-        return ['reply' => 'Direct AI is ready once GEMINI_API_KEY or GROQ_API_KEY is configured.', 'actions' => [], '_provider' => 'fallback'];
+        if ($this->geminiKey === '' && $this->groqKey === '') {
+            return ['reply' => 'Direct AI is ready once GEMINI_API_KEY or GROQ_API_KEY is configured.', 'actions' => [], '_provider' => 'fallback'];
+        }
+
+        return [
+            'reply' => 'Direct AI keys are configured, but the provider call failed: ' . implode(' | ', $this->lastProviderErrors),
+            'actions' => [],
+            '_provider' => 'fallback',
+            '_provider_errors' => $this->lastProviderErrors,
+        ];
     }
 
     private function callGemini(string $prompt, float $temperature): string
@@ -204,6 +221,11 @@ PROMPT;
         ]);
 
         $data = $response->toArray(false);
+        if (isset($data['error'])) {
+            $message = is_array($data['error']) ? (string) ($data['error']['message'] ?? json_encode($data['error'])) : (string) $data['error'];
+            throw new \RuntimeException($message !== '' ? $message : 'Gemini API returned an error.');
+        }
+
         return (string) ($data['candidates'][0]['content']['parts'][0]['text'] ?? '');
     }
 
@@ -228,6 +250,11 @@ PROMPT;
         ]);
 
         $data = $response->toArray(false);
+        if (isset($data['error'])) {
+            $message = is_array($data['error']) ? (string) ($data['error']['message'] ?? json_encode($data['error'])) : (string) $data['error'];
+            throw new \RuntimeException($message !== '' ? $message : 'Groq API returned an error.');
+        }
+
         return (string) ($data['choices'][0]['message']['content'] ?? '');
     }
 

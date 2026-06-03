@@ -15,7 +15,8 @@ class SessionStatusController extends AbstractController
     {
         $session = $request->getSession();
         $user = $session->get('user');
-        $isLoggedIn = $session->get('is_logged_in') && is_array($user) && isset($user['id']);
+        $sessionUserId = is_array($user) ? ($user['id'] ?? $user['id_user'] ?? null) : null;
+        $isLoggedIn = $session->get('is_logged_in') && $sessionUserId !== null;
 
         if ($isLoggedIn && $request->isMethod('POST')) {
             $session->set('last_session_heartbeat', time());
@@ -26,10 +27,10 @@ class SessionStatusController extends AbstractController
             'authenticated' => (bool) $isLoggedIn,
             'serverTime' => time(),
             'user' => $isLoggedIn ? [
-                'id' => (int) $user['id'],
+                'id' => (int) $sessionUserId,
                 'name' => (string) ($user['name'] ?? ''),
                 'email' => (string) ($user['email'] ?? ''),
-                'role' => (string) ($user['role'] ?? 'USER'),
+                'role' => (string) ($user['role'] ?? $user['roleUser'] ?? 'USER'),
                 'avatar' => $user['avatar'] ?? null,
             ] : null,
         ]);

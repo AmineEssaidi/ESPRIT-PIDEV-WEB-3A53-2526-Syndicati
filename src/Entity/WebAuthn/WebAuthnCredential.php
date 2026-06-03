@@ -10,7 +10,7 @@ use Webauthn\PublicKeyCredentialSource;
 use Webauthn\TrustPath\EmptyTrustPath;
 
 #[ORM\Entity(repositoryClass: WebAuthnCredentialRepository::class)]
-#[ORM\Table(name: 'WebAuthnCred')]
+#[ORM\Table(name: 'webauthncred')]
 class WebAuthnCredential
 {
     #[ORM\Id]

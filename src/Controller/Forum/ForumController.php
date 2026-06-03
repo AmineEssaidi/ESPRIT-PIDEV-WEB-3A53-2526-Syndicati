@@ -8,6 +8,7 @@ use App\Repository\Forum\PublicationRepository;
 use App\Service\DirectAiClient;
 use App\Service\Forum\ContentModerationService;
 use App\Service\Forum\DiscordWebhookService;
+use App\Message\Forum\NotifyAnnouncementMessage;
 use App\Service\Media\ImageKitStorageService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -15,6 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -22,7 +24,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class ForumController extends AbstractController
 {
     #[Route('/forum', name: 'frontend_forum', methods: ['GET', 'POST'])]
-    public function index(Request $request, PublicationRepository $publicationRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Service\Forum\ForumNotificationService $notificationService, ContentModerationService $moderationService, ImageKitStorageService $imageStorage, DiscordWebhookService $discordWebhook): Response
+    public function index(Request $request, PublicationRepository $publicationRepository, EntityManagerInterface $entityManager, SluggerInterface $slugger, \App\Service\Forum\ForumNotificationService $notificationService, ContentModerationService $moderationService, ImageKitStorageService $imageStorage, DiscordWebhookService $discordWebhook, MessageBusInterface $messageBus): Response
     {
         $publication = new Publication();
         $session = $request->getSession();
@@ -104,7 +106,7 @@ class ForumController extends AbstractController
 
                 // Notify if Announcement
                 if ($publication->getCategoriePub() === 'Announcement') {
-                    $notificationService->notifyNewAnnouncement($publication);
+                    $messageBus->dispatch(new NotifyAnnouncementMessage($publication->getId()));
                 }
                 $discordWebhook->announceJeuxVideo($publication, false);
 

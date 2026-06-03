@@ -50,4 +50,17 @@ class FaceCredentialRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function findLatestActiveForUser(User $user): ?FaceCredential
+    {
+        return $this->createQueryBuilder('f')
+            ->where('f.user = :user')
+            ->andWhere('f.flag = :flag')
+            ->setParameter('user', $user)
+            ->setParameter('flag', 'active')
+            ->orderBy('f.updatedAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

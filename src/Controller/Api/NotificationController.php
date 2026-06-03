@@ -49,7 +49,7 @@ class NotificationController extends AbstractController
         return $this->json([
             'notifications' => $data,
             'unread_count' => $unreadCount
-        ]);
+        ])->setPrivate()->setMaxAge(5);
     }
 
     #[Route('/{id}/read', name: 'api_notifications_read', methods: ['POST'])]
@@ -94,9 +94,11 @@ class NotificationController extends AbstractController
     {
         $session = $request->getSession();
         $userData = $session->get('user');
-        if (!$userData || !isset($userData['id'])) {
+        if (!$userData || !is_array($userData)) {
             return null;
         }
-        return $this->userRepo->find($userData['id']);
+
+        $userId = $userData['id'] ?? $userData['id_user'] ?? null;
+        return $userId ? $this->userRepo->find($userId) : null;
     }
 }

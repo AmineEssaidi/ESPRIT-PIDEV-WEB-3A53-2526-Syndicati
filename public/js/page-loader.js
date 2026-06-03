@@ -6,8 +6,8 @@
 (function () {
     'use strict';
 
-    const LOADER_DURATION = 120;
     const loader = document.getElementById('pageLoader');
+    let sessionHeartbeatTimer = null;
 
     if (!loader) return;
     let cinematicTimers = [];
@@ -65,26 +65,7 @@
         }, 300);
     }
 
-    // Function to navigate after loader is visible
-    function navigateWithLoader(url) {
-        // Show loader first
-        showLoader({
-            cinematic: true,
-            steps: ['Leaving current view...', 'Keeping session alive...', 'Loading destination...', 'Almost there...'],
-            stepDelay: 160
-        });
-
-        // Use requestAnimationFrame to ensure loader is rendered before navigating
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    window.location.href = url;
-                }, LOADER_DURATION);
-            });
-        });
-    }
-
-    // Intercept all internal link clicks
+    // Show the loader for normal internal link clicks without delaying or hijacking navigation.
     document.addEventListener('click', function (e) {
         const link = e.target.closest('a');
 
@@ -125,20 +106,19 @@
         // Skip dropdown items that don't navigate
         if (link.classList.contains('dropdown-toggle')) return;
 
-        // Prevent default navigation
-        e.preventDefault();
-        e.stopPropagation();
-
-        // Navigate with loader
-        navigateWithLoader(href);
-    }, true); // Use capture phase to intercept early
+        showLoader({
+            cinematic: true,
+            steps: ['Loading destination...', 'Almost there...'],
+            stepDelay: 160
+        });
+    }, true);
 
     window.HorizonCinematic = {
         show: (options = {}) => showLoader(Object.assign({ cinematic: true }, options)),
         hide: hideLoader,
         navigate: function (url, options = {}) {
             showLoader(Object.assign({ cinematic: true }, options));
-            const delay = options.delay || Math.max(900, ((options.steps || []).length || 3) * 360);
+            const delay = options.delay ?? 0;
             setTimeout(() => { window.location.href = url; }, delay);
         },
         recover: async function (options = {}) {
@@ -203,23 +183,26 @@
     });
 
     if (document.body && document.body.dataset.userInfo === 'true') {
+        const pingSession = () => {
+            if (document.hidden || navigator.onLine === false) return;
+            fetch('/api/session/status', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                credentials: 'same-origin',
+                cache: 'no-store'
+            }).catch(() => {});
+        };
+
         window.setTimeout(() => {
-            fetch('/api/session/status', {
-                method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
-                credentials: 'same-origin',
-                cache: 'no-store'
-            }).catch(() => {});
+            pingSession();
         }, 1200);
-        window.setInterval(() => {
-            if (document.hidden) return;
-            fetch('/api/session/status', {
-                method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
-                credentials: 'same-origin',
-                cache: 'no-store'
-            }).catch(() => {});
-        }, 240000);
+        sessionHeartbeatTimer = window.setInterval(pingSession, 240000);
+        window.addEventListener('beforeunload', () => {
+            if (sessionHeartbeatTimer) {
+                window.clearInterval(sessionHeartbeatTimer);
+                sessionHeartbeatTimer = null;
+            }
+        }, { once: true });
     }
 
     // Also hide on DOMContentLoaded as backup

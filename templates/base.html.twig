@@ -82,9 +82,11 @@
     <script src="{{ asset('js/app.js') }}" defer></script>
     <script src="{{ asset('js/live-data-poller.js') }}" defer></script>
     <script src="{{ asset('js/page-loader.js') }}"></script>
+    <script>window.SyndicatiNotificationManagerLoading = true;</script>
     <script src="{{ asset('frontend/js/notification-manager.js') }}" defer></script>
     <script src="{{ asset('js/activity-tracker.js') }}" defer></script>
     <script src="{{ asset('js/address-bar-rewrite.js') }}"></script>
+    <script>window.SyndicatiFormValidatorLoading = true;</script>
     <script src="{{ asset('frontend/js/form-validation.js') }}"></script>
     {% if is_admin %}
         <script src="{{ asset('js/admin-core.js') }}"></script>

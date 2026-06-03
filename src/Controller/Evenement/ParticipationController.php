@@ -15,9 +15,11 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use App\Service\FormErrorHelperTrait;
 use App\Service\User\NotificationService;
+use App\Message\Evenement\NotifyParticipationConfirmationMessage;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Endroid\QrCode\Builder\Builder;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 #[Route('/participation')]
 class ParticipationController extends AbstractController
@@ -32,7 +34,8 @@ class ParticipationController extends AbstractController
         UserRepository $userRepository,
         \App\Repository\Evenement\ParticipationRepository $participationRepository,
         \App\Service\Evenement\EvenementNotificationService $notificationService,
-        NotificationService $notifService
+        NotificationService $notifService,
+        MessageBusInterface $messageBus
     ): Response {
         try {
             $isAjax = $request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
@@ -112,7 +115,7 @@ class ParticipationController extends AbstractController
                 $entityManager->flush();
 
                 // Send Confirmation Email
-                $notificationService->notifyParticipationConfirmation($participation);
+                $messageBus->dispatch(new NotifyParticipationConfirmationMessage($participation->getId()));
 
                 // 1. Notify Participant (Confirmation)
                 $notifService->notify(

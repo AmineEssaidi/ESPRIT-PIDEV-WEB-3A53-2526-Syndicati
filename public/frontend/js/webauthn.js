@@ -69,6 +69,14 @@ const WebAuthn = (function () {
 
     async function register() {
         try {
+            if (!window.PublicKeyCredential || !navigator.credentials) {
+                throw new Error('Biometrics are not supported by this browser.');
+            }
+
+            if (!window.isSecureContext) {
+                throw new Error('Biometrics require HTTPS or localhost.');
+            }
+
             const response = await fetch(ROUTES.registerOptions, {
                 method: 'POST',
                 headers: {
@@ -105,7 +113,12 @@ const WebAuthn = (function () {
 
             const verifyJson = await verifyResponse.json();
             if (verifyResponse.ok && verifyJson.status === 'ok') {
-                return { success: true, message: verifyJson.message };
+                return {
+                    success: true,
+                    message: verifyJson.message,
+                    credentialId: verifyJson.credentialId || credentialData.rawId,
+                    credentialCount: verifyJson.credentialCount || 0
+                };
             } else {
                 throw new Error(verifyJson.error || 'Verification failed');
             }
@@ -177,7 +190,8 @@ const WebAuthn = (function () {
         try {
             const response = await fetch(ROUTES.listCredentials);
             if (!response.ok) return [];
-            return await response.json();
+            const credentials = await response.json();
+            return Array.isArray(credentials) ? credentials : [];
         } catch (e) {
             console.error(e);
             return [];
@@ -203,6 +217,7 @@ const WebAuthn = (function () {
     function renderCredentialList(containerId, credentials) {
         const container = document.getElementById(containerId);
         if (!container) return;
+        credentials = Array.isArray(credentials) ? credentials : [];
 
         if (credentials.length === 0) {
             container.innerHTML = '<p class="text-muted text-center"><small>No biometric devices registered.</small></p>';
@@ -232,7 +247,7 @@ const WebAuthn = (function () {
 
         container.querySelectorAll('.webauthn-delete-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                window.confirmObsidianDelete(async () => {
+                const remove = async () => {
                     const id = btn.dataset.id;
                     const success = await removeCredential(id);
                     if (success) {
@@ -242,7 +257,13 @@ const WebAuthn = (function () {
                     } else {
                         if (typeof window.showObsidianNotification === 'function') window.showObsidianNotification('Error', 'Failed to remove', 'error');
                     }
-                }, 'Remove Passkey?', 'Are you sure you want to disable this biometric method?');
+                };
+
+                if (typeof window.confirmObsidianDelete === 'function') {
+                    window.confirmObsidianDelete(remove, 'Remove Passkey?', 'Are you sure you want to disable this biometric method?');
+                } else if (confirm('Remove this biometric method?')) {
+                    await remove();
+                }
             });
         });
     }

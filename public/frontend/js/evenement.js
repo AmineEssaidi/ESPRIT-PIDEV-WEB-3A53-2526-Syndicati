@@ -48,30 +48,100 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (eventVoiceSearchBtn && eventSearchInput) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const notifyVoiceSearch = (message, type = 'INFO') => {
+            if (window.pushNotif) {
+                window.pushNotif('Voice Search', message, type);
+            } else {
+                console[type === 'ERROR' ? 'warn' : 'log'](`Voice Search: ${message}`);
+            }
+        };
+        const dispatchSearchUpdate = (transcript) => {
+            eventSearchInput.value = transcript;
+            eventSearchInput.focus();
+            try {
+                eventSearchInput.dispatchEvent(new InputEvent('input', {
+                    bubbles: true,
+                    inputType: 'insertText',
+                    data: transcript
+                }));
+            } catch (error) {
+                eventSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            eventSearchInput.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        const getRecognitionLang = () => {
+            const pageLang = (document.documentElement.lang || navigator.language || 'en-US').toLowerCase();
+            if (pageLang.startsWith('fr')) return 'fr-FR';
+            if (pageLang.startsWith('ar')) return 'ar-SA';
+            return 'en-US';
+        };
+
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
-            recognition.lang = document.documentElement.lang || 'en-US';
-            recognition.interimResults = false;
+            let isListening = false;
+
+            recognition.lang = getRecognitionLang();
+            recognition.continuous = false;
+            recognition.interimResults = true;
             recognition.maxAlternatives = 1;
 
             recognition.onstart = () => {
+                isListening = true;
                 eventVoiceSearchBtn.classList.add('listening');
+                eventVoiceSearchBtn.setAttribute('aria-pressed', 'true');
                 eventVoiceSearchBtn.innerHTML = "<i class='bx bx-radio-circle-marked'></i>";
             };
             recognition.onend = () => {
+                isListening = false;
                 eventVoiceSearchBtn.classList.remove('listening');
+                eventVoiceSearchBtn.setAttribute('aria-pressed', 'false');
                 eventVoiceSearchBtn.innerHTML = "<i class='bx bx-microphone'></i>";
             };
+            recognition.onspeechend = () => recognition.stop();
             recognition.onresult = (event) => {
-                const transcript = event.results?.[0]?.[0]?.transcript || '';
+                const transcript = Array.from(event.results)
+                    .map((result) => result?.[0]?.transcript || '')
+                    .join(' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+
                 if (transcript) {
-                    eventSearchInput.value = transcript;
-                    eventSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    if (window.pushNotif) window.pushNotif('Voice Search', transcript, 'SUCCESS');
+                    dispatchSearchUpdate(transcript);
+                    const lastResult = event.results[event.results.length - 1];
+                    if (lastResult?.isFinal) {
+                        notifyVoiceSearch(transcript, 'SUCCESS');
+                    }
                 }
             };
+            recognition.onerror = (event) => {
+                const messages = {
+                    'not-allowed': 'Microphone access was blocked. Allow it in the browser and try again.',
+                    'no-speech': 'No speech was detected. Try again a little closer to the mic.',
+                    'audio-capture': 'No microphone was found by the browser.'
+                };
+                notifyVoiceSearch(messages[event.error] || 'Could not read your voice input.', 'ERROR');
+            };
 
-            eventVoiceSearchBtn.addEventListener('click', () => recognition.start());
+            eventVoiceSearchBtn.addEventListener('click', () => {
+                if (isListening) {
+                    recognition.stop();
+                    return;
+                }
+
+                recognition.lang = getRecognitionLang();
+                try {
+                    recognition.start();
+                } catch (error) {
+                    recognition.abort();
+                    setTimeout(() => {
+                        try {
+                            recognition.start();
+                        } catch (retryError) {
+                            notifyVoiceSearch('Voice search is already starting. Please try again.', 'ERROR');
+                        }
+                    }, 120);
+                }
+            });
         } else {
             eventVoiceSearchBtn.disabled = true;
             eventVoiceSearchBtn.title = 'Voice search is not supported by this browser';
@@ -376,16 +446,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
 
-                const data = await res.json();
+                const responseText = await res.text();
+                let data;
+                try {
+                    data = responseText ? JSON.parse(responseText) : {};
+                } catch (parseError) {
+                    console.error('Delete response was not JSON:', responseText.slice(0, 500));
+                    throw new Error('Server returned an invalid delete response.');
+                }
+
                 if (data.success) {
                     window.pushNotif('Event Removed', data.message, 'SUCCESS');
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    window.pushNotif('Error', data.message || 'Could not delete event.', 'ERROR');
+                    window.pushNotif('Error', data.message || `Could not delete event. (${res.status})`, 'ERROR');
                 }
             } catch (err) {
                 console.error('Delete Error:', err);
-                window.showObsidianNotification('Network Error', 'Check your connection.', 'error');
+                window.showObsidianNotification('Delete Error', err.message || 'Please try again.', 'error');
             }
         }, 'Delete Event?', 'Are you sure you want to permanently remove this event?');
     };

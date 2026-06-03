@@ -21,11 +21,16 @@ class LiveDataController extends AbstractController
         $session = $request->getSession();
         $sessionUser = $session->get('user');
 
-        if (!$session->get('is_logged_in') || !is_array($sessionUser) || !isset($sessionUser['id'])) {
+        if (
+            !$session->get('is_logged_in')
+            || !is_array($sessionUser)
+            || !isset($sessionUser['id'])
+            && !isset($sessionUser['id_user'])
+        ) {
             return $this->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
 
-        $userId = (int) $sessionUser['id'];
+        $userId = (int) ($sessionUser['id_user'] ?? $sessionUser['id']);
         $role = strtoupper((string) ($sessionUser['role'] ?? $sessionUser['roleUser'] ?? ''));
         $isAdmin = in_array($role, ['OWNER', 'ADMIN', 'SUPERADMIN', 'SYNDIC'], true);
         $scopeSql = $isAdmin ? '1 = 1' : 'user_id = :user_id';

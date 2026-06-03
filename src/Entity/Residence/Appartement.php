@@ -114,6 +114,19 @@ class Appartement
 
     public function setTypeA(string $typeA): self
     {
+        $normalized = strtoupper(trim($typeA));
+        $normalized = preg_replace('/\s+/', '', $normalized) ?? $normalized;
+
+        if ($normalized === 'STUDIO') {
+            $this->typeA = 'STUDIO';
+            return $this;
+        }
+
+        if (preg_match('/^S\+?([1-5])$/', $normalized, $matches)) {
+            $this->typeA = 'S+' . $matches[1];
+            return $this;
+        }
+
         $this->typeA = $typeA;
 
         return $this;

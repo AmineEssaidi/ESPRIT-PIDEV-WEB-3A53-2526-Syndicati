@@ -3,10 +3,14 @@
 namespace App\Service\Media;
 
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 class ImagePathResolver
 {
-    public function __construct(private readonly RequestStack $requestStack)
+    public function __construct(
+        private readonly RequestStack $requestStack,
+        private readonly KernelInterface $kernel
+    )
     {
     }
 
@@ -15,6 +19,11 @@ class ImagePathResolver
         $value = $this->normalizeValue($value);
         if ($value === null) {
             return $fallback;
+        }
+
+        $decodedValue = $this->extractFirstValueFromPayload($value);
+        if ($decodedValue !== null) {
+            $value = $decodedValue;
         }
 
         if ($this->isUrl($value) || str_starts_with($value, 'data:')) {
@@ -36,6 +45,10 @@ class ImagePathResolver
 
         if ($folder !== '' && !str_starts_with($path, trim($folder, '/') . '/')) {
             $path = trim($folder, '/') . '/' . basename($path);
+        }
+
+        if ($this->looksLikeLocalMedia($path) && !$this->localMediaExists($path)) {
+            return $fallback;
         }
 
         $url = '/' . ltrim($path, '/');
@@ -76,7 +89,9 @@ class ImagePathResolver
             return null;
         }
 
-        $value = trim($value);
+        $value = trim($value, " \t\n\r\0\x0B\"'");
+        $value = preg_replace('/(?:%22|")+]$/', '', $value) ?? $value;
+        $value = trim($value, " \t\n\r\0\x0B\"'");
         if ($value === '' || $value === '-') {
             return null;
         }
@@ -110,5 +125,46 @@ class ImagePathResolver
         }
 
         return rtrim($request->getSchemeAndHttpHost(), '/') . '/' . ltrim($url, '/');
+    }
+
+    private function extractFirstValueFromPayload(string $value): ?string
+    {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return null;
+        }
+
+        if (($trimmed[0] ?? '') === '[' || ($trimmed[0] ?? '') === '{') {
+            $decoded = json_decode($trimmed, true);
+            if (is_array($decoded)) {
+                if (array_is_list($decoded)) {
+                    foreach ($decoded as $item) {
+                        if (is_scalar($item) && trim((string) $item) !== '') {
+                            return trim((string) $item);
+                        }
+                    }
+                }
+
+                foreach ($decoded as $item) {
+                    if (is_scalar($item) && trim((string) $item) !== '') {
+                        return trim((string) $item);
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function looksLikeLocalMedia(string $path): bool
+    {
+        return preg_match('/\.(jpe?g|png|gif|webp|svg|bmp|avif)$/i', $path) === 1;
+    }
+
+    private function localMediaExists(string $path): bool
+    {
+        $fullPath = $this->kernel->getProjectDir() . '/public/' . ltrim($path, '/');
+
+        return is_file($fullPath);
     }
 }

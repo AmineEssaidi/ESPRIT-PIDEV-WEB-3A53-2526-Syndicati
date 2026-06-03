@@ -2,6 +2,7 @@
 
 namespace App\Controller\VideoConference;
 
+use App\Controller\Concerns\SessionUserAwareTrait;
 use App\Entity\VideoConference\VideoConference;
 use App\Repository\VideoConference\VideoConferenceRepository;
 use App\Repository\User\UserRepository;
@@ -16,6 +17,8 @@ use Symfony\Component\Uid\Uuid;
 #[Route('/video-conference')]
 class VideoConferenceController extends AbstractController
 {
+    use SessionUserAwareTrait;
+
     private LiveKitService $liveKitService;
 
     public function __construct(LiveKitService $liveKitService)
@@ -28,11 +31,12 @@ class VideoConferenceController extends AbstractController
     {
         try {
             $session = $request->getSession();
-            if (!$session->get('is_logged_in') || !isset($session->get('user')['id'])) {
+            $userId = $this->getSessionUserId($session);
+            if (!$session->get('is_logged_in') || $userId === null) {
                 return $this->json(['error' => 'Unauthorized - Please log in again'], Response::HTTP_UNAUTHORIZED);
             }
 
-            $user = $userRepository->find((int) $session->get('user')['id']);
+            $user = $userRepository->find($userId);
             if (!$user) {
                 return $this->json(['error' => 'User not found in database'], Response::HTTP_NOT_FOUND);
             }
@@ -95,8 +99,8 @@ class VideoConferenceController extends AbstractController
         $userName = 'Guest';
         $identity = 'guest_' . bin2hex(random_bytes(4));
 
-        if ($session->get('is_logged_in') && isset($session->get('user')['id'])) {
-            $currUserId = (int) $session->get('user')['id'];
+        $currUserId = $this->getSessionUserId($session);
+        if ($session->get('is_logged_in') && $currUserId !== null) {
             $isHost = ($conference->getUser()->getIdUser() === $currUserId);
 
             $user = $userRepository->find($currUserId);
@@ -142,8 +146,9 @@ class VideoConferenceController extends AbstractController
 
         $session = $request->getSession();
         $isHost = false;
-        if ($session->get('is_logged_in') && isset($session->get('user')['id'])) {
-            $isHost = ($conference->getUser()->getIdUser() === (int) $session->get('user')['id']);
+        $currUserId = $this->getSessionUserId($session);
+        if ($session->get('is_logged_in') && $currUserId !== null) {
+            $isHost = ($conference->getUser()->getIdUser() === $currUserId);
         }
 
         return $this->json([

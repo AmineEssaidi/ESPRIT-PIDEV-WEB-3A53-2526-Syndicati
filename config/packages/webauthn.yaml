@@ -3,7 +3,6 @@
 webauthn:
     credential_repository: 'App\Repository\WebAuthn\WebAuthnCredentialRepository'
     user_repository: 'App\Repository\WebAuthn\WebAuthnUserRepository'
-    secured_rp_ids: ['localhost', '127.0.0.1'] # Allow HTTP for localhost and 127.0.0.1 in development
     # Explicitly allow both origins so assertion/attestation validation accepts them
     allowed_origins:
         - 'http://localhost'

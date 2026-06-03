@@ -82,8 +82,32 @@ class WebAuthnCredentialRepository extends ServiceEntityRepository implements Pu
         return $this->findBy(['user' => $user]);
     }
 
+    /**
+     * @return WebAuthnCredential[]
+     */
+    public function findAllEntitiesForUserId(int $userId): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('IDENTITY(c.user) = :userId')
+            ->setParameter('userId', $userId)
+            ->orderBy('c.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findOneEntityByCredentialId(string $credentialId): ?WebAuthnCredential
     {
         return $this->findOneBy(['credentialId' => $credentialId]);
+    }
+
+    public function findOneEntityByCredentialIdAndUserId(string $credentialId, int $userId): ?WebAuthnCredential
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.credentialId = :credentialId')
+            ->andWhere('IDENTITY(c.user) = :userId')
+            ->setParameter('credentialId', $credentialId)
+            ->setParameter('userId', $userId)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

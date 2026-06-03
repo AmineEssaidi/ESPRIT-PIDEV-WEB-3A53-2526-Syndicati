@@ -1,0 +1,184 @@
+﻿        <!-- Hero Video Background -->
+        <div class="main-home-hero-bg-fixed">
+            <video id="heroVideo" autoplay loop muted playsinline class="main-home-hero-bg-img" poster="{{ asset('images/home/home_main.png') }}">
+                <source src="{{ asset('videos/syndicati.mp4') }}" type="video/mp4">
+            </video>
+            <div class="main-home-hero-overlay"></div>
+        </div>
+        <style>
+        .main-home-hero-bg-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2; /* Pull further back */
+            overflow: hidden;
+            pointer-events: none;
+            background: #000;
+            transform: translateZ(0); /* Hardware acceleration */
+            will-change: transform;
+        }
+        .main-home-hero-bg-img {
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            object-position: center center;
+            display: block;
+            will-change: transform;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+        .main-home-hero-bg-gradient {
+            position:absolute;
+            left:0;
+            bottom:0;
+            width:100%;
+            height:80px;
+            pointer-events:none;
+            background:linear-gradient(
+                to bottom,
+                rgba(0,0,0,0) 0%,
+                rgba(0,0,0,0.12) 60%,
+                rgba(0,0,0,0.22) 100%
+            );
+            box-shadow:0 32px 64px 0 rgba(0,0,0,0.18);
+        }
+        .hero-img-fade-img {
+            animation: fadeInRight 1.2s cubic-bezier(.4,0,.2,1) both;
+        }
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(60px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .hero-card-title {
+            font-size:2.2rem;
+            margin-bottom:1rem;
+        }
+        .hero-card-desc {
+            font-size:1.1rem;
+            margin-bottom:0;
+            max-width:420px;
+        }
+        .main-home-hero-fade {
+            display: none; /* Removed as it obscures the global video background */
+        }
+        :root {
+            --hero-fade-color: transparent;
+        }
+        [data-theme="dark"] {
+            --hero-fade-color: transparent;
+        }
+        /* Ensure body is transparent to reveal the fixed video below it */
+        body {
+            background: transparent !important;
+        }
+        </style>
+        <!-- Hero Content -->
+        <div class="main-home-landing-section hero-visual-container">
+            <div class="main-home-hero">
+                <div class="obsidian-hero-card">
+                    <div class="obsidian-badge">
+                        <i class='bx bxs-bolt-circle'></i> Residential Experience
+                    </div>
+                    <h1 class="obsidian-title">Syndicati <span class="accent-dot">.</span></h1>
+                    <p class="obsidian-desc">
+                        A secure, connected living platform for residences, complaints, events, forums, maintenance, and community engagement.
+                    </p>
+                    <div class="obsidian-actions">
+                        <button class="btn-obsidian-primary" onclick="document.getElementById('syndicate-title').scrollIntoView({behavior: 'smooth'})">
+                            Explore the Complex <i class='bx bx-right-arrow-alt'></i>
+                        </button>
+                        <button class="btn-obsidian-secondary" onclick="location.href='{{ path('app_publication_index') }}'">
+                            Join the Hub
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<style>
+.hero-visual-container {
+    padding-top: clamp(80px, 10vh, 120px);
+    min-height: 95vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+}
+.obsidian-hero-card {
+    background: rgba(var(--main-home-accent-rgb), 0.08);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.15);
+    border-radius: clamp(24px, 4vw, 48px);
+    padding: clamp(30px, 5vw, 60px);
+    max-width: 680px;
+    box-shadow: 0 50px 100px rgba(0, 0, 0, 0.6), 0 0 40px rgba(var(--main-home-accent-rgb), 0.1);
+    animation: heroFadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    margin-left: 20px;
+}
+@keyframes heroFadeIn {
+    from { opacity: 0; transform: translateY(40px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.obsidian-badge {
+    background: rgba(var(--main-home-accent-rgb), 0.15);
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.25);
+    backdrop-filter: blur(10px);
+}
+.obsidian-title {
+    font-size: clamp(3rem, 7vw, 5rem);
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 25px;
+    letter-spacing: -4px;
+    line-height: 0.85;
+}
+.accent-dot { color: var(--accent); text-shadow: 0 0 20px rgba(var(--main-home-accent-rgb), 0.6); }
+.obsidian-desc {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    line-height: 1.6;
+    margin-bottom: 45px;
+    max-width: 540px;
+}
+.obsidian-actions { display: flex; gap: 20px; flex-wrap: wrap; }
+.btn-obsidian-primary {
+    background: var(--primary-gradient);
+    color: #fff;
+    border: none;
+    padding: 18px 40px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 15px 35px rgba(var(--main-home-accent-rgb), 0.3);
+}
+.btn-obsidian-primary:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 25px 50px rgba(var(--main-home-accent-rgb), 0.5); }
+.btn-obsidian-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border: 1px solid rgba(var(--main-home-accent-rgb), 0.2);
+    padding: 18px 40px;
+    border-radius: 20px;
+    font-weight: 600;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+}
+.btn-obsidian-secondary:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(var(--main-home-accent-rgb), 0.4); transform: translateY(-5px); }
+</style>

@@ -1169,7 +1169,7 @@
 <script>
 
 
-    const residencesData = [{% for r in residences|default([]) %} [ "{{ r.nomR|e('js') }}", "{{ r.adresse|e('js') }}", "{{ r.imageR|e('js') }}", "{{ r.idResidence }}", "{{ r.nAppartements }}", "{{ r.nEtages }}", "{{ r.nBlocs }}", "{{ csrf_token('delete' ~ r.idResidence)|e('js') }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
+    const residencesData = [{% for r in residences|default([]) %} [ "{{ r.nomR|e('js') }}", "{{ r.adresse|e('js') }}", "{{ media_url(r.imageR, 'uploads/images')|default('')|e('js') }}", "{{ r.idResidence }}", "{{ r.nAppartements }}", "{{ r.nEtages }}", "{{ r.nBlocs }}", "{{ csrf_token('delete' ~ r.idResidence)|e('js') }}" ]{% if not loop.last %},{% endif %} {% endfor %}];
     const appartementsData = [{% for a in appartements|default([]) %} [ 
         "{{ a.appartementInfo ? a.appartementInfo.number|default('—')|e('js') : '—' }}", 
         "{{ a.residence ? a.residence.nomR|e('js') : '—' }}", 
@@ -1181,7 +1181,7 @@
         "{{ a.parking ? 'true' : 'false' }}", 
         "{{ a.appartementInfo ? a.appartementInfo.bloc|default('')|e('js') : '' }}", 
         "{{ a.appartementInfo ? a.appartementInfo.floor|default('')|e('js') : '' }}", 
-        "{{ a.imageA|e('js') }}", 
+        "{{ media_url(a.imageA, 'appartement_images')|default('')|e('js') }}", 
         "{{ a.superficie|default('—')|e('js') }}", 
         "{{ a.prixLocation|default('—')|e('js') }}", 
         "{{ a.prixVente|default('—')|e('js') }}", 
@@ -1433,7 +1433,7 @@
 
     window.viewRes = function(idx) {
         const d = resRows[idx]; document.getElementById('view-res-name').textContent = d[0]; document.getElementById('view-res-address').textContent = d[1];
-        const ir = document.getElementById('view-res-image-row'); if(d[2]) { document.getElementById('view-res-image').src = '/uploads/images/' + d[2]; ir.style.display = 'flex'; } else ir.style.display = 'none';
+        const ir = document.getElementById('view-res-image-row'); if(d[2]) { document.getElementById('view-res-image').src = d[2]; ir.style.display = 'flex'; } else ir.style.display = 'none';
         document.getElementById('view-res-delete-token').value = d[7]; document.getElementById('view-res-delete-form').action = deleteResUrlTemplate.replace('ID_PLACEHOLDER', d[3]);
         document.getElementById('view-res-modify-btn').onclick = () => {
             const f = document.getElementById('res-edit-form'); f.action = editResUrlTemplate.replace('ID_PLACEHOLDER', d[3]);

@@ -2,8 +2,8 @@
 {% block title %}Forum - Syndicati Community{% endblock %}
 
 {% block stylesheets %}
-    <link href="{{ asset('frontend/css/forum.css') }}" rel="stylesheet">
     <link href="{{ asset('frontend/css/glass_switcher.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/css/forum.css') }}" rel="stylesheet">
     <style>
         /* Any module-specific forum overrides can go here */
     </style>
@@ -156,9 +156,13 @@
                                                 <i class='bx bx-message-rounded-dots text-primary'></i> Discussion
                                             </h4>
                                             <div id="commentsList" class="comments-wrapper mb-4"></div>
+                                            <div id="announcementCommentNotice" class="announcement-comment-notice d-none mb-4">
+                                                <i class='bx bx-lock-alt'></i>
+                                                <span>Announcements are read-only.</span>
+                                            </div>
 
                                             {% if app.session.get('user') %}
-                                                <div class="comment-form-container p-4">
+                                                <div id="commentFormContainer" class="comment-form-container p-4">
                                                     <form id="addCommentForm" action="" method="POST" enctype="multipart/form-data" data-ajax="true">
                                                         <div class="glass-form-group mb-3">
                                                             <textarea name="description_commentaire" id="comment_description" class="glass-textarea" rows="3" placeholder="Share your thoughts..." style="background: rgba(0,0,0,0.2) !important;" required minlength="5"></textarea>
@@ -239,16 +243,16 @@
                         </div>
 
                         <!-- FACE 3: EDIT FORM -->
-                        <div class="glass-switcher-face glass-switcher-face-edit">
-                            <div class="h-100 d-flex flex-column p-4">
-                                <div class="card-header-actions mb-4">
-                                    <button type="button" class="btn-switcher-back" onclick="window.switchGlassFace('main')">
+                        <div class="glass-switcher-face glass-switcher-face-edit forum-edit-face">
+                            <div class="forum-edit-shell">
+                                <div class="card-header-actions forum-edit-header">
+                                    <button type="button" class="btn-switcher-back forum-edit-back" onclick="window.switchGlassFace('main')">
                                         <i class='bx bx-arrow-back'></i> Cancel Edit
                                     </button>
                                     <h4 class="text-white m-0">Edit Post</h4>
                                 </div>
-                                <div class="forum-main-content custom-scrollbar p-1">
-                                    <form id="editPostForm" method="POST" enctype="multipart/form-data" class="syndicat-form" data-ajax="true">
+                                <div class="forum-main-content custom-scrollbar forum-edit-body">
+                                    <form id="editPostForm" method="POST" enctype="multipart/form-data" class="syndicat-form forum-edit-form" data-ajax="true">
                                         <div class="glass-form-group">
                                             <label class="glass-label">Title</label>
                                             <input type="text" name="title" id="editPostTitle" class="glass-input" required minlength="5">
@@ -289,8 +293,13 @@
                                             </div>
                                             <input type="file" name="image_pub" id="editPostImageInput" class="glass-input" accept="image/*">
                                         </div>
-                                        <button type="submit" class="glass-btn-save w-100 mt-3">Save Changes <i class='bx bx-check ms-1'></i></button>
                                     </form>
+                                </div>
+                                <div class="forum-edit-footer">
+                                    <button type="button" class="btn-switcher-back forum-edit-cancel" onclick="window.switchGlassFace('main')">
+                                        <i class='bx bx-x'></i> Discard
+                                    </button>
+                                    <button type="submit" form="editPostForm" class="glass-btn-save forum-edit-save">Save Changes <i class='bx bx-check ms-1'></i></button>
                                 </div>
                             </div>
                         </div>
@@ -366,7 +375,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('frontend/js/form-validation.js') }}"></script>
     <script src="{{ asset('frontend/js/forum.js') }}"></script>
     <script>
         // FormValidator auto-initializes via Global Auto-Init in form-validation.js

@@ -20,9 +20,23 @@ class ImagePathExtension extends AbstractExtension
         ];
     }
 
-    public function mediaUrl(?string $value, string $folder, ?string $fallback = null, bool $absolute = false): ?string
+    public function mediaUrl(mixed $value, string $folder, ?string $fallback = null, bool $absolute = false): ?string
     {
-        return $this->resolver->publicUrl($value, $folder, $fallback, $absolute);
+        if (is_array($value)) {
+            foreach ($value as $item) {
+                if (is_scalar($item) && trim((string) $item) !== '') {
+                    return $this->resolver->publicUrl((string) $item, $folder, $fallback, $absolute);
+                }
+            }
+
+            return $fallback;
+        }
+
+        if ($value !== null && !is_scalar($value)) {
+            return $fallback;
+        }
+
+        return $this->resolver->publicUrl($value !== null ? (string) $value : null, $folder, $fallback, $absolute);
     }
 
     /**

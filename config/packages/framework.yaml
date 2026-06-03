@@ -1,6 +1,10 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
     secret: '%env(APP_SECRET)%'
+    http_method_override: false
+    handle_all_throwables: true
+    assets:
+        version: '20260523-announcement-readonly'
 
     # Optimized session configuration
     session:

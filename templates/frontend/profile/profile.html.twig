@@ -1251,6 +1251,17 @@
                                         </div>
                                         <div id="hero-faceid-step-1">
                                             <p class="hero-panel-desc">Protect your account with local Face ID. This only works on this PC.</p>
+                                            <div id="hero-faceid-status" style="display:none; margin-bottom:0.85rem; padding:0.85rem; border:1px solid rgba(0,206,127,0.32); border-radius:12px; background:rgba(0,206,127,0.10); color:rgba(255,255,255,0.86);">
+                                                <div style="font-weight:800; color:#fff; display:flex; align-items:center; gap:0.45rem;">
+                                                    <i class="bx bx-check-shield" style="color:#19d68b;"></i>
+                                                    <span>Face ID is already enrolled</span>
+                                                </div>
+                                                <div id="hero-faceid-status-meta" style="font-size:0.78rem; color:rgba(255,255,255,0.62); margin-top:0.25rem;"></div>
+                                                <div style="display:flex; gap:0.5rem; margin-top:0.75rem; flex-wrap:wrap;">
+                                                    <button type="button" class="btn btn-sm btn-outline-light" id="hero-faceid-reenroll" style="border-radius:10px;">Re-enroll</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" id="hero-faceid-remove" style="border-radius:10px;">Remove</button>
+                                                </div>
+                                            </div>
                                             <input type="password" id="hero-faceid-pin" class="hero-panel-input" placeholder="Enter a local PIN for encryption">
                                             <small style="color:rgba(255,255,255,0.4); font-size:0.75rem; display:block; margin-top:0.4rem;">This PIN encrypts your Face ID locally.</small>
                                             <button class="hero-panel-primary-btn mt-3" id="hero-faceid-start-capture">
@@ -2812,6 +2823,22 @@
 
                     // Generate QR code using multiple methods for reliability
                     totpQrCodeContainer.innerHTML = '';
+
+                    if (data.qrDataUri) {
+                        const img = document.createElement('img');
+                        img.src = data.qrDataUri;
+                        img.alt = 'Authenticator QR Code';
+                        img.style.width = '100%';
+                        img.style.height = 'auto';
+                        img.style.display = 'block';
+                        img.style.borderRadius = '8px';
+                        totpQrCodeContainer.appendChild(img);
+
+                        if (totpVerifyCodeInput) {
+                            setTimeout(() => totpVerifyCodeInput.focus(), 300);
+                        }
+                        return;
+                    }
                     
                     // Method 1: Try QRCode.js library
                     if (typeof QRCode !== 'undefined') {
@@ -3057,11 +3084,16 @@
                 try {
                     const result = await WebAuthnManager.register();
                     if (result.success) {
-                        if (typeof showCoolPopup === 'function') showCoolPopup('Success', 'Device registered successfully', 'success');
-                        
-                        // Reload list
                         const list = await WebAuthnManager.listCredentials();
                         WebAuthnManager.renderCredentialList(listContainerId, list);
+
+                        if (list.length > 0 && (!result.credentialId || list.some((cred) => cred.id === result.credentialId || cred.id_encoded === result.credentialId))) {
+                            if (typeof showCoolPopup === 'function') showCoolPopup('Success', result.message || 'Device registered successfully', 'success');
+                        } else if (list.length > 0) {
+                            if (typeof showCoolPopup === 'function') showCoolPopup('Success', 'Device list refreshed', 'success');
+                        } else if (typeof showCoolPopup === 'function') {
+                            showCoolPopup('Error', 'Registration finished, but no biometric device was found for this account. Please sign out and try again.', 'error');
+                        }
                     } else {
                         if (typeof showCoolPopup === 'function') showCoolPopup('Error', result.message, 'error');
                     }
@@ -5359,7 +5391,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <!-- Face ID Scripts: load from local first so faceapi is always defined (CDN can fail or return HTML) -->
     <script src="{{ asset('vendor/face-api/face-api.min.js') }}"></script>
-    <script src="{{ asset('frontend/js/face-id.js') }}"></script>
+    <script src="{{ asset('frontend/js/face-id.js') }}?v=20260603-fast-faceid"></script>
     <input type="hidden" id="currentUserId" value="{{ user.idUser|default(0) }}">
     <input type="hidden" id="currentUserRole" value="{{ user.roleUser|default('') }}">
     <script>
@@ -5371,11 +5403,64 @@ document.addEventListener('DOMContentLoaded', function() {
                     openBtn, modal, closeBtn, cancelBtn, startBtn,
                     step1, step2, video, pinInput, progressBar,
                     instruction, livenessHint, cameraSelect, switchBtn,
+                    statusBlock, statusMeta, reenrollBtn, removeBtn,
                     isHero = false
                 } = config;
 
                 let stream = null;
                 let currentDeviceId = null;
+                let isEnrolling = false;
+
+                function resetCaptureUi() {
+                    if (progressBar) progressBar.style.width = '0%';
+                    if (instruction) instruction.textContent = 'Look straight at the camera, then turn slightly.';
+                    if (livenessHint) livenessHint.textContent = 'Looking for face...';
+                }
+
+                function stopStream() {
+                    if (stream) {
+                        stream.getTracks().forEach(t => t.stop());
+                        stream = null;
+                    }
+                    if (video) video.srcObject = null;
+                }
+
+                function showEnrollmentForm(show) {
+                    if (pinInput) {
+                        pinInput.style.display = show ? '' : 'none';
+                        if (show) pinInput.value = '';
+                    }
+                    const hint = pinInput?.nextElementSibling;
+                    if (hint && hint.tagName === 'SMALL') hint.style.display = show ? 'block' : 'none';
+                    if (startBtn) startBtn.style.display = show ? '' : 'none';
+                }
+
+                async function refreshStatus() {
+                    if (!window.FaceID || typeof FaceID.status !== 'function' || !statusBlock) return;
+                    try {
+                        const state = await FaceID.status();
+                        if (state.enrolled) {
+                            statusBlock.style.display = 'block';
+                            showEnrollmentForm(!state.currentDeviceEnrolled);
+                            if (statusMeta) {
+                                const updated = state.updatedAt ? new Date(state.updatedAt).toLocaleString() : null;
+                                statusMeta.textContent = state.currentDeviceEnrolled
+                                    ? (updated ? `Registered on this PC. Updated ${updated}.` : 'Registered on this PC.')
+                                    : 'A Face ID profile exists for your account. Set up this PC to use it here.';
+                            }
+                            if (removeBtn) removeBtn.style.display = state.currentDeviceEnrolled ? '' : 'none';
+                            if (reenrollBtn) reenrollBtn.textContent = state.currentDeviceEnrolled ? 'Re-enroll' : 'Set up this PC';
+                        } else {
+                            statusBlock.style.display = 'none';
+                            showEnrollmentForm(true);
+                            if (removeBtn) removeBtn.style.display = '';
+                            if (reenrollBtn) reenrollBtn.textContent = 'Re-enroll';
+                        }
+                    } catch (e) {
+                        statusBlock.style.display = 'none';
+                        showEnrollmentForm(true);
+                    }
+                }
 
                 async function getCameras() {
                     try {
@@ -5390,19 +5475,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 async function startStream(deviceId = null) {
-                    if (stream) stream.getTracks().forEach(t => t.stop());
-                    const constraints = { video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'user' } };
+                    stopStream();
+                    const cameraBase = {
+                        width: { ideal: 640, max: 960 },
+                        height: { ideal: 480, max: 720 },
+                        frameRate: { ideal: 24, max: 30 }
+                    };
+                    const constraints = {
+                        video: deviceId
+                            ? { ...cameraBase, deviceId: { exact: deviceId } }
+                            : { ...cameraBase, facingMode: 'user' }
+                    };
                     stream = await navigator.mediaDevices.getUserMedia(constraints);
                     video.srcObject = stream;
                     currentDeviceId = deviceId;
                 }
 
                 const closeHandler = () => {
+                    isEnrolling = false;
                     if (!isHero && modal) {
                         modal.classList.remove('active');
                         setTimeout(() => { modal.style.display = 'none'; document.body.style.overflow = ''; }, 500);
                     }
-                    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+                    stopStream();
+                    resetCaptureUi();
+                    if (startBtn) startBtn.disabled = false;
                 };
 
                 openBtn?.addEventListener('click', () => {
@@ -5414,6 +5511,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     step1.style.display = 'block';
                     step2.style.display = 'none';
+                    resetCaptureUi();
+                    refreshStatus();
                 });
 
                 closeBtn?.addEventListener('click', closeHandler);
@@ -5421,8 +5520,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (modal && !isHero) modal.addEventListener('click', (e) => { if (e.target === modal) closeHandler(); });
 
                 startBtn?.addEventListener('click', async () => {
+                    if (isEnrolling) return;
                     const pin = pinInput.value;
                     if (pin.length < 4) { alert('Please enter at least a 4-digit PIN'); return; }
+                    isEnrolling = true;
+                    startBtn.disabled = true;
                     try {
                         await startStream();
                         await getCameras();
@@ -5440,10 +5542,49 @@ document.addEventListener('DOMContentLoaded', function() {
                         }).then(result => {
                             if (typeof showCoolPopup === 'function') showCoolPopup('Success', 'Face ID enrolled successfully!', 'success');
                             else alert('Face ID enrolled successfully!');
+                            isEnrolling = false;
+                            startBtn.disabled = false;
+                            stopStream();
+                            resetCaptureUi();
+                            step2.style.display = 'none';
+                            step1.style.display = 'block';
+                            refreshStatus();
                             closeHandler();
-                        }).catch(err => { if (err.message !== 'STOP') { alert(err.message); closeHandler(); } });
-                    } catch (e) { alert('Could not access camera or load models.'); closeHandler(); }
+                        }).catch(err => {
+                            isEnrolling = false;
+                            startBtn.disabled = false;
+                            if (err.message !== 'STOP') { alert(err.message); closeHandler(); }
+                        });
+                    } catch (e) {
+                        isEnrolling = false;
+                        startBtn.disabled = false;
+                        alert('Could not access camera or load models.');
+                        closeHandler();
+                    }
                 });
+
+                reenrollBtn?.addEventListener('click', () => {
+                    statusBlock.style.display = 'none';
+                    showEnrollmentForm(true);
+                    pinInput?.focus();
+                });
+
+                removeBtn?.addEventListener('click', async () => {
+                    if (!window.FaceID || typeof FaceID.remove !== 'function') return;
+                    if (!confirm('Remove Face ID from this PC?')) return;
+                    try {
+                        await FaceID.remove();
+                        if (typeof showCoolPopup === 'function') showCoolPopup('Success', 'Face ID removed', 'success');
+                        refreshStatus();
+                    } catch (e) {
+                        alert(e.message || 'Could not remove Face ID');
+                    }
+                });
+
+                if (isHero) {
+                    window.refreshHeroFaceIDStatus = refreshStatus;
+                    refreshStatus();
+                }
 
                 switchBtn?.addEventListener('click', async () => {
                     const nextId = cameraSelect?.value;
@@ -5485,10 +5626,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 progressBar: document.getElementById('hero-faceid-progress'),
                 instruction: document.getElementById('hero-faceid-instruction'),
                 livenessHint: document.getElementById('hero-faceid-hint'),
+                statusBlock: document.getElementById('hero-faceid-status'),
+                statusMeta: document.getElementById('hero-faceid-status-meta'),
+                reenrollBtn: document.getElementById('hero-faceid-reenroll'),
+                removeBtn: document.getElementById('hero-faceid-remove'),
                 cameraSelect: null,
                 switchBtn: null,
                 isHero: true
             });
+
+            if (window.FaceID && typeof FaceID.preload === 'function') {
+                const preloadFaceId = () => FaceID.preload().catch(() => {});
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(preloadFaceId, { timeout: 2500 });
+                } else {
+                    setTimeout(preloadFaceId, 1200);
+                }
+            }
         });
 
     </script>
@@ -5835,9 +5989,42 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof WebAuthnManager !== 'undefined') {
                 WebAuthnManager.listCredentials().then(list => {
                     WebAuthnManager.renderCredentialList(containerId || 'hero-webauthn-list', list);
+                }).catch(() => {
+                    const container = document.getElementById(containerId || 'hero-webauthn-list');
+                    if (container) container.innerHTML = '<p class="text-center" style="color:rgba(255,255,255,0.55);font-size:0.85rem;">Could not load biometric devices.</p>';
                 });
+            } else {
+                const container = document.getElementById(containerId || 'hero-webauthn-list');
+                if (container) container.innerHTML = '<p class="text-center" style="color:rgba(255,255,255,0.55);font-size:0.85rem;">Biometrics script is not loaded.</p>';
             }
         };
+
+        function notifyProfileSecurity(message, type = 'INFO') {
+            if (window.pushNotif) window.pushNotif(message, type);
+            else if (typeof showCoolPopup === 'function') showCoolPopup(type === 'ERROR' ? 'Error' : 'Security', message, type === 'ERROR' ? 'error' : 'success');
+            else alert(message);
+        }
+
+        function syncHeroTwofaState() {
+            return fetch('{{ path("2fa_status") }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) return;
+                    const enabled = !!data.twoFactorEnabled;
+                    const totpConfigured = !!data.totpConfigured;
+                    const heroToggle = document.getElementById('hero-twofa-toggle');
+                    const status = document.getElementById('hero-twofa-status-text');
+                    const sections = document.getElementById('hero-twofa-sections');
+                    const totpConf = document.getElementById('hero-twofa-totp-conf');
+                    const totpSetup = document.getElementById('hero-twofa-totp-setup');
+                    if (heroToggle) heroToggle.checked = enabled;
+                    if (status) status.textContent = enabled ? 'Enabled' : 'Disabled';
+                    if (sections) sections.style.display = enabled ? 'block' : 'none';
+                    if (totpConf) totpConf.style.display = totpConfigured ? 'block' : 'none';
+                    if (totpSetup) totpSetup.style.display = totpConfigured ? 'none' : 'block';
+                })
+                .catch(() => {});
+        }
 
         // Functions
         function hideAllInHero() {
@@ -5875,13 +6062,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (id === 'biometrics') {
                     window.loadWebAuthnCredentials('hero-webauthn-list');
                 } else if (id === '2fa') {
-                    // Sync 2FA state from server or main toggle
-                    const mainToggle = document.getElementById('twofa-toggle');
-                    const heroToggle = document.getElementById('hero-twofa-toggle');
-                    if (mainToggle && heroToggle) {
-                        heroToggle.checked = mainToggle.checked;
-                        document.getElementById('hero-twofa-status-text').textContent = mainToggle.checked ? 'Enabled' : 'Disabled';
-                        document.getElementById('hero-twofa-sections').style.display = mainToggle.checked ? 'block' : 'none';
+                    syncHeroTwofaState();
+                } else if (id === 'faceid' && window.FaceID && typeof FaceID.preload === 'function') {
+                    FaceID.preload().catch(() => {});
+                    if (typeof window.refreshHeroFaceIDStatus === 'function') {
+                        window.refreshHeroFaceIDStatus();
                     }
                 }
             }
@@ -5930,12 +6115,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     heroTwofaStatusTxt.textContent = enabled ? 'Enabled' : 'Disabled';
                     heroTwofaSections.style.display = enabled ? 'block' : 'none';
+                    notifyProfileSecurity(data.message || (enabled ? '2FA enabled.' : '2FA disabled.'), 'SUCCESS');
+                    syncHeroTwofaState();
                 } else {
                     this.checked = !enabled;
-                    if (window.pushNotif) window.pushNotif(data.message || 'Error', 'ERROR');
+                    notifyProfileSecurity(data.message || 'Failed to update 2FA.', 'ERROR');
                 }
             } catch (err) {
                 this.checked = !enabled;
+                notifyProfileSecurity('Failed to update 2FA.', 'ERROR');
             } finally {
                 this.disabled = false;
             }
@@ -5971,10 +6159,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const heroTotpSecretText = document.getElementById('hero-totp-secret-text');
         const heroTotpStatusConf = document.getElementById('hero-twofa-totp-conf');
         const heroTotpStatusSetup = document.getElementById('hero-twofa-totp-setup');
+        let heroCurrentTotpSecret = null;
 
         document.getElementById('hero-twofa-setup-totp')?.addEventListener('click', async () => {
              heroTotpStatusSetup.style.display = 'none';
              heroTotpQrStep.style.display = 'block';
+             heroCurrentTotpSecret = null;
              heroTotpQrCode.innerHTML = '<div class="text-center"><i class="bx bx-loader-alt bx-spin" style="color:#000; font-size:1.5rem;"></i></div>';
              
              try {
@@ -5983,25 +6173,38 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' } 
                 });
                 const data = await response.json();
-                if (data.success) {
-                    // Use QRCode.toCanvas or toDataURL. Assuming qrcode.min.js is used.
-                    if (typeof QRCode !== 'undefined') {
+                if (data.success && data.qrCode && data.secret) {
+                    heroCurrentTotpSecret = data.secret;
+                    heroTotpQrCode.innerHTML = '';
+
+                    if (data.qrDataUri) {
+                        const img = document.createElement('img');
+                        img.src = data.qrDataUri;
+                        img.alt = 'Authenticator QR Code';
+                        img.style.width = '120px';
+                        img.style.height = '120px';
+                        img.style.display = 'block';
+                        img.style.borderRadius = '8px';
+                        heroTotpQrCode.appendChild(img);
+                    } else if (typeof QRCode !== 'undefined') {
                         heroTotpQrCode.innerHTML = '';
                         const canvas = document.createElement('canvas');
                         heroTotpQrCode.appendChild(canvas);
-                        QRCode.toCanvas(canvas, data.qrCodeUrl, { width: 120, margin: 0 });
+                        await QRCode.toCanvas(canvas, data.qrCode, { width: 120, margin: 0 });
+                    } else {
+                        heroTotpQrCode.innerHTML = '<div style="color:#111;font-size:0.75rem;text-align:center;padding:0.5rem;">QR unavailable. Use the manual secret below.</div>';
                     }
-                    if (data.secret) {
-                        heroTotpSecretText.textContent = data.secret;
-                        heroTotpSecretDisplay.style.display = 'block';
-                    }
+                    heroTotpSecretText.textContent = data.secret;
+                    heroTotpSecretDisplay.style.display = 'block';
+                    heroTotpVerifyCode?.focus();
                 } else {
-                    if (window.pushNotif) window.pushNotif(data.message || 'Error', 'ERROR');
+                    notifyProfileSecurity(data.message || 'Failed to generate authenticator setup.', 'ERROR');
                     heroTotpStatusSetup.style.display = 'block';
                     heroTotpQrStep.style.display = 'none';
                 }
              } catch (err) {
                  console.error(err);
+                 notifyProfileSecurity('Failed to generate authenticator setup.', 'ERROR');
                  heroTotpStatusSetup.style.display = 'block';
                  heroTotpQrStep.style.display = 'none';
              }
@@ -6024,19 +6227,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 const response = await fetch('{{ path("2fa_verify_totp") }}', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                    body: JSON.stringify({ code: code })
+                    body: JSON.stringify({ code: code, secret: heroCurrentTotpSecret || undefined })
                 });
                 const data = await response.json();
                 if (data.success) {
                     heroTotpQrStep.style.display = 'none';
                     heroTotpStatusConf.style.display = 'block';
-                    if (window.pushNotif) window.pushNotif('Authenticator app activated!', 'SUCCESS');
+                    heroTotpStatusSetup.style.display = 'none';
+                    if (heroTwofaToggle) heroTwofaToggle.checked = true;
+                    if (heroTwofaStatusTxt) heroTwofaStatusTxt.textContent = 'Enabled';
+                    if (heroTwofaSections) heroTwofaSections.style.display = 'block';
+                    notifyProfileSecurity('Authenticator app activated!', 'SUCCESS');
+                    syncHeroTwofaState();
+                    heroTotpVerifyBtn.innerHTML = original;
+                    heroTotpVerifyBtn.disabled = false;
                 } else {
-                    if (window.pushNotif) window.pushNotif(data.message || 'Invalid code', 'ERROR');
+                    notifyProfileSecurity(data.message || 'Invalid code', 'ERROR');
                     heroTotpVerifyBtn.innerHTML = original;
                     heroTotpVerifyBtn.disabled = false;
                 }
             } catch (err) {
+                notifyProfileSecurity('Failed to verify authenticator code.', 'ERROR');
                 heroTotpVerifyBtn.innerHTML = original;
                 heroTotpVerifyBtn.disabled = false;
             }
@@ -6056,27 +6267,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // ─── FaceID & Biometrics INLINED ───
-        document.getElementById('hero-faceid-start-capture')?.addEventListener('click', () => {
-            // Already handled by step-toggle in HTML? No, we need logic.
-            document.getElementById('hero-faceid-step-1').style.display = 'none';
-            document.getElementById('hero-faceid-step-2').style.display = 'block';
-            
-            // Re-use Face ID logic
-            if (typeof initFaceIDLogic === 'function') {
-                initFaceIDLogic({
-                    containerId: 'hero-faceid-step-2',
-                    videoId: 'hero-faceid-video',
-                    canvasId: 'hero-faceid-canvas',
-                    hintId: 'hero-faceid-hint',
-                    progressId: 'hero-faceid-progress',
-                    instructionId: 'hero-faceid-instruction',
-                    btnId: 'hero-faceid-start-capture',
-                    pinId: 'hero-faceid-pin',
-                    cameraSelectId: 'hero-faceid-camera-select',
-                    switchCameraBtnId: 'hero-faceid-switch-camera'
-                });
-            }
-        });
+        // Face ID enrollment for the hero panel is handled by initFaceIDLogic above.
 
         document.getElementById('hero-webauthn-register')?.addEventListener('click', async () => {
             const btn = document.getElementById('hero-webauthn-register');
@@ -6085,15 +6276,28 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.disabled = true;
             
             try {
-                if (typeof WebAuthn !== 'undefined') {
-                    const success = await WebAuthn.register();
-                    if (success) {
-                        if (window.pushNotif) window.pushNotif('Device registered successfully!', 'SUCCESS');
-                        window.loadWebAuthnCredentials('hero-webauthn-list');
+                if (typeof WebAuthnManager !== 'undefined') {
+                    const result = await WebAuthnManager.register();
+                    if (result && result.success) {
+                        const list = await WebAuthnManager.listCredentials();
+                        WebAuthnManager.renderCredentialList('hero-webauthn-list', list);
+
+                        if (list.length > 0 && (!result.credentialId || list.some((cred) => cred.id === result.credentialId || cred.id_encoded === result.credentialId))) {
+                            notifyProfileSecurity(result.message || 'Device registered successfully!', 'SUCCESS');
+                        } else if (list.length > 0) {
+                            notifyProfileSecurity('Biometric device saved. Device list refreshed.', 'SUCCESS');
+                        } else {
+                            notifyProfileSecurity('Registration finished, but no biometric device was found for this account. Please sign out and try again.', 'ERROR');
+                        }
+                    } else {
+                        notifyProfileSecurity((result && result.message) || 'Could not register this biometric device.', 'ERROR');
                     }
+                } else {
+                    notifyProfileSecurity('Biometrics are not available in this browser session.', 'ERROR');
                 }
             } catch (err) {
                 console.error(err);
+                notifyProfileSecurity(err.message || 'Could not register this biometric device.', 'ERROR');
             } finally {
                 btn.innerHTML = original;
                 btn.disabled = false;

@@ -17,6 +17,7 @@ window.NotificationManager = window.NotificationManager || class NotificationMan
         this.isFetching = false;
         this.lastCount = -1;
         this.lastId = -1;
+        this.pollTimer = null;
 
         if (this.bell && this.scrollContainer) {
             this.init();
@@ -80,10 +81,19 @@ window.NotificationManager = window.NotificationManager || class NotificationMan
     }
 
     startPolling() {
-        setInterval(() => this.fetchNotifications(), this.pollInterval);
+        if (this.pollTimer) {
+            clearInterval(this.pollTimer);
+        }
+        this.pollTimer = setInterval(() => this.fetchNotifications(), this.pollInterval);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) this.fetchNotifications();
         });
+        window.addEventListener('beforeunload', () => {
+            if (this.pollTimer) {
+                clearInterval(this.pollTimer);
+                this.pollTimer = null;
+            }
+        }, { once: true });
     }
 
     renderNotifications(notifications, unreadCount) {

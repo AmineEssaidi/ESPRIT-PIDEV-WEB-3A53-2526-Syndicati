@@ -1,9 +1,14 @@
 <!-- Global Premium Video Background -->
+{% set is_static_video_page = app.request.attributes.get('_route') starts with 'frontend_settings' %}
 <div class="global-video-bg-container">
-    <video id="heroVideoGlobal" autoplay loop muted playsinline class="global-video-element" style="background: #000;">
-        <source src="{{ asset('videos/syndicati.mp4') }}" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+    {% if is_static_video_page %}
+        <div id="heroVideoGlobal" class="global-video-element global-video-static" aria-hidden="true"></div>
+    {% else %}
+        <video id="heroVideoGlobal" autoplay loop muted playsinline preload="metadata" class="global-video-element" style="background: #000;">
+            <source src="{{ asset('videos/syndicati.mp4') }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    {% endif %}
     <div class="global-video-overlay"></div>
 </div>
 
@@ -28,6 +33,13 @@
     position: absolute;
     top: 0;
     left: 0;
+}
+
+.global-video-static {
+    background:
+        radial-gradient(circle at 22% 18%, rgba(255, 190, 96, 0.24), transparent 34%),
+        radial-gradient(circle at 82% 22%, rgba(16, 185, 129, 0.16), transparent 34%),
+        linear-gradient(135deg, #10100e 0%, #1e1515 48%, #061b15 100%);
 }
 
 .global-video-overlay {
@@ -61,7 +73,7 @@ html, body,
     window.hasGlobalVideo = true;
 
     const video = document.getElementById('heroVideoGlobal');
-    if (video) {
+    if (video && video.tagName === 'VIDEO') {
         video.playbackRate = 0.5;
         // Force play on low power mode devices if possible
         video.setAttribute('playsinline', '');
