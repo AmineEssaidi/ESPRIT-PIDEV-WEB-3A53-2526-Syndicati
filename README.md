@@ -27,7 +27,31 @@ php bin/console doctrine:migrations:migrate
 php -S 127.0.0.1:8000 -t public
 ```
 
-Configure `.env` for database, mail, ImageKit, Twilio, Discord, LiveKit, and AI provider keys. Keep secrets local and never commit production credentials.
+Configuration is managed with Doppler for the production/demo setup. The repository only includes `.env.example` as a template; real credentials must stay out of GitHub.
+
+Local setup with a manual env file:
+
+```bash
+cp .env.example .env.local
+# Fill .env.local with your own private credentials
+php bin/console cache:clear
+```
+
+Production/demo setup with Doppler:
+
+```bash
+doppler setup --project syndicati --config prd
+doppler run -- php bin/console about
+doppler run -- symfony server:start
+```
+
+On Windows, if `doppler` is not in PATH after installing it with Winget, reopen the terminal or use:
+
+```powershell
+& "$env:LOCALAPPDATA\Microsoft\WinGet\Links\doppler.exe" run -- php bin\console about
+```
+
+Keep secrets local or in Doppler/GitHub Actions secrets. Never commit `.env.local`, `.env.dev`, API keys, database passwords, or private service tokens.
 
 ## Useful Commands
 

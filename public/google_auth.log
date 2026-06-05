@@ -234,3 +234,14 @@ Trace: #0 C:\wamp64\www\Horizon\vendor\doctrine\orm\src\Persisters\Entity\BasicE
 [2026-06-03 20:44:59] User info received: ID=114752623613249249224, Email=mohamedamine.essaidi@esprit.tn
 [2026-06-03 20:44:59] Searching for user by google_id: 114752623613249249224
 [2026-06-03 20:45:00] User found by google_id (ID: 1)
+[2026-06-05 18:34:15] Callback triggered with URL: http://localhost:8000/auth/google/callback?authuser=0&code=4%2F0AdkVLPxmZ0U2v3XMirn7PptZt5E52M-zb5IjI2uqVn4yVGv8jx26lMezx3JT_DmQ2s_UZQ&hd=esprit.tn&iss=https%3A%2F%2Faccounts.google.com&prompt=none&scope=email%20profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%20openid%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email
+[2026-06-05 18:34:15] Fetching user info for code (redirect_uri: http://localhost:8000/auth/google/callback)
+[2026-06-05 18:34:15] [Service] getUserInfo started with code: 4/0AdkVLPx...
+[2026-06-05 18:34:15] [Service] Client created. Fetching access token...
+[2026-06-05 18:34:17] [Service] Token response received: SUCCESS (token received)
+[2026-06-05 18:34:17] [Service] Initializing Oauth2 service...
+[2026-06-05 18:34:17] [Service] Requesting userinfo from Google...
+[2026-06-05 18:34:18] [Service] User info received from Google: YES (ID: 114752623613249249224)
+[2026-06-05 18:34:18] User info received: ID=114752623613249249224, Email=mohamedamine.essaidi@esprit.tn
+[2026-06-05 18:34:18] Searching for user by google_id: 114752623613249249224
+[2026-06-05 18:34:19] User found by google_id (ID: 1)
