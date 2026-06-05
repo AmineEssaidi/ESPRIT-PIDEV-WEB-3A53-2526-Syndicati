@@ -27,7 +27,7 @@ php bin/console doctrine:migrations:migrate
 php -S 127.0.0.1:8000 -t public
 ```
 
-Configuration is managed with Doppler for the production/demo setup. The repository only includes `.env.example` as a template; real credentials must stay out of GitHub.
+Configuration is managed with Infisical machine identities for the production/demo setup. The repository only includes safe templates; real credentials must stay out of GitHub.
 
 Local setup with a manual env file:
 
@@ -37,21 +37,26 @@ cp .env.example .env.local
 php bin/console cache:clear
 ```
 
-Production/demo setup with Doppler:
+Production/demo setup with Infisical:
 
 ```bash
-doppler setup --project syndicati --config prd
-doppler run -- php bin/console about
-doppler run -- symfony server:start
+cp .env.example .env.local
+# Fill only the INFISICAL_* machine identity values and project id.
+# The Symfony bootstrap fetches APP_SECRET, DATABASE_URL, API keys, etc.
+php bin/console about
+symfony server:start
 ```
 
-On Windows, if `doppler` is not in PATH after installing it with Winget, reopen the terminal or use:
+You can also set these as OS environment variables instead of using `.env.local`:
 
 ```powershell
-& "$env:LOCALAPPDATA\Microsoft\WinGet\Links\doppler.exe" run -- php bin\console about
+$env:INFISICAL_UNIVERSAL_AUTH_CLIENT_ID="..."
+$env:INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET="..."
+$env:INFISICAL_PROJECT_ID="..."
+php bin\console about
 ```
 
-Keep secrets local or in Doppler/GitHub Actions secrets. Never commit `.env.local`, `.env.dev`, API keys, database passwords, or private service tokens.
+Keep secrets local or in Infisical/GitHub Actions secrets. Never commit `.env.local`, `.env.dev`, API keys, database passwords, machine identity secrets, or private service tokens.
 
 ## Useful Commands
 
