@@ -9,6 +9,7 @@ set "COMPOSER_CMD="
 set "COMPOSER_DIR="
 set "COMPOSER_PHAR="
 set "RUN_COMPOSER=1"
+set "PS_EXE="
 set "PORTABLE_PHP_URL=https://windows.php.net/downloads/releases/php-8.4.22-nts-Win32-vs17-x64.zip"
 set "PORTABLE_PHP_DIR=%~dp0tools\php"
 set "PORTABLE_COMPOSER_DIR=%~dp0tools\composer"
@@ -23,6 +24,15 @@ echo ================================================================
 echo   Syndicati Web - PHP, OpenSSL and Composer installer
 echo ================================================================
 echo.
+
+call :find_powershell
+if not defined PS_EXE (
+    echo [ERROR] PowerShell was not found.
+    echo         This script needs Windows PowerShell to download/install prerequisites.
+    echo         Expected path:
+    echo         %SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe
+    goto :fail
+)
 
 call :find_php
 if not defined PHP_EXE (
@@ -149,7 +159,7 @@ echo [WARN] WinGet was not found.
 echo [INFO] Installing Microsoft App Installer / WinGet...
 echo.
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $bundle=Join-Path $env:TEMP 'Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle'; Invoke-WebRequest -Uri 'https://aka.ms/getwinget' -OutFile $bundle; Add-AppxPackage -Path $bundle"
+"%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $bundle=Join-Path $env:TEMP 'Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle'; Invoke-WebRequest -Uri 'https://aka.ms/getwinget' -OutFile $bundle; Add-AppxPackage -Path $bundle"
 if errorlevel 1 (
     echo [WARN] WinGet installation failed or was blocked by Windows policy.
     echo [WARN] The script can still continue with portable PHP.
@@ -171,7 +181,7 @@ if exist "%PORTABLE_PHP_DIR%\php.exe" (
     exit /b 0
 )
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; $url=$env:PORTABLE_PHP_URL; $dest=Join-Path $env:TEMP 'syndicati-php.zip'; $out=$env:PORTABLE_PHP_DIR; if(Test-Path $out){Remove-Item -LiteralPath $out -Recurse -Force}; New-Item -ItemType Directory -Path $out -Force | Out-Null; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri $url -OutFile $dest; Expand-Archive -LiteralPath $dest -DestinationPath $out -Force"
+"%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; $url=$env:PORTABLE_PHP_URL; $dest=Join-Path $env:TEMP 'syndicati-php.zip'; $out=$env:PORTABLE_PHP_DIR; if(Test-Path $out){Remove-Item -LiteralPath $out -Recurse -Force}; New-Item -ItemType Directory -Path $out -Force | Out-Null; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri $url -OutFile $dest; Expand-Archive -LiteralPath $dest -DestinationPath $out -Force"
 if errorlevel 1 (
     echo [ERROR] Could not download/extract portable PHP.
     echo         Check internet access, then run this script again.
@@ -203,7 +213,7 @@ if not exist "%OPENSSL_FIXER%" (
     exit /b 1
 )
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%OPENSSL_FIXER%" -PhpExe "%PHP_EXE%"
+"%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%OPENSSL_FIXER%" -PhpExe "%PHP_EXE%"
 if errorlevel 1 exit /b 1
 
 echo [INFO] Re-checking OpenSSL...
@@ -225,7 +235,7 @@ exit /b 0
 :normalize_openssl_config
 set "OPENSSL_FIXER=%~dp0tools\enable-php-openssl.ps1"
 if exist "%OPENSSL_FIXER%" (
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%OPENSSL_FIXER%" -PhpExe "%PHP_EXE%" -NormalizeOnly >nul 2>&1
+    "%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%OPENSSL_FIXER%" -PhpExe "%PHP_EXE%" -NormalizeOnly >nul 2>&1
 )
 exit /b 0
 
@@ -289,7 +299,7 @@ set "COMPOSER_CMD=%PHP_EXE% %COMPOSER_PHAR%"
 echo [INFO] Downloading Composer:
 echo        https://getcomposer.org/download/latest-stable/composer.phar
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://getcomposer.org/download/latest-stable/composer.phar' -OutFile $env:COMPOSER_PHAR"
+"%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://getcomposer.org/download/latest-stable/composer.phar' -OutFile $env:COMPOSER_PHAR"
 if errorlevel 1 (
     echo [ERROR] Could not download Composer.
     exit /b 1
@@ -306,7 +316,23 @@ exit /b 0
 set "DIR_TO_ADD=%~1"
 if not exist "%DIR_TO_ADD%" exit /b 0
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$dir=$env:DIR_TO_ADD; $old=[Environment]::GetEnvironmentVariable('Path','User'); $parts=@(); if($old){$parts=$old -split ';' | Where-Object { $_ -and ($_.TrimEnd('\') -ine $dir.TrimEnd('\')) }}; $new=($dir+$parts)-join ';'; [Environment]::SetEnvironmentVariable('Path',$new,'User')" >nul 2>&1
+"%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -Command "$dir=$env:DIR_TO_ADD; $old=[Environment]::GetEnvironmentVariable('Path','User'); $parts=@(); if($old){$parts=$old -split ';' | Where-Object { $_ -and ($_.TrimEnd('\') -ine $dir.TrimEnd('\')) }}; $new=($dir+$parts)-join ';'; [Environment]::SetEnvironmentVariable('Path',$new,'User')" >nul 2>&1
+exit /b 0
+
+:find_powershell
+if exist "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" (
+    set "PS_EXE=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+    exit /b 0
+)
+
+for /f "delims=" %%p in ('where powershell 2^>nul') do (
+    if not defined PS_EXE set "PS_EXE=%%p"
+)
+if defined PS_EXE exit /b 0
+
+for /f "delims=" %%p in ('where pwsh 2^>nul') do (
+    if not defined PS_EXE set "PS_EXE=%%p"
+)
 exit /b 0
 
 :composer_fail
