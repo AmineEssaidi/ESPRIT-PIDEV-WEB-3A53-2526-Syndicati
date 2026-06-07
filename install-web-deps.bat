@@ -116,30 +116,7 @@ pause
 exit /b 0
 
 :enable_openssl
-set "PHP_INI="
-for /f "delims=" %%i in ('"%PHP_EXE%" -r "echo php_ini_loaded_file();" 2^>nul') do set "PHP_INI=%%i"
-
-if "%PHP_INI%"=="" (
-    echo [ERROR] Could not detect loaded php.ini.
-    exit /b 1
-)
-
-if /i "%PHP_INI%"=="(none)" (
-    echo [ERROR] PHP is not loading a php.ini file.
-    exit /b 1
-)
-
-if not exist "%PHP_INI%" (
-    echo [ERROR] Loaded php.ini was not found:
-    echo         %PHP_INI%
-    exit /b 1
-)
-
-echo [INFO] Loaded php.ini:
-echo        %PHP_INI%
-
-set "PHP_INI_TO_FIX=%PHP_INI%"
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$path=$env:PHP_INI_TO_FIX; $backup=$path + '.bak-syndicati'; if (-not (Test-Path -LiteralPath $backup)) { Copy-Item -LiteralPath $path -Destination $backup -Force }; $text=Get-Content -LiteralPath $path -Raw; if ($text -match '(?im)^\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$') { Write-Host '[OK] OpenSSL extension line is already enabled.'; exit 0 }; if ($text -match '(?im)^\s*;\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$') { $text=[regex]::Replace($text, '(?im)^\s*;\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$', 'extension=openssl', 1); Set-Content -LiteralPath $path -Value $text -Encoding ASCII; Write-Host '[OK] Uncommented extension=openssl.'; exit 0 }; Add-Content -LiteralPath $path -Value ''; Add-Content -LiteralPath $path -Value 'extension=openssl'; Write-Host '[OK] Added extension=openssl.'; exit 0"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$php=$env:PHP_EXE; if (-not (Test-Path -LiteralPath $php)) { Write-Host '[ERROR] PHP executable not found.'; exit 1 }; $phpDir=Split-Path -Parent $php; $ini=(& $php -r 'echo php_ini_loaded_file() ?: \"\";' 2>$null); if ([string]::IsNullOrWhiteSpace($ini)) { $ini=Join-Path $phpDir 'php.ini'; Write-Host '[WARN] PHP is not loading a php.ini file.'; Write-Host ('[INFO] Creating/using: ' + $ini); if (-not (Test-Path -LiteralPath $ini)) { $prod=Join-Path $phpDir 'php.ini-production'; $dev=Join-Path $phpDir 'php.ini-development'; if (Test-Path -LiteralPath $prod) { Copy-Item -LiteralPath $prod -Destination $ini -Force; Write-Host '[OK] Created php.ini from php.ini-production.' } elseif (Test-Path -LiteralPath $dev) { Copy-Item -LiteralPath $dev -Destination $ini -Force; Write-Host '[OK] Created php.ini from php.ini-development.' } else { New-Item -ItemType File -Path $ini -Force | Out-Null; Write-Host '[OK] Created minimal php.ini.' } } } else { Write-Host ('[INFO] Loaded php.ini: ' + $ini) }; if (-not (Test-Path -LiteralPath $ini)) { Write-Host '[ERROR] php.ini path does not exist and could not be created.'; exit 1 }; $backup=$ini + '.bak-syndicati'; if (-not (Test-Path -LiteralPath $backup)) { Copy-Item -LiteralPath $ini -Destination $backup -Force }; $text=Get-Content -LiteralPath $ini -Raw; $extDir=Join-Path $phpDir 'ext'; if ((Test-Path -LiteralPath $extDir) -and ($text -notmatch '(?im)^\s*extension_dir\s*=')) { Add-Content -LiteralPath $ini -Value ('extension_dir=\"' + $extDir.Replace('\','/') + '\"') -Encoding ASCII; Write-Host '[OK] Added extension_dir.'; $text=Get-Content -LiteralPath $ini -Raw }; $opensslDll=Join-Path $extDir 'php_openssl.dll'; if ((Test-Path -LiteralPath $extDir) -and (-not (Test-Path -LiteralPath $opensslDll))) { Write-Host ('[WARN] Could not find php_openssl.dll in ' + $extDir); Write-Host '[WARN] Your PHP build may not include OpenSSL. Install a full PHP build if retry fails.' }; if ($text -match '(?im)^\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$') { Write-Host '[OK] OpenSSL extension line is already enabled.'; exit 0 }; if ($text -match '(?im)^\s*;\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$') { $text=[regex]::Replace($text, '(?im)^\s*;\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$', 'extension=openssl', 1); Set-Content -LiteralPath $ini -Value $text -Encoding ASCII; Write-Host '[OK] Uncommented extension=openssl.'; exit 0 }; Add-Content -LiteralPath $ini -Value '' -Encoding ASCII; Add-Content -LiteralPath $ini -Value 'extension=openssl' -Encoding ASCII; Write-Host '[OK] Added extension=openssl.'; exit 0"
 if errorlevel 1 exit /b 1
 
 exit /b 0
