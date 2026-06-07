@@ -83,7 +83,7 @@ Sous Windows, si PHP ou OpenSSL ne sont pas encore prets, lancer d'abord :
 install-web-deps.bat
 ```
 
-Ce script installe PHP via WinGet si disponible. Si WinGet n'existe pas sur le PC, il telecharge une version portable de PHP dans `tools/php`, active OpenSSL, ajoute PHP au PATH utilisateur, installe ou telecharge Composer si besoin, puis lance `composer install`.
+Ce script installe d'abord WinGet/App Installer si necessaire, puis installe PHP et Composer via WinGet. Si Windows bloque WinGet, il utilise automatiquement une version portable de PHP dans `tools/php`, active OpenSSL, ajoute PHP au PATH utilisateur, telecharge Composer si besoin, puis lance `composer install`.
 
 Installer les dependances frontend :
 

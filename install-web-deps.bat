@@ -119,7 +119,14 @@ exit /b 0
 :install_php
 where winget >nul 2>&1
 if errorlevel 1 (
-    echo [WARN] WinGet was not found. Falling back to portable PHP download...
+    call :install_winget
+    set "PATH=%LOCALAPPDATA%\Microsoft\WindowsApps;%PATH%"
+)
+
+where winget >nul 2>&1
+if errorlevel 1 (
+    echo [WARN] WinGet still was not found after installation attempt.
+    echo [WARN] Falling back to portable PHP download...
     call :download_portable_php
     exit /b %ERRORLEVEL%
 )
@@ -135,6 +142,22 @@ if errorlevel 1 (
     call :download_portable_php
     exit /b %ERRORLEVEL%
 )
+exit /b 0
+
+:install_winget
+echo [WARN] WinGet was not found.
+echo [INFO] Installing Microsoft App Installer / WinGet...
+echo.
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $bundle=Join-Path $env:TEMP 'Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle'; Invoke-WebRequest -Uri 'https://aka.ms/getwinget' -OutFile $bundle; Add-AppxPackage -Path $bundle"
+if errorlevel 1 (
+    echo [WARN] WinGet installation failed or was blocked by Windows policy.
+    echo [WARN] The script can still continue with portable PHP.
+    exit /b 1
+)
+
+echo [OK] WinGet installation command completed.
+echo [INFO] If Windows just installed App Installer, a fresh terminal may be needed.
 exit /b 0
 
 :download_portable_php
@@ -234,6 +257,12 @@ if defined COMPOSER_CMD (
 exit /b 0
 
 :install_composer
+where winget >nul 2>&1
+if errorlevel 1 (
+    call :install_winget
+    set "PATH=%LOCALAPPDATA%\Microsoft\WindowsApps;%PATH%"
+)
+
 where winget >nul 2>&1
 if errorlevel 1 (
     echo [WARN] Composer was not found and WinGet is unavailable.
