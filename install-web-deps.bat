@@ -1,129 +1,223 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 
 cd /d "%~dp0"
 
 set "PHP_EXE="
+set "PHP_DIR="
+set "COMPOSER_CMD="
+set "COMPOSER_DIR="
 set "COMPOSER_PHAR="
+set "RUN_COMPOSER=1"
+
+if /I "%~1"=="--skip-composer" set "RUN_COMPOSER=0"
+if /I "%~1"=="--no-composer" set "RUN_COMPOSER=0"
+if not "%~1"=="" if /I not "%~1"=="--skip-composer" if /I not "%~1"=="--no-composer" set "PHP_EXE=%~1"
+if defined PHP_EXE_OVERRIDE set "PHP_EXE=%PHP_EXE_OVERRIDE%"
 
 echo.
 echo ================================================================
-echo   Syndicati Web - Composer dependency installer
+echo   Syndicati Web - PHP, OpenSSL and Composer installer
 echo ================================================================
 echo.
 
-if not "%~1"=="" (
-    set "PHP_EXE=%~1"
+call :find_php
+if not defined PHP_EXE (
+    call :install_php
+    if errorlevel 1 goto :fail
+    call :find_php
 )
 
-if "%PHP_EXE%"=="" (
-    if defined PHP_EXE_OVERRIDE set "PHP_EXE=%PHP_EXE_OVERRIDE%"
+if not defined PHP_EXE (
+    echo [ERROR] PHP was not found after installation.
+    echo         Install PHP manually, or run:
+    echo         install-web-deps.bat C:\path\to\php.exe
+    goto :fail
 )
 
-if "%PHP_EXE%"=="" (
-    for /f "delims=" %%p in ('where php 2^>nul') do (
-        if "%PHP_EXE%"=="" set "PHP_EXE=%%p"
-    )
-)
+for %%I in ("%PHP_EXE%") do set "PHP_DIR=%%~dpI"
+if "%PHP_DIR:~-1%"=="\" set "PHP_DIR=%PHP_DIR:~0,-1%"
 
-if "%PHP_EXE%"=="" (
-    echo [ERROR] PHP was not found on PATH.
-    echo.
-    echo Install PHP, add it to PATH, then reopen your terminal.
-    echo You can also run this file with an explicit PHP path:
-    echo     install-web-deps.bat C:\path\to\php.exe
-    pause
-    exit /b 1
-)
-
-if not exist "%PHP_EXE%" (
-    echo [ERROR] PHP executable was not found:
-    echo         %PHP_EXE%
-    pause
-    exit /b 1
-)
-
-if exist "%ProgramData%\ComposerSetup\bin\composer.phar" (
-    set "COMPOSER_PHAR=%ProgramData%\ComposerSetup\bin\composer.phar"
-)
-
-echo [INFO] PHP:
+echo [INFO] Using PHP:
+echo        %PHP_EXE%
 "%PHP_EXE%" -v
 echo.
 
-"%PHP_EXE%" -m | findstr /i /x "openssl" >nul 2>&1
-if errorlevel 1 (
-    echo [WARN] OpenSSL is not enabled for:
-    echo         %PHP_EXE%
-    echo.
-    echo [INFO] Attempting to enable OpenSSL in the active php.ini...
-    call :enable_openssl
-    if errorlevel 1 (
-        echo.
-        echo [ERROR] Could not enable OpenSSL automatically.
-        echo.
-        echo Active PHP configuration:
-        "%PHP_EXE%" --ini
-        echo.
-        echo Enable the OpenSSL extension in the loaded php.ini, usually by adding or uncommenting:
-        echo     extension=openssl
-        echo.
-        echo If the php.ini is inside Program Files, run this script as Administrator.
-        pause
-        exit /b 1
-    )
-    echo.
-    echo [INFO] Re-checking OpenSSL...
-    "%PHP_EXE%" -m | findstr /i /x "openssl" >nul 2>&1
-    if errorlevel 1 (
-        echo [ERROR] OpenSSL was enabled in php.ini but PHP still did not load it.
-        echo.
-        echo This usually means the PHP OpenSSL DLL/dependency is missing or PHP needs a fresh terminal.
-        echo Try reopening your terminal, or install a PHP build that includes OpenSSL.
-        pause
-        exit /b 1
-    )
+call :add_user_path "%PHP_DIR%"
+set "PATH=%PHP_DIR%;%PATH%"
+
+call :ensure_openssl
+if errorlevel 1 goto :fail
+
+call :find_composer
+if not defined COMPOSER_CMD (
+    call :install_composer
+    if errorlevel 1 goto :fail
+    call :find_composer
 )
 
-echo [OK] PHP OpenSSL extension is enabled.
-echo [INFO] Running Composer install with the verified PHP executable...
+if not defined COMPOSER_CMD (
+    echo [ERROR] Composer was not found after installation.
+    echo         Install Composer manually from https://getcomposer.org/download/
+    goto :fail
+)
+
+echo [INFO] Using Composer:
+echo        %COMPOSER_CMD%
 echo.
 
-if not "%COMPOSER_PHAR%"=="" (
-    "%PHP_EXE%" "%COMPOSER_PHAR%" install --no-interaction --no-progress
+if "%RUN_COMPOSER%"=="1" (
+    echo [INFO] Installing PHP dependencies...
+    if defined COMPOSER_PHAR (
+        "%PHP_EXE%" "%COMPOSER_PHAR%" install --no-interaction --no-progress
+    ) else (
+        call "%COMPOSER_CMD%" install --no-interaction --no-progress
+    )
+    if errorlevel 1 goto :composer_fail
 ) else (
-    where composer >nul 2>&1
-    if errorlevel 1 (
-        echo [ERROR] Composer was not found.
-        echo.
-        echo Install Composer, add it to PATH, then reopen your terminal.
-        pause
-        exit /b 1
-    )
-    composer install --no-interaction --no-progress
-)
-
-if errorlevel 1 (
-    echo.
-    echo [ERROR] Composer install failed.
-    pause
-    exit /b 1
+    echo [INFO] Skipping composer install because --skip-composer was passed.
 )
 
 echo.
-echo [OK] Composer dependencies installed successfully.
+echo [OK] PHP is installed, OpenSSL is enabled, Composer is available.
+echo [OK] If this is a new terminal, reopen IntelliJ/VS Code/terminal once so PATH refreshes everywhere.
+echo.
 pause
 exit /b 0
 
-:enable_openssl
+:find_php
+if defined PHP_EXE (
+    if exist "%PHP_EXE%" exit /b 0
+    echo [WARN] Explicit PHP path does not exist:
+    echo        %PHP_EXE%
+    set "PHP_EXE="
+)
+
+for /f "delims=" %%p in ('where php 2^>nul') do (
+    if not defined PHP_EXE set "PHP_EXE=%%p"
+)
+if defined PHP_EXE exit /b 0
+
+for /f "delims=" %%p in ('dir /b /s "%LOCALAPPDATA%\Microsoft\WinGet\Packages\PHP.PHP.*\php.exe" 2^>nul') do (
+    if not defined PHP_EXE set "PHP_EXE=%%p"
+)
+if defined PHP_EXE exit /b 0
+
+if exist "C:\php\php.exe" set "PHP_EXE=C:\php\php.exe"
+if defined PHP_EXE exit /b 0
+
+if exist "C:\tools\php\php.exe" set "PHP_EXE=C:\tools\php\php.exe"
+exit /b 0
+
+:install_php
+where winget >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] WinGet was not found, so this script cannot auto-install PHP.
+    echo         Install "App Installer" from Microsoft Store, then run this again.
+    exit /b 1
+)
+
+echo [INFO] PHP was not found. Installing PHP with WinGet...
+winget install -e --id PHP.PHP.8.4 --accept-package-agreements --accept-source-agreements
+if errorlevel 1 (
+    echo [WARN] PHP.PHP.8.4 failed. Trying generic PHP package...
+    winget install -e --id PHP.PHP --accept-package-agreements --accept-source-agreements
+)
+if errorlevel 1 (
+    echo [ERROR] WinGet could not install PHP.
+    exit /b 1
+)
+exit /b 0
+
+:ensure_openssl
+"%PHP_EXE%" -m | findstr /i /x "openssl" >nul 2>&1
+if not errorlevel 1 (
+    echo [OK] PHP OpenSSL extension is enabled.
+    exit /b 0
+)
+
+echo [WARN] OpenSSL is not enabled for this PHP.
+echo [INFO] Fixing php.ini automatically...
+
 set "OPENSSL_FIXER=%~dp0tools\enable-php-openssl.ps1"
 if not exist "%OPENSSL_FIXER%" (
     echo [ERROR] Missing helper script:
-    echo         %OPENSSL_FIXER%
+    echo        %OPENSSL_FIXER%
     exit /b 1
 )
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "%OPENSSL_FIXER%" -PhpExe "%PHP_EXE%"
 if errorlevel 1 exit /b 1
 
+echo [INFO] Re-checking OpenSSL...
+"%PHP_EXE%" -m | findstr /i /x "openssl" >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] OpenSSL still did not load.
+    echo.
+    echo PHP configuration:
+    "%PHP_EXE%" --ini
+    echo.
+    echo This PHP build may not include php_openssl.dll, or Windows needs a fresh terminal.
+    echo If it still fails after reopening the terminal, install another PHP build with OpenSSL.
+    exit /b 1
+)
+
+echo [OK] PHP OpenSSL extension is enabled.
 exit /b 0
+
+:find_composer
+for /f "delims=" %%c in ('where composer 2^>nul') do (
+    if not defined COMPOSER_CMD set "COMPOSER_CMD=%%c"
+)
+if defined COMPOSER_CMD goto :composer_found
+
+if exist "%ProgramData%\ComposerSetup\bin\composer.bat" set "COMPOSER_CMD=%ProgramData%\ComposerSetup\bin\composer.bat"
+if defined COMPOSER_CMD goto :composer_found
+
+if exist "%ProgramData%\ComposerSetup\bin\composer.phar" (
+    set "COMPOSER_PHAR=%ProgramData%\ComposerSetup\bin\composer.phar"
+    set "COMPOSER_CMD=%PHP_EXE% %ProgramData%\ComposerSetup\bin\composer.phar"
+)
+
+:composer_found
+if defined COMPOSER_CMD (
+    for %%I in ("%ProgramData%\ComposerSetup\bin") do if exist "%%~fI" set "COMPOSER_DIR=%%~fI"
+    if defined COMPOSER_DIR call :add_user_path "%COMPOSER_DIR%"
+)
+exit /b 0
+
+:install_composer
+where winget >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Composer was not found and WinGet is unavailable.
+    exit /b 1
+)
+
+echo [INFO] Composer was not found. Installing Composer with WinGet...
+winget install -e --id Composer.Composer --accept-package-agreements --accept-source-agreements
+if errorlevel 1 (
+    echo [ERROR] WinGet could not install Composer.
+    exit /b 1
+)
+exit /b 0
+
+:add_user_path
+set "DIR_TO_ADD=%~1"
+if not exist "%DIR_TO_ADD%" exit /b 0
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$dir=$env:DIR_TO_ADD; $old=[Environment]::GetEnvironmentVariable('Path','User'); $parts=@(); if($old){$parts=$old -split ';' | Where-Object { $_ -and ($_.TrimEnd('\') -ine $dir.TrimEnd('\')) }}; $new=($dir+$parts)-join ';'; [Environment]::SetEnvironmentVariable('Path',$new,'User')" >nul 2>&1
+exit /b 0
+
+:composer_fail
+echo.
+echo [ERROR] Composer install failed.
+echo [INFO] PHP OpenSSL status:
+"%PHP_EXE%" -m | findstr /i /x "openssl"
+echo.
+goto :fail
+
+:fail
+echo.
+echo [FAILED] Setup did not complete.
+pause
+exit /b 1

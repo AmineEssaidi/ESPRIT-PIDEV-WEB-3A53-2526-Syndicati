@@ -49,7 +49,7 @@ Services et integrations :
 - MySQL ou MariaDB
 - Node.js 18 ou plus
 - Git
-- WAMP, XAMPP ou une installation PHP/MySQL equivalente
+- Une installation PHP locale avec les extensions recommandees
 
 Extensions PHP recommandees :
 - `ctype`
@@ -76,6 +76,14 @@ Installer les dependances PHP :
 ```bash
 composer install
 ```
+
+Sous Windows, si PHP ou OpenSSL ne sont pas encore prets, lancer d'abord :
+
+```bat
+install-web-deps.bat
+```
+
+Ce script installe PHP via WinGet si necessaire, active OpenSSL, ajoute PHP au PATH utilisateur, installe Composer si besoin, puis lance `composer install`.
 
 Installer les dependances frontend :
 
