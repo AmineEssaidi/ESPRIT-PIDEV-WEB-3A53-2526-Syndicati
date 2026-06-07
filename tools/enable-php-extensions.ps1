@@ -14,10 +14,21 @@ if (-not (Test-Path -LiteralPath $PhpExe)) {
 }
 
 $phpDir = Split-Path -Parent $PhpExe
+$phpBaseName = [System.IO.Path]::GetFileNameWithoutExtension($PhpExe).ToLowerInvariant()
+$phpCliExe = $PhpExe
+
+if ($phpBaseName -eq 'php-cgi') {
+    $candidateCli = Join-Path $phpDir 'php.exe'
+    if (Test-Path -LiteralPath $candidateCli) {
+        $phpCliExe = $candidateCli
+        Write-Host "[INFO] PHP-CGI detected. Using matching CLI for ini checks: $phpCliExe"
+    }
+}
+
 $ini = $null
 
 try {
-    $iniOutput = & $PhpExe --ini 2>&1
+    $iniOutput = & $phpCliExe --ini 2>&1
     foreach ($line in $iniOutput) {
         if ($line -match '^\s*Loaded Configuration File:\s*(.+?)\s*$') {
             $candidate = $Matches[1].Trim().Trim('"')
@@ -87,7 +98,7 @@ foreach ($extension in $extensionList) {
 
     $loaded = $false
     try {
-        & $PhpExe -r "exit(extension_loaded('$extension') ? 0 : 1);" *> $null
+        & $phpCliExe -r "exit(extension_loaded('$extension') ? 0 : 1);" *> $null
         $loaded = ($LASTEXITCODE -eq 0)
     } catch {
         $loaded = $false
@@ -148,7 +159,7 @@ if ($changed) {
 $missing = @()
 foreach ($extension in $extensionList) {
     try {
-        & $PhpExe -r "exit(extension_loaded('$extension') ? 0 : 1);" *> $null
+        & $phpCliExe -r "exit(extension_loaded('$extension') ? 0 : 1);" *> $null
         if ($LASTEXITCODE -ne 0) {
             $missing += $extension
         }

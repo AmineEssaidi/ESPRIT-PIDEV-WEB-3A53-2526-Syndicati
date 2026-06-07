@@ -5,6 +5,7 @@ cd /d "%~dp0"
 
 set "PHP_EXE="
 set "PHP_DIR="
+set "SYMFONY_PHP_CGI="
 set "COMPOSER_CMD="
 set "COMPOSER_DIR="
 set "COMPOSER_PHAR="
@@ -62,6 +63,7 @@ echo.
 call :add_user_path "%PHP_DIR%"
 set "PATH=%PHP_DIR%;%PATH%"
 
+call :find_php_cgi
 call :normalize_openssl_config
 call :ensure_php_extensions
 if errorlevel 1 goto :fail
@@ -254,6 +256,24 @@ if errorlevel 2 (
     exit /b 1
 )
 if errorlevel 1 exit /b 1
+
+if defined SYMFONY_PHP_CGI (
+    echo [INFO] Checking Symfony CLI PHP-CGI extensions:
+    echo        %SYMFONY_PHP_CGI%
+    "%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%EXTENSION_FIXER%" -PhpExe "%SYMFONY_PHP_CGI%" -Extensions "%REQUIRED_PHP_EXTENSIONS%"
+    if errorlevel 2 (
+        echo [ERROR] Some required Symfony CLI PHP-CGI extensions are still missing.
+        echo [INFO] This is the PHP used by symfony serve. Fix that PHP install or move it after tools\php in PATH.
+        exit /b 1
+    )
+    if errorlevel 1 exit /b 1
+)
+exit /b 0
+
+:find_php_cgi
+for /f "delims=" %%p in ('where php-cgi 2^>nul') do (
+    if not defined SYMFONY_PHP_CGI set "SYMFONY_PHP_CGI=%%p"
+)
 exit /b 0
 
 :normalize_openssl_config

@@ -112,6 +112,12 @@ Avec Symfony CLI :
 symfony serve
 ```
 
+Sous Windows, pour eviter qu'un ancien PHP sans extensions soit utilise, lancer plutot :
+
+```bat
+start-web.bat
+```
+
 Alternative sans Symfony CLI :
 
 ```bash
