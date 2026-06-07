@@ -46,6 +46,7 @@ echo.
 call :add_user_path "%PHP_DIR%"
 set "PATH=%PHP_DIR%;%PATH%"
 
+call :normalize_openssl_config
 call :ensure_openssl
 if errorlevel 1 goto :fail
 
@@ -130,7 +131,7 @@ if errorlevel 1 (
 exit /b 0
 
 :ensure_openssl
-"%PHP_EXE%" -m | findstr /i /x "openssl" >nul 2>&1
+"%PHP_EXE%" -r "exit(extension_loaded('openssl') ? 0 : 1);" >nul 2>&1
 if not errorlevel 1 (
     echo [OK] PHP OpenSSL extension is enabled.
     exit /b 0
@@ -150,7 +151,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "%OPENSSL_FIXER%" -PhpExe "%
 if errorlevel 1 exit /b 1
 
 echo [INFO] Re-checking OpenSSL...
-"%PHP_EXE%" -m | findstr /i /x "openssl" >nul 2>&1
+"%PHP_EXE%" -r "exit(extension_loaded('openssl') ? 0 : 1);" >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] OpenSSL still did not load.
     echo.
@@ -163,6 +164,13 @@ if errorlevel 1 (
 )
 
 echo [OK] PHP OpenSSL extension is enabled.
+exit /b 0
+
+:normalize_openssl_config
+set "OPENSSL_FIXER=%~dp0tools\enable-php-openssl.ps1"
+if exist "%OPENSSL_FIXER%" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%OPENSSL_FIXER%" -PhpExe "%PHP_EXE%" -NormalizeOnly >nul 2>&1
+)
 exit /b 0
 
 :find_composer
@@ -212,7 +220,7 @@ exit /b 0
 echo.
 echo [ERROR] Composer install failed.
 echo [INFO] PHP OpenSSL status:
-"%PHP_EXE%" -m | findstr /i /x "openssl"
+"%PHP_EXE%" -r "echo extension_loaded('openssl') ? 'openssl loaded' : 'openssl missing';"
 echo.
 goto :fail
 

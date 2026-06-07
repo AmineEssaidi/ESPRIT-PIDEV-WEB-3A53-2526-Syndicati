@@ -1,6 +1,8 @@
 param(
     [Parameter(Mandatory = $true)]
-    [string] $PhpExe
+    [string] $PhpExe,
+
+    [switch] $NormalizeOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -8,6 +10,14 @@ $ErrorActionPreference = 'Stop'
 if (-not (Test-Path -LiteralPath $PhpExe)) {
     Write-Host "[ERROR] PHP executable not found: $PhpExe"
     exit 1
+}
+
+$alreadyLoaded = $false
+try {
+    & $PhpExe -r "exit(extension_loaded('openssl') ? 0 : 1);" *> $null
+    $alreadyLoaded = ($LASTEXITCODE -eq 0)
+} catch {
+    $alreadyLoaded = $false
 }
 
 $phpDir = Split-Path -Parent $PhpExe
@@ -65,6 +75,33 @@ if (-not (Test-Path -LiteralPath $backup)) {
 
 $text = Get-Content -LiteralPath $ini -Raw
 $extDir = Join-Path $phpDir 'ext'
+
+$enabledOpenSslPattern = '(?im)^\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$'
+$enabledOpenSslMatches = [regex]::Matches($text, $enabledOpenSslPattern)
+if ($enabledOpenSslMatches.Count -gt 1) {
+    $seen = $false
+    $text = [regex]::Replace($text, $enabledOpenSslPattern, {
+        param($match)
+        if ($seen) {
+            '; duplicate disabled by Syndicati setup: ' + $match.Value.Trim()
+        } else {
+            $seen = $true
+            'extension=openssl'
+        }
+    })
+    Set-Content -LiteralPath $ini -Value $text -Encoding ASCII
+    Write-Host "[OK] Removed duplicate OpenSSL extension lines from php.ini."
+}
+
+if ($alreadyLoaded) {
+    Write-Host "[OK] OpenSSL is already loaded by this PHP build/configuration."
+    exit 0
+}
+
+if ($NormalizeOnly) {
+    Write-Host "[INFO] OpenSSL is not loaded yet; normalize-only mode did not enable it."
+    exit 0
+}
 
 if (Test-Path -LiteralPath $extDir) {
     if ($text -notmatch '(?im)^\s*extension_dir\s*=') {
