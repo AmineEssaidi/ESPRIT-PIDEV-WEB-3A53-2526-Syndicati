@@ -12,6 +12,8 @@
 /var/
 /vendor/
 /node_modules/
+/tools/php/
+/tools/composer/
 ###< symfony/framework-bundle ###
 
 ###> phpunit/phpunit ###

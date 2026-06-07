@@ -9,6 +9,9 @@ set "COMPOSER_CMD="
 set "COMPOSER_DIR="
 set "COMPOSER_PHAR="
 set "RUN_COMPOSER=1"
+set "PORTABLE_PHP_URL=https://windows.php.net/downloads/releases/php-8.4.22-nts-Win32-vs17-x64.zip"
+set "PORTABLE_PHP_DIR=%~dp0tools\php"
+set "PORTABLE_COMPOSER_DIR=%~dp0tools\composer"
 
 if /I "%~1"=="--skip-composer" set "RUN_COMPOSER=0"
 if /I "%~1"=="--no-composer" set "RUN_COMPOSER=0"
@@ -104,6 +107,9 @@ for /f "delims=" %%p in ('dir /b /s "%LOCALAPPDATA%\Microsoft\WinGet\Packages\PH
 )
 if defined PHP_EXE exit /b 0
 
+if exist "%PORTABLE_PHP_DIR%\php.exe" set "PHP_EXE=%PORTABLE_PHP_DIR%\php.exe"
+if defined PHP_EXE exit /b 0
+
 if exist "C:\php\php.exe" set "PHP_EXE=C:\php\php.exe"
 if defined PHP_EXE exit /b 0
 
@@ -113,9 +119,9 @@ exit /b 0
 :install_php
 where winget >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] WinGet was not found, so this script cannot auto-install PHP.
-    echo         Install "App Installer" from Microsoft Store, then run this again.
-    exit /b 1
+    echo [WARN] WinGet was not found. Falling back to portable PHP download...
+    call :download_portable_php
+    exit /b %ERRORLEVEL%
 )
 
 echo [INFO] PHP was not found. Installing PHP with WinGet...
@@ -125,9 +131,36 @@ if errorlevel 1 (
     winget install -e --id PHP.PHP --accept-package-agreements --accept-source-agreements
 )
 if errorlevel 1 (
-    echo [ERROR] WinGet could not install PHP.
+    echo [WARN] WinGet could not install PHP. Falling back to portable PHP download...
+    call :download_portable_php
+    exit /b %ERRORLEVEL%
+)
+exit /b 0
+
+:download_portable_php
+echo [INFO] Downloading portable PHP:
+echo        %PORTABLE_PHP_URL%
+
+if not exist "%~dp0tools" mkdir "%~dp0tools" >nul 2>&1
+if exist "%PORTABLE_PHP_DIR%\php.exe" (
+    echo [OK] Portable PHP already exists.
+    set "PHP_EXE=%PORTABLE_PHP_DIR%\php.exe"
+    exit /b 0
+)
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; $url=$env:PORTABLE_PHP_URL; $dest=Join-Path $env:TEMP 'syndicati-php.zip'; $out=$env:PORTABLE_PHP_DIR; if(Test-Path $out){Remove-Item -LiteralPath $out -Recurse -Force}; New-Item -ItemType Directory -Path $out -Force | Out-Null; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri $url -OutFile $dest; Expand-Archive -LiteralPath $dest -DestinationPath $out -Force"
+if errorlevel 1 (
+    echo [ERROR] Could not download/extract portable PHP.
+    echo         Check internet access, then run this script again.
     exit /b 1
 )
+
+if not exist "%PORTABLE_PHP_DIR%\php.exe" (
+    echo [ERROR] Portable PHP extracted, but php.exe was not found.
+    exit /b 1
+)
+
+set "PHP_EXE=%PORTABLE_PHP_DIR%\php.exe"
 exit /b 0
 
 :ensure_openssl
@@ -186,6 +219,12 @@ if exist "%ProgramData%\ComposerSetup\bin\composer.phar" (
     set "COMPOSER_PHAR=%ProgramData%\ComposerSetup\bin\composer.phar"
     set "COMPOSER_CMD=%PHP_EXE% %ProgramData%\ComposerSetup\bin\composer.phar"
 )
+if defined COMPOSER_CMD goto :composer_found
+
+if exist "%PORTABLE_COMPOSER_DIR%\composer.phar" (
+    set "COMPOSER_PHAR=%PORTABLE_COMPOSER_DIR%\composer.phar"
+    set "COMPOSER_CMD=%PHP_EXE% %PORTABLE_COMPOSER_DIR%\composer.phar"
+)
 
 :composer_found
 if defined COMPOSER_CMD (
@@ -197,16 +236,41 @@ exit /b 0
 :install_composer
 where winget >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] Composer was not found and WinGet is unavailable.
-    exit /b 1
+    echo [WARN] Composer was not found and WinGet is unavailable.
+    echo [INFO] Falling back to portable composer.phar download...
+    call :download_portable_composer
+    exit /b %ERRORLEVEL%
 )
 
 echo [INFO] Composer was not found. Installing Composer with WinGet...
 winget install -e --id Composer.Composer --accept-package-agreements --accept-source-agreements
 if errorlevel 1 (
-    echo [ERROR] WinGet could not install Composer.
+    echo [WARN] WinGet could not install Composer.
+    echo [INFO] Falling back to portable composer.phar download...
+    call :download_portable_composer
+    exit /b %ERRORLEVEL%
+)
+exit /b 0
+
+:download_portable_composer
+if not exist "%PORTABLE_COMPOSER_DIR%" mkdir "%PORTABLE_COMPOSER_DIR%" >nul 2>&1
+set "COMPOSER_PHAR=%PORTABLE_COMPOSER_DIR%\composer.phar"
+set "COMPOSER_CMD=%PHP_EXE% %COMPOSER_PHAR%"
+
+echo [INFO] Downloading Composer:
+echo        https://getcomposer.org/download/latest-stable/composer.phar
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://getcomposer.org/download/latest-stable/composer.phar' -OutFile $env:COMPOSER_PHAR"
+if errorlevel 1 (
+    echo [ERROR] Could not download Composer.
     exit /b 1
 )
+
+if not exist "%COMPOSER_PHAR%" (
+    echo [ERROR] Composer download finished, but composer.phar was not found.
+    exit /b 1
+)
+
 exit /b 0
 
 :add_user_path
