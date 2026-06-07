@@ -117,8 +117,7 @@ exit /b 0
 
 :enable_openssl
 set "PHP_INI="
-for /f "tokens=1,* delims=:" %%a in ('"%PHP_EXE%" --ini ^| findstr /i "Loaded Configuration File"') do set "PHP_INI=%%b"
-for /f "tokens=* delims= " %%i in ("%PHP_INI%") do set "PHP_INI=%%i"
+for /f "delims=" %%i in ('"%PHP_EXE%" -r "echo php_ini_loaded_file();" 2^>nul') do set "PHP_INI=%%i"
 
 if "%PHP_INI%"=="" (
     echo [ERROR] Could not detect loaded php.ini.
@@ -140,7 +139,7 @@ echo [INFO] Loaded php.ini:
 echo        %PHP_INI%
 
 set "PHP_INI_TO_FIX=%PHP_INI%"
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$path=$env:PHP_INI_TO_FIX; $backup=$path + '.bak-syndicati'; if (-not (Test-Path -LiteralPath $backup)) { Copy-Item -LiteralPath $path -Destination $backup -Force }; $text=Get-Content -LiteralPath $path -Raw; if ($text -match '(?im)^\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$') { Write-Host '[OK] OpenSSL extension line is already enabled.'; exit 0 }; if ($text -match '(?im)^\s*;\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$') { $text=[regex]::Replace($text, '(?im)^\s*;\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$', 'extension=openssl', 1); Set-Content -LiteralPath $path -Value $text -Encoding ASCII; Write-Host '[OK] Uncommented extension=openssl.'; exit 0 }; Add-Content -LiteralPath $path -Value \"`r`nextension=openssl\" -Encoding ASCII; Write-Host '[OK] Added extension=openssl.'; exit 0"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$path=$env:PHP_INI_TO_FIX; $backup=$path + '.bak-syndicati'; if (-not (Test-Path -LiteralPath $backup)) { Copy-Item -LiteralPath $path -Destination $backup -Force }; $text=Get-Content -LiteralPath $path -Raw; if ($text -match '(?im)^\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$') { Write-Host '[OK] OpenSSL extension line is already enabled.'; exit 0 }; if ($text -match '(?im)^\s*;\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$') { $text=[regex]::Replace($text, '(?im)^\s*;\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$', 'extension=openssl', 1); Set-Content -LiteralPath $path -Value $text -Encoding ASCII; Write-Host '[OK] Uncommented extension=openssl.'; exit 0 }; Add-Content -LiteralPath $path -Value ''; Add-Content -LiteralPath $path -Value 'extension=openssl'; Write-Host '[OK] Added extension=openssl.'; exit 0"
 if errorlevel 1 exit /b 1
 
 exit /b 0
