@@ -8,7 +8,9 @@ set "PS_EXE=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
 set "REQUIRED_PHP_EXTENSIONS=openssl curl pdo_mysql intl mbstring fileinfo gd sodium"
 set "EXTENSION_FIXER=%~dp0tools\enable-php-extensions.ps1"
 set "HOST=127.0.0.1"
-set "PORT=8000"
+set "PORT_START=8000"
+set "PORT_END=8099"
+set "PORT="
 
 if defined PHP_EXE_OVERRIDE set "PHP_EXE=%PHP_EXE_OVERRIDE%"
 
@@ -84,12 +86,31 @@ if errorlevel 1 (
 
 echo.
 echo [OK] Starting Syndicati with the verified PHP runtime.
+call :find_free_port
+if "%PORT%"=="" (
+    echo [ERROR] No free port found between %PORT_START% and %PORT_END%.
+    pause
+    exit /b 1
+)
+
 echo [OK] Open this URL:
 echo      http://%HOST%:%PORT%
 echo.
-echo [NOTE] If another server is already using port %PORT%, close it first.
+echo [INFO] Selected free port: %PORT%
 echo.
 "%PHP_EXE%" -S %HOST%:%PORT% -t public
 echo.
 echo [INFO] PHP local server exited with code %ERRORLEVEL%.
 pause
+
+exit /b 0
+
+:find_free_port
+for /L %%p in (%PORT_START%,1,%PORT_END%) do (
+    netstat -ano | findstr /R /C:":%%p .*LISTENING" >nul 2>&1
+    if errorlevel 1 (
+        set "PORT=%%p"
+        exit /b 0
+    )
+)
+exit /b 1
