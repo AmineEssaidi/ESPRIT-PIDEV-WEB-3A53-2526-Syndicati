@@ -59,31 +59,19 @@ class SocialAuthController extends AbstractController
             return $this->redirectToRoute('auth_sign_in');
         }
 
-        $logFile = $this->getParameter('kernel.project_dir') . '/public/google_auth.log';
-        $log = function ($msg) use ($logFile) {
-            file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] " . $msg . "\n", FILE_APPEND);
-        };
-
-        $log("Callback triggered with URL: " . $request->getUri());
-
         try {
             $redirectUri = $this->getRedirectUri($request);
-            $log("Fetching user info for code (redirect_uri: $redirectUri)");
             $userInfo = $this->googleOAuthService->getUserInfo($code, $redirectUri);
 
             $email = $userInfo['email'];
             $googleId = $userInfo['id'];
-            $log("User info received: ID=$googleId, Email=$email");
 
             // 1. Match by google_id
-            $log("Searching for user by google_id: $googleId");
             $user = $this->userRepository->findOneBy(['google_id' => $googleId]);
 
             if ($user) {
-                $log("User found by google_id (ID: " . $user->getIdUser() . ")");
                 $this->addFlash('success', 'Welcome back! Synchronized via Google Identity.');
             } else {
-                $log("User NOT found by google_id, searching by email: $email");
                 // 2. Match by email (linking)
                 $user = $this->userRepository->findOneBy(['email_user' => $email]);
                 if ($user) {
@@ -143,16 +131,8 @@ class SocialAuthController extends AbstractController
                 ? $this->redirectToRoute('auth_sign_in', ['destination' => 'choice'])
                 : $this->redirectToRoute('main_home');
 
-        } catch (\Throwable $e) {
-            // Detailed diagnostic logging
-            $errorMessage = $e->getMessage();
-            if ($e->getPrevious()) {
-                $errorMessage .= ' | Previous: ' . $e->getPrevious()->getMessage();
-            }
-
-            $log("CRITICAL ERROR: " . $errorMessage . "\nTrace: " . $e->getTraceAsString());
-            error_log("[SocialAuth Error] " . $errorMessage);
-            $this->addFlash('danger', 'Authentication failed: ' . $errorMessage);
+        } catch (\Throwable) {
+            $this->addFlash('danger', 'Google authentication failed. Please try again.');
             return $this->redirectToRoute('auth_sign_in');
         }
     }

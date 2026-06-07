@@ -8,8 +8,10 @@
 /.env.prd
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
+/public/*.log
 /var/
 /vendor/
+/node_modules/
 ###< symfony/framework-bundle ###
 
 ###> phpunit/phpunit ###

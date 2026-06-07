@@ -186,35 +186,22 @@ class GoogleOAuthService
 
     public function getUserInfo(string $code, ?string $redirectUri = null): array
     {
-        $logFile = dirname(__DIR__, 3) . '/public/google_auth.log';
-        $log = function ($msg) use ($logFile) {
-            file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] [Service] " . $msg . "\n", FILE_APPEND);
-        };
-
-        $log("getUserInfo started with code: " . substr($code, 0, 10) . "...");
-
         try {
             if (!class_exists('\Google\Client')) {
-                $log("ERROR: \Google\Client class NOT FOUND!");
                 throw new \RuntimeException("\Google\Client class not found. Check composer install.");
             }
 
             $client = $this->createLoginClient($redirectUri);
-            $log("Client created. Fetching access token...");
 
             $token = $client->fetchAccessTokenWithAuthCode($code);
-            $log("Token response received: " . (isset($token['error']) ? "ERROR: " . json_encode($token) : "SUCCESS (token received)"));
 
             if (isset($token['error'])) {
                 throw new \RuntimeException($token['error_description'] ?? $token['error']);
             }
 
-            $log("Initializing Oauth2 service...");
             $service = new \Google\Service\Oauth2($client);
 
-            $log("Requesting userinfo from Google...");
             $userInfo = $service->userinfo->get();
-            $log("User info received from Google: " . ($userInfo ? "YES (ID: " . $userInfo->id . ")" : "NO"));
 
             return [
                 'id' => $userInfo->id,
@@ -224,7 +211,6 @@ class GoogleOAuthService
                 'picture' => $userInfo->picture,
             ];
         } catch (\Throwable $e) {
-            $log("SERVICE ERROR: " . $e->getMessage() . "\n" . $e->getTraceAsString());
             throw $e;
         }
     }
