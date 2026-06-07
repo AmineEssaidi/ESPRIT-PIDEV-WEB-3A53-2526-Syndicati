@@ -3,7 +3,7 @@ param(
     [string] $PhpExe,
 
     [Parameter(Mandatory = $true)]
-    [string[]] $Extensions
+    [string] $Extensions
 )
 
 $ErrorActionPreference = 'Stop'
@@ -77,8 +77,9 @@ if (Test-Path -LiteralPath $extDir) {
 }
 
 $changed = $false
+$extensionList = $Extensions -split '[,\s]+' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
 
-foreach ($extension in $Extensions) {
+foreach ($extension in $extensionList) {
     $extension = $extension.Trim()
     if (-not $extension) {
         continue
@@ -145,7 +146,7 @@ if ($changed) {
 }
 
 $missing = @()
-foreach ($extension in $Extensions) {
+foreach ($extension in $extensionList) {
     try {
         & $PhpExe -r "exit(extension_loaded('$extension') ? 0 : 1);" *> $null
         if ($LASTEXITCODE -ne 0) {

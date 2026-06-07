@@ -6,6 +6,7 @@ cd /d "%~dp0"
 set "PHP_EXE="
 set "PS_EXE=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
 set "REQUIRED_PHP_EXTENSIONS=openssl curl pdo_mysql intl mbstring fileinfo gd sodium"
+set "INSTALLER=%~dp0install-web-deps.bat"
 if defined PHP_EXE_OVERRIDE set "PHP_EXE=%PHP_EXE_OVERRIDE%"
 
 if "%PHP_EXE%"=="" (
@@ -49,7 +50,7 @@ echo.
 set "EXTENSION_FIXER=%~dp0tools\enable-php-extensions.ps1"
 if exist "%EXTENSION_FIXER%" if exist "%PS_EXE%" (
     echo [Repair PHP extensions]
-    "%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%EXTENSION_FIXER%" -PhpExe "%PHP_EXE%" -Extensions %REQUIRED_PHP_EXTENSIONS%
+    "%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%EXTENSION_FIXER%" -PhpExe "%PHP_EXE%" -Extensions "%REQUIRED_PHP_EXTENSIONS%"
     echo.
 )
 
@@ -61,6 +62,27 @@ for %%e in (%REQUIRED_PHP_EXTENSIONS%) do (
     ) else (
         echo OK      %%e
     )
+)
+echo.
+
+echo [Composer/vendor repair]
+if not exist vendor\autoload.php (
+    echo vendor\autoload.php is missing.
+    if exist "%INSTALLER%" (
+        call "%INSTALLER%" --no-pause
+    ) else (
+        echo Missing install-web-deps.bat. Run composer install manually.
+    )
+) else if not exist vendor\google\apiclient-services\autoload.php (
+    echo vendor\google\apiclient-services\autoload.php is missing.
+    echo Composer dependencies look incomplete. Running installer repair...
+    if exist "%INSTALLER%" (
+        call "%INSTALLER%" --no-pause
+    ) else (
+        echo Missing install-web-deps.bat. Run composer install manually.
+    )
+) else (
+    echo OK vendor dependencies look present.
 )
 echo.
 

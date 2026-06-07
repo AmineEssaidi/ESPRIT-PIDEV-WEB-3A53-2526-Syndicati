@@ -9,6 +9,7 @@ set "COMPOSER_CMD="
 set "COMPOSER_DIR="
 set "COMPOSER_PHAR="
 set "RUN_COMPOSER=1"
+set "DO_PAUSE=1"
 set "PS_EXE="
 set "PORTABLE_PHP_URL=https://windows.php.net/downloads/releases/php-8.4.22-nts-Win32-vs17-x64.zip"
 set "PORTABLE_PHP_DIR=%~dp0tools\php"
@@ -17,7 +18,8 @@ set "REQUIRED_PHP_EXTENSIONS=openssl curl pdo_mysql intl mbstring fileinfo gd so
 
 if /I "%~1"=="--skip-composer" set "RUN_COMPOSER=0"
 if /I "%~1"=="--no-composer" set "RUN_COMPOSER=0"
-if not "%~1"=="" if /I not "%~1"=="--skip-composer" if /I not "%~1"=="--no-composer" set "PHP_EXE=%~1"
+if /I "%~1"=="--no-pause" set "DO_PAUSE=0"
+if not "%~1"=="" if /I not "%~1"=="--skip-composer" if /I not "%~1"=="--no-composer" if /I not "%~1"=="--no-pause" set "PHP_EXE=%~1"
 if defined PHP_EXE_OVERRIDE set "PHP_EXE=%PHP_EXE_OVERRIDE%"
 
 echo.
@@ -100,7 +102,7 @@ echo.
 echo [OK] PHP is installed, OpenSSL is enabled, Composer is available.
 echo [OK] If this is a new terminal, reopen IntelliJ/VS Code/terminal once so PATH refreshes everywhere.
 echo.
-pause
+if "%DO_PAUSE%"=="1" pause
 exit /b 0
 
 :find_php
@@ -245,7 +247,7 @@ if not exist "%EXTENSION_FIXER%" (
 )
 
 echo [INFO] Checking required PHP extensions...
-"%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%EXTENSION_FIXER%" -PhpExe "%PHP_EXE%" -Extensions %REQUIRED_PHP_EXTENSIONS%
+"%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%EXTENSION_FIXER%" -PhpExe "%PHP_EXE%" -Extensions "%REQUIRED_PHP_EXTENSIONS%"
 if errorlevel 2 (
     echo [ERROR] Some required PHP extensions are still missing.
     echo [INFO] If this is a system PHP install, run this script as Administrator or use the portable PHP fallback.
@@ -368,5 +370,5 @@ goto :fail
 :fail
 echo.
 echo [FAILED] Setup did not complete.
-pause
+if "%DO_PAUSE%"=="1" pause
 exit /b 1
