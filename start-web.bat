@@ -80,6 +80,17 @@ if errorlevel 1 (
 )
 
 echo.
+echo [INFO] Preparing frontend assets...
+"%PHP_EXE%" bin\console importmap:install --env=prod --no-interaction
+if errorlevel 1 echo [WARN] importmap:install failed or is not required.
+
+"%PHP_EXE%" bin\console assets:install public --env=prod --no-interaction
+if errorlevel 1 echo [WARN] assets:install failed or is not required.
+
+"%PHP_EXE%" bin\console asset-map:compile --env=prod --no-interaction
+if errorlevel 1 echo [WARN] asset-map:compile failed or is not required.
+
+echo.
 echo [INFO] Checking database connection...
 "%PHP_EXE%" bin\console doctrine:query:sql "SELECT 1" --env=prod >nul
 if errorlevel 1 (
@@ -104,7 +115,7 @@ echo.
 echo [INFO] Selected free port: %PORT%
 echo.
 echo [%DATE% %TIME%] Starting PHP server on %HOST%:%PORT%>> "%LOG_FILE%"
-"%PHP_EXE%" -S %HOST%:%PORT% -t public
+"%PHP_EXE%" -S %HOST%:%PORT% -t public public\router.php
 echo.
 echo [INFO] PHP local server exited with code %ERRORLEVEL%.
 echo [%DATE% %TIME%] PHP local server exited with code %ERRORLEVEL%.>> "%LOG_FILE%"

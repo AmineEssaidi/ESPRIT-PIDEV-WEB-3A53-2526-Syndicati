@@ -290,8 +290,30 @@ Le fichier `.env` du projet est conserve pour le bootstrap Infisical de demonstr
 
 Installation complete :
 
+1- Installation de « Composer » :
+● Consulter la page : https://getcomposer.org/download/ et télécharger « Composer-
+setup.exe »
+● Exécuter « Composer-Setup.exe » pour installer « Composer »
+● Taper la commande composer -v et assurez-vous qu'il n'y a pas un message d'erreur
+particulier
+● Ajoutez le chemin de ComposerSetup\bin installé sous C:\ProgramData\ au chemin d'accès dans les variables d'environnement.
+
+2- Il faut tout d’abord installer l’outil CLI (command line interface), pour cela:
+
+1. Lancer l’invite de commande windows powershell
+2. Taper la commande suivante : Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+3. Installer Scoop (Scoop est installeur en ligne de commande pour Windows) via cette commande: irm get.scoop.sh | iex ou bien iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
+4. Lancer la commande suivante: scoop install symfony-cli
+5. Vérifier les exigences du projet symfony: symfony check:requirements
+
+3- Exécuter dans l'ordre:
+1. install-web-deps.bat (Exécutez-le une deuxième fois si WinGet n'était pas préinstallé, car ce fichier .bat le téléchargera.)
+2. diagnose-web.bat 
+
+4- Exécuter dans l'ordre dans VSCode/PhpStorm:
 ```bash
 composer install
+composer update
 npm install
 php bin/console importmap:install
 php bin/console assets:install public
@@ -300,14 +322,13 @@ php bin/console cache:clear
 
 Lancement :
 
+Exécuter:
+start-web.bat
+
+ou bien
+
 ```bash
 symfony serve
-```
-
-Ou :
-
-```bash
-php -S localhost:8000 -t public/
 ```
 
 ## Demo

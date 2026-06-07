@@ -141,6 +141,12 @@ echo [Clear prod cache]
 "%PHP_EXE%" bin\console cache:clear --env=prod --no-warmup
 echo.
 
+echo [Prepare frontend assets]
+"%PHP_EXE%" bin\console importmap:install --env=prod --no-interaction
+"%PHP_EXE%" bin\console assets:install public --env=prod --no-interaction
+"%PHP_EXE%" bin\console asset-map:compile --env=prod --no-interaction
+echo.
+
 echo [Symfony about]
 "%PHP_EXE%" bin\console about --env=prod
 echo.
