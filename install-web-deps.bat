@@ -64,6 +64,7 @@ call :add_user_path "%PHP_DIR%"
 set "PATH=%PHP_DIR%;%PATH%"
 
 call :find_php_cgi
+call :write_project_php_ini
 call :normalize_openssl_config
 call :ensure_php_extensions
 if errorlevel 1 goto :fail
@@ -274,6 +275,16 @@ exit /b 0
 for /f "delims=" %%p in ('where php-cgi 2^>nul') do (
     if not defined SYMFONY_PHP_CGI set "SYMFONY_PHP_CGI=%%p"
 )
+exit /b 0
+
+:write_project_php_ini
+if not defined SYMFONY_PHP_CGI exit /b 0
+set "PROJECT_PHP_INI_WRITER=%~dp0tools\write-symfony-project-php-ini.ps1"
+if not exist "%PROJECT_PHP_INI_WRITER%" exit /b 0
+
+echo [INFO] Writing project php.ini for Symfony CLI server:
+echo        %SYMFONY_PHP_CGI%
+"%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_PHP_INI_WRITER%" -PhpExe "%SYMFONY_PHP_CGI%" -ProjectDir "%~dp0" -Extensions "%REQUIRED_PHP_EXTENSIONS%"
 exit /b 0
 
 :normalize_openssl_config

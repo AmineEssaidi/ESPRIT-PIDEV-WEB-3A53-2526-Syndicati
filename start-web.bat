@@ -90,3 +90,6 @@ echo.
 echo [NOTE] If another server is already using port %PORT%, close it first.
 echo.
 "%PHP_EXE%" -S %HOST%:%PORT% -t public
+echo.
+echo [INFO] PHP local server exited with code %ERRORLEVEL%.
+pause

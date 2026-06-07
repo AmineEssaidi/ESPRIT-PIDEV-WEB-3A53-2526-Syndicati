@@ -9,6 +9,7 @@ set "SYMFONY_PHP_CHECK="
 set "PS_EXE=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
 set "REQUIRED_PHP_EXTENSIONS=openssl curl pdo_mysql intl mbstring fileinfo gd sodium"
 set "INSTALLER=%~dp0install-web-deps.bat"
+set "PROJECT_PHP_INI_WRITER=%~dp0tools\write-symfony-project-php-ini.ps1"
 if defined PHP_EXE_OVERRIDE set "PHP_EXE=%PHP_EXE_OVERRIDE%"
 
 if "%PHP_EXE%"=="" (
@@ -78,6 +79,12 @@ if exist "%EXTENSION_FIXER%" if exist "%PS_EXE%" (
         echo [Repair Symfony CLI PHP-CGI extensions]
         "%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%EXTENSION_FIXER%" -PhpExe "%SYMFONY_PHP_CGI%" -Extensions "%REQUIRED_PHP_EXTENSIONS%"
     )
+    echo.
+)
+
+if not "%SYMFONY_PHP_CGI%"=="" if exist "%PROJECT_PHP_INI_WRITER%" if exist "%PS_EXE%" (
+    echo [Write Symfony project php.ini]
+    "%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_PHP_INI_WRITER%" -PhpExe "%SYMFONY_PHP_CGI%" -ProjectDir "%~dp0" -Extensions "%REQUIRED_PHP_EXTENSIONS%"
     echo.
 )
 
