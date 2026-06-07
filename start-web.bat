@@ -11,6 +11,10 @@ set "HOST=127.0.0.1"
 set "PORT_START=8000"
 set "PORT_END=8099"
 set "PORT="
+set "LOG_FILE=%~dp0var\log\start-web.log"
+
+if not exist "%~dp0var\log" mkdir "%~dp0var\log" >nul 2>&1
+echo [%DATE% %TIME%] start-web.bat launched > "%LOG_FILE%"
 
 if defined PHP_EXE_OVERRIDE set "PHP_EXE=%PHP_EXE_OVERRIDE%"
 
@@ -89,6 +93,7 @@ echo [OK] Starting Syndicati with the verified PHP runtime.
 call :find_free_port
 if "%PORT%"=="" (
     echo [ERROR] No free port found between %PORT_START% and %PORT_END%.
+    echo [%DATE% %TIME%] No free port found between %PORT_START% and %PORT_END%.>> "%LOG_FILE%"
     pause
     exit /b 1
 )
@@ -98,19 +103,20 @@ echo      http://%HOST%:%PORT%
 echo.
 echo [INFO] Selected free port: %PORT%
 echo.
+echo [%DATE% %TIME%] Starting PHP server on %HOST%:%PORT%>> "%LOG_FILE%"
 "%PHP_EXE%" -S %HOST%:%PORT% -t public
 echo.
 echo [INFO] PHP local server exited with code %ERRORLEVEL%.
+echo [%DATE% %TIME%] PHP local server exited with code %ERRORLEVEL%.>> "%LOG_FILE%"
 pause
 
 exit /b 0
 
 :find_free_port
-for /L %%p in (%PORT_START%,1,%PORT_END%) do (
-    netstat -ano | findstr /R /C:":%%p .*LISTENING" >nul 2>&1
-    if errorlevel 1 (
-        set "PORT=%%p"
-        exit /b 0
-    )
-)
-exit /b 1
+if not exist "%PS_EXE%" exit /b 1
+
+"%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -Command "$start=[int]$env:PORT_START; $end=[int]$env:PORT_END; $hostName=$env:HOST; for($p=$start; $p -le $end; $p++){ $listener=$null; try { $listener=[System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Parse($hostName), $p); $listener.Start(); $listener.Stop(); Write-Output $p; exit 0 } catch { if($listener){ try { $listener.Stop() } catch {} } } }; exit 1" > "%TEMP%\syndicati-free-port.txt"
+if errorlevel 1 exit /b 1
+set /p PORT=<"%TEMP%\syndicati-free-port.txt"
+if "%PORT%"=="" exit /b 1
+exit /b 0
