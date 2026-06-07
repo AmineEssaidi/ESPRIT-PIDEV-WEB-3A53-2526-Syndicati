@@ -53,18 +53,36 @@ echo.
 
 "%PHP_EXE%" -m | findstr /i /x "openssl" >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] OpenSSL is not enabled for:
+    echo [WARN] OpenSSL is not enabled for:
     echo         %PHP_EXE%
     echo.
-    echo Active PHP configuration:
-    "%PHP_EXE%" --ini
+    echo [INFO] Attempting to enable OpenSSL in the active php.ini...
+    call :enable_openssl
+    if errorlevel 1 (
+        echo.
+        echo [ERROR] Could not enable OpenSSL automatically.
+        echo.
+        echo Active PHP configuration:
+        "%PHP_EXE%" --ini
+        echo.
+        echo Enable the OpenSSL extension in the loaded php.ini, usually by adding or uncommenting:
+        echo     extension=openssl
+        echo.
+        echo If the php.ini is inside Program Files, run this script as Administrator.
+        pause
+        exit /b 1
+    )
     echo.
-    echo Enable the OpenSSL extension in the loaded php.ini, usually by adding or uncommenting:
-    echo     extension=openssl
-    echo.
-    echo Then reopen your terminal and run this script again.
-    pause
-    exit /b 1
+    echo [INFO] Re-checking OpenSSL...
+    "%PHP_EXE%" -m | findstr /i /x "openssl" >nul 2>&1
+    if errorlevel 1 (
+        echo [ERROR] OpenSSL was enabled in php.ini but PHP still did not load it.
+        echo.
+        echo This usually means the PHP OpenSSL DLL/dependency is missing or PHP needs a fresh terminal.
+        echo Try reopening your terminal, or install a PHP build that includes OpenSSL.
+        pause
+        exit /b 1
+    )
 )
 
 echo [OK] PHP OpenSSL extension is enabled.
@@ -95,4 +113,34 @@ if errorlevel 1 (
 echo.
 echo [OK] Composer dependencies installed successfully.
 pause
+exit /b 0
+
+:enable_openssl
+set "PHP_INI="
+for /f "tokens=1,* delims=:" %%a in ('"%PHP_EXE%" --ini ^| findstr /i "Loaded Configuration File"') do set "PHP_INI=%%b"
+for /f "tokens=* delims= " %%i in ("%PHP_INI%") do set "PHP_INI=%%i"
+
+if "%PHP_INI%"=="" (
+    echo [ERROR] Could not detect loaded php.ini.
+    exit /b 1
+)
+
+if /i "%PHP_INI%"=="(none)" (
+    echo [ERROR] PHP is not loading a php.ini file.
+    exit /b 1
+)
+
+if not exist "%PHP_INI%" (
+    echo [ERROR] Loaded php.ini was not found:
+    echo         %PHP_INI%
+    exit /b 1
+)
+
+echo [INFO] Loaded php.ini:
+echo        %PHP_INI%
+
+set "PHP_INI_TO_FIX=%PHP_INI%"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$path=$env:PHP_INI_TO_FIX; $backup=$path + '.bak-syndicati'; if (-not (Test-Path -LiteralPath $backup)) { Copy-Item -LiteralPath $path -Destination $backup -Force }; $text=Get-Content -LiteralPath $path -Raw; if ($text -match '(?im)^\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$') { Write-Host '[OK] OpenSSL extension line is already enabled.'; exit 0 }; if ($text -match '(?im)^\s*;\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$') { $text=[regex]::Replace($text, '(?im)^\s*;\s*extension\s*=\s*(php_)?openssl(\.dll)?\s*$', 'extension=openssl', 1); Set-Content -LiteralPath $path -Value $text -Encoding ASCII; Write-Host '[OK] Uncommented extension=openssl.'; exit 0 }; Add-Content -LiteralPath $path -Value \"`r`nextension=openssl\" -Encoding ASCII; Write-Host '[OK] Added extension=openssl.'; exit 0"
+if errorlevel 1 exit /b 1
+
 exit /b 0
