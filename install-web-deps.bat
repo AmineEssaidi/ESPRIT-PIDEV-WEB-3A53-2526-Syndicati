@@ -13,6 +13,7 @@ set "PS_EXE="
 set "PORTABLE_PHP_URL=https://windows.php.net/downloads/releases/php-8.4.22-nts-Win32-vs17-x64.zip"
 set "PORTABLE_PHP_DIR=%~dp0tools\php"
 set "PORTABLE_COMPOSER_DIR=%~dp0tools\composer"
+set "REQUIRED_PHP_EXTENSIONS=openssl curl pdo_mysql intl mbstring fileinfo gd sodium"
 
 if /I "%~1"=="--skip-composer" set "RUN_COMPOSER=0"
 if /I "%~1"=="--no-composer" set "RUN_COMPOSER=0"
@@ -60,6 +61,9 @@ call :add_user_path "%PHP_DIR%"
 set "PATH=%PHP_DIR%;%PATH%"
 
 call :normalize_openssl_config
+call :ensure_php_extensions
+if errorlevel 1 goto :fail
+
 call :ensure_openssl
 if errorlevel 1 goto :fail
 
@@ -230,6 +234,24 @@ if errorlevel 1 (
 )
 
 echo [OK] PHP OpenSSL extension is enabled.
+exit /b 0
+
+:ensure_php_extensions
+set "EXTENSION_FIXER=%~dp0tools\enable-php-extensions.ps1"
+if not exist "%EXTENSION_FIXER%" (
+    echo [ERROR] Missing helper script:
+    echo        %EXTENSION_FIXER%
+    exit /b 1
+)
+
+echo [INFO] Checking required PHP extensions...
+"%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -File "%EXTENSION_FIXER%" -PhpExe "%PHP_EXE%" -Extensions %REQUIRED_PHP_EXTENSIONS%
+if errorlevel 2 (
+    echo [ERROR] Some required PHP extensions are still missing.
+    echo [INFO] If this is a system PHP install, run this script as Administrator or use the portable PHP fallback.
+    exit /b 1
+)
+if errorlevel 1 exit /b 1
 exit /b 0
 
 :normalize_openssl_config
